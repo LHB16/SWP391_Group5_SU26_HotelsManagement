@@ -17,11 +17,11 @@ public class LoginController {
     public LoginController(AuthService authService) {
         this.authService = authService;
     }
-//
-//    @GetMapping("/home")
-//    public String home() {
-//        return "HomePage/home";
-//    }
+
+    @GetMapping("/home")
+    public String home() {
+        return "HomePage/home";
+    }
 
     @GetMapping("/login")
     public String showLoginForm() {
@@ -52,11 +52,5 @@ public class LoginController {
             model.addAttribute("error", msg);
             return "auth/login";
         }
-    }
-
-    @GetMapping("/logout")
-    public String logout(HttpSession session) {
-        session.invalidate();
-        return "redirect:/";
     }
 }

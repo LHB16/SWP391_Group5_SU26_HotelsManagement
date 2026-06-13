@@ -15,7 +15,7 @@
         <div th:if="${user != null}">
             <p>Hello, <strong th:text="${user.username}">User</strong>!</p>
             <p>ROLE: <strong th:text="${user.role}">ROLE</strong></p>
-            
+
             <p>
                 <a th:if="${#strings.equalsIgnoreCase(user.role, 'ADMIN')}" th:href="@{/admin/dashboard}">Enter Admin Dashboard</a>
                 <br th:if="${#strings.equalsIgnoreCase(user.role, 'ADMIN')}"/>
