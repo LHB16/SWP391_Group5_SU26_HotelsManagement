@@ -1,5 +1,5 @@
 // src/main/java/vn/edu/fpt/hotel_management/model/User.java
-package vn.edu.fpt.hotel_management.model;
+package vn.edu.fpt.hotel_management.entity;
 
 import jakarta.persistence.*;
 

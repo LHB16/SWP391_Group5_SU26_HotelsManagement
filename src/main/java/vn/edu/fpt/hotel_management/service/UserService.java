@@ -3,7 +3,7 @@ package vn.edu.fpt.hotel_management.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import vn.edu.fpt.hotel_management.model.User;
+import vn.edu.fpt.hotel_management.entity.User;
 import vn.edu.fpt.hotel_management.repository.UserRepository;
 
 @Service
