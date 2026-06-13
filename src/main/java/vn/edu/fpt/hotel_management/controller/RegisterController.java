@@ -16,7 +16,7 @@ public class RegisterController {
 
     @GetMapping("/register")
     public String showRegisterForm() {
-        return "register";
+        return "auth/register";
     }
 
     @PostMapping("/register")
@@ -27,10 +27,10 @@ public class RegisterController {
         try {
             userService.register(username, password, email);
             model.addAttribute("success", "Đăng ký thành công!");
-            return "register";
+            return "auth/register";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
-            return "register";
+            return "auth/register";
         }
     }
 }
