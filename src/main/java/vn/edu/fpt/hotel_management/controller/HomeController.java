@@ -9,7 +9,7 @@ import vn.edu.fpt.hotel_management.entity.User;
 @Controller
 public class HomeController {
 
-    @GetMapping("/")
+    @GetMapping({"/", "/home"})
     public String showHomePage(HttpSession session, Model model) {
         // Lấy thông tin người dùng đã đăng nhập từ Session
         User loggedInUser = (User) session.getAttribute("loggedInUser");
@@ -19,7 +19,7 @@ public class HomeController {
             model.addAttribute("user", loggedInUser);
         }
         
-        // Trả về file giao diện home.html trong thư mục templates
-        return "home";
+        // Trả về file giao diện HomePage/home.html trong thư mục templates
+        return "HomePage/home";
     }
 }

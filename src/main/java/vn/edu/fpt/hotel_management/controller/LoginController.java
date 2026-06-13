@@ -18,11 +18,6 @@ public class LoginController {
         this.authService = authService;
     }
 
-    @GetMapping("/home")
-    public String home() {
-        return "HomePage/home";
-    }
-
     @GetMapping("/login")
     public String showLoginForm() {
         return "auth/login";
