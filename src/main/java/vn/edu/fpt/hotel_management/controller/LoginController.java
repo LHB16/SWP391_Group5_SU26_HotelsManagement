@@ -17,11 +17,11 @@ public class LoginController {
     public LoginController(AuthService authService) {
         this.authService = authService;
     }
-
-    @GetMapping("/home")
-    public String home() {
-        return "HomePage/home";
-    }
+//
+//    @GetMapping("/home")
+//    public String home() {
+//        return "HomePage/home";
+//    }
 
     @GetMapping("/login")
     public String showLoginForm() {
