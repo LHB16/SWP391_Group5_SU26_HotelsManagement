@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body>
+    <div>
+        <h2>System Login</h2>
+        
+        <!-- Error message display -->
+        <div th:if="${param.error}">
+            <p style="color: red;">Invalid username or password!</p>
+        </div>
+        <div th:if="${error}">
+            <p style="color: red;" th:text="${error}"></p>
+        </div>
+        
+        <!-- Success message display -->
+        <div th:if="${param.logout}">
+            <p style="color: green;">You have logged out successfully!</p>
+        </div>
+        <div th:if="${success}">
+            <p style="color: green;" th:text="${success}"></p>
+        </div>
+
+        <!-- Both Admin and Customer use this form to login -->
+        <form method="post" th:action="@{/login}">
+            <div>
+                <label for="username">Username:</label>
+                <br/>
+                <input type="text" id="username" name="username" placeholder="Enter your username..." required />
+            </div>
+            
+            <br/>
+            
+            <div>
+                <label for="password">Password:</label>
+                <br/>
+                <input type="password" id="password" name="password" placeholder="Enter your password..." required />
+            </div>
+            
+            <br/>
+            
+            <button type="submit">Login</button>
+        </form>
+
+        <br/>
+        <div>
+            Don't have an account? <a th:href="@{/register}">Register here</a>
+        </div>
+    </div>
+</body>
+</html>

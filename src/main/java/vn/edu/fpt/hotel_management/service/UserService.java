@@ -21,4 +21,13 @@ public class UserService {
         User user = new User(username, password, email, "CUSTOMER");
         userRepository.save(user);
     }
+
+    public User login(String username, String password) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Username or password incorrect!"));
+        if (!user.getPassword().equals(password)) {
+            throw new RuntimeException("Username or password incorrect!");
+        }
+        return user;
+    }
 }
