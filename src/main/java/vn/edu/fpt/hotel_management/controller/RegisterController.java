@@ -1,18 +1,25 @@
-// src/main/java/vn/edu/fpt/hotel_management/controller/RegisterController.java
 package vn.edu.fpt.hotel_management.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import vn.edu.fpt.hotel_management.service.EmailService;
+import vn.edu.fpt.hotel_management.service.OtpService;
 import vn.edu.fpt.hotel_management.service.UserService;
 
 @Controller
 public class RegisterController {
-    @Autowired
-    private UserService userService;
+
+    private final UserService userService;
+    private final EmailService emailService;
+    private final OtpService otpService;
+
+    public RegisterController(UserService userService, EmailService emailService, OtpService otpService) {
+        this.userService = userService;
+        this.emailService = emailService;
+        this.otpService = otpService;
+    }
 
     @GetMapping("/register")
     public String showRegisterForm() {
@@ -20,14 +27,17 @@ public class RegisterController {
     }
 
     @PostMapping("/register")
-    public String register(@RequestParam String username,
-                           @RequestParam String password,
-                           @RequestParam String email,
-                           Model model) {
+    public String register(@RequestParam String fullName, @RequestParam String username, @RequestParam String password, @RequestParam String email, HttpSession session, Model model) {
         try {
-            userService.register(username, password, email);
-            model.addAttribute("success", "Đăng ký thành công!");
-            return "auth/register";
+            userService.validateRegister(username, email);
+
+            String otp = otpService.generateOtp();
+            emailService.sendOtp(email, otp);
+            userService.savePendingUser(fullName, username, password, email, otp);
+
+            session.setAttribute("pendingEmail", email);
+
+            return "redirect:/verify-otp";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
             return "auth/register";

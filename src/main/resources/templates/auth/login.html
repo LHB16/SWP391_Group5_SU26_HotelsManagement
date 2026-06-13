@@ -1,54 +1,59 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8"/>
     <title>Login</title>
+    <link th:href="@{/assets/css/bootstrap.css}" rel="stylesheet"/>
 </head>
-<body>
-    <div>
-        <h2>System Login</h2>
-        
-        <!-- Error message display -->
-        <div th:if="${param.error}">
-            <p style="color: red;">Invalid username or password!</p>
-        </div>
-        <div th:if="${error}">
-            <p style="color: red;" th:text="${error}"></p>
-        </div>
-        
-        <!-- Success message display -->
-        <div th:if="${param.logout}">
-            <p style="color: green;">You have logged out successfully!</p>
-        </div>
-        <div th:if="${success}">
-            <p style="color: green;" th:text="${success}"></p>
-        </div>
+<body class="bg-light">
 
-        <!-- Both Admin and Customer use this form to login -->
-        <form method="post" th:action="@{/login}">
-            <div>
-                <label for="username">Username:</label>
-                <br/>
-                <input type="text" id="username" name="username" placeholder="Enter your username..." required />
-            </div>
-            
-            <br/>
-            
-            <div>
-                <label for="password">Password:</label>
-                <br/>
-                <input type="password" id="password" name="password" placeholder="Enter your password..." required />
-            </div>
-            
-            <br/>
-            
-            <button type="submit">Login</button>
-        </form>
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="card shadow" style="width: 420px;">
+        <div class="card-header bg-primary text-white text-center">
+            <h4 class="mb-0">System Login</h4>
+        </div>
+        <div class="card-body p-4">
 
-        <br/>
-        <div>
-            Don't have an account? <a th:href="@{/register}">Register here</a>
+            <div th:if="${param.error}" class="alert alert-danger">
+                Invalid username or password!
+            </div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+            
+            <div th:if="${param.registered}" class="alert alert-success">
+                Registration successful! Please log in.
+            </div>
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+            <form method="post" th:action="@{/login}">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" id="username" name="username"
+                           class="form-control"
+                           placeholder="Enter your username..."
+                           required/>
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" name="password"
+                           class="form-control"
+                           placeholder="Enter your password..."
+                           required/>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Login</button>
+            </form>
+
+            <div class="text-center mt-3">
+                <span class="text-muted small">Don't have an account?
+                    <a th:href="@{/register}">Register here</a>
+                </span>
+            </div>
+
         </div>
     </div>
+</div>
+
+<script th:src="@{/assets/js/bootstrap.bundle.js}"></script>
 </body>
 </html>

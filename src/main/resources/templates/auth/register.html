@@ -1,35 +1,64 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Đăng ký tài khoản</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 50px; }
-        .container { width: 400px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 10px; }
-        input { width: 100%; padding: 8px; margin: 8px 0; }
-        button { background-color: #4CAF50; color: white; padding: 10px; border: none; width: 100%; cursor: pointer; }
-        .error { color: red; }
-        .success { color: green; }
-    </style>
+    <meta charset="UTF-8"/>
+    <title>Register</title>
+    <link th:href="@{/assets/css/bootstrap.css}" rel="stylesheet"/>
 </head>
-<body>
-<div class="container">
-    <h2>Đăng ký tài khoản</h2>
-    <form method="post" action="/register">
-        <label>Tên đăng nhập:</label>
-        <input type="text" name="username" required />
+<body class="bg-light">
 
-        <label>Mật khẩu:</label>
-        <input type="password" name="password" required />
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="card shadow" style="width: 420px;">
+        <div class="card-header bg-success text-white text-center">
+            <h4 class="mb-0">Create Account</h4>
+        </div>
+        <div class="card-body p-4">
 
-        <label>Email:</label>
-        <input type="email" name="email" required />
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
-        <button type="submit">Đăng ký</button>
-    </form>
+            <form method="post" action="/register">
 
-    <div th:if="${error}" class="error" th:text="${error}"></div>
-    <div th:if="${success}" class="success" th:text="${success}"></div>
+                <div class="mb-3">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" name="fullName" class="form-control"
+                           placeholder="Enter your full name..."
+                           required minlength="2"/>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <input type="text" name="username" class="form-control"
+                           placeholder="Enter your username..."
+                           required minlength="3"/>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control"
+                           placeholder="Enter your email..."
+                           required/>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input type="password" name="password" class="form-control"
+                           placeholder="Enter your password..."
+                           required minlength="6"/>
+                </div>
+
+                <button type="submit" class="btn btn-success w-100">Register</button>
+            </form>
+
+            <div class="text-center mt-3">
+                <span class="text-muted small">Already have an account?
+                    <a th:href="@{/login}">Login here</a>
+                </span>
+            </div>
+
+        </div>
+    </div>
 </div>
+
+<script th:src="@{/assets/js/bootstrap.bundle.js}"></script>
 </body>
 </html>
