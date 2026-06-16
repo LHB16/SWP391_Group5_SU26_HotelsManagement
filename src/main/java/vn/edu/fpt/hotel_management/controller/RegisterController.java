@@ -27,7 +27,12 @@ public class RegisterController {
     }
 
     @PostMapping("/register")
-    public String register(@RequestParam String fullName, @RequestParam String username, @RequestParam String password, @RequestParam String email, HttpSession session, Model model) {
+    public String register(@RequestParam String fullName,
+                           @RequestParam String username,
+                           @RequestParam String password,
+                           @RequestParam String email,
+                           HttpSession session,
+                           Model model) {
         try {
             userService.validateRegister(username, email);
 
@@ -36,6 +41,8 @@ public class RegisterController {
             userService.savePendingUser(fullName, username, password, email, otp);
 
             session.setAttribute("pendingEmail", email);
+            session.setAttribute("pendingFullName", fullName);
+            session.setAttribute("pendingUsername", username);
 
             return "redirect:/verify-otp";
         } catch (Exception e) {

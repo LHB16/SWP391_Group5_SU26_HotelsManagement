@@ -20,7 +20,7 @@ public class OtpService {
         return String.valueOf(new Random().nextInt(900000) + 100000);
     }
 
-    public void verifyOtp(String email, String otp) {
+    public User verifyOtp(String email, String otp) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Account not found!"));
 
         if (user.getOtpExpiry().isBefore(LocalDateTime.now())) {
@@ -35,6 +35,6 @@ public class OtpService {
         user.setEnabled(true);
         user.setOtp(null);
         user.setOtpExpiry(null);
-        userRepository.save(user);
+        return userRepository.save(user);
     }
 }

@@ -4,15 +4,20 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import vn.edu.fpt.hotel_management.entity.User;
+import vn.edu.fpt.hotel_management.service.EmailService;
 import vn.edu.fpt.hotel_management.service.ForgotPasswordService;
 
 @Controller
 public class ForgotPasswordController {
 
     private final ForgotPasswordService forgotPasswordService;
+    private final EmailService emailService;
 
-    public ForgotPasswordController(ForgotPasswordService forgotPasswordService) {
+    public ForgotPasswordController(ForgotPasswordService forgotPasswordService,
+                                    EmailService emailService) {
         this.forgotPasswordService = forgotPasswordService;
+        this.emailService = emailService;
     }
 
     @GetMapping("/forgot-password")
@@ -48,6 +53,12 @@ public class ForgotPasswordController {
                                 Model model) {
         try {
             forgotPasswordService.resetPassword(email, newPassword);
+
+            User user = forgotPasswordService.findByEmail(email);
+            if (user != null) {
+                emailService.sendPasswordResetSuccess(email, user.getFullName(), user.getUsername());
+            }
+
             session.removeAttribute("resetEmail");
             session.removeAttribute("resetOtp");
             return "redirect:/login?passwordReset";

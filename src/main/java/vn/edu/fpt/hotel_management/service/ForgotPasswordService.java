@@ -1,5 +1,6 @@
 package vn.edu.fpt.hotel_management.service;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vn.edu.fpt.hotel_management.entity.User;
 import vn.edu.fpt.hotel_management.repository.UserRepository;
@@ -12,13 +13,15 @@ public class ForgotPasswordService {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final OtpService otpService;
-
+    private final PasswordEncoder passwordEncoder;
     public ForgotPasswordService(UserRepository userRepository,
                                  EmailService emailService,
-                                 OtpService otpService) {
+                                 OtpService otpService,
+                                 PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.emailService = emailService;
         this.otpService = otpService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public void sendResetOtp(String email) {
@@ -41,7 +44,10 @@ public class ForgotPasswordService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Email not found!"));
 
-        user.setPassword(newPassword);
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+    }
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
     }
 }

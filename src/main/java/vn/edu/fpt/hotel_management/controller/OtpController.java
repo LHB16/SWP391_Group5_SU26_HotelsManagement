@@ -1,18 +1,23 @@
 package vn.edu.fpt.hotel_management.controller;
 
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import vn.edu.fpt.hotel_management.service.EmailService;
 import vn.edu.fpt.hotel_management.service.OtpService;
+import vn.edu.fpt.hotel_management.entity.User;
 
 @Controller
 public class OtpController {
 
     private final OtpService otpService;
+    private final EmailService emailService;
 
-    public OtpController(OtpService otpService) {
+    public OtpController(OtpService otpService, EmailService emailService) {
         this.otpService = otpService;
+        this.emailService = emailService;
     }
 
     @GetMapping("/verify-otp")
@@ -29,7 +34,7 @@ public class OtpController {
                             HttpSession session,
                             Model model) {
         try {
-            otpService.verifyOtp(email, otp);
+            User user = otpService.verifyOtp(email, otp);
             session.removeAttribute("pendingEmail");
 
             Boolean resetFlow = (Boolean) session.getAttribute("resetFlow");
@@ -39,6 +44,13 @@ public class OtpController {
                 session.setAttribute("resetOtp", otp);
                 return "redirect:/reset-password";
             }
+
+            emailService.sendWelcome(email, user.getFullName(), user.getUsername());
+
+            session.removeAttribute("pendingOtp");
+            session.removeAttribute("pendingFullName");
+            session.removeAttribute("pendingUsername");
+            session.removeAttribute("pendingPassword");
 
             return "redirect:/login?registered";
         } catch (Exception e) {
