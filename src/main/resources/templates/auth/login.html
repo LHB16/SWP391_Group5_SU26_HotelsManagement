@@ -18,9 +18,12 @@
                 Invalid username or password!
             </div>
             <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
-            
+
             <div th:if="${param.registered}" class="alert alert-success">
                 Registration successful! Please log in.
+            </div>
+            <div th:if="${param.passwordReset}" class="alert alert-success">
+                Password reset successful! Please log in.
             </div>
             <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
 
@@ -42,6 +45,10 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary w-100">Login</button>
+
+                <div class="text-center mt-2">
+                    <a th:href="@{/forgot-password}" class="text-muted small">Forgot password?</a>
+                </div>
             </form>
 
             <div class="text-center mt-3">

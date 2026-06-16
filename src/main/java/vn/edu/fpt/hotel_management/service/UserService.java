@@ -1,5 +1,7 @@
+// src/main/java/vn/edu/fpt/hotel_management/service/UserService.java
 package vn.edu.fpt.hotel_management.service;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vn.edu.fpt.hotel_management.entity.User;
 import vn.edu.fpt.hotel_management.repository.UserRepository;
@@ -10,9 +12,11 @@ import java.time.LocalDateTime;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;  // thêm
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public void validateRegister(String username, String email) {
@@ -37,7 +41,8 @@ public class UserService {
         User user = new User();
         user.setFullName(fullName);
         user.setUsername(username);
-        user.setPassword(password);
+        // Mã hóa mật khẩu trước khi lưu
+        user.setPassword(passwordEncoder.encode(password));
         user.setEmail(email);
         user.setRole("CUSTOMER");
         user.setOtp(otp);

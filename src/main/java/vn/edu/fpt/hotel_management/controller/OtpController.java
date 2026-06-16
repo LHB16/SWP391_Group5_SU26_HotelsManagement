@@ -31,6 +31,15 @@ public class OtpController {
         try {
             otpService.verifyOtp(email, otp);
             session.removeAttribute("pendingEmail");
+
+            Boolean resetFlow = (Boolean) session.getAttribute("resetFlow");
+            if (Boolean.TRUE.equals(resetFlow)) {
+                session.removeAttribute("resetFlow");
+                session.setAttribute("resetEmail", email);
+                session.setAttribute("resetOtp", otp);
+                return "redirect:/reset-password";
+            }
+
             return "redirect:/login?registered";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
