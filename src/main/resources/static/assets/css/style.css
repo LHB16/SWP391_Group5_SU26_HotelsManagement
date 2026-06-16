@@ -1,0 +1,85 @@
+/* CSS định nghĩa giao diện cho Avatar và Dropdown Menu của Can Tho Hotel */
+
+/* Thiết kế khung bọc cho Avatar và Dropdown */
+.avatar-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Nút bấm chứa hình ảnh avatar */
+.avatar-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%; /* Làm avatar tròn trịa */
+    background-color: #0f4c81; /* Màu Primary Navy theo style.md */
+    color: #ffffff;
+    border: 2px solid #eff4ff; /* Màu secondary light azure làm viền */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Hiệu ứng di chuột vào avatar */
+.avatar-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 6px rgba(15, 76, 129, 0.2);
+}
+
+/* Giao diện menu thả (Dropdown) */
+.avatar-menu {
+    position: absolute;
+    right: 0;
+    top: 50px;
+    background-color: #ffffff;
+    border: 1px solid #eff4ff;
+    border-radius: 8px; /* ROUND_EIGHT theo style.md */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    min-width: 180px;
+    z-index: 1000;
+    display: none; /* Mặc định ẩn đi */
+    overflow: hidden;
+}
+
+/* Lớp hiển thị menu khi kích hoạt */
+.avatar-menu.show {
+    display: block;
+}
+
+/* Các liên kết lựa chọn bên trong menu */
+.avatar-menu-item {
+    display: block;
+    padding: 10px 16px;
+    color: #333333;
+    text-decoration: none;
+    font-size: 15px;
+    transition: background-color 0.2s ease;
+}
+
+/* Di chuột vào các lựa chọn trong menu */
+.avatar-menu-item:hover {
+    background-color: #eff4ff; /* Màu secondary làm nền hover */
+    color: #0f4c81; /* Đổi màu chữ sang primary navy */
+}
+
+/* Nút phân cách trong menu */
+.avatar-menu-divider {
+    height: 1px;
+    background-color: #eff4ff;
+    margin: 4px 0;
+}
+
+/* Đảm bảo toàn bộ trang web sử dụng Flexbox có chiều cao tối thiểu 100vh để đẩy footer xuống đáy trang */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Phần nội dung chính (main) sẽ giãn ra chiếm hết khoảng trống thừa để đẩy footer xuống dưới cùng */
+main {
+    flex: 1 0 auto;
+}
+

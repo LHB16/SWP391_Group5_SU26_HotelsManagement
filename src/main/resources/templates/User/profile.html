@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!-- Nhúng fragment head đã có sẵn bootstrap, custom css -->
+<head th:replace="~{fragment/fag :: head}"></head>
+
+<body class="d-flex flex-column" style="min-height: 100vh; background-color: #f8f9ff;">
+    <!-- Nhúng thanh điều hướng navBar chứa Avatar Dropdown -->
+    <nav th:replace="~{fragment/fag :: navBar}"></nav>
+
+    <!-- Khu vực hiển thị thông tin chính -->
+    <main class="container mt-5 flex-grow-1">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <!-- Card chứa thông tin cá nhân. Bo góc 8px (ROUND_EIGHT), nền trắng, shadow mờ nhẹ -->
+                <div class="card border-0 shadow-sm" style="border-radius: 8px;">
+                    <!-- Phần header của card có màu nền Primary Navy (#0f4c81) theo style.md -->
+                    <div class="card-header text-white text-center py-4" style="background-color: #0f4c81; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+                        <!-- Avatar lớn ở trang Profile -->
+                        <div class="mx-auto mb-3 d-flex align-items-center justify-content-center text-white font-weight-bold" 
+                             style="width: 80px; height: 80px; border-radius: 50%; background-color: #eff4ff; color: #0f4c81; font-size: 32px; font-weight: bold; border: 3px solid #ffffff;">
+                            <span th:text="${#strings.substring(user.fullName, 0, 1).toUpperCase()}">U</span>
+                        </div>
+                        <h3 class="mb-1 fw-bold" th:text="${user.fullName}">Full Name</h3>
+                        <p class="mb-0 text-white-50" th:text="${user.role}">Role</p>
+                    </div>
+
+                    <!-- Nội dung chi tiết thông tin user -->
+                    <div class="card-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label text-muted fw-semibold" style="font-size: 13px;">USERNAME</label>
+                            <input type="text" class="form-control" th:value="${user.username}" readonly 
+                                   style="border-radius: 8px; background-color: #f8f9ff; border: 1px solid #eff4ff;"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted fw-semibold" style="font-size: 13px;">EMAIL ADDRESS</label>
+                            <input type="text" class="form-control" th:value="${user.email}" readonly 
+                                   style="border-radius: 8px; background-color: #f8f9ff; border: 1px solid #eff4ff;"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted fw-semibold" style="font-size: 13px;">ACCOUNT STATUS</label>
+                            <div>
+                                <!-- Trạng thái tài khoản: kích hoạt (Success/Available) dùng màu xanh Emerald lá cây -->
+                                <span th:if="${user.enabled}" class="badge px-3 py-2 text-white" style="background-color: #10b981; border-radius: 8px;">
+                                    Active / Verified
+                                </span>
+                                <span th:unless="${user.enabled}" class="badge px-3 py-2 text-white" style="background-color: #ef4444; border-radius: 8px;">
+                                    Inactive
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Nút hành động quay lại trang chủ -->
+                        <div class="d-grid gap-2 mt-4">
+                            <a th:href="@{/}" class="btn text-white" style="background-color: #0f4c81; border-radius: 8px;">
+                                Back to Home
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Nhúng footer chân trang -->
+    <footer th:replace="~{fragment/fag :: footer}"></footer>
+
+    <!-- Nhúng thư viện scripts JS (bao gồm cả main.js của Dropdown Avatar) -->
+    <div th:replace="~{fragment/fag :: scripts}"></div>
+</body>
+</html>
