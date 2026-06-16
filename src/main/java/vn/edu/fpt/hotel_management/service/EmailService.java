@@ -55,4 +55,15 @@ public class EmailService {
                 + "If you did not request this, please contact us immediately.");
         mailSender.send(msg);
     }
+
+    public void sendProfileUpdateOtp(String toEmail, String otp) {
+        SimpleMailMessage msg = new SimpleMailMessage();
+        msg.setFrom(FROM);
+        msg.setTo(toEmail);
+        msg.setSubject("Hotels Management - Verify Profile Update OTP");
+        msg.setText("Your OTP code to verify profile modification is: " + otp + "\n\n"
+                + "This code is valid for 3 minutes.\n"
+                + "If you did not request this change, please ignore this email.");
+        mailSender.send(msg);
+    }
 }

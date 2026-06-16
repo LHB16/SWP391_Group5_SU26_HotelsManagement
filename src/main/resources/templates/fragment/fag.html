@@ -8,6 +8,8 @@
     <link th:href="@{/assets/css/bootstrap.css}" rel="stylesheet"/>
     <!-- Nhúng CSS tùy chỉnh cho Avatar Dropdown -->
     <link th:href="@{/assets/css/style.css}" rel="stylesheet"/>
+    <!-- Nhúng CSS tùy chỉnh cho Profile -->
+    <link th:href="@{/assets/css/profile.css}" rel="stylesheet"/>
 </head>
 
 <nav th:fragment="navBar" class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -49,6 +51,8 @@
                             </div>
                             <!-- Nút View Profile như yêu cầu -->
                             <a class="avatar-menu-item" th:href="@{/profile}">View Profile</a>
+                            <!-- Nút Modify Profile chuyển đổi nhanh -->
+                            <a class="avatar-menu-item" th:href="@{/profile/edit}">Modify Profile</a>
                             <div class="avatar-menu-divider"></div>
                             <!-- Nút Logout -->
                             <a class="avatar-menu-item" th:href="@{/logout}" style="color: #ef4444;">Logout</a>
