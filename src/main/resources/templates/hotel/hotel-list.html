@@ -27,7 +27,7 @@
             <div class="mb-4">
                 <h1 class="h3 fw-bold text-primary">Hotel List</h1>
                 <p class="text-muted mb-0">
-                    Found <strong th:text="${totalResults}">0</strong> hotels
+                    Found <strong th:text="${totalResults}">0</strong> hotel(s)
                 </p>
             </div>
 
@@ -80,8 +80,8 @@
                                     </label>
                                     <!-- Hiển thị min-max -->
                                     <div class="d-flex justify-content-between mb-2">
-                                        <span class="badge bg-primary bg-opacity-10 text-primary"
-                                            id="minPriceDisplay">0 VND</span>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary" id="minPriceDisplay">0
+                                            VND</span>
                                         <span class="badge bg-primary bg-opacity-10 text-primary"
                                             id="maxPriceDisplay">50,000,000 VND</span>
                                     </div>
@@ -89,10 +89,10 @@
                                     <div class="hotel-dual-range-wrap">
                                         <div class="hotel-dual-range-track"></div>
                                         <div class="hotel-dual-range-highlight" id="rangeHighlight"></div>
-                                        <input type="range" id="minPriceSlider" class="hotel-dual-range-input"
-                                            min="0" max="50000000" step="50000" th:value="${minPrice}" />
-                                        <input type="range" id="maxPriceSlider" class="hotel-dual-range-input"
-                                            min="0" max="50000000" step="50000" th:value="${maxPrice}" />
+                                        <input type="range" id="minPriceSlider" class="hotel-dual-range-input" min="0"
+                                            max="50000000" step="50000" th:value="${minPrice}" />
+                                        <input type="range" id="maxPriceSlider" class="hotel-dual-range-input" min="0"
+                                            max="50000000" step="50000" th:value="${maxPrice}" />
                                     </div>
                                     <div class="d-flex justify-content-between mt-1">
                                         <small class="text-muted">0 VND</small>
