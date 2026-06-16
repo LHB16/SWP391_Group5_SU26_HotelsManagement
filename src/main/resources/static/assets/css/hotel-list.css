@@ -1,0 +1,130 @@
+/* ============================================================
+   hotel-list.css
+   CSS bổ sung cho trang Hotels – chỉ viết những gì Bootstrap
+   KHÔNG có sẵn. Tất cả layout, spacing, color utilities
+   đã dùng Bootstrap classes trong HTML.
+============================================================ */
+
+/* ── Star Button: trạng thái mặc định & active ── */
+.hotel-star-btn {
+    background-color: #e9ecef;
+    color: #495057;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease;
+}
+
+/* Hover trên button sao */
+.hotel-star-btn:hover {
+    background-color: #dee2e6;
+    border-color: #0d6efd;
+    color: #0d6efd;
+}
+
+/* Trạng thái active (đang được chọn) */
+.hotel-star-btn.active {
+    background-color: #0d6efd;
+    color: #ffffff;
+    border-color: #0d6efd;
+}
+
+/* ── Hotel Card: hiệu ứng hover ── */
+.hotel-card {
+    transition: box-shadow 0.25s ease, transform 0.2s ease;
+}
+
+.hotel-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+    transform: translateY(-3px);
+}
+
+/* Phóng to nhẹ ảnh khi hover */
+.hotel-card-img {
+    transition: transform 0.35s ease;
+}
+
+.hotel-card:hover .hotel-card-img {
+    transform: scale(1.04);
+}
+
+/* ── Dual Range Slider (Bootstrap không có component này) ── */
+.hotel-dual-range-wrap {
+    position: relative;
+    width: 100%;
+    height: 30px;
+}
+
+/* Thanh track nền */
+.hotel-dual-range-track {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: #dee2e6;
+    border-radius: 999px;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+/* Thanh highlight giữa 2 con trỏ */
+.hotel-dual-range-highlight {
+    position: absolute;
+    top: 50%;
+    height: 5px;
+    background: #0d6efd;
+    border-radius: 999px;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+/* 2 input range xếp chồng */
+.hotel-dual-range-input {
+    -webkit-appearance: none;
+    appearance: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    pointer-events: none;
+    margin: 0;
+    outline: none;
+}
+
+/* Con trỏ (thumb) */
+.hotel-dual-range-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #0d6efd;
+    border: 3px solid #ffffff;
+    box-shadow: 0 1px 6px rgba(13, 110, 253, 0.35);
+    cursor: pointer;
+    pointer-events: all;
+    transition: transform 0.15s ease;
+}
+
+/* Phóng to con trỏ khi hover */
+.hotel-dual-range-input::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+}
+
+/* Firefox thumb */
+.hotel-dual-range-input::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #0d6efd;
+    border: 3px solid #ffffff;
+    box-shadow: 0 1px 6px rgba(13, 110, 253, 0.35);
+    cursor: pointer;
+    pointer-events: all;
+}
+
+/* Firefox track – ẩn vì đã có custom track */
+.hotel-dual-range-input::-moz-range-track {
+    background: transparent;
+    border: none;
+}

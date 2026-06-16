@@ -1,4 +1,3 @@
-// src/main/java/vn/edu/fpt/hotel_management/model/User.java
 package vn.edu.fpt.hotel_management.entity;
 
 import jakarta.persistence.*;
@@ -10,7 +9,7 @@ import java.time.LocalDateTime;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
     @Column(nullable = false)
     private String fullName;
@@ -37,7 +36,8 @@ public class User {
     public User() {
     }
 
-    public User(Long id, String fullName, String username, String password, String email, String role, String otp, LocalDateTime otpExpiry, boolean enabled) {
+    public User(int id, String fullName, String username, String password, String email, String role, String otp,
+            LocalDateTime otpExpiry, boolean enabled) {
         this.id = id;
         this.fullName = fullName;
         this.username = username;
@@ -49,11 +49,11 @@ public class User {
         this.enabled = enabled;
     }
 
-    public Long getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(int id) {
         this.id = id;
     }
 
