@@ -1,10 +1,500 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<!--
+    hotel/rooms.html
+    Trang danh sách phòng của một khách sạn – phong cách Lion Hotel
+    Layout: ảnh phòng (trái 42%) | thông tin + tiện nghi + giá + CTA (phải)
+    Filter sidebar: loại phòng (multi-select) + khoảng giá (dual range)
+    Dataset: hotel_id, type, price, description, img_url, window, bed, acreage, person
+-->
+<html xmlns:th="http://www.thymeleaf.org">
+
+<!-- ==================== HEAD (từ fragment) ==================== -->
+<head th:replace="~{fragment/fag :: head}"></head>
+
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- CSS riêng cho trang Rooms -->
+    <link rel="stylesheet" th:href="@{/assets/css/room-list.css}" />
+
+    <!-- ==================== NAVBAR (từ fragment) ==================== -->
+    <nav th:replace="~{fragment/fag :: navBar}"></nav>
+
+    <!-- ==================== HERO BANNER ==================== -->
+    <section class="room-hero">
+        <div class="container">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb room-breadcrumb mb-3">
+                    <li class="breadcrumb-item">
+                        <a th:href="@{/hotels}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
+                                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                 class="me-1" style="vertical-align:-1px;">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                <polyline points="9 22 9 12 15 12 15 22"/>
+                            </svg>
+                            Hotels
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" th:text="${hotel.name}">Hotel Name</li>
+                </ol>
+            </nav>
+
+            <!-- Tiêu đề + thông tin khách sạn -->
+            <h1 class="room-hero-title" th:text="${hotel.name}">Hotel Name</h1>
+            <p class="room-hero-subtitle">
+                <!-- Icon địa chỉ -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     class="me-1" style="vertical-align:-1px;">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <span th:text="${hotel.address}">Hotel Address</span>
+            </p>
+            <div class="room-hero-divider"></div>
+
+            <!-- Badge số sao + số phòng tìm thấy -->
+            <div class="d-flex align-items-center gap-3 flex-wrap" style="margin-top: 14px;">
+                <span class="room-hero-badge">
+                    <!-- Icon sao -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
+                         viewBox="0 0 24 24" fill="currentColor" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                    <span th:text="${hotel.rating + ' Stars'}">5 Stars</span>
+                </span>
+                <span class="room-hero-badge">
+                    <!-- Icon phòng -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
+                         viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    <span><strong th:text="${totalResults}">0</strong> rooms found</span>
+                </span>
+            </div>
+        </div>
+    </section>
+    <!-- ==================== END HERO BANNER ==================== -->
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <main class="flex-grow-1 py-4" style="background: #faf8f4;">
+        <div class="container-fluid px-3 px-md-4">
+            <div class="row g-4">
+
+                <!-- ===== CỘT FILTER SIDEBAR (col-lg-3) ===== -->
+                <div class="col-12 col-lg-3">
+                    <div class="filter-card">
+
+                        <!-- Header filter -->
+                        <div class="filter-card-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                 viewBox="0 0 24 24" fill="none" stroke="#c9a96e"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                            </svg>
+                            <h5>Filter Rooms</h5>
+                        </div>
+
+                        <div class="filter-card-body">
+                            <form th:action="@{/hotels/{id}/rooms(id=${hotel.id})}"
+                                  method="get" id="roomFilterForm">
+
+                                <!-- ── Lọc theo loại phòng ── -->
+                                <div class="mb-4">
+                                    <div class="filter-section-label">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11"
+                                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                                             class="me-1">
+                                            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                                            <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                                        </svg>
+                                        Room Type
+                                    </div>
+
+                                    <!-- Hidden inputs quản lý bởi JS -->
+                                    <div id="typesContainer">
+                                        <input th:each="t : ${selectedTypes}"
+                                               type="hidden" name="types" th:value="${t}" />
+                                    </div>
+
+                                    <!-- Nút "Tất cả" -->
+                                    <button type="button" class="room-type-btn"
+                                            id="typeAll"
+                                            th:classappend="${selectedTypes.isEmpty()} ? ' active' : ''"
+                                            data-value="__ALL__">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
+                                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                             class="me-1">
+                                            <circle cx="12" cy="12" r="10"/>
+                                            <line x1="2" y1="12" x2="22" y2="12"/>
+                                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                                        </svg>
+                                        All
+                                    </button>
+
+                                    <!-- Các nút loại phòng từ DB -->
+                                    <button type="button"
+                                            th:each="t : ${allTypes}"
+                                            class="room-type-btn"
+                                            th:classappend="${#lists.contains(selectedTypes, t)} ? ' active' : ''"
+                                            th:data-value="${t}"
+                                            th:text="${t}">
+                                        Room Type
+                                    </button>
+                                </div>
+
+                                <!-- ── Lọc theo khoảng giá ── -->
+                                <div class="mb-4">
+                                    <div class="filter-section-label">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11"
+                                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                                             class="me-1">
+                                            <line x1="12" y1="1" x2="12" y2="23"/>
+                                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                        </svg>
+                                        Price Range / Night
+                                    </div>
+
+                                    <!-- Hiển thị min/max hiện tại -->
+                                    <div class="price-display-row">
+                                        <span class="price-badge" id="minPriceDisplay">0 VND</span>
+                                        <span class="price-badge" id="maxPriceDisplay">50,000,000 VND</span>
+                                    </div>
+
+                                    <!-- Dual range slider -->
+                                    <div class="rl-dual-wrap">
+                                        <div class="rl-track"></div>
+                                        <div class="rl-highlight" id="rlHighlight"></div>
+                                        <input type="range" class="rl-input" id="rlMin"
+                                               min="0" max="50000000" step="100000"
+                                               th:value="${minPrice}" />
+                                        <input type="range" class="rl-input" id="rlMax"
+                                               min="0" max="50000000" step="100000"
+                                               th:value="${maxPrice}" />
+                                    </div>
+                                    <div class="d-flex justify-content-between mt-1">
+                                        <small style="color:#9ca3af; font-size:.72rem;">0 VND</small>
+                                        <small style="color:#9ca3af; font-size:.72rem;">50,000,000 VND</small>
+                                    </div>
+
+                                    <!-- Hidden inputs gửi lên server -->
+                                    <input type="hidden" id="minPriceInput" name="minPrice"
+                                           th:value="${minPrice}" />
+                                    <input type="hidden" id="maxPriceInput" name="maxPrice"
+                                           th:value="${maxPrice}" />
+                                </div>
+
+                                <!-- Nút tìm kiếm + xoá filter -->
+                                <button type="submit" class="btn-filter-search" id="roomFilterSubmit">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                         viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="11" cy="11" r="8"/>
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                    </svg>
+                                    Search Rooms
+                                </button>
+
+                                <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}"
+                                   class="btn-filter-clear">Clear Filters</a>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <!-- ===== KẾT THÚC CỘT FILTER ===== -->
+
+
+                <!-- ===== CỘT DANH SÁCH PHÒNG (col-lg-9) ===== -->
+                <div class="col-12 col-lg-9">
+
+                    <!-- Results header -->
+                    <div class="results-header">
+                        <div>
+                            <div class="results-title">Room Listings</div>
+                            <div class="results-count">
+                                Found <strong th:text="${totalResults}">0</strong> room(s)
+                                <span th:if="${!selectedTypes.isEmpty()}">
+                                    &nbsp;· Filtering:
+                                    <span th:each="t, iter : ${selectedTypes}">
+                                        <span th:text="${t}"></span><span th:if="${!iter.last}">, </span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── TRƯỜNG HỢP KHÔNG CÓ PHÒNG ── -->
+                    <div th:if="${rooms == null or rooms.isEmpty()}" class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"
+                                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </div>
+                        <div class="empty-state-title">No Rooms Found</div>
+                        <p class="empty-state-desc">
+                            Try adjusting your filters or
+                            <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}"
+                               style="color:#c9a96e; text-decoration:none; font-weight:600;">
+                               clear all filters
+                            </a>
+                            to see all available rooms.
+                        </p>
+                    </div>
+
+                    <!-- ── DANH SÁCH PHÒNG ── -->
+                    <div th:if="${rooms != null and !rooms.isEmpty()}">
+                        <div th:each="room : ${rooms}" class="room-card">
+
+                            <!-- ── Ảnh phòng (trái) ── -->
+                            <div class="room-card-img-wrap">
+                                <!-- Có ảnh -->
+                                <img th:if="${room.imgUrl != null and !room.imgUrl.isEmpty()}"
+                                     th:src="${room.imgUrl}"
+                                     th:alt="${room.type + ' - ' + hotel.name}"
+                                     class="room-card-img" />
+
+                                <!-- Không có ảnh → placeholder -->
+                                <div th:if="${room.imgUrl == null or room.imgUrl.isEmpty()}"
+                                     class="room-card-img-placeholder">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"
+                                         viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                                        <polyline points="21 15 16 10 5 21"/>
+                                    </svg>
+                                </div>
+
+                                <!-- Badge loại phòng trên ảnh -->
+                                <span class="room-type-badge" th:text="${room.type}">Room Type</span>
+                            </div>
+
+                            <!-- ── Thông tin phòng (phải) ── -->
+                            <div class="room-card-body">
+                                <div class="room-card-type" th:text="${room.type}">Room Type</div>
+
+                                <h2 class="room-card-title"
+                                    th:text="${room.type + ' Room – ' + hotel.name}">
+                                    Room Name
+                                </h2>
+
+                                <!-- Mô tả phòng -->
+                                <p class="room-card-desc"
+                                   th:text="${room.description != null and !room.description.isEmpty()
+                                             ? room.description
+                                             : 'A luxurious room equipped with modern amenities to provide guests with the finest hospitality experience.'}">
+                                    Room Description
+                                </p>
+
+                                <div class="room-card-divider"></div>
+
+                                <!-- ── Tiện nghi (badge) ── -->
+                                <div class="room-amenities">
+
+                                    <!-- Diện tích -->
+                                    <span class="amenity-badge">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
+                                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="15 3 21 3 21 9"/>
+                                            <polyline points="9 21 3 21 3 15"/>
+                                            <line x1="21" y1="3" x2="14" y2="10"/>
+                                            <line x1="3" y1="21" x2="10" y2="14"/>
+                                        </svg>
+                                        <span th:text="${room.acreage + ' m²'}">25 m²</span>
+                                    </span>
+
+                                    <!-- Số người -->
+                                    <span class="amenity-badge">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
+                                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="9" cy="7" r="4"/>
+                                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                        </svg>
+                                        <span th:text="${room.person + ' guest(s)'}">2 guest(s)</span>
+                                    </span>
+
+                                    <!-- Loại giường -->
+                                    <span class="amenity-badge"
+                                          th:classappend="${room.bed == 0} ? ' unavailable' : ''">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
+                                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M2 4v16"/>
+                                            <path d="M2 8h18a2 2 0 0 1 2 2v10"/>
+                                            <path d="M2 17h20"/>
+                                            <path d="M6 8v9"/>
+                                        </svg>
+                                        <span th:text="${room.bed + ' bed(s)'}">2 bed(s)</span>
+                                    </span>
+
+                                    <!-- Cửa sổ -->
+                                    <span class="amenity-badge"
+                                          th:classappend="${room.window == 0} ? ' unavailable' : ''">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
+                                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                            <line x1="12" y1="3" x2="12" y2="21"/>
+                                            <line x1="3" y1="12" x2="21" y2="12"/>
+                                        </svg>
+                                        <span th:text="${room.window + ' window(s)'}">2 window(s)</span>
+                                    </span>
+                                </div>
+
+                                <!-- ── Footer: giá + nút đặt phòng ── -->
+                                <div class="room-card-footer">
+                                    <!-- Giá -->
+                                    <div>
+                                        <div class="room-price-label">Price per Night</div>
+                                        <div>
+                                            <span class="room-price-amount"
+                                                  th:text="${#numbers.formatInteger(room.price, 0, 'COMMA')}">
+                                                500,000
+                                            </span>
+                                            <span class="room-price-unit">VND</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Nút đặt phòng -->
+                                    <a href="#" class="btn-book-room"
+                                       th:id="${'book-btn-' + room.id}">
+                                        Book Now
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="5" y1="12" x2="19" y2="12"/>
+                                            <polyline points="12 5 19 12 12 19"/>
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                            <!-- End room-card-body -->
+
+                        </div>
+                        <!-- End th:each room -->
+                    </div>
+
+                </div>
+                <!-- ===== KẾT THÚC CỘT DANH SÁCH PHÒNG ===== -->
+
+            </div>
+        </div>
+    </main>
+    <!-- ==================== END MAIN CONTENT ==================== -->
+
+    <!-- ==================== FOOTER (từ fragment) ==================== -->
+    <footer th:replace="~{fragment/fag :: footer}"></footer>
+
+    <!-- ==================== SCRIPTS (từ fragment) ==================== -->
+    <div th:replace="~{fragment/fag :: scripts}"></div>
+
+    <!-- ==================== JS riêng cho trang Rooms ==================== -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // ── Dual Range Slider ──────────────────────────────────
+            const rlMin = document.getElementById('rlMin');
+            const rlMax = document.getElementById('rlMax');
+            const rlHighlight = document.getElementById('rlHighlight');
+            const minDisplay = document.getElementById('minPriceDisplay');
+            const maxDisplay = document.getElementById('maxPriceDisplay');
+            const minInput = document.getElementById('minPriceInput');
+            const maxInput = document.getElementById('maxPriceInput');
+
+            function formatVND(n) {
+                return Number(n).toLocaleString('vi-VN') + ' VND';
+            }
+
+            function updateSlider() {
+                const max = 50000000;
+                const minVal = parseFloat(rlMin.value);
+                const maxVal = parseFloat(rlMax.value);
+
+                // Tránh chồng chéo
+                if (minVal > maxVal) rlMin.value = maxVal;
+                if (maxVal < minVal) rlMax.value = minVal;
+
+                const minPct = (parseFloat(rlMin.value) / max) * 100;
+                const maxPct = (parseFloat(rlMax.value) / max) * 100;
+
+                rlHighlight.style.left  = minPct + '%';
+                rlHighlight.style.width = (maxPct - minPct) + '%';
+
+                minDisplay.textContent = formatVND(rlMin.value);
+                maxDisplay.textContent = formatVND(rlMax.value);
+                minInput.value = rlMin.value;
+                maxInput.value = rlMax.value;
+            }
+
+            if (rlMin && rlMax) {
+                rlMin.addEventListener('input', updateSlider);
+                rlMax.addEventListener('input', updateSlider);
+                updateSlider(); // init
+            }
+
+            // ── Type Filter Buttons ────────────────────────────────
+            const typeBtns = document.querySelectorAll('.room-type-btn');
+            const typesContainer = document.getElementById('typesContainer');
+            const typeAllBtn = document.getElementById('typeAll');
+
+            typeBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const val = this.dataset.value;
+
+                    if (val === '__ALL__') {
+                        // Chọn "Tất cả" → xoá tất cả filter type
+                        typesContainer.innerHTML = '';
+                        typeBtns.forEach(b => b.classList.remove('active'));
+                        typeAllBtn.classList.add('active');
+                        return;
+                    }
+
+                    // Toggle trạng thái
+                    const isActive = this.classList.contains('active');
+
+                    if (isActive) {
+                        // Bỏ chọn
+                        this.classList.remove('active');
+                        const inp = typesContainer.querySelector('input[value="' + val + '"]');
+                        if (inp) inp.remove();
+                    } else {
+                        // Thêm vào
+                        this.classList.add('active');
+                        typeAllBtn.classList.remove('active');
+                        const inp = document.createElement('input');
+                        inp.type  = 'hidden';
+                        inp.name  = 'types';
+                        inp.value = val;
+                        typesContainer.appendChild(inp);
+                    }
+
+                    // Nếu không còn type nào được chọn → kích hoạt "Tất cả"
+                    const anyActive = Array.from(typeBtns).some(b =>
+                        b !== typeAllBtn && b.classList.contains('active'));
+                    if (!anyActive) typeAllBtn.classList.add('active');
+                });
+            });
+
+        });
+        /*]]>*/
+    </script>
 
 </body>
 </html>
