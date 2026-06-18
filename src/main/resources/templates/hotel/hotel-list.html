@@ -23,13 +23,49 @@
     <main class="flex-grow-1 py-4">
         <div class="container-fluid px-4">
 
-            <!-- Tiêu đề trang -->
-            <div class="mb-4">
-                <h1 class="h3 fw-bold text-primary">Hotel List</h1>
-                <p class="text-muted mb-0">
-                    Found <strong th:text="${totalResults}">0</strong> hotel(s)
-                </p>
+            <!-- Tiêu đề trang + nút Add Hotel -->
+            <div class="mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div>
+                    <h1 class="h3 fw-bold text-primary mb-1">Hotel List</h1>
+                    <p class="text-muted mb-0">
+                        Found <strong th:text="${totalResults}">0</strong> hotel(s)
+                    </p>
+                </div>
+                <!-- Nút thêm khách sạn mới -->
+                <a href="/hotels/new"
+                   class="btn btn-primary d-inline-flex align-items-center gap-2 fw-semibold">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15"
+                         viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Add Hotel
+                </a>
             </div>
+
+            <!-- Flash messages sau khi thêm thành công / lỗi -->
+            <div th:if="${successMessage}"
+                 class="alert alert-success d-flex align-items-center gap-2 mb-3" role="alert">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span th:text="${successMessage}">Success</span>
+            </div>
+            <div th:if="${errorMessage}"
+                 class="alert alert-danger d-flex align-items-center gap-2 mb-3" role="alert">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span th:text="${errorMessage}">Error</span>
+            </div>
+
 
             <!-- ROW chính: 3 (Filter) + 9 (Cards) -->
             <div class="row g-4">
@@ -153,7 +189,7 @@
                                 <div class="position-relative overflow-hidden" style="height: 200px;">
                                     <!-- Hiển thị ảnh từ imageUrl -->
                                     <img th:if="${hotel.imageUrl != null and !hotel.imageUrl.isEmpty()}"
-                                        th:src="${hotel.imageUrl}" th:alt="${hotel.name}"
+                                        th:src="@{${hotel.imageUrl}}" th:alt="${hotel.name}"
                                         class="card-img-top w-100 h-100 object-fit-cover hotel-card-img" />
                                     <!-- Placeholder khi không có ảnh -->
                                     <div th:if="${hotel.imageUrl == null or hotel.imageUrl.isEmpty()}"
@@ -167,9 +203,10 @@
                                         </svg>
                                     </div>
 
-                                    <!-- Badge số sao (rating) -->
+                                    <!-- Badge số sao (rating) - màu vàng gold -->
                                     <span
-                                        class="badge bg-white text-dark shadow-sm position-absolute top-0 start-0 m-2">
+                                        class="badge position-absolute top-0 start-0 m-2"
+                                        style="background: #ffff00; color:#1a1a1a; font-size:.78rem; letter-spacing:.04em;">
                                         <span th:text="${hotel.rating}">5</span> ★
                                     </span>
 

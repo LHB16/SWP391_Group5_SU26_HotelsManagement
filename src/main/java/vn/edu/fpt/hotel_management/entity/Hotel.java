@@ -3,7 +3,7 @@ package vn.edu.fpt.hotel_management.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "hotels")
+@Table(name = "hotel")
 public class Hotel {
 
     @Id
@@ -27,7 +27,7 @@ public class Hotel {
     private double price;
 
     // Đường dẫn ảnh
-    @Column
+    @Column(name = "image_url")
     private String imageUrl;
 
     // true = đang hoạt động
