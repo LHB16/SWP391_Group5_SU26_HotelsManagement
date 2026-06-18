@@ -10,13 +10,14 @@ import java.util.List;
 
 /**
  * Repository cung cấp các phương thức truy vấn dữ liệu cho bảng room.
- * Dùng field name mới: roomType (tránh JPQL reserved word "type"), numWindow (tránh "window")
+ * Dùng field name mới: roomType (tránh JPQL reserved word "type"), numWindow
+ * (tránh "window")
  */
 @Repository
 public interface RoomRepository extends JpaRepository<Room, Integer> {
 
-    /** Lấy tất cả phòng của một khách sạn theo hotel_id. */
-    List<Room> findByHotelId(int hotelId);
+       /** Lấy tất cả phòng của một khách sạn theo hotel_id. */
+       List<Room> findByHotelId(int hotelId);
 
     /**
      * Lọc phòng theo hotel_id và khoảng giá.
@@ -49,12 +50,12 @@ public interface RoomRepository extends JpaRepository<Room, Integer> {
             @Param("maxPrice")  long         maxPrice
     );
 
-    /**
-     * Lấy danh sách loại phòng duy nhất của một khách sạn.
-     * Dùng r.roomType thay vì r.type.
-     */
-    @Query("SELECT DISTINCT r.roomType FROM Room r " +
-           "WHERE r.hotelId = :hotelId " +
-           "ORDER BY r.roomType ASC")
-    List<String> findDistinctTypesByHotelId(@Param("hotelId") int hotelId);
+       /**
+        * Lấy danh sách loại phòng duy nhất của một khách sạn.
+        * Dùng r.roomType thay vì r.type.
+        */
+       @Query("SELECT DISTINCT r.roomType FROM Room r " +
+                     "WHERE r.hotelId = :hotelId " +
+                     "ORDER BY r.roomType ASC")
+       List<String> findDistinctTypesByHotelId(@Param("hotelId") int hotelId);
 }
