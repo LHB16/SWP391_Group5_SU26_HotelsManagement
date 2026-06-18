@@ -22,9 +22,9 @@ public class Hotel {
     @Column(nullable = false)
     private int rating;
 
-    // Giá/đêm (VND)
+    // Giá/đêm (VND) – dùng long để tránh floating-point precision
     @Column(nullable = false)
-    private double price;
+    private long price;
 
     // Đường dẫn ảnh
     @Column(name = "image_url")
@@ -39,7 +39,7 @@ public class Hotel {
     public Hotel() {
     }
 
-    public Hotel(String name, String address, int rating, double price, String imageUrl) {
+    public Hotel(String name, String address, int rating, long price, String imageUrl) {
         this.name = name;
         this.address = address;
         this.rating = rating;
@@ -82,11 +82,11 @@ public class Hotel {
         this.rating = rating;
     }
 
-    public double getPrice() {
+    public long getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(long price) {
         this.price = price;
     }
 
