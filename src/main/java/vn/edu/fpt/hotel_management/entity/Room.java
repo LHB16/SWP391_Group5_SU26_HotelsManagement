@@ -15,8 +15,9 @@ public class Room {
     private int hotelId;
 
     // Loại phòng: Standard, Deluxe, Suite, Family...
-    @Column(nullable = false)
-    private String type;
+    // Đổi field name sang roomType để tránh conflict với JPQL reserved word "type"
+    @Column(name = "room_type", nullable = false)
+    private String roomType;
 
     // Giá phòng mỗi đêm (VND)
     @Column(nullable = false)
@@ -30,9 +31,9 @@ public class Room {
     @Column(name = "img_url")
     private String imgUrl;
 
-    // Số lượng cửa sổ
-    @Column(nullable = false)
-    private int window = 0;
+    // Số lượng cửa sổ – dùng num_window tránh reserved word "window"
+    @Column(name = "num_window", nullable = false)
+    private int numWindow = 0;
 
     // Số lượng giường
     @Column(nullable = false)
@@ -51,98 +52,48 @@ public class Room {
     public Room() {
     }
 
-    public Room(int hotelId, String type, double price, String description,
-                String imgUrl, int window, int bed, double acreage, int person) {
-        this.hotelId = hotelId;
-        this.type = type;
-        this.price = price;
+    public Room(int hotelId, String roomType, double price, String description,
+                String imgUrl, int numWindow, int bed, double acreage, int person) {
+        this.hotelId   = hotelId;
+        this.roomType  = roomType;
+        this.price     = price;
         this.description = description;
-        this.imgUrl = imgUrl;
-        this.window = window;
-        this.bed = bed;
-        this.acreage = acreage;
-        this.person = person;
+        this.imgUrl    = imgUrl;
+        this.numWindow = numWindow;
+        this.bed       = bed;
+        this.acreage   = acreage;
+        this.person    = person;
     }
 
     // ===================== Getters & Setters =====================
 
-    public int getId() {
-        return id;
-    }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+    public int getHotelId() { return hotelId; }
+    public void setHotelId(int hotelId) { this.hotelId = hotelId; }
 
-    public int getHotelId() {
-        return hotelId;
-    }
+    public String getRoomType() { return roomType; }
+    public void setRoomType(String roomType) { this.roomType = roomType; }
 
-    public void setHotelId(int hotelId) {
-        this.hotelId = hotelId;
-    }
+    public double getPrice() { return price; }
+    public void setPrice(double price) { this.price = price; }
 
-    public String getType() {
-        return type;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public void setType(String type) {
-        this.type = type;
-    }
+    public String getImgUrl() { return imgUrl; }
+    public void setImgUrl(String imgUrl) { this.imgUrl = imgUrl; }
 
-    public double getPrice() {
-        return price;
-    }
+    public int getNumWindow() { return numWindow; }
+    public void setNumWindow(int numWindow) { this.numWindow = numWindow; }
 
-    public void setPrice(double price) {
-        this.price = price;
-    }
+    public int getBed() { return bed; }
+    public void setBed(int bed) { this.bed = bed; }
 
-    public String getDescription() {
-        return description;
-    }
+    public double getAcreage() { return acreage; }
+    public void setAcreage(double acreage) { this.acreage = acreage; }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getImgUrl() {
-        return imgUrl;
-    }
-
-    public void setImgUrl(String imgUrl) {
-        this.imgUrl = imgUrl;
-    }
-
-    public int getWindow() {
-        return window;
-    }
-
-    public void setWindow(int window) {
-        this.window = window;
-    }
-
-    public int getBed() {
-        return bed;
-    }
-
-    public void setBed(int bed) {
-        this.bed = bed;
-    }
-
-    public double getAcreage() {
-        return acreage;
-    }
-
-    public void setAcreage(double acreage) {
-        this.acreage = acreage;
-    }
-
-    public int getPerson() {
-        return person;
-    }
-
-    public void setPerson(int person) {
-        this.person = person;
-    }
+    public int getPerson() { return person; }
+    public void setPerson(int person) { this.person = person; }
 }
