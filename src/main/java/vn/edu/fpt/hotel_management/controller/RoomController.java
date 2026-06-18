@@ -51,8 +51,8 @@ public class RoomController {
     public String showRoomsPage(
             @PathVariable("id") int id,
             @RequestParam(value = "types", required = false) List<String> types,
-            @RequestParam(value = "minPrice", required = false, defaultValue = "0") double minPrice,
-            @RequestParam(value = "maxPrice", required = false, defaultValue = "50000000") double maxPrice,
+            @RequestParam(value = "minPrice", required = false, defaultValue = "0") long minPrice,
+            @RequestParam(value = "maxPrice", required = false, defaultValue = "50000000") long maxPrice,
             HttpSession session,
             Model model
     ) {
@@ -102,7 +102,7 @@ public class RoomController {
     public String createRoom(
             @PathVariable("id") int id,
             @RequestParam("type")                               String type,
-            @RequestParam("price")                              double price,
+            @RequestParam("price")                              long   price,
             @RequestParam(value = "description", defaultValue = "") String description,
             @RequestParam(value = "window",  defaultValue = "0") int    window,
             @RequestParam(value = "bed",     defaultValue = "0") int    bed,

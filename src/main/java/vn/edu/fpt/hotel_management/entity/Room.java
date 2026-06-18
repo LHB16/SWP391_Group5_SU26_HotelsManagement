@@ -19,9 +19,9 @@ public class Room {
     @Column(name = "room_type", nullable = false)
     private String roomType;
 
-    // Giá phòng mỗi đêm (VND)
+    // Giá phòng mỗi đêm (VND) – dùng long để tránh floating-point precision
     @Column(nullable = false)
-    private double price;
+    private long price;
 
     // Mô tả chi tiết phòng
     @Column(columnDefinition = "NVARCHAR(MAX)")
@@ -52,11 +52,11 @@ public class Room {
     public Room() {
     }
 
-    public Room(int hotelId, String roomType, double price, String description,
-            String imgUrl, int numWindow, int bed, double acreage, int person) {
-        this.hotelId = hotelId;
-        this.roomType = roomType;
-        this.price = price;
+    public Room(int hotelId, String roomType, long price, String description,
+                String imgUrl, int numWindow, int bed, double acreage, int person) {
+        this.hotelId   = hotelId;
+        this.roomType  = roomType;
+        this.price     = price;
         this.description = description;
         this.imgUrl = imgUrl;
         this.numWindow = numWindow;
@@ -119,9 +119,8 @@ public class Room {
         return numWindow;
     }
 
-    public void setNumWindow(int numWindow) {
-        this.numWindow = numWindow;
-    }
+    public long getPrice() { return price; }
+    public void setPrice(long price) { this.price = price; }
 
     public int getBed() {
         return bed;
