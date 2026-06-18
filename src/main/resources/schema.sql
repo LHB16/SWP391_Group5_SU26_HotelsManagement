@@ -1,0 +1,1 @@
+-- schema.sql trống – Hibernate ddl-auto=update tự quản lý schema.

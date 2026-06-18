@@ -19,12 +19,25 @@ public class HotelController {
     // Inject HotelRepository để truy vấn dữ liệu khách sạn
     private final HotelRepository hotelRepository;
 
-    // Thư mục lưu ảnh khách sạn (tương đối với static resources)
-    private static final String HOTEL_IMAGE_DIR = "src/main/resources/static/assets/images/hotel/";
+    // Thư mục con trong static resources để lưu ảnh khách sạn
+    private static final String HOTEL_IMAGE_SUBDIR = "assets/images/hotel";
     private static final String HOTEL_IMAGE_URL_PREFIX = "/assets/images/hotel/";
 
     public HotelController(HotelRepository hotelRepository) {
         this.hotelRepository = hotelRepository;
+    }
+
+    /**
+     * Tính đường dẫn tuyệt đối đến thư mục static resources khi runtime.
+     * Khi chạy từ IDE: user.dir = project root (ví dụ: e:\FPT\...\SWP391_...)
+     */
+    private Path resolveStaticDir(String subDir) throws IOException {
+        Path path = Paths.get(System.getProperty("user.dir"),
+                              "src", "main", "resources", "static", subDir);
+        if (!Files.exists(path)) {
+            Files.createDirectories(path);
+        }
+        return path;
     }
 
     // ======================== GET /hotels – Danh sách khách sạn ========================
@@ -89,15 +102,13 @@ public class HotelController {
                 String safeFilename = System.currentTimeMillis() + "_"
                         + (originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_") : "hotel.jpg");
 
-                // Tạo thư mục nếu chưa tồn tại
-                Path uploadPath = Paths.get(HOTEL_IMAGE_DIR);
-                if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath);
-                }
+                // Lấy absolute path đến thư mục lưu ảnh
+                Path uploadPath = resolveStaticDir(HOTEL_IMAGE_SUBDIR);
 
                 // Lưu file vào thư mục
-                Path filePath = uploadPath.resolve(safeFilename);
-                Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(imageFile.getInputStream(),
+                           uploadPath.resolve(safeFilename),
+                           StandardCopyOption.REPLACE_EXISTING);
 
                 // Đường dẫn URL để lưu vào DB
                 imageUrl = HOTEL_IMAGE_URL_PREFIX + safeFilename;
