@@ -24,7 +24,7 @@ public class Room {
     private double price;
 
     // Mô tả chi tiết phòng
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "NVARCHAR(MAX)")
     private String description;
 
     // Đường dẫn ảnh đại diện phòng
@@ -53,47 +53,97 @@ public class Room {
     }
 
     public Room(int hotelId, String roomType, double price, String description,
-                String imgUrl, int numWindow, int bed, double acreage, int person) {
-        this.hotelId   = hotelId;
-        this.roomType  = roomType;
-        this.price     = price;
+            String imgUrl, int numWindow, int bed, double acreage, int person) {
+        this.hotelId = hotelId;
+        this.roomType = roomType;
+        this.price = price;
         this.description = description;
-        this.imgUrl    = imgUrl;
+        this.imgUrl = imgUrl;
         this.numWindow = numWindow;
-        this.bed       = bed;
-        this.acreage   = acreage;
-        this.person    = person;
+        this.bed = bed;
+        this.acreage = acreage;
+        this.person = person;
     }
 
     // ===================== Getters & Setters =====================
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public int getId() {
+        return id;
+    }
 
-    public int getHotelId() { return hotelId; }
-    public void setHotelId(int hotelId) { this.hotelId = hotelId; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public String getRoomType() { return roomType; }
-    public void setRoomType(String roomType) { this.roomType = roomType; }
+    public int getHotelId() {
+        return hotelId;
+    }
 
-    public double getPrice() { return price; }
-    public void setPrice(double price) { this.price = price; }
+    public void setHotelId(int hotelId) {
+        this.hotelId = hotelId;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public String getRoomType() {
+        return roomType;
+    }
 
-    public String getImgUrl() { return imgUrl; }
-    public void setImgUrl(String imgUrl) { this.imgUrl = imgUrl; }
+    public void setRoomType(String roomType) {
+        this.roomType = roomType;
+    }
 
-    public int getNumWindow() { return numWindow; }
-    public void setNumWindow(int numWindow) { this.numWindow = numWindow; }
+    public double getPrice() {
+        return price;
+    }
 
-    public int getBed() { return bed; }
-    public void setBed(int bed) { this.bed = bed; }
+    public void setPrice(double price) {
+        this.price = price;
+    }
 
-    public double getAcreage() { return acreage; }
-    public void setAcreage(double acreage) { this.acreage = acreage; }
+    public String getDescription() {
+        return description;
+    }
 
-    public int getPerson() { return person; }
-    public void setPerson(int person) { this.person = person; }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getImgUrl() {
+        return imgUrl;
+    }
+
+    public void setImgUrl(String imgUrl) {
+        this.imgUrl = imgUrl;
+    }
+
+    public int getNumWindow() {
+        return numWindow;
+    }
+
+    public void setNumWindow(int numWindow) {
+        this.numWindow = numWindow;
+    }
+
+    public int getBed() {
+        return bed;
+    }
+
+    public void setBed(int bed) {
+        this.bed = bed;
+    }
+
+    public double getAcreage() {
+        return acreage;
+    }
+
+    public void setAcreage(double acreage) {
+        this.acreage = acreage;
+    }
+
+    public int getPerson() {
+        return person;
+    }
+
+    public void setPerson(int person) {
+        this.person = person;
+    }
 }
