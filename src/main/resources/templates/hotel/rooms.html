@@ -390,7 +390,7 @@
                                 </div>
 
                                 <!-- Form to Submit Review -->
-                                <div th:if="${user != null and user.role == 'CUSTOMER'}" class="card border-0 shadow-sm p-4 bg-light">
+                                <div th:if="${user != null and user.role == 'CUSTOMER' and !hasReviewed}" class="card border-0 shadow-sm p-4 bg-light">
                                     <h5 class="fw-bold mb-3" style="color: var(--navy);">Write a Review</h5>
                                     <form th:action="@{/hotels/{id}/reviews(id=${hotel.id})}" method="post">
                                         <div class="mb-3">
@@ -411,6 +411,10 @@
                                         </div>
                                         <button type="submit" class="btn-review-submit w-100">Submit Review</button>
                                     </form>
+                                </div>
+                                <div th:if="${user != null and user.role == 'CUSTOMER' and hasReviewed}" class="card border-0 shadow-sm p-4 bg-light text-center">
+                                    <h5 class="fw-bold mb-2" style="color: var(--navy);">Write a Review</h5>
+                                    <p class="text-muted small">You have already reviewed this hotel. You can only submit one review.</p>
                                 </div>
                                 <div th:if="${user == null}" class="card border-0 shadow-sm p-4 bg-light text-center">
                                     <h5 class="fw-bold mb-2" style="color: var(--navy);">Write a Review</h5>
