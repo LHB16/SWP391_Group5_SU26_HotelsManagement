@@ -701,3 +701,163 @@ body {
     background: var(--gold);
     border-radius: 99px;
 }
+
+/* ────────────────────────────────────────────────────────────
+   Reviews Section CSS
+   ──────────────────────────────────────────────────────────── */
+.reviews-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+    padding: 30px;
+    margin-top: 30px;
+    margin-bottom: 40px;
+}
+
+.reviews-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--navy);
+    font-weight: 700;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--gold-light);
+    padding-bottom: 10px;
+    display: inline-block;
+}
+
+.rating-summary-card {
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.rating-summary-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.rating-summary-stars {
+    font-size: 1.4rem;
+    color: #eab308; /* Yellow gold */
+    margin-bottom: 8px;
+}
+
+.rating-summary-count {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* Star selection widget */
+.star-rating-input {
+    display: flex;
+    gap: 6px;
+    font-size: 2rem;
+    color: var(--gray-400);
+    cursor: pointer;
+    margin-bottom: 12px;
+    user-select: none;
+}
+
+.star-rating-input .star-btn {
+    transition: color 0.15s, transform 0.15s;
+}
+
+.star-rating-input .star-btn:hover {
+    transform: scale(1.15);
+}
+
+.star-rating-input .star-btn.active {
+    color: #eab308; /* Yellow gold active */
+}
+
+/* Individual Review Card */
+.review-item-card {
+    border-bottom: 1px solid var(--gray-200);
+    padding: 20px 0;
+}
+
+.review-item-card:last-child {
+    border-bottom: none;
+}
+
+.review-user-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+    color: var(--white);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+    text-transform: uppercase;
+}
+
+.review-user-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+}
+
+.review-date {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.review-stars {
+    color: #eab308;
+    font-size: 0.9rem;
+}
+
+.review-comment {
+    font-size: 0.88rem;
+    color: #374151;
+    line-height: 1.6;
+    margin-top: 8px;
+    white-space: pre-line;
+}
+
+.btn-review-submit {
+    background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.btn-review-submit:hover {
+    background: linear-gradient(135deg, var(--navy), var(--navy-light));
+    color: var(--gold-light);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-review-delete {
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.15s;
+}
+
+.btn-review-delete:hover {
+    color: #b91c1c;
+    text-decoration: underline;
+}

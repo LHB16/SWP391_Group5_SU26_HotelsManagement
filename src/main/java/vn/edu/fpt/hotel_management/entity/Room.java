@@ -91,11 +91,11 @@ public class Room {
         this.roomType = roomType;
     }
 
-    public double getPrice() {
+    public long getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(long price) {
         this.price = price;
     }
 
@@ -119,8 +119,9 @@ public class Room {
         return numWindow;
     }
 
-    public long getPrice() { return price; }
-    public void setPrice(long price) { this.price = price; }
+    public void setNumWindow(int numWindow) {
+        this.numWindow = numWindow;
+    }
 
     public int getBed() {
         return bed;

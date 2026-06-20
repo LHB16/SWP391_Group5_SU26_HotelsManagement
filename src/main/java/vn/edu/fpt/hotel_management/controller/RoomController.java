@@ -9,8 +9,10 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.hotel_management.entity.Hotel;
 import vn.edu.fpt.hotel_management.entity.Room;
+import vn.edu.fpt.hotel_management.entity.Review;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 import vn.edu.fpt.hotel_management.repository.RoomRepository;
+import vn.edu.fpt.hotel_management.repository.ReviewRepository;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -21,14 +23,16 @@ public class RoomController {
 
     private final RoomRepository roomRepository;
     private final HotelRepository hotelRepository;
+    private final ReviewRepository reviewRepository;
 
     // Lấy đường dẫn thư mục static từ classpath (absolute khi runtime)
     // Ảnh phòng lưu trong: {project}/src/main/resources/static/assets/images/room/
     private static final String ROOM_IMAGE_SUBDIR = "assets/images/room";
 
-    public RoomController(RoomRepository roomRepository, HotelRepository hotelRepository) {
+    public RoomController(RoomRepository roomRepository, HotelRepository hotelRepository, ReviewRepository reviewRepository) {
         this.roomRepository = roomRepository;
         this.hotelRepository = hotelRepository;
+        this.reviewRepository = reviewRepository;
     }
 
     /**
@@ -68,6 +72,18 @@ public class RoomController {
 
         List<String> allTypes = roomRepository.findDistinctTypesByHotelId(id);
 
+        // Load reviews and calculate average rating
+        List<Review> reviews = reviewRepository.findByHotelIdOrderByCreatedAtDesc(id);
+        double avgRating = 0.0;
+        if (!reviews.isEmpty()) {
+            double sum = 0;
+            for (Review r : reviews) {
+                sum += r.getRating();
+            }
+            avgRating = sum / reviews.size();
+        }
+        avgRating = Math.round(avgRating * 10.0) / 10.0;
+
         model.addAttribute("hotel", hotel);
         model.addAttribute("rooms", rooms);
         model.addAttribute("allTypes", allTypes);
@@ -76,6 +92,9 @@ public class RoomController {
         model.addAttribute("maxPrice", maxPrice);
         model.addAttribute("totalResults", rooms.size());
         model.addAttribute("user", session.getAttribute("loggedInUser"));
+        model.addAttribute("reviews", reviews);
+        model.addAttribute("avgRating", avgRating);
+        model.addAttribute("totalReviews", reviews.size());
 
         return "hotel/rooms";
     }

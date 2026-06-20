@@ -47,9 +47,9 @@ public class HotelController {
             // Lọc theo số sao: chọn nhiều giá trị cùng lúc (multi-select)
             @RequestParam(value = "ratings", required = false) List<Integer> ratings,
             // Lọc theo khoảng giá: minPrice mặc định 0 VND
-            @RequestParam(value = "minPrice", required = false, defaultValue = "0") double minPrice,
+            @RequestParam(value = "minPrice", required = false, defaultValue = "0") long minPrice,
             // Lọc theo khoảng giá: maxPrice mặc định 50,000,000 VND
-            @RequestParam(value = "maxPrice", required = false, defaultValue = "50000000") double maxPrice,
+            @RequestParam(value = "maxPrice", required = false, defaultValue = "50000000") long maxPrice,
             HttpSession session,
             Model model
     ) {
@@ -87,7 +87,7 @@ public class HotelController {
             @RequestParam("name")        String name,
             @RequestParam("address")     String address,
             @RequestParam("rating")      int rating,
-            @RequestParam("price")       double price,
+            @RequestParam("price")       long price,
             @RequestParam("active")      boolean active,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
             RedirectAttributes redirectAttributes

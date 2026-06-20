@@ -31,8 +31,8 @@ public interface HotelRepository extends JpaRepository<Hotel, Integer> {
            "AND h.price <= :maxPrice " +
            "ORDER BY h.price ASC")
     List<Hotel> findByPriceRange(
-            @Param("minPrice") double minPrice,
-            @Param("maxPrice") double maxPrice
+            @Param("minPrice") long minPrice,
+            @Param("maxPrice") long maxPrice
     );
 
     /**
@@ -50,7 +50,7 @@ public interface HotelRepository extends JpaRepository<Hotel, Integer> {
            "ORDER BY h.price ASC")
     List<Hotel> filterByRatingsAndPrice(
             @Param("ratings") List<Integer> ratings,
-            @Param("minPrice") double minPrice,
-            @Param("maxPrice") double maxPrice
+            @Param("minPrice") long minPrice,
+            @Param("maxPrice") long maxPrice
     );
 }
