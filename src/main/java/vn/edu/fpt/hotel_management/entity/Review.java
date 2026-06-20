@@ -21,7 +21,7 @@ public class Review {
     private String userFullName;
 
     @Column(nullable = false)
-    private int rating; // 1 to 5 stars
+    private int rating; // Điểm đánh giá từ 1 đến 5 sao
 
     @Column(columnDefinition = "NVARCHAR(MAX)")
     private String comment;

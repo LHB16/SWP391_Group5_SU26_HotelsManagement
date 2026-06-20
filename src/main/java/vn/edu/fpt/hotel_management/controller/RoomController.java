@@ -10,6 +10,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.hotel_management.entity.Hotel;
 import vn.edu.fpt.hotel_management.entity.Room;
 import vn.edu.fpt.hotel_management.entity.Review;
+import vn.edu.fpt.hotel_management.entity.User;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 import vn.edu.fpt.hotel_management.repository.RoomRepository;
 import vn.edu.fpt.hotel_management.repository.ReviewRepository;
@@ -72,7 +73,7 @@ public class RoomController {
 
         List<String> allTypes = roomRepository.findDistinctTypesByHotelId(id);
 
-        // Load reviews and calculate average rating
+        // Tải danh sách đánh giá và tính toán số sao trung bình của khách sạn
         List<Review> reviews = reviewRepository.findByHotelIdOrderByCreatedAtDesc(id);
         double avgRating = 0.0;
         if (!reviews.isEmpty()) {
@@ -84,6 +85,12 @@ public class RoomController {
         }
         avgRating = Math.round(avgRating * 10.0) / 10.0;
 
+        boolean hasReviewed = false;
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser != null) {
+            hasReviewed = reviewRepository.existsByHotelIdAndUserId(id, loggedInUser.getId());
+        }
+
         model.addAttribute("hotel", hotel);
         model.addAttribute("rooms", rooms);
         model.addAttribute("allTypes", allTypes);
@@ -91,10 +98,11 @@ public class RoomController {
         model.addAttribute("minPrice", minPrice);
         model.addAttribute("maxPrice", maxPrice);
         model.addAttribute("totalResults", rooms.size());
-        model.addAttribute("user", session.getAttribute("loggedInUser"));
+        model.addAttribute("user", loggedInUser);
         model.addAttribute("reviews", reviews);
         model.addAttribute("avgRating", avgRating);
         model.addAttribute("totalReviews", reviews.size());
+        model.addAttribute("hasReviewed", hasReviewed);
 
         return "hotel/rooms";
     }

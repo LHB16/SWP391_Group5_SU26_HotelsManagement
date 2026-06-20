@@ -32,9 +32,15 @@ public class ReviewController {
             return "redirect:/login";
         }
 
-        // Restrict review creation to CUSTOMER role
+        // Giới hạn chỉ cho khách hàng (CUSTOMER) gửi đánh giá
         if (!"CUSTOMER".equalsIgnoreCase(loggedInUser.getRole())) {
             redirectAttributes.addFlashAttribute("errorMessage", "Only customers can submit reviews.");
+            return "redirect:/hotels/" + hotelId + "/rooms";
+        }
+
+        // Giới hạn mỗi tài khoản chỉ được đánh giá 1 lần cho 1 khách sạn
+        if (reviewRepository.existsByHotelIdAndUserId(hotelId, loggedInUser.getId())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "You have already reviewed this hotel. You can only review once.");
             return "redirect:/hotels/" + hotelId + "/rooms";
         }
 
@@ -76,7 +82,6 @@ public class ReviewController {
             return "redirect:/hotels/" + hotelId + "/rooms";
         }
 
-        // Chỉ cho phép chính người viết review hoặc ADMIN xóa
         if (review.getUserId() != loggedInUser.getId() && !"ADMIN".equalsIgnoreCase(loggedInUser.getRole())) {
             redirectAttributes.addFlashAttribute("errorMessage", "You are not authorized to delete this review.");
             return "redirect:/hotels/" + hotelId + "/rooms";
