@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "hotels")
+@Table(name = "hotel")
 public class Hotel {
 
     @Id
@@ -23,12 +23,12 @@ public class Hotel {
     @Column(nullable = false)
     private int rating;
 
-    // Giá/đêm (VND)
+    // Giá/đêm (VND) – dùng long để tránh floating-point precision
     @Column(nullable = false)
     private BigDecimal price;
 
     // Đường dẫn ảnh
-    @Column
+    @Column(name = "image_url")
     private String imageUrl;
 
     // true = đang hoạt động

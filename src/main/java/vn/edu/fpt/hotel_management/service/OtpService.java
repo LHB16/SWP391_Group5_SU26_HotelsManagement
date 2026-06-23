@@ -23,8 +23,10 @@ public class OtpService {
     public User verifyOtp(String email, String otp) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Account not found!"));
 
-        if (user.getOtpExpiry().isBefore(LocalDateTime.now())) {
-            userRepository.delete(user);
+        if (user.getOtpExpiry() == null || user.getOtpExpiry().isBefore(LocalDateTime.now())) {
+            if (!user.isEnabled()) {
+                userRepository.delete(user);
+            }
             throw new RuntimeException("OTP has expired! Please register again.");
         }
 
