@@ -26,7 +26,7 @@ public class Room {
     @Column(nullable = false)
     private BigDecimal price;
 
-    @Column(nullable = false)
+    @Column(name = "num_window", nullable = false)
     private int window;
 
     @Column(name = "description")
@@ -35,7 +35,7 @@ public class Room {
     @Column(name = "img_url")
     private String imgUrl;
 
-    @Column(nullable = false)
+    @Column(name = "room_type", nullable = false)
     private String type;
 
     // ===================== Constructors =====================
@@ -133,5 +133,21 @@ public class Room {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getRoomType() {
+        return this.type;
+    }
+
+    public void setRoomType(String roomType) {
+        this.type = roomType;
+    }
+
+    public int getNumWindow() {
+        return this.window;
+    }
+
+    public void setNumWindow(int numWindow) {
+        this.window = numWindow;
     }
 }

@@ -847,17 +847,19 @@ body {
 }
 
 .btn-review-delete {
+    padding: 5px 14px;
+    border: 1.5px solid #fecaca;
     background: transparent;
-    border: none;
     color: #ef4444;
-    font-size: 0.78rem;
+    border-radius: 8px;
+    font-size: .8rem;
     font-weight: 600;
     cursor: pointer;
-    padding: 0;
-    transition: color 0.15s;
+    transition: .2s;
 }
 
 .btn-review-delete:hover {
-    color: #b91c1c;
-    text-decoration: underline;
+    background: #ef4444;
+    color: #fff;
+    border-color: #ef4444;
 }

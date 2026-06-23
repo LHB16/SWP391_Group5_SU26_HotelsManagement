@@ -9,7 +9,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.hotel_management.entity.Hotel;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 @Controller
@@ -123,7 +128,7 @@ public class HotelController {
         hotel.setName(name);
         hotel.setAddress(address);
         hotel.setRating(rating);
-        hotel.setPrice(price);
+        hotel.setPrice(BigDecimal.valueOf(price));
         hotel.setActive(active);
         hotel.setImageUrl(imageUrl);
 
