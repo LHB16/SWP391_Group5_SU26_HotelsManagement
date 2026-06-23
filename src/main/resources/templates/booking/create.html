@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đặt phòng khách sạn</title>
+</head>
+<body>
+    <h1>Trang Đặt Phòng Khách Sạn (Create Booking)</h1>
+    <p>Chọn các phòng bạn muốn đặt bên dưới. Giá tiền sẽ được hiển thị bằng Việt Nam Đồng (đ).</p>
+    
+    <hr>
+    
+    <div th:if="${rooms == null or rooms.isEmpty()}">
+        <p>Không có phòng nào khả dụng.</p>
+    </div>
+
+    <div th:if="${rooms != null and !rooms.isEmpty()}">
+        <h2>Danh sách phòng khả dụng</h2>
+        
+        <table border="1" cellpadding="10" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>Chọn đặt</th>
+                    <th>Ảnh phòng</th>
+                    <th>Loại phòng</th>
+                    <th>Khách sạn</th>
+                    <th>Diện tích</th>
+                    <th>Số giường</th>
+                    <th>Số khách tối đa</th>
+                    <th>Số cửa sổ</th>
+                    <th>Mô tả</th>
+                    <th>Giá / Đêm</th>
+                    <th>Số đêm đặt</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="room : ${rooms}">
+                    <td align="center">
+                        <input type="checkbox" 
+                               th:id="'room-' + ${room.id}" 
+                               th:value="${room.id}"
+                               th:data-price="${room.price}"
+                               onclick="calculateTotal()">
+                    </td>
+                    <td>
+                        <img th:if="${room.imgUrl != null}" th:src="${room.imgUrl}" alt="Room Image" width="120">
+                        <span th:if="${room.imgUrl == null}">Không có ảnh</span>
+                    </td>
+                    <td th:text="${room.type}">STANDARD DOUBLE</td>
+                    <td th:text="${hotelMap != null ? hotelMap.get(room.hotelId) : 'Khách sạn #' + room.hotelId}">Tên khách sạn</td>
+                    <td th:text="${room.acreage} + ' m²'">20 m²</td>
+                    <td th:text="${room.bed}">1</td>
+                    <td th:text="${room.person} + ' người'">2 người</td>
+                    <td th:text="${room.window}">0</td>
+                    <td th:text="${room.description}">Mô tả phòng</td>
+                    <td>
+                        <span th:text="${#numbers.formatDecimal(room.price, 0, 'POINT', 0, 'POINT')} + ' đ'">420.000 đ</span>
+                    </td>
+                    <td>
+                        <input type="number" 
+                               th:id="'nights-' + ${room.id}" 
+                               value="1" 
+                               min="1" 
+                               style="width: 50px;"
+                               onchange="calculateTotal()">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <hr>
+
+        <h2>Tóm tắt hóa đơn (Order Summary)</h2>
+        <table border="0" cellpadding="5">
+            <tr>
+                <td>Tạm tính:</td>
+                <td><strong id="subtotal-display">0 đ</strong></td>
+            </tr>
+            <tr>
+                <td>Thuế VAT (10%):</td>
+                <td><span id="tax-display">0 đ</span></td>
+            </tr>
+            <tr>
+                <td>Phí dịch vụ:</td>
+                <td><span id="service-display">0 đ</span></td>
+            </tr>
+            <tr>
+                <td><strong>Tổng cộng:</strong></td>
+                <td><strong id="total-display" style="color: blue; font-size: 1.2em;">0 đ</strong></td>
+            </tr>
+        </table>
+
+        <br>
+        <form action="#" method="POST">
+            <!-- Nút gửi form giả định, không thực hiện chuyển trang như yêu cầu -->
+            <button type="button" onclick="alert('Đã nhấn nút Tiến hành đặt phòng!')">Tiến hành đặt phòng</button>
+        </form>
+    </div>
+
+    <script>
+        function calculateTotal() {
+            let subtotal = 0;
+            // Lấy tất cả các checkbox phòng
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    const roomId = checkbox.value;
+                    const price = parseFloat(checkbox.getAttribute('data-price'));
+                    // Lấy số đêm đặt của phòng tương ứng
+                    const nightsInput = document.getElementById('nights-' + roomId);
+                    const nights = nightsInput ? parseInt(nightsInput.value) || 1 : 1;
+                    
+                    subtotal += price * nights;
+                }
+            });
+
+            // Mặc định phí dịch vụ là 50000 đ nếu có chọn phòng
+            const serviceFee = subtotal > 0 ? 50000 : 0;
+            // Thuế VAT 10%
+            const tax = Math.round(subtotal * 0.1);
+            // Tổng cộng
+            const grandTotal = subtotal + tax + serviceFee;
+
+            // Hiển thị kết quả bằng định dạng tiền tệ VND
+            document.getElementById('subtotal-display').innerText = formatVND(subtotal);
+            document.getElementById('tax-display').innerText = formatVND(tax);
+            document.getElementById('service-display').innerText = formatVND(serviceFee);
+            document.getElementById('total-display').innerText = formatVND(grandTotal);
+        }
+
+        function formatVND(amount) {
+            return amount.toLocaleString('vi-VN') + ' đ';
+        }
+    </script>
+</body>
+</html>
