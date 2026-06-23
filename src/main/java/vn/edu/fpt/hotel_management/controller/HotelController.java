@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import vn.edu.fpt.hotel_management.entity.Hotel;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Controller
@@ -26,9 +27,9 @@ public class HotelController {
             // URL ví dụ: /hotels?ratings=3&ratings=4&ratings=5
             @RequestParam(value = "ratings", required = false) List<Integer> ratings,
             // Lọc theo khoảng giá: minPrice mặc định 0 VND
-            @RequestParam(value = "minPrice", required = false, defaultValue = "0") double minPrice,
+            @RequestParam(value = "minPrice", required = false, defaultValue = "0") BigDecimal minPrice,
             // Lọc theo khoảng giá: maxPrice mặc định 50,000,000 VND
-            @RequestParam(value = "maxPrice", required = false, defaultValue = "50000000") double maxPrice,
+            @RequestParam(value = "maxPrice", required = false, defaultValue = "50000000") BigDecimal maxPrice,
             HttpSession session,
             Model model
     ) {

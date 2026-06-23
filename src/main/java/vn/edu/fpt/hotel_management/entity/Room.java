@@ -1,6 +1,7 @@
 package vn.edu.fpt.hotel_management.entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "room")
@@ -23,7 +24,7 @@ public class Room {
     private int person;
 
     @Column(nullable = false)
-    private double price;
+    private BigDecimal price;
 
     @Column(nullable = false)
     private int window;
@@ -41,7 +42,7 @@ public class Room {
     public Room() {
     }
 
-    public Room(double acreage, int bed, int hotelId, int person, double price, int window, String description, String imgUrl, String type) {
+    public Room(double acreage, int bed, int hotelId, int person, BigDecimal price, int window, String description, String imgUrl, String type) {
         this.acreage = acreage;
         this.bed = bed;
         this.hotelId = hotelId;
@@ -94,11 +95,11 @@ public class Room {
         this.person = person;
     }
 
-    public double getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 
