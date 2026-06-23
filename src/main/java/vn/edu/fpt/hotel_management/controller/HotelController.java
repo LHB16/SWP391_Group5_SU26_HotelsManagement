@@ -9,8 +9,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.hotel_management.entity.Hotel;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 
-import java.io.IOException;
-import java.nio.file.*;
+import java.math.BigDecimal;
 import java.util.List;
 
 @Controller
@@ -47,9 +46,9 @@ public class HotelController {
             // Lọc theo số sao: chọn nhiều giá trị cùng lúc (multi-select)
             @RequestParam(value = "ratings", required = false) List<Integer> ratings,
             // Lọc theo khoảng giá: minPrice mặc định 0 VND
-            @RequestParam(value = "minPrice", required = false, defaultValue = "0") long minPrice,
+            @RequestParam(value = "minPrice", required = false, defaultValue = "0") BigDecimal minPrice,
             // Lọc theo khoảng giá: maxPrice mặc định 50,000,000 VND
-            @RequestParam(value = "maxPrice", required = false, defaultValue = "50000000") long maxPrice,
+            @RequestParam(value = "maxPrice", required = false, defaultValue = "50000000") BigDecimal maxPrice,
             HttpSession session,
             Model model
     ) {

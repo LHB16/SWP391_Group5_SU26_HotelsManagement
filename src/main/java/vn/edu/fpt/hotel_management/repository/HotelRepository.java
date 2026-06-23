@@ -6,6 +6,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import vn.edu.fpt.hotel_management.entity.Hotel;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -31,8 +32,8 @@ public interface HotelRepository extends JpaRepository<Hotel, Integer> {
            "AND h.price <= :maxPrice " +
            "ORDER BY h.price ASC")
     List<Hotel> findByPriceRange(
-            @Param("minPrice") long minPrice,
-            @Param("maxPrice") long maxPrice
+            @Param("minPrice") BigDecimal minPrice,
+            @Param("maxPrice") BigDecimal maxPrice
     );
 
     /**
@@ -50,7 +51,7 @@ public interface HotelRepository extends JpaRepository<Hotel, Integer> {
            "ORDER BY h.price ASC")
     List<Hotel> filterByRatingsAndPrice(
             @Param("ratings") List<Integer> ratings,
-            @Param("minPrice") long minPrice,
-            @Param("maxPrice") long maxPrice
+            @Param("minPrice") BigDecimal minPrice,
+            @Param("maxPrice") BigDecimal maxPrice
     );
 }

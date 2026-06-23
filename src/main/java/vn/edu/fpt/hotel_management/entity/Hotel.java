@@ -1,6 +1,7 @@
 package vn.edu.fpt.hotel_management.entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "hotel")
@@ -24,7 +25,7 @@ public class Hotel {
 
     // Giá/đêm (VND) – dùng long để tránh floating-point precision
     @Column(nullable = false)
-    private long price;
+    private BigDecimal price;
 
     // Đường dẫn ảnh
     @Column(name = "image_url")
@@ -39,7 +40,7 @@ public class Hotel {
     public Hotel() {
     }
 
-    public Hotel(String name, String address, int rating, long price, String imageUrl) {
+    public Hotel(String name, String address, int rating, BigDecimal price, String imageUrl) {
         this.name = name;
         this.address = address;
         this.rating = rating;
@@ -82,11 +83,11 @@ public class Hotel {
         this.rating = rating;
     }
 
-    public long getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(long price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 
