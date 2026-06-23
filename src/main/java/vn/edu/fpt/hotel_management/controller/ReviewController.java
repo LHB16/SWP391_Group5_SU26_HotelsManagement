@@ -62,6 +62,47 @@ public class ReviewController {
         return "redirect:/hotels/" + hotelId + "/rooms";
     }
 
+    // ======================== POST /hotels/{id}/reviews/{reviewId}/edit ========================
+    @PostMapping("/hotels/{id}/reviews/{reviewId}/edit")
+    public String updateReview(
+            @PathVariable("id") int hotelId,
+            @PathVariable("reviewId") int reviewId,
+            @RequestParam("rating") int rating,
+            @RequestParam("comment") String comment,
+            HttpSession session,
+            RedirectAttributes redirectAttributes
+    ) {
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Please log in to edit a review.");
+            return "redirect:/login";
+        }
+
+        Review review = reviewRepository.findById(reviewId).orElse(null);
+        if (review == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Review not found.");
+            return "redirect:/hotels/" + hotelId + "/rooms";
+        }
+
+        // Chỉ chủ review mới được sửa (ADMIN không được sửa review của người khác)
+        if (review.getUserId() != loggedInUser.getId()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "You are not authorized to edit this review.");
+            return "redirect:/hotels/" + hotelId + "/rooms";
+        }
+
+        if (rating < 1 || rating > 5) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Rating must be between 1 and 5 stars.");
+            return "redirect:/hotels/" + hotelId + "/rooms";
+        }
+
+        review.setRating(rating);
+        review.setComment(comment != null ? comment.trim() : "");
+        reviewRepository.save(review);
+
+        redirectAttributes.addFlashAttribute("successMessage", "Review updated successfully!");
+        return "redirect:/hotels/" + hotelId + "/rooms";
+    }
+
     // ======================== POST /hotels/{id}/reviews/{reviewId}/delete ========================
     @PostMapping("/hotels/{id}/reviews/{reviewId}/delete")
     public String deleteReview(

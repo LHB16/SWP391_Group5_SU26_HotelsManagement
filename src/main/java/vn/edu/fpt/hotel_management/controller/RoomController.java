@@ -16,6 +16,7 @@ import vn.edu.fpt.hotel_management.repository.RoomRepository;
 import vn.edu.fpt.hotel_management.repository.ReviewRepository;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.*;
 import java.util.List;
 
@@ -66,9 +67,9 @@ public class RoomController {
 
         List<Room> rooms;
         if (types == null || types.isEmpty()) {
-            rooms = roomRepository.findByHotelIdAndPriceRange(id, minPrice, maxPrice);
+            rooms = roomRepository.findByHotelIdAndPriceRange(id, BigDecimal.valueOf(minPrice), BigDecimal.valueOf(maxPrice));
         } else {
-            rooms = roomRepository.filterByHotelAndTypesAndPrice(id, types, minPrice, maxPrice);
+            rooms = roomRepository.filterByHotelAndTypesAndPrice(id, types, BigDecimal.valueOf(minPrice), BigDecimal.valueOf(maxPrice));
         }
 
         List<String> allTypes = roomRepository.findDistinctTypesByHotelId(id);
@@ -175,7 +176,7 @@ public class RoomController {
         Room room = new Room();
         room.setHotelId(id);
         room.setRoomType(type.trim());     // field: roomType
-        room.setPrice(price);
+        room.setPrice(BigDecimal.valueOf(price));
         room.setDescription(description.trim());
         room.setNumWindow(window);         // field: numWindow
         room.setBed(bed);
