@@ -47,6 +47,7 @@ public class UserService {
         user.setRole("CUSTOMER");
         user.setOtp(otp);
         user.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
+        user.setOtpType("REGISTER");
         user.setEnabled(false);
         userRepository.save(user);
     }
