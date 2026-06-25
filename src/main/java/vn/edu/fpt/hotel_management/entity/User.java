@@ -30,6 +30,8 @@ public class User {
     private String otp;
     @Column
     private LocalDateTime otpExpiry;
+    @Column(name = "otp_type")
+    private String otpType;
     @Column(nullable = false)
     private boolean enabled = false;
 
@@ -37,7 +39,7 @@ public class User {
     }
 
     public User(int id, String fullName, String username, String password, String email, String role, String otp,
-            LocalDateTime otpExpiry, boolean enabled) {
+            LocalDateTime otpExpiry, String otpType, boolean enabled) {
         this.id = id;
         this.fullName = fullName;
         this.username = username;
@@ -46,6 +48,7 @@ public class User {
         this.role = role;
         this.otp = otp;
         this.otpExpiry = otpExpiry;
+        this.otpType = otpType;
         this.enabled = enabled;
     }
 
@@ -111,6 +114,14 @@ public class User {
 
     public void setOtpExpiry(LocalDateTime otpExpiry) {
         this.otpExpiry = otpExpiry;
+    }
+
+    public String getOtpType() {
+        return otpType;
+    }
+
+    public void setOtpType(String otpType) {
+        this.otpType = otpType;
     }
 
     public boolean isEnabled() {
