@@ -6,7 +6,7 @@
 -->
 <html xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="~{fragment/fag :: head}"></head>
+<head th:replace="~{fragment/frag :: head}"></head>
 
 <body class="d-flex flex-column min-vh-100">
 
@@ -14,7 +14,7 @@
     <link rel="stylesheet" th:href="@{/assets/css/room-list.css}" />
 
     <!-- NAVBAR -->
-    <nav th:replace="~{fragment/fag :: navBar}"></nav>
+    <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
     <!-- ==================== HERO BANNER ==================== -->
     <section class="room-hero">
@@ -577,8 +577,8 @@
         }
     </style>
 
-    <footer th:replace="~{fragment/fag :: footer}"></footer>
-    <div th:replace="~{fragment/fag :: scripts}"></div>
+    <footer th:replace="~{fragment/frag :: footer}"></footer>
+    <div th:replace="~{fragment/frag :: scripts}"></div>
 
     <!-- JS riêng cho trang Rooms -->
     <script th:inline="javascript">
