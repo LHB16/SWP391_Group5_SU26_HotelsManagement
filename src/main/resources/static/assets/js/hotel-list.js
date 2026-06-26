@@ -140,4 +140,88 @@ document.addEventListener('DOMContentLoaded', function () {
     // Gọi ngay khi trang tải để đồng bộ giao diện với giá trị từ server
     updateRange();
 
+    // ═══════════════════════════════════════════════════
+    // 3. XỬ LÝ CHỌN NGÀY CHECK-IN & CHECK-OUT
+    // ═══════════════════════════════════════════════════
+    var checkinInput = document.getElementById('listCheckinDate');
+    var checkoutInput = document.getElementById('listCheckoutDate');
+    var filterCheckin = document.getElementById('filterCheckin');
+    var filterCheckout = document.getElementById('filterCheckout');
+    var btnSearchWithDates = document.getElementById('btnSearchWithDates');
+    var filterForm = document.getElementById('filterForm');
+
+    function updateViewRoomLinks() {
+        var checkinVal = checkinInput.value;
+        var checkoutVal = checkoutInput.value;
+
+        // Cập nhật giá trị vào hidden inputs của filterForm
+        if (filterCheckin) filterCheckin.value = checkinVal;
+        if (filterCheckout) filterCheckout.value = checkoutVal;
+
+        document.querySelectorAll('.btn-view-rooms').forEach(function (btn) {
+            var baseUrl = btn.getAttribute('data-base-url');
+            var params = [];
+            if (checkinVal) params.push('checkin=' + encodeURIComponent(checkinVal));
+            if (checkoutVal) params.push('checkout=' + encodeURIComponent(checkoutVal));
+
+            if (params.length > 0) {
+                btn.href = baseUrl + '?' + params.join('&');
+            } else {
+                btn.href = baseUrl;
+            }
+        });
+    }
+
+    if (checkinInput && checkoutInput) {
+        // Thiết lập min date cho check-in là hôm nay
+        var today = new Date();
+        var yyyy = today.getFullYear();
+        var mm = String(today.getMonth() + 1).padStart(2, '0');
+        var dd = String(today.getDate()).padStart(2, '0');
+        var todayStr = yyyy + '-' + mm + '-' + dd;
+        
+        if (!checkinInput.value) {
+            checkinInput.value = todayStr;
+        }
+        checkinInput.min = todayStr;
+
+        // Đảm bảo checkout luôn sau checkin
+        function validateCheckoutDate() {
+            var checkinDate = new Date(checkinInput.value);
+            var checkoutDate = new Date(checkoutInput.value);
+
+            if (!checkoutInput.value || checkoutDate <= checkinDate) {
+                var nextDay = new Date(checkinDate);
+                nextDay.setDate(nextDay.getDate() + 1);
+                var nY = nextDay.getFullYear();
+                var nM = String(nextDay.getMonth() + 1).padStart(2, '0');
+                var nD = String(nextDay.getDate()).padStart(2, '0');
+                checkoutInput.value = nY + '-' + nM + '-' + nD;
+            }
+            checkoutInput.min = checkinInput.value;
+        }
+
+        checkinInput.addEventListener('change', function() {
+            validateCheckoutDate();
+            updateViewRoomLinks();
+        });
+
+        checkoutInput.addEventListener('change', function() {
+            validateCheckoutDate();
+            updateViewRoomLinks();
+        });
+
+        if (btnSearchWithDates) {
+            btnSearchWithDates.addEventListener('click', function() {
+                if (filterForm) {
+                    filterForm.submit();
+                }
+            });
+        }
+
+        // Chạy lần đầu tiên để đồng bộ hóa các nút View Rooms hiện tại
+        validateCheckoutDate();
+        updateViewRoomLinks();
+    }
+
 });

@@ -28,9 +28,15 @@ public class BookingController {
     @GetMapping({"/booking", "/booking/create"})
     public String showCreateBookingPage(
             @RequestParam(name = "hotelId", required = false) Integer hotelId,
+            @RequestParam(name = "roomId", required = false) Integer roomId,
+            @RequestParam(name = "checkin", required = false) String checkin,
+            @RequestParam(name = "checkout", required = false) String checkout,
             HttpSession session, 
             Model model) {
         
+        if (roomId != null) {
+            model.addAttribute("selectedRoomId", roomId);
+        }
         // Lấy thông tin user đăng nhập từ Session (nếu có)
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser != null) {
@@ -52,6 +58,9 @@ public class BookingController {
         Map<Integer, String> hotelMap = hotels.stream()
                 .collect(Collectors.toMap(Hotel::getId, Hotel::getName, (h1, h2) -> h1));
         model.addAttribute("hotelMap", hotelMap);
+        
+        model.addAttribute("checkin", checkin);
+        model.addAttribute("checkout", checkout);
         
         // Trả về file giao diện templates/booking/create.html
         return "booking/create";
