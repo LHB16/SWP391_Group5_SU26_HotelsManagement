@@ -9,7 +9,7 @@
 
 <!-- ==================== HEAD (từ fragment) ==================== -->
 
-<head th:replace="~{fragment/fag :: head}"></head>
+<head th:replace="~{fragment/frag :: head}"></head>
 
 <body class="d-flex flex-column min-vh-100 bg-light">
 
@@ -17,7 +17,7 @@
     <link rel="stylesheet" th:href="@{/assets/css/hotel-list.css}" />
 
     <!-- ==================== NAVBAR (từ fragment) ==================== -->
-    <nav th:replace="~{fragment/fag :: navBar}"></nav>
+    <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
     <!-- ==================== MAIN CONTENT ==================== -->
     <main class="flex-grow-1 py-4">
@@ -274,10 +274,10 @@
     </main>
 
     <!-- ==================== FOOTER (từ fragment) ==================== -->
-    <footer th:replace="~{fragment/fag :: footer}"></footer>
+    <footer th:replace="~{fragment/frag :: footer}"></footer>
 
     <!-- ==================== SCRIPTS (từ fragment) ==================== -->
-    <div th:replace="~{fragment/fag :: scripts}"></div>
+    <div th:replace="~{fragment/frag :: scripts}"></div>
 
     <!-- JS riêng cho trang Hotels -->
     <script th:src="@{/assets/js/hotel-list.js}"></script>

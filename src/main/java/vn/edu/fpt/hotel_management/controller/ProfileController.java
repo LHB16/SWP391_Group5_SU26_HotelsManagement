@@ -7,7 +7,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.hotel_management.entity.User;
 import vn.edu.fpt.hotel_management.repository.UserRepository;
 import vn.edu.fpt.hotel_management.service.EmailService;
@@ -38,6 +37,17 @@ public class ProfileController {
             return "redirect:/login";
         }
 
+        String successMsg = (String) session.getAttribute("successMessage");
+        if (successMsg != null) {
+            model.addAttribute("successMessage", successMsg);
+            session.removeAttribute("successMessage");
+        }
+        String errorMsg = (String) session.getAttribute("errorMessage");
+        if (errorMsg != null) {
+            model.addAttribute("errorMessage", errorMsg);
+            session.removeAttribute("errorMessage");
+        }
+
         // Lấy thông tin mới nhất từ DB
         User userInDb = userRepository.findById(loggedInUser.getId())
                 .orElse(loggedInUser);
@@ -50,8 +60,7 @@ public class ProfileController {
     @GetMapping("/profile/edit-request")
     public String handleEditRequest(
             @RequestParam("field") String field,
-            HttpSession session,
-            RedirectAttributes redirectAttributes) {
+            HttpSession session) {
         
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
@@ -60,7 +69,7 @@ public class ProfileController {
 
         // Chỉ cho phép chỉnh sửa "fullName", "email" hoặc "password"
         if (!"fullName".equals(field) && !"email".equals(field) && !"password".equals(field)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Invalid action!");
+            session.setAttribute("errorMessage", "Invalid action!");
             return "redirect:/profile";
         }
 
@@ -83,10 +92,10 @@ public class ProfileController {
             session.setAttribute("pendingEditRequest", true);
             session.setAttribute("editField", field);
 
-            redirectAttributes.addFlashAttribute("successMessage", "Verification OTP code has been sent to your email to verify identity!");
+            session.setAttribute("successMessage", "Verification OTP code has been sent to your email to verify identity!");
             return "redirect:/profile/verify-edit";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error sending verification email: " + e.getMessage());
+            session.setAttribute("errorMessage", "Error sending verification email: " + e.getMessage());
             return "redirect:/profile";
         }
     }
@@ -104,6 +113,17 @@ public class ProfileController {
             return "redirect:/profile";
         }
 
+        String successMsg = (String) session.getAttribute("successMessage");
+        if (successMsg != null) {
+            model.addAttribute("successMessage", successMsg);
+            session.removeAttribute("successMessage");
+        }
+        String errorMsg = (String) session.getAttribute("errorMessage");
+        if (errorMsg != null) {
+            model.addAttribute("errorMessage", errorMsg);
+            session.removeAttribute("errorMessage");
+        }
+
         model.addAttribute("pendingEmail", loggedInUser.getEmail());
         return "User/verify-edit-profile-otp";
     }
@@ -113,7 +133,6 @@ public class ProfileController {
     public String verifyEditOtp(
             @RequestParam("otp") String otp,
             HttpSession session,
-            RedirectAttributes redirectAttributes,
             Model model) {
 
         User loggedInUser = (User) session.getAttribute("loggedInUser");
@@ -127,7 +146,7 @@ public class ProfileController {
 
             // Kiểm tra hạn OTP
             if (userInDb.getOtpExpiry() == null || userInDb.getOtpExpiry().isBefore(LocalDateTime.now())) {
-                redirectAttributes.addFlashAttribute("errorMessage", "OTP code has expired! Please request a new one.");
+                session.setAttribute("errorMessage", "OTP code has expired! Please request a new one.");
                 session.removeAttribute("pendingEditRequest");
                 session.removeAttribute("editField");
                 return "redirect:/profile";
@@ -150,10 +169,10 @@ public class ProfileController {
             session.setAttribute("profileVerifiedForEdit", true);
             session.removeAttribute("pendingEditRequest");
 
-            redirectAttributes.addFlashAttribute("successMessage", "Identity verified! You can now make changes.");
+            session.setAttribute("successMessage", "Identity verified! You can now make changes.");
             return "redirect:/profile";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "System error: " + e.getMessage());
+            session.setAttribute("errorMessage", "System error: " + e.getMessage());
             return "redirect:/profile";
         }
     }
@@ -162,8 +181,7 @@ public class ProfileController {
     @PostMapping("/profile/save-fullname")
     public String saveFullName(
             @RequestParam("fullName") String fullName,
-            HttpSession session,
-            RedirectAttributes redirectAttributes) {
+            HttpSession session) {
 
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
@@ -174,7 +192,7 @@ public class ProfileController {
         String editField = (String) session.getAttribute("editField");
 
         if (verified == null || !verified || !"fullName".equals(editField)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Unauthorized action!");
+            session.setAttribute("errorMessage", "Unauthorized action!");
             return "redirect:/profile";
         }
 
@@ -190,10 +208,10 @@ public class ProfileController {
             session.removeAttribute("profileVerifiedForEdit");
             session.removeAttribute("editField");
 
-            redirectAttributes.addFlashAttribute("successMessage", "Full Name updated successfully!");
+            session.setAttribute("successMessage", "Full Name updated successfully!");
             return "redirect:/profile";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "System error: " + e.getMessage());
+            session.setAttribute("errorMessage", "System error: " + e.getMessage());
             return "redirect:/profile";
         }
     }
@@ -202,8 +220,7 @@ public class ProfileController {
     @PostMapping("/profile/request-new-email")
     public String requestNewEmail(
             @RequestParam("email") String newEmail,
-            HttpSession session,
-            RedirectAttributes redirectAttributes) {
+            HttpSession session) {
 
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
@@ -214,21 +231,20 @@ public class ProfileController {
         String editField = (String) session.getAttribute("editField");
 
         if (verified == null || !verified || !"email".equals(editField)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Unauthorized action!");
+            session.setAttribute("errorMessage", "Unauthorized action!");
             return "redirect:/profile";
         }
 
         // Kiểm tra email mới trùng với tài khoản khác
         if (loggedInUser.getEmail().equalsIgnoreCase(newEmail)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "New email must be different from current email!");
+            session.setAttribute("errorMessage", "New email must be different from current email!");
             return "redirect:/profile";
         }
 
-        boolean emailExists = userRepository.findByEmail(newEmail)
-                .map(User::isEnabled)
-                .orElse(false);
+        User existingUser = userRepository.findByEmail(newEmail).orElse(null);
+        boolean emailExists = existingUser != null && existingUser.isEnabled();
         if (emailExists) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Email is already in use by another account!");
+            session.setAttribute("errorMessage", "Email is already in use by another account!");
             return "redirect:/profile";
         }
 
@@ -250,10 +266,10 @@ public class ProfileController {
             session.setAttribute("pendingNewEmail", newEmail);
             session.setAttribute("pendingNewEmailOtpRequest", true);
 
-            redirectAttributes.addFlashAttribute("successMessage", "Verification OTP code has been sent to your new email!");
+            session.setAttribute("successMessage", "Verification OTP code has been sent to your new email!");
             return "redirect:/profile/verify-new-email";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error sending OTP to new email: " + e.getMessage());
+            session.setAttribute("errorMessage", "Error sending OTP to new email: " + e.getMessage());
             return "redirect:/profile";
         }
     }
@@ -273,6 +289,17 @@ public class ProfileController {
             return "redirect:/profile";
         }
 
+        String successMsg = (String) session.getAttribute("successMessage");
+        if (successMsg != null) {
+            model.addAttribute("successMessage", successMsg);
+            session.removeAttribute("successMessage");
+        }
+        String errorMsg = (String) session.getAttribute("errorMessage");
+        if (errorMsg != null) {
+            model.addAttribute("errorMessage", errorMsg);
+            session.removeAttribute("errorMessage");
+        }
+
         model.addAttribute("pendingEmail", pendingNewEmail);
         return "User/verify-new-email-otp";
     }
@@ -282,7 +309,6 @@ public class ProfileController {
     public String verifyNewEmailOtp(
             @RequestParam("otp") String otp,
             HttpSession session,
-            RedirectAttributes redirectAttributes,
             Model model) {
 
         User loggedInUser = (User) session.getAttribute("loggedInUser");
@@ -301,7 +327,7 @@ public class ProfileController {
 
             // Kiểm tra hạn OTP
             if (userInDb.getOtpExpiry() == null || userInDb.getOtpExpiry().isBefore(LocalDateTime.now())) {
-                redirectAttributes.addFlashAttribute("errorMessage", "OTP code has expired! Please try again.");
+                session.setAttribute("errorMessage", "OTP code has expired! Please try again.");
                 clearEmailChangeSession(session);
                 return "redirect:/profile";
             }
@@ -324,10 +350,10 @@ public class ProfileController {
             session.setAttribute("loggedInUser", userInDb);
             clearEmailChangeSession(session);
 
-            redirectAttributes.addFlashAttribute("successMessage", "Email updated successfully!");
+            session.setAttribute("successMessage", "Email updated successfully!");
             return "redirect:/profile";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "System error: " + e.getMessage());
+            session.setAttribute("errorMessage", "System error: " + e.getMessage());
             return "redirect:/profile";
         }
     }
@@ -338,8 +364,7 @@ public class ProfileController {
             @RequestParam("currentPassword") String currentPassword,
             @RequestParam("newPassword") String newPassword,
             @RequestParam("confirmPassword") String confirmPassword,
-            HttpSession session,
-            RedirectAttributes redirectAttributes) {
+            HttpSession session) {
 
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
@@ -350,13 +375,13 @@ public class ProfileController {
         String editField = (String) session.getAttribute("editField");
 
         if (verified == null || !verified || !"password".equals(editField)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Unauthorized action!");
+            session.setAttribute("errorMessage", "Unauthorized action!");
             return "redirect:/profile";
         }
 
         // Kiểm tra mật khẩu mới và xác nhận mật khẩu mới có trùng khớp không
         if (!newPassword.equals(confirmPassword)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Confirm password does not match new password!");
+            session.setAttribute("errorMessage", "Confirm password does not match new password!");
             return "redirect:/profile";
         }
 
@@ -366,7 +391,7 @@ public class ProfileController {
 
             // Kiểm tra mật khẩu hiện tại
             if (!passwordEncoder.matches(currentPassword, userInDb.getPassword())) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Incorrect current password!");
+                session.setAttribute("errorMessage", "Incorrect current password!");
                 return "redirect:/profile";
             }
 
@@ -377,10 +402,10 @@ public class ProfileController {
             // Dọn dẹp cờ
             clearEmailChangeSession(session);
 
-            redirectAttributes.addFlashAttribute("successMessage", "Password updated successfully!");
+            session.setAttribute("successMessage", "Password updated successfully!");
             return "redirect:/profile";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "System error: " + e.getMessage());
+            session.setAttribute("errorMessage", "System error: " + e.getMessage());
             return "redirect:/profile";
         }
     }

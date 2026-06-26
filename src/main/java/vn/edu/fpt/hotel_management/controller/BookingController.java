@@ -12,9 +12,9 @@ import vn.edu.fpt.hotel_management.entity.User;
 import vn.edu.fpt.hotel_management.repository.RoomRepository;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Controller
 public class BookingController {
@@ -49,8 +49,10 @@ public class BookingController {
 
         // Lấy danh sách khách sạn để map ID sang tên khách sạn dễ hiển thị
         List<Hotel> hotels = hotelRepository.findAll();
-        Map<Integer, String> hotelMap = hotels.stream()
-                .collect(Collectors.toMap(Hotel::getId, Hotel::getName, (h1, h2) -> h1));
+        Map<Integer, String> hotelMap = new HashMap<>();
+        for (Hotel hotel : hotels) {
+            hotelMap.put(hotel.getId(), hotel.getName());
+        }
         model.addAttribute("hotelMap", hotelMap);
         
         // Trả về file giao diện templates/booking/create.html

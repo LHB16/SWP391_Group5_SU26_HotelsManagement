@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <!-- Nhúng fragment head đã có sẵn bootstrap, custom css -->
-<head th:replace="~{fragment/fag :: head}"></head>
+<head th:replace="~{fragment/frag :: head}"></head>
 
 <body class="d-flex flex-column profile-body-layout">
     <!-- Nhúng thanh điều hướng navBar chứa Avatar Dropdown -->
-    <nav th:replace="~{fragment/fag :: navBar}"></nav>
+    <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
     <!-- Khu vực hiển thị thông tin chính -->
     <main class="container mt-5 flex-grow-1">
@@ -73,9 +73,9 @@
     </main>
 
     <!-- Nhúng footer chân trang -->
-    <footer th:replace="~{fragment/fag :: footer}"></footer>
+    <footer th:replace="~{fragment/frag :: footer}"></footer>
 
     <!-- Nhúng thư viện scripts JS -->
-    <div th:replace="~{fragment/fag :: scripts}"></div>
+    <div th:replace="~{fragment/frag :: scripts}"></div>
 </body>
 </html>
