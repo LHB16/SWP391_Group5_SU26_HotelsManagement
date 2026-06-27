@@ -14,8 +14,10 @@ import vn.edu.fpt.hotel_management.repository.HotelRepository;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 @Controller
 public class BookingController {
