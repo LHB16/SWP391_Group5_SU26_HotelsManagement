@@ -26,11 +26,18 @@ public class RegisterController {
         return "auth/register";
     }
 
+    // Thêm mapping cho Owner
+    @GetMapping("/register-owner")
+    public String showRegisterOwnerForm() {
+        return "auth/register-owner";
+    }
+
     @PostMapping("/register")
     public String register(@RequestParam String fullName,
                            @RequestParam String username,
                            @RequestParam String password,
                            @RequestParam String email,
+                           @RequestParam(defaultValue = "CUSTOMER") String role,  // Thêm role
                            HttpSession session,
                            Model model) {
         try {
@@ -38,7 +45,7 @@ public class RegisterController {
 
             String otp = otpService.generateOtp();
             emailService.sendOtp(email, otp);
-            userService.savePendingUser(fullName, username, password, email, otp);
+            userService.savePendingUser(fullName, username, password, email, otp, role);  // Gửi role
 
             session.setAttribute("pendingEmail", email);
             session.setAttribute("pendingFullName", fullName);

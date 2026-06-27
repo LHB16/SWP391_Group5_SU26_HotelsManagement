@@ -1,4 +1,3 @@
-// src/main/java/vn/edu/fpt/hotel_management/service/UserService.java
 package vn.edu.fpt.hotel_management.service;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,7 +11,7 @@ import java.time.LocalDateTime;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;  // thêm
+    private final PasswordEncoder passwordEncoder;
 
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
@@ -36,18 +35,22 @@ public class UserService {
         });
     }
 
+    // Thêm tham số role
     public void savePendingUser(String fullName, String username,
-                                String password, String email, String otp) {
+                                String password, String email, String otp, String role) {
+        // Kiểm tra role hợp lệ
+        if (!"CUSTOMER".equalsIgnoreCase(role) && !"OWNER".equalsIgnoreCase(role)) {
+            throw new RuntimeException("Invalid role selected!");
+        }
+
         User user = new User();
         user.setFullName(fullName);
         user.setUsername(username);
-        // Mã hóa mật khẩu trước khi lưu
         user.setPassword(passwordEncoder.encode(password));
         user.setEmail(email);
-        user.setRole("CUSTOMER");
+        user.setRole(role.toUpperCase());  // Lưu role do người dùng chọn
         user.setOtp(otp);
         user.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
-        user.setOtpType("REGISTER");
         user.setEnabled(false);
         userRepository.save(user);
     }
