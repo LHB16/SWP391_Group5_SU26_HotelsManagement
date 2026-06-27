@@ -115,11 +115,11 @@
                                 <h4 class="section-header">Stay Dates</h4>
                                 <div class="mb-3">
                                     <label for="checkinDate" class="form-label small fw-bold text-uppercase text-muted">Check-in Date</label>
-                                    <input type="date" id="checkinDate" name="checkin" class="form-control" th:value="${checkin}">
+                                    <input type="date" id="checkinDate" name="checkin" class="form-control" th:value="${checkin}" th:min="${today}" th:max="${checkout}">
                                 </div>
                                 <div class="mb-3">
                                     <label for="checkoutDate" class="form-label small fw-bold text-uppercase text-muted">Check-out Date</label>
-                                    <input type="date" id="checkoutDate" name="checkout" class="form-control" th:value="${checkout}">
+                                    <input type="date" id="checkoutDate" name="checkout" class="form-control" th:value="${checkout}" th:min="${checkin}">
                                 </div>
                                 <button type="submit" class="btn btn-outline-primary btn-sm w-100 fw-semibold">
                                     Update Selection & Price

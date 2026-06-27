@@ -106,6 +106,7 @@ public class BookingController {
         BigDecimal grandTotal = subtotal.add(tax).add(serviceFee);
 
         // Truyền các giá trị tính toán vào model
+        model.addAttribute("today", java.time.LocalDate.now().toString());
         model.addAttribute("checkin", checkin);
         model.addAttribute("checkout", checkout);
         model.addAttribute("nights", nights);
