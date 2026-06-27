@@ -49,15 +49,8 @@ public class ForgotPasswordController {
     @PostMapping("/reset-password")
     public String resetPassword(@RequestParam String email,
                                 @RequestParam String newPassword,
-                                @RequestParam(value = "confirmPassword", required = false) String confirmPassword,
                                 HttpSession session,
                                 Model model) {
-        // Validate: hai mật khẩu phải khớp (thay thế JS checkPassword())
-        if (confirmPassword == null || !newPassword.equals(confirmPassword)) {
-            model.addAttribute("error", "Passwords do not match!");
-            model.addAttribute("email", email);
-            return "auth/reset-password";
-        }
         try {
             forgotPasswordService.resetPassword(email, newPassword);
 
