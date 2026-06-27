@@ -1,6 +1,11 @@
 // File JavaScript xử lý sự kiện hiển thị/ẩn menu thả của Avatar
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Tự động khởi tạo Lucide icons nếu thư viện có sẵn
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+
     const avatarBtn = document.getElementById('avatarBtn');
     const avatarMenu = document.getElementById('avatarMenu');
 

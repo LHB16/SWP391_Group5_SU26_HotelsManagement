@@ -83,4 +83,50 @@ main {
     flex: 1 0 auto;
 }
 
+/* ==========================================================================
+   STANDARD SYSTEM STATUS BADGES
+   ========================================================================== */
+.badge-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1;
+    border-radius: 9999px; /* Dạng viên thuốc bo tròn dẹt */
+    border: 1.5px solid transparent;
+    text-transform: uppercase; /* Viết hoa chữ */
+    letter-spacing: 0.05em; /* Khoảng cách chữ rộng */
+    white-space: nowrap;
+}
+
+/* 1. SUCCESS: Thành công, sẵn sàng, hoạt động */
+.badge-status-success {
+    background-color: #f0fdf4;
+    color: #16a34a;
+    border-color: #bbf7d0;
+}
+
+/* 2. WARNING: Chờ xử lý, đang tiến hành, đang có người */
+.badge-status-warning {
+    background-color: #fef3c7;
+    color: #b45309;
+    border-color: #fde68a;
+}
+
+/* 3. DANGER: Bị hủy, thất bại, đang bảo trì, tài khoản khóa */
+.badge-status-danger {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+/* 4. NEUTRAL: Bản nháp, hết hạn, thông tin hệ thống */
+.badge-status-neutral {
+    background-color: #f1f5f9;
+    color: #475569;
+    border-color: #e2e8f0;
+}
+
 

@@ -185,6 +185,30 @@ INSERT INTO room (id, hotel_id, room_type, description, price, acreage, bed, per
 SET IDENTITY_INSERT room OFF;
 GO
 
+-- Chèn dữ liệu bookings mẫu cho các quý và tháng trong năm 2025 và 2026
+SET IDENTITY_INSERT bookings ON;
+INSERT INTO bookings (id, customer_id, room_id, check_in_date, check_out_date, total_price, status, created_at) VALUES 
+(1, 2, 1, '2025-01-10', '2025-01-12', 840000.00, 'CHECKED_OUT', '2025-01-10 10:00:00'),
+(2, 2, 2, '2025-04-15', '2025-04-18', 1260000.00, 'CHECKED_OUT', '2025-04-15 14:00:00'),
+(3, 2, 3, '2025-07-20', '2025-07-22', 840000.00, 'CHECKED_OUT', '2025-07-20 09:30:00'),
+(4, 2, 1, '2025-10-05', '2025-10-10', 2100000.00, 'CHECKED_OUT', '2025-10-05 11:15:00'),
+(5, 2, 2, '2026-02-12', '2026-02-15', 1260000.00, 'CONFIRMED', '2026-02-12 08:00:00'),
+(6, 2, 3, '2026-05-20', '2026-05-25', 2100000.00, 'CHECKED_IN', '2026-05-20 15:45:00');
+SET IDENTITY_INSERT bookings OFF;
+GO
+
+-- Chèn dữ liệu payments mẫu tương ứng với các bookings
+SET IDENTITY_INSERT payments ON;
+INSERT INTO payments (id, booking_id, amount, method, status, paid_at) VALUES 
+(1, 1, 840000.00, 'QR_CODE', 'SUCCESS', '2025-01-10 10:05:00'),
+(2, 2, 1260000.00, 'QR_CODE', 'SUCCESS', '2025-04-15 14:10:00'),
+(3, 3, 840000.00, 'QR_CODE', 'SUCCESS', '2025-07-20 09:35:00'),
+(4, 4, 2100000.00, 'QR_CODE', 'SUCCESS', '2025-10-05 11:20:00'),
+(5, 5, 1260000.00, 'QR_CODE', 'SUCCESS', '2026-02-12 08:05:00'),
+(6, 6, 2100000.00, 'QR_CODE', 'SUCCESS', '2026-05-20 15:50:00');
+SET IDENTITY_INSERT payments OFF;
+GO
+
 USE master;
 GO
 ALTER DATABASE hotel_db SET READ_WRITE;

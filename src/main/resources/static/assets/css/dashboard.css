@@ -1,0 +1,477 @@
+/* Admin Dashboard Styling - English Version with CSS Chart & Bootstrap Grid (No animations, Light Sidebar) */
+:root {
+    --primary-gradient: linear-gradient(135deg, #4f46e5, #06b6d4);
+    --secondary-gradient: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    --accent-gradient: linear-gradient(135deg, #f59e0b, #ef4444);
+    --success-gradient: linear-gradient(135deg, #10b981, #059669);
+    --bg-glass: rgba(255, 255, 255, 0.9);
+    --border-glass: rgba(255, 255, 255, 0.4);
+    --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.04);
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --border-color: #f1f5f9;
+}
+
+body {
+    background-color: #f8fafc;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--text-primary);
+}
+
+/* Page Layout */
+.dashboard-container {
+    width: 100%;
+    max-width: 100%;
+    padding: 2rem 1.5rem;
+}
+
+/* Sidebar Box - LIGHT THEME (No animations) */
+.sidebar-box {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.5rem 1.25rem;
+    box-shadow: var(--shadow-soft);
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.25rem;
+    color: #475569; /* Dark text for light theme */
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 0.925rem;
+    border: none;
+    background: transparent;
+    text-align: left;
+    width: 100%;
+}
+
+.sidebar-link:hover {
+    color: #0f172a;
+    background: #f1f5f9;
+}
+
+.sidebar-link.active {
+    color: #fff;
+    background: #4f46e5;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+}
+
+/* Stat Cards (No transform translation, no transition) */
+.stat-card {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-soft);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--primary-gradient);
+}
+
+.stat-card.card-revenue::before {
+    background: var(--success-gradient);
+}
+
+.stat-card.card-bookings::before {
+    background: var(--secondary-gradient);
+}
+
+.stat-card.card-hotels::before {
+    background: var(--primary-gradient);
+}
+
+.stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: rgba(79, 70, 229, 0.08);
+    color: #4f46e5;
+    margin-bottom: 1rem;
+}
+
+.card-revenue .stat-icon {
+    background: rgba(16, 185, 129, 0.08);
+    color: #10b981;
+}
+
+.card-bookings .stat-icon {
+    background: rgba(59, 130, 246, 0.08);
+    color: #3b82f6;
+}
+
+.stat-value {
+    font-size: 1.65rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Sections */
+.dashboard-section {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 1.75rem;
+    box-shadow: var(--shadow-soft);
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.75rem;
+}
+
+/* Filter controls */
+.filter-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.filter-select {
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    padding: 0.55rem 0.875rem;
+    font-size: 0.875rem;
+    background-color: #fff;
+    outline: none;
+}
+
+.filter-select:focus {
+    border-color: #4f46e5;
+}
+
+.date-filter-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+}
+
+/* Checkbox Filter Box */
+.hotel-checkbox-group {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.hotel-checkbox-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+}
+
+.hotel-checkbox-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    max-height: 120px;
+    overflow-y: auto;
+    background-color: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 0.75rem;
+}
+
+.hotel-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+/* Custom CSS Chart Graphic (No animations/transitions) */
+.css-chart-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 1rem 0;
+}
+
+.chart-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.chart-hotel-name {
+    width: 25%;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 1rem;
+}
+
+.chart-bar-wrapper {
+    width: 75%;
+    background-color: #f1f5f9;
+    border-radius: 8px;
+    height: 32px;
+    position: relative;
+    overflow: hidden;
+}
+
+.chart-bar {
+    background: var(--primary-gradient);
+    height: 100%;
+    border-radius: 8px;
+    width: 0%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 0.75rem;
+}
+
+.chart-bar-value {
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Tab Panels */
+.tab-panel {
+    display: none;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+/* Tables */
+.custom-table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.custom-table th {
+    background-color: #f8fafc;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    text-align: left;
+    font-size: 0.825rem;
+    color: #64748b;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.custom-table td {
+    padding: 0.875rem 1rem;
+    font-size: 0.875rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: var(--text-primary);
+}
+
+.custom-table tbody tr {
+    transition: background-color 0.2s;
+}
+
+.custom-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* Badges & Revenue styling */
+.badge-quarter {
+    background: #e0e7ff;
+    color: #4338ca;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
+
+.badge-month {
+    background-color: #f1f5f9;
+    color: #475569;
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
+
+.revenue-amount {
+    font-weight: 600;
+    color: #10b981;
+}
+
+/* Customer Management section styling */
+.customer-layout {
+    display: grid;
+    grid-template-columns: 30% 70%;
+    gap: 1.5rem;
+}
+
+.customer-list-box {
+    border-right: 1px solid var(--border-color);
+    padding-right: 1rem;
+}
+
+.list-group-item-action.active-customer {
+    background-color: #e0e7ff !important;
+    border-color: #c7d2fe !important;
+    color: #4f46e5 !important;
+    font-weight: 600;
+}
+
+.customer-card-header {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: #fff;
+    padding: 1.5rem;
+    border-radius: 12px 12px 0 0;
+}
+
+.customer-card-body {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 1.5rem;
+}
+
+/* Responsive Grid overrides */
+@media (max-width: 991px) {
+    .customer-layout {
+        grid-template-columns: 1fr;
+    }
+    .chart-hotel-name {
+        width: 35%;
+    }
+    .chart-bar-wrapper {
+        width: 65%;
+    }
+}
+
+/* Customer accounts listing layout overrides for full width single list view */
+.customer-layout-single {
+    max-width: 900px;
+    margin: 0 auto;
+}
+.customer-list-box-full {
+    width: 100%;
+}
+/* Custom Pagination styles matching layout */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2rem;
+}
+.page-link-custom {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 8px;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    font-weight: 500;
+    font-size: 0.88rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.page-link-custom:hover:not(.disabled) {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+.page-link-custom.active {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+    color: #ffffff;
+}
+.page-link-custom.disabled {
+    color: #cbd5e1;
+    background-color: #f8fafc;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.detail-card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    transition: transform 0.3s ease;
+}
+.detail-card:hover {
+    transform: translateY(-2px);
+}
+.detail-header {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    color: #ffffff;
+    padding: 2rem;
+}
+.detail-body {
+    padding: 2rem;
+}
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background-color: #f1f5f9;
+    color: #334155;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.back-btn:hover {
+    background-color: #e2e8f0;
+    color: #0f172a;
+}
