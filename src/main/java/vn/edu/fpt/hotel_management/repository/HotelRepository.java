@@ -54,4 +54,5 @@ public interface HotelRepository extends JpaRepository<Hotel, Integer> {
             @Param("minPrice") BigDecimal minPrice,
             @Param("maxPrice") BigDecimal maxPrice
     );
+
 }

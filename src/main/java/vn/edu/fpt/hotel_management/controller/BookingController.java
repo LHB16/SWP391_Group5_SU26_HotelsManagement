@@ -16,7 +16,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Controller
 public class BookingController {
@@ -55,8 +54,10 @@ public class BookingController {
 
         // Lấy danh sách khách sạn để map ID sang tên khách sạn dễ hiển thị
         List<Hotel> hotels = hotelRepository.findAll();
-        Map<Integer, String> hotelMap = hotels.stream()
-                .collect(Collectors.toMap(Hotel::getId, Hotel::getName, (h1, h2) -> h1));
+        Map<Integer, String> hotelMap = new HashMap<>();
+        for (Hotel hotel : hotels) {
+            hotelMap.put(hotel.getId(), hotel.getName());
+        }
         model.addAttribute("hotelMap", hotelMap);
         
         // Tính toán số đêm dựa trên ngày check-in và check-out

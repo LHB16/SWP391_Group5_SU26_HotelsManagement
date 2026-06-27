@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en" class="h-100">
+
+<head>
+    <!-- Include general head fragment of the system -->
+    <th:block th:replace="~{fragment/frag :: head}"></th:block>
+    
+    <!-- Link custom stylesheet for Dashboard (CSS is separated from HTML) -->
+    <link th:href="@{/assets/css/dashboard.css}" rel="stylesheet"/>
+    
+    <!-- Lucide Icons library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="d-flex flex-column h-100">
+
+    <!-- Use system common navbar for consistent styling -->
+    <nav th:replace="~{fragment/frag :: navBar}"></nav>
+
+    <!-- Main Container using Bootstrap fluid layout to prevent clipping on right side -->
+    <main class="flex-shrink-0 dashboard-container container-fluid">
+        <div class="row">
+            
+            <!-- Left Side: Bootstrap Grid for Sidebar (~25% width) -->
+            <div class="col-lg-3 col-md-4 mb-4">
+                <div class="sidebar-box">
+                    <!-- Dashboard Sidebar Title -->
+                    <div class="px-3 mb-4 text-muted text-uppercase small font-weight-bold">
+                        Admin Dashboard Navigation
+                    </div>
+                    <div class="sidebar-nav">
+                        <!-- Navigation Tab Buttons: Set active link based on model data -->
+                        <button class="sidebar-link" th:classappend="${tab == 'revenuePanel'} ? 'active' : ''" data-tab="revenuePanel">
+                            <i data-lucide="bar-chart-3" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
+                            <span>Revenue Overview</span>
+                        </button>
+                        <button class="sidebar-link" th:classappend="${tab == 'customerPanel'} ? 'active' : ''" data-tab="customerPanel">
+                            <i data-lucide="users" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
+                            <span>Customer Accounts</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Bootstrap Grid for Main Content Panel (~75% width) -->
+            <div class="col-lg-9 col-md-8 mb-4">
+                
+                <!-- PANEL 1: REVENUE OVERVIEW -->
+                <div id="revenuePanel" class="tab-panel" th:classappend="${tab == 'revenuePanel'} ? 'active' : ''">
+                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                        <div>
+                            <!-- Header Title (No icon on the left of title) -->
+                            <h1 class="fw-bold text-dark m-0">Admin Dashboard</h1>
+                            <p class="text-muted m-0 mt-1">Review statistical hotel revenues and filter data interactively.</p>
+                        </div>
+                    </div>
+
+                    <!-- Cards Section for overview stats -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-4">
+                            <div class="stat-card card-revenue">
+                                <div class="stat-icon">
+                                    <i data-lucide="dollar-sign" style="stroke-width: 1.5;"></i>
+                                </div>
+                                <div class="stat-value" id="totalRevenue">0đ</div>
+                                <div class="stat-label">Total Actual Revenue</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card card-bookings">
+                                <div class="stat-icon">
+                                    <i data-lucide="shopping-bag" style="stroke-width: 1.5;"></i>
+                                </div>
+                                <div class="stat-value" id="totalBookings">0</div>
+                                <div class="stat-label">Successful Bookings</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card card-hotels">
+                                <div class="stat-icon">
+                                    <i data-lucide="hotel" style="stroke-width: 1.5;"></i>
+                                </div>
+                                <div class="stat-value" id="totalHotels">0</div>
+                                <div class="stat-label">Active Hotels with Revenue</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filters & Custom CSS Chart Group -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-12">
+                            <div class="dashboard-section">
+                                <h2 class="section-title">
+                                    <i data-lucide="sliders" style="stroke-width: 1.5; color: #4f46e5;"></i>
+                                    Revenue Filters
+                                </h2>
+                                
+                                <div class="row g-3">
+                                    <!-- Start Date Filter -->
+                                    <div class="col-md-3">
+                                        <label for="filterStartDate" class="date-filter-label">Start Date</label>
+                                        <input type="date" id="filterStartDate" class="filter-select w-100" />
+                                    </div>
+                                    <!-- End Date Filter -->
+                                    <div class="col-md-3">
+                                        <label for="filterEndDate" class="date-filter-label">End Date</label>
+                                        <input type="date" id="filterEndDate" class="filter-select w-100" />
+                                    </div>
+                                    
+                                    <!-- Hotel Checkboxes Selector (With Search & Select All for scale) -->
+                                    <div class="col-12 mt-3">
+                                        <div class="hotel-checkbox-group">
+                                            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                                                <div class="hotel-checkbox-title mb-0">Select Hotels to Display</div>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <!-- Small Search Input for hotels -->
+                                                    <input type="text" id="searchHotelInput" class="filter-select py-1 px-2" placeholder="Search hotels..." style="font-size: 0.75rem; max-width: 180px;" />
+                                                    <button type="button" id="btnSelectAllHotels" class="btn btn-sm btn-outline-primary py-0.5 px-2" style="font-size: 0.75rem; border-radius: 6px;">Select All</button>
+                                                    <button type="button" id="btnDeselectAllHotels" class="btn btn-sm btn-outline-secondary py-0.5 px-2" style="font-size: 0.75rem; border-radius: 6px;">Clear All</button>
+                                                </div>
+                                            </div>
+                                            <div class="hotel-checkbox-list" id="hotelCheckboxListContainer">
+                                                <label class="hotel-checkbox-item" th:each="h : ${hotels}">
+                                                    <input type="checkbox" class="hotel-filter-checkbox" th:value="${h.name}" checked />
+                                                    <span th:text="${h.name}">Hotel Name</span>
+                                                </label>
+                                                <div class="text-muted small" th:if="${#lists.isEmpty(hotels)}">No hotels available.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Graphical Custom CSS Bar Chart Panel -->
+                        <div class="col-12">
+                            <div class="dashboard-section">
+                                <h2 class="section-title">
+                                    <i data-lucide="bar-chart-2" style="stroke-width: 1.5; color: #4f46e5;"></i>
+                                    Hotel Revenue Comparison
+                                </h2>
+                                
+                                <!-- Custom HTML & CSS Chart (Progress bars) dynamically generated in dashboard.js -->
+                                <div class="css-chart-wrapper" id="cssChartContainer">
+                                    <!-- Generated rows will be rendered here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabular Data summary -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="dashboard-section">
+                                <h2 class="section-title">
+                                    <i data-lucide="table" style="stroke-width: 1.5; color: #4f46e5;"></i>
+                                    Revenue Details Table
+                                </h2>
+                                <div class="custom-table-container">
+                                    <table class="custom-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Hotel Name</th>
+                                                <th>Total Revenue</th>
+                                                <th>Booking count</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="revenueTableBody">
+                                            <!-- Managed by Javascript filters -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL 2: CUSTOMER ACCOUNTS -->
+                <div id="customerPanel" class="tab-panel" th:classappend="${tab == 'customerPanel'} ? 'active' : ''">
+                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                        <div>
+                            <!-- Header Title (No icon on the left of title) -->
+                            <h1 class="fw-bold text-dark m-0">Admin Dashboard</h1>
+                            <p class="text-muted m-0 mt-1">Manage user profiles, accounts and transaction booking bills.</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-section">
+                        <div class="customer-layout-single">
+                            
+                            <!-- Customer Accounts List -->
+                            <div class="customer-list-box-full">
+                                <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                                    <i data-lucide="list" style="stroke-width: 1.5; width: 18px; height: 18px; color: #4f46e5;"></i>
+                                    Customer Accounts List
+                                </h5>
+
+                                <!-- Search & Filter Form (Pure Thymeleaf/HTML GET, No JS) -->
+                                <form th:action="@{/admin/dashboard}" method="get" class="mb-4">
+                                    <input type="hidden" name="tab" value="customerPanel" />
+                                    <div class="row g-2">
+                                        <div class="col-md-3">
+                                            <select name="searchType" class="form-select filter-select w-100" style="height: 100%; min-height: 42px;">
+                                                <option value="username" th:selected="${searchType == 'username'}">Username</option>
+                                                <option value="fullName" th:selected="${searchType == 'fullName'}">Full Name</option>
+                                                <option value="email" th:selected="${searchType == 'email'}">Email Address</option>
+                                                <option value="id" th:selected="${searchType == 'id'}">Customer ID</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <input type="text" name="searchQuery" class="form-control filter-select w-100" 
+                                                   placeholder="Search query..." th:value="${searchQuery}" style="height: 100%; min-height: 42px;" />
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="submit" class="btn btn-primary w-100" style="min-height: 42px; border-radius: 8px; font-weight: 600; background-color: #4f46e5; border-color: #4f46e5;">
+                                                Search
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 text-end" th:if="${searchQuery != null && !searchQuery.isEmpty()}">
+                                        <a th:href="@{/admin/dashboard(tab='customerPanel')}" class="text-muted small" style="text-decoration: underline;">Clear search filter</a>
+                                    </div>
+                                </form>
+
+                                <div class="list-group">
+                                    <a th:href="@{/admin/customer-detail(id=${c.id})}" 
+                                       class="list-group-item list-group-item-action customer-item border-0 py-3 mb-2 rounded-3 shadow-sm bg-light d-flex justify-content-between align-items-center"
+                                       th:each="c : ${customers}">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="avatar-btn m-0 bg-secondary-subtle text-secondary" style="width: 40px; height: 40px; font-size: 1rem; display: flex; align-items: center; justify-content: center; border-radius: 50%;"
+                                                 th:text="${#strings.substring(c.fullName, 0, 1).toUpperCase()}">C</div>
+                                            <div>
+                                                <div class="fw-bold text-dark mb-0.5" th:text="${c.fullName}">Customer Name</div>
+                                                <small class="text-muted" th:text="'Email: ' + ${c.email}">Email: name@example.com</small>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <span class="badge-status badge-status-success" th:if="${c.enabled}">Active</span>
+                                            <span class="badge-status badge-status-danger" th:if="${!c.enabled}">Inactive</span>
+                                            <i data-lucide="chevron-right" class="text-muted" style="width: 18px; height: 18px;"></i>
+                                        </div>
+                                    </a>
+                                    <div class="text-center text-muted py-5 border border-dashed rounded-3 bg-light" th:if="${#lists.isEmpty(customers)}">
+                                        <i data-lucide="users" class="text-muted mb-2" style="width: 32px; height: 32px; stroke-width: 1.5;"></i>
+                                        <div>No customer accounts found.</div>
+                                    </div>
+                                </div>
+
+                                <!-- Pagination for Customers -->
+                                <div class="pagination-container" th:if="${totalPages > 1}">
+                                    <a th:href="@{/admin/dashboard(page=${currentPage - 1}, tab='customerPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
+                                       class="page-link-custom" th:classappend="${currentPage == 0} ? 'disabled' : ''">
+                                        <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>
+                                    </a>
+                                    
+                                    <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                                        <a th:href="@{/admin/dashboard(page=${i}, tab='customerPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
+                                           class="page-link-custom" th:classappend="${currentPage == i} ? 'active' : ''"
+                                           th:text="${i + 1}">1</a>
+                                    </th:block>
+                                    
+                                    <a th:href="@{/admin/dashboard(page=${currentPage + 1}, tab='customerPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
+                                       class="page-link-custom" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled' : ''">
+                                        <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Safely inject lists into javascript context -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.bookingsData = /*[[${bookings}]]*/ [];
+        /*]]>*/
+    </script>
+
+    <!-- Use system footer -->
+    <footer th:replace="~{fragment/frag :: footer}"></footer>
+
+    <!-- Bootstrap Bundle and default scripts -->
+    <th:block th:replace="~{fragment/frag :: scripts}"></th:block>
+
+    <!-- Connect custom interactive JS file -->
+    <script th:src="@{/assets/js/dashboard.js}"></script>
+</body>
+
+</html>

@@ -16,20 +16,15 @@
                     <div class="profile-sidebar-title">PROFILE MANAGEMENT</div>
                     <ul class="profile-sidebar-menu">
                         <li class="profile-sidebar-item">
-                            <a th:href="@{/profile}" class="profile-sidebar-link">
-                                View Profile
-                            </a>
-                        </li>
-                        <li class="profile-sidebar-item">
-                            <a th:href="@{/profile/edit}" class="profile-sidebar-link active">
-                                Modify Profile
+                            <a th:href="@{/profile}" class="profile-sidebar-link active">
+                                Profile Information
                             </a>
                         </li>
                     </ul>
                 </div>
             </div>
 
-            <!-- Cột bên phải: Giao diện nhập mã OTP -->
+            <!-- Cột bên phải: Giao diện nhập mã OTP cho email mới -->
             <div class="col-md-9">
                 <!-- Hiển thị thông báo lỗi nếu có -->
                 <div th:if="${errorMessage}" class="alert alert-danger border-0 px-3 py-2 mb-3 profile-alert-box" th:text="${errorMessage}"></div>
@@ -39,15 +34,15 @@
                 <div class="card border-0 shadow-sm mb-4 profile-card">
                     <!-- Phần header màu Primary Navy (#0f4c81) -->
                     <div class="card-header text-white text-center py-4 profile-card-header">
-                        <h3 class="mb-1 fw-bold">Verify OTP</h3>
-                        <p class="mb-0 text-white-50">Enter the verification code to save changes</p>
+                        <h3 class="mb-1 fw-bold">Verify New Email</h3>
+                        <p class="mb-0 text-white-50">Enter the verification code sent to your new email address</p>
                     </div>
 
                     <!-- Nội dung nhập OTP -->
                     <div class="card-body p-4">
-                        <form th:action="@{/profile/verify}" method="POST">
+                        <form th:action="@{/profile/verify-new-email}" method="POST">
                             <div class="mb-3 text-center">
-                                <p class="text-muted">We have sent a 6-digit OTP code to: <strong th:text="${pendingEmail}">email@example.com</strong>. Please check your inbox.</p>
+                                <p class="text-muted">We have sent a 6-digit OTP code to your new email: <strong th:text="${pendingEmail}">newemail@example.com</strong>. Please check its inbox.</p>
                             </div>
 
                             <!-- Ô nhập mã OTP -->
@@ -59,10 +54,10 @@
                             <!-- Các nút hành động -->
                             <div class="d-flex gap-2">
                                 <button type="submit" class="btn text-white w-50 profile-btn-primary">
-                                    Verify & Update
+                                    Confirm Change
                                 </button>
-                                <a th:href="@{/profile/edit}" class="btn btn-outline-secondary w-50 profile-btn-secondary">
-                                    Back
+                                <a th:href="@{/profile/cancel-edit}" class="btn btn-outline-secondary w-50 profile-btn-secondary">
+                                    Cancel
                                 </a>
                             </div>
                         </form>

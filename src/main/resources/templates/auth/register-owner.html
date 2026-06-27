@@ -2,23 +2,23 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title>Register - Customer</title>
+    <title>Register - Hotel Owner</title>
     <link th:href="@{/assets/css/bootstrap.css}" rel="stylesheet"/>
 </head>
 <body class="bg-light">
 
 <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
     <div class="card shadow" style="width: 420px;">
-        <div class="card-header bg-success text-white text-center">
-            <h4 class="mb-0">Create Customer Account</h4>
+        <div class="card-header bg-primary text-white text-center">
+            <h4 class="mb-0">Create Hotel Owner Account</h4>
         </div>
         <div class="card-body p-4">
 
             <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
             <form method="post" action="/register">
-                <!-- Ẩn role = CUSTOMER -->
-                <input type="hidden" name="role" value="CUSTOMER"/>
+                <!-- Ẩn role = OWNER -->
+                <input type="hidden" name="role" value="OWNER"/>
 
                 <div class="mb-3">
                     <label class="form-label">Full Name</label>
@@ -48,13 +48,13 @@
                            required minlength="6"/>
                 </div>
 
-                <button type="submit" class="btn btn-success w-100">Register as Customer</button>
+                <button type="submit" class="btn btn-primary w-100">Register as Owner</button>
             </form>
 
-            <!-- Nút chuyển sang đăng ký Owner -->
+            <!-- Nút chuyển sang đăng ký Customer -->
             <div class="text-center mt-3">
-                <span class="text-muted small">Are you a hotel owner?
-                    <a th:href="@{/register-owner}" class="fw-bold">Register as Owner</a>
+                <span class="text-muted small">Are you a customer?
+                    <a th:href="@{/register}" class="fw-bold">Register as Customer</a>
                 </span>
             </div>
 

@@ -4,7 +4,7 @@
 <head th:fragment="head">
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Hotels Management</title>
+    <title>Booking Hotels</title>
     <link th:href="@{/assets/css/bootstrap.css}" rel="stylesheet"/>
     <!-- Nhúng CSS tùy chỉnh cho Avatar Dropdown -->
     <link th:href="@{/assets/css/style.css}" rel="stylesheet"/>
@@ -14,19 +14,26 @@
 
 <nav th:fragment="navBar" class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
-        <a class="navbar-brand fw-bold" th:href="@{/}">Hotels Management</a>
+        <a class="navbar-brand fw-bold" th:href="@{/}">Booking Hotels</a>
         <button class="navbar-toggler" type="button"
                 data-bs-toggle="collapse" data-bs-target="#navMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navMenu">
             <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/}">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/hotels}">Hotels</a>
-                </li>
+                <th:block th:if="${session.loggedInUser == null || session.loggedInUser.role != 'ADMIN'}">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/hotels}">Hotels</a>
+                    </li>
+                </th:block>
+                <th:block th:if="${session.loggedInUser != null && session.loggedInUser.role == 'ADMIN'}">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/admin/dashboard}">Admin Dashboard</a>
+                    </li>
+                </th:block>
             </ul>
             <ul class="navbar-nav ms-auto align-items-center gap-2">
                 <th:block th:if="${session.loggedInUser == null}">
@@ -51,8 +58,6 @@
                             </div>
                             <!-- Nút View Profile như yêu cầu -->
                             <a class="avatar-menu-item" th:href="@{/profile}">View Profile</a>
-                            <!-- Nút Modify Profile chuyển đổi nhanh -->
-                            <a class="avatar-menu-item" th:href="@{/profile/edit}">Modify Profile</a>
                             <div class="avatar-menu-divider"></div>
                             <!-- Nút Logout -->
                             <a class="avatar-menu-item" th:href="@{/logout}" style="color: #ef4444;">Logout</a>
@@ -65,7 +70,7 @@
 </nav>
 
 <footer th:fragment="footer" class="bg-dark text-white text-center py-3 mt-auto">
-    <small>&copy; 2026 Hotels Management</small>
+    <small>&copy; 2026 Booking Hotels</small>
 </footer>
 
 <th:block th:fragment="scripts">

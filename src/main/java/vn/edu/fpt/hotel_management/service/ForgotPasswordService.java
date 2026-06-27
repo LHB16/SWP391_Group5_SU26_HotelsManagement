@@ -35,6 +35,7 @@ public class ForgotPasswordService {
         String otp = otpService.generateOtp();
         user.setOtp(otp);
         user.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
+        user.setOtpType("FORGOT_PASSWORD");
         userRepository.save(user);
 
         emailService.sendPasswordResetOtp(email, otp);

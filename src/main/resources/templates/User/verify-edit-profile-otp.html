@@ -16,13 +16,8 @@
                     <div class="profile-sidebar-title">PROFILE MANAGEMENT</div>
                     <ul class="profile-sidebar-menu">
                         <li class="profile-sidebar-item">
-                            <a th:href="@{/profile}" class="profile-sidebar-link">
-                                View Profile
-                            </a>
-                        </li>
-                        <li class="profile-sidebar-item">
-                            <a th:href="@{/profile/edit}" class="profile-sidebar-link active">
-                                Modify Profile
+                            <a th:href="@{/profile}" class="profile-sidebar-link active">
+                                Profile Information
                             </a>
                         </li>
                     </ul>
@@ -40,14 +35,14 @@
                     <!-- Phần header màu Primary Navy (#0f4c81) -->
                     <div class="card-header text-white text-center py-4 profile-card-header">
                         <h3 class="mb-1 fw-bold">Verify OTP</h3>
-                        <p class="mb-0 text-white-50">Enter the verification code to save changes</p>
+                        <p class="mb-0 text-white-50">Enter the verification code to edit profile</p>
                     </div>
 
                     <!-- Nội dung nhập OTP -->
                     <div class="card-body p-4">
-                        <form th:action="@{/profile/verify}" method="POST">
+                        <form th:action="@{/profile/verify-edit}" method="POST">
                             <div class="mb-3 text-center">
-                                <p class="text-muted">We have sent a 6-digit OTP code to: <strong th:text="${pendingEmail}">email@example.com</strong>. Please check your inbox.</p>
+                                <p class="text-muted">We have sent a 6-digit OTP code to your current email: <strong th:text="${pendingEmail}">email@example.com</strong>. Please check your inbox.</p>
                             </div>
 
                             <!-- Ô nhập mã OTP -->
@@ -59,9 +54,9 @@
                             <!-- Các nút hành động -->
                             <div class="d-flex gap-2">
                                 <button type="submit" class="btn text-white w-50 profile-btn-primary">
-                                    Verify & Update
+                                    Verify & Edit
                                 </button>
-                                <a th:href="@{/profile/edit}" class="btn btn-outline-secondary w-50 profile-btn-secondary">
+                                <a th:href="@{/profile}" class="btn btn-outline-secondary w-50 profile-btn-secondary">
                                     Back
                                 </a>
                             </div>
