@@ -11,6 +11,11 @@ public class Hotel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(name = "owner_id", nullable = true)
+    private Integer ownerId;
+
+
+
     // Tên khách sạn
     @Column(nullable = false)
     private String name;
@@ -105,5 +110,13 @@ public class Hotel {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public Integer getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(Integer ownerId) {
+        this.ownerId = ownerId;
     }
 }
