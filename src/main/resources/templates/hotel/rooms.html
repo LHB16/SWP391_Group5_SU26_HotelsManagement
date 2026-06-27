@@ -519,7 +519,14 @@
                     onmouseout="this.style.background='none'">✕</button>
             </div>
 
-            <form id="editReviewForm" method="post">
+            <!--
+                Form dùng action cố định: /hotels/{hotelId}/reviews/edit
+                reviewId được gửi qua hidden input – Java xử lý toàn bộ
+            -->
+            <form id="editReviewForm" method="post"
+                  th:action="@{/hotels/{id}/reviews/edit(id=${hotel.id})}">
+                <!-- reviewId được điền bằng JS khi user click nút Edit (chỉ là UI prefill) -->
+                <input type="hidden" name="reviewId" id="editReviewIdInput" value="" />
                 <!-- Star Rating -->
                 <div style="margin-bottom:20px;">
                     <label style="font-size:.82rem; font-weight:700; text-transform:uppercase;
@@ -607,7 +614,7 @@
         /*<![CDATA[*/
         document.addEventListener('DOMContentLoaded', function () {
 
-            // Dual Range Slider
+            // ===== Dual Range Slider (UI only) =====
             const rlMin = document.getElementById('rlMin');
             const rlMax = document.getElementById('rlMax');
             const rlHighlight = document.getElementById('rlHighlight');
@@ -642,7 +649,7 @@
                 updateSlider();
             }
 
-            // Star Rating Input Interaction (Create form)
+            // ===== Star Rating – Create form (UI only) =====
             const starBtns = document.querySelectorAll('.star-rating-input .star-btn');
             const ratingInput = document.getElementById('reviewRatingInput');
 
@@ -656,7 +663,7 @@
                 });
             }
 
-            // Star Rating Input Interaction (Edit modal)
+            // ===== Star Rating – Edit modal (UI only) =====
             const editStarBtns = document.querySelectorAll('#editStarContainer .star-btn');
             const editRatingInput = document.getElementById('editRatingInput');
 
@@ -678,46 +685,46 @@
                 if (input) input.value = rating;
             }
 
+<<<<<<< Updated upstream
             // Expose globally for inline onclick
             window._updateEditStars = function (rating) {
                 updateStarRatingDisplay(rating, editStarBtns, editRatingInput);
             };
 
             // Edit Review Modal Handlers
+=======
+            // ===== Edit Review Modal – chỉ prefill UI, không xây URL =====
+>>>>>>> Stashed changes
             const editReviewModal = document.getElementById('editReviewModal');
-            const editReviewForm = document.getElementById('editReviewForm');
             const editCommentInput = document.getElementById('editCommentInput');
+            const editReviewIdInput = document.getElementById('editReviewIdInput');
 
-            // Wire up all Edit buttons
             document.querySelectorAll('.btn-review-edit').forEach(btn => {
                 btn.addEventListener('click', function () {
+                    // Lấy dữ liệu từ data-* attribute (Thymeleaf đã render sẵn)
                     const reviewId = this.getAttribute('data-review-id');
-                    const rating = parseInt(this.getAttribute('data-review-rating')) || 5;
-                    const comment = this.getAttribute('data-review-comment') || '';
+                    const rating   = parseInt(this.getAttribute('data-review-rating')) || 5;
+                    const comment  = this.getAttribute('data-review-comment') || '';
 
-                    // Get hotelId from Thymeleaf
-                    const hotelId = /*[[${hotel.id}]]*/ 0;
+                    // Prefill hidden reviewId – Java sẽ dùng để tìm review
+                    editReviewIdInput.value = reviewId;
 
-                    // Set target edit URL dynamically
-                    editReviewForm.action = '/hotels/' + hotelId + '/reviews/' + reviewId + '/edit';
-
-                    // Prefill inputs
+                    // Prefill nội dung UI
                     editCommentInput.value = comment;
                     updateStarRatingDisplay(rating, editStarBtns, editRatingInput);
 
-                    // Show modal
+                    // Hiện modal
                     editReviewModal.style.display = 'flex';
                     document.body.style.overflow = 'hidden';
                 });
             });
 
-            // Make closeEditModal global
+            // Đóng modal
             window.closeEditModal = function () {
                 editReviewModal.style.display = 'none';
                 document.body.style.overflow = '';
             };
 
-            // Close modal when clicking background overlay
             editReviewModal.addEventListener('click', function (e) {
                 if (e.target === editReviewModal) {
                     window.closeEditModal();
