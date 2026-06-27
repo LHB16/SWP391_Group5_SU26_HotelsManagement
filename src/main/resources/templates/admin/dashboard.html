@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en" class="h-100">
+
+<head>
+    <!-- Include general head fragment of the system -->
+    <th:block th:replace="~{fragment/fag :: head}"></th:block>
+    
+    <!-- Link custom stylesheet for Dashboard (CSS is separated from HTML) -->
+    <link th:href="@{/assets/css/dashboard.css}" rel="stylesheet"/>
+    
+    <!-- Lucide Icons library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="d-flex flex-column h-100">
+
+    <!-- Use system common navbar for consistent styling -->
+    <nav th:replace="~{fragment/fag :: navBar}"></nav>
+
+    <!-- Main Container using Bootstrap fluid layout to prevent clipping on right side -->
+    <main class="flex-shrink-0 dashboard-container container-fluid">
+        <div class="row">
+            
+            <!-- Left Side: Bootstrap Grid for Sidebar (~25% width) -->
+            <div class="col-lg-3 col-md-4 mb-4">
+                <div class="sidebar-box">
+                    <!-- Dashboard Sidebar Title -->
+                    <div class="px-3 mb-4 text-muted text-uppercase small font-weight-bold">
+                        Admin Dashboard Navigation
+                    </div>
+                    <div class="sidebar-nav">
+                        <!-- Navigation Tab Buttons: Set active link based on model data -->
+                        <button class="sidebar-link" th:classappend="${selectedCustomer == null} ? 'active' : ''" data-tab="revenuePanel">
+                            <i data-lucide="bar-chart-3" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
+                            <span>Revenue Overview</span>
+                        </button>
+                        <button class="sidebar-link" th:classappend="${selectedCustomer != null} ? 'active' : ''" data-tab="customerPanel">
+                            <i data-lucide="users" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
+                            <span>Customer Accounts</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Bootstrap Grid for Main Content Panel (~75% width) -->
+            <div class="col-lg-9 col-md-8 mb-4">
+                
+                <!-- PANEL 1: REVENUE OVERVIEW -->
+                <div id="revenuePanel" class="tab-panel" th:classappend="${selectedCustomer == null} ? 'active' : ''">
+                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                        <div>
+                            <!-- Header Title (No icon on the left of title) -->
+                            <h1 class="fw-bold text-dark m-0">Admin Dashboard</h1>
+                            <p class="text-muted m-0 mt-1">Review statistical hotel revenues and filter data interactively.</p>
+                        </div>
+                    </div>
+
+                    <!-- Cards Section for overview stats -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-4">
+                            <div class="stat-card card-revenue">
+                                <div class="stat-icon">
+                                    <i data-lucide="dollar-sign" style="stroke-width: 1.5;"></i>
+                                </div>
+                                <div class="stat-value" id="totalRevenue">0đ</div>
+                                <div class="stat-label">Total Actual Revenue</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card card-bookings">
+                                <div class="stat-icon">
+                                    <i data-lucide="shopping-bag" style="stroke-width: 1.5;"></i>
+                                </div>
+                                <div class="stat-value" id="totalBookings">0</div>
+                                <div class="stat-label">Successful Bookings</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card card-hotels">
+                                <div class="stat-icon">
+                                    <i data-lucide="hotel" style="stroke-width: 1.5;"></i>
+                                </div>
+                                <div class="stat-value" id="totalHotels">0</div>
+                                <div class="stat-label">Active Hotels with Revenue</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filters & Custom CSS Chart Group -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-12">
+                            <div class="dashboard-section">
+                                <h2 class="section-title">
+                                    <i data-lucide="sliders" style="stroke-width: 1.5; color: #4f46e5;"></i>
+                                    Revenue Filters
+                                </h2>
+                                
+                                <div class="row g-3">
+                                    <!-- Start Date Filter -->
+                                    <div class="col-md-3">
+                                        <label for="filterStartDate" class="date-filter-label">Start Date</label>
+                                        <input type="date" id="filterStartDate" class="filter-select w-100" />
+                                    </div>
+                                    <!-- End Date Filter -->
+                                    <div class="col-md-3">
+                                        <label for="filterEndDate" class="date-filter-label">End Date</label>
+                                        <input type="date" id="filterEndDate" class="filter-select w-100" />
+                                    </div>
+                                    
+                                    <!-- Hotel Checkboxes Selector (With Search & Select All for scale) -->
+                                    <div class="col-12 mt-3">
+                                        <div class="hotel-checkbox-group">
+                                            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                                                <div class="hotel-checkbox-title mb-0">Select Hotels to Display</div>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <!-- Small Search Input for hotels -->
+                                                    <input type="text" id="searchHotelInput" class="filter-select py-1 px-2" placeholder="Search hotels..." style="font-size: 0.75rem; max-width: 180px;" />
+                                                    <button type="button" id="btnSelectAllHotels" class="btn btn-sm btn-outline-primary py-0.5 px-2" style="font-size: 0.75rem; border-radius: 6px;">Select All</button>
+                                                    <button type="button" id="btnDeselectAllHotels" class="btn btn-sm btn-outline-secondary py-0.5 px-2" style="font-size: 0.75rem; border-radius: 6px;">Clear All</button>
+                                                </div>
+                                            </div>
+                                            <div class="hotel-checkbox-list" id="hotelCheckboxListContainer">
+                                                <label class="hotel-checkbox-item" th:each="h : ${hotels}">
+                                                    <input type="checkbox" class="hotel-filter-checkbox" th:value="${h.name}" checked />
+                                                    <span th:text="${h.name}">Hotel Name</span>
+                                                </label>
+                                                <div class="text-muted small" th:if="${#lists.isEmpty(hotels)}">No hotels available.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Graphical Custom CSS Bar Chart Panel -->
+                        <div class="col-12">
+                            <div class="dashboard-section">
+                                <h2 class="section-title">
+                                    <i data-lucide="bar-chart-2" style="stroke-width: 1.5; color: #4f46e5;"></i>
+                                    Hotel Revenue Comparison
+                                </h2>
+                                
+                                <!-- Custom HTML & CSS Chart (Progress bars) dynamically generated in dashboard.js -->
+                                <div class="css-chart-wrapper" id="cssChartContainer">
+                                    <!-- Generated rows will be rendered here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabular Data summary -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="dashboard-section">
+                                <h2 class="section-title">
+                                    <i data-lucide="table" style="stroke-width: 1.5; color: #4f46e5;"></i>
+                                    Revenue Details Table
+                                </h2>
+                                <div class="custom-table-container">
+                                    <table class="custom-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Hotel Name</th>
+                                                <th>Total Revenue</th>
+                                                <th>Booking count</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="revenueTableBody">
+                                            <!-- Managed by Javascript filters -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL 2: CUSTOMER ACCOUNTS -->
+                <div id="customerPanel" class="tab-panel" th:classappend="${selectedCustomer != null} ? 'active' : ''">
+                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                        <div>
+                            <!-- Header Title (No icon on the left of title) -->
+                            <h1 class="fw-bold text-dark m-0">Admin Dashboard</h1>
+                            <p class="text-muted m-0 mt-1">Manage user profiles, accounts and transaction booking bills.</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-section">
+                        <div class="customer-layout">
+                            
+                            <!-- Customer Accounts List -->
+                            <div class="customer-list-box">
+                                <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                                    <i data-lucide="list" style="stroke-width: 1.5; width: 18px; height: 18px; color: #4f46e5;"></i>
+                                    Accounts List
+                                </h5>
+                                <div class="list-group" style="max-height: 500px; overflow-y: auto;">
+                                    <a th:href="@{/admin/dashboard(customerid=${c.id})}" 
+                                       th:classappend="${selectedCustomer != null && selectedCustomer.id == c.id} ? 'active-customer' : ''"
+                                       class="list-group-item list-group-item-action customer-item border-0 py-3 mb-2 rounded-3 shadow-sm bg-light"
+                                       th:each="c : ${customers}">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="avatar-btn m-0 bg-secondary-subtle text-secondary" style="width: 36px; height: 36px; font-size: 0.95rem;"
+                                                 th:text="${#strings.substring(c.fullName, 0, 1).toUpperCase()}">C</div>
+                                            <div>
+                                                <div class="fw-bold text-dark mb-0.5" th:text="${c.fullName}">Customer Name</div>
+                                                <small class="text-muted" th:text="'ID: ' + ${c.id}">ID: 1</small>
+                                            </div>
+                                        </div>
+                                    </a>
+                                    <div class="text-center text-muted py-4" th:if="${#lists.isEmpty(customers)}">
+                                        No customer accounts found.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Customer Accounts Profile & Booking Bills Detail -->
+                            <div class="customer-detail-panel">
+                                <!-- Placeholder (Show only when selectedCustomer is null) -->
+                                <div id="customerPlaceholder" class="text-center py-5 border border-dashed rounded-3 bg-light"
+                                     th:if="${selectedCustomer == null}">
+                                    <i data-lucide="user-x" class="text-muted mb-3" style="stroke-width: 1; width: 44px; height: 44px;"></i>
+                                    <h5 class="fw-bold text-dark">No Customer Selected</h5>
+                                    <p class="text-muted px-3">Select a customer profile from the list to review detailed transaction web booking bills.</p>
+                                </div>
+
+                                <!-- Detail Profile Box (Show only when selectedCustomer is NOT null) -->
+                                <div id="customerDetailBox" th:if="${selectedCustomer != null}">
+                                    <div class="customer-card-header">
+                                        <h4 class="fw-bold mb-1" th:text="${selectedCustomer.fullName}">Customer Name</h4>
+                                        <p class="mb-0 text-white-50">Customer Account Details</p>
+                                    </div>
+                                    <div class="customer-card-body">
+                                        <div class="row g-3 mb-4 border-bottom pb-4">
+                                            <div class="col-md-3">
+                                                <small class="text-uppercase text-muted d-block font-weight-bold mb-1">Customer ID</small>
+                                                <span class="fw-bold text-dark" th:text="'#' + ${selectedCustomer.id}">#0</span>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <small class="text-uppercase text-muted d-block font-weight-bold mb-1">Username</small>
+                                                <span class="text-dark" th:text="${selectedCustomer.username}">-</span>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small class="text-uppercase text-muted d-block font-weight-bold mb-1">Email Address</small>
+                                                <span class="text-dark" th:text="${selectedCustomer.email}">-</span>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <small class="text-uppercase text-muted d-block font-weight-bold mb-1">Status</small>
+                                                <div>
+                                                    <span class="badge bg-success-subtle text-success px-2 py-1" th:if="${selectedCustomer.enabled}">Active</span>
+                                                    <span class="badge bg-danger-subtle text-danger px-2 py-1" th:if="${!selectedCustomer.enabled}">Inactive</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Web Booking Bills listing -->
+                                        <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                                            <i data-lucide="receipt" style="stroke-width: 1.5; width: 18px; height: 18px; color: #4f46e5;"></i>
+                                            Web Booking Bills
+                                        </h5>
+                                        
+                                        <div class="custom-table-container">
+                                            <table class="custom-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>ID</th>
+                                                        <th>Hotel</th>
+                                                        <th>Room Type</th>
+                                                        <th>Dates</th>
+                                                        <th>Price</th>
+                                                        <th>Booking</th>
+                                                        <th>Payment</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr th:each="b : ${customerBookings}">
+                                                        <td><strong th:text="'#' + ${b.bookingId}">#1</strong></td>
+                                                        <td th:text="${b.hotelName}">Hotel</td>
+                                                        <td><small th:text="${b.roomType}">Room Type</small></td>
+                                                        <td th:text="${b.checkInDate} + ' - ' + ${b.checkOutDate}">Dates</td>
+                                                        <td>
+                                                            <strong class="text-dark" th:text="${#numbers.formatDecimal(b.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</strong>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge" th:classappend="${b.bookingStatus == 'CONFIRMED' || b.bookingStatus == 'CHECKED_OUT'} ? 'bg-success' : (${b.bookingStatus == 'PENDING'} ? 'bg-warning text-dark' : 'bg-danger')"
+                                                                  th:text="${b.bookingStatus}">STATUS</span>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge" th:classappend="${b.paymentStatus == 'SUCCESS'} ? 'bg-success' : (${b.paymentStatus == 'PENDING'} ? 'bg-warning text-dark' : 'bg-danger')"
+                                                                  th:text="${b.paymentStatus}">STATUS</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr th:if="${#lists.isEmpty(customerBookings)}">
+                                                        <td colspan="7" class="text-center text-muted py-3">No bookings found for this customer.</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Safely inject lists into javascript context -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.bookingsData = /*[[${bookings}]]*/ [];
+        /*]]>*/
+    </script>
+
+    <!-- Use system footer -->
+    <footer th:replace="~{fragment/fag :: footer}"></footer>
+
+    <!-- Bootstrap Bundle and default scripts -->
+    <th:block th:replace="~{fragment/fag :: scripts}"></th:block>
+
+    <!-- Connect custom interactive JS file -->
+    <script th:src="@{/assets/js/dashboard.js}"></script>
+</body>
+
+</html>

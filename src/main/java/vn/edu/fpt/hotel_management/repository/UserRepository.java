@@ -13,4 +13,5 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
     List<User> findByEnabledFalseAndOtpExpiryBefore(LocalDateTime time);
+    List<User> findByRole(String role);
 }
