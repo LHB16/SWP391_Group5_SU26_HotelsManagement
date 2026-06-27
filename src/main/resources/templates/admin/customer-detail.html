@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en" class="h-100">
 
 <head>
-    <th:block th:replace="~{fragment/fag :: head}"></th:block>
+    <th:block th:replace="~{fragment/frag :: head}"></th:block>
     <!-- Custom styling matching dashboard / admin layout -->
     <link th:href="@{/assets/css/dashboard.css}" rel="stylesheet"/>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -10,7 +10,7 @@
 
 <body class="d-flex flex-column h-100" style="background-color: #f8fafc;">
 
-    <nav th:replace="~{fragment/fag :: navBar}"></nav>
+    <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
     <main class="flex-shrink-0 container py-5">
         
@@ -127,7 +127,7 @@
 
     </main>
 
-    <footer th:replace="~{fragment/fag :: footer}"></footer>
-    <th:block th:replace="~{fragment/fag :: scripts}"></th:block>
+    <footer th:replace="~{fragment/frag :: footer}"></footer>
+    <th:block th:replace="~{fragment/frag :: scripts}"></th:block>
 </body>
 </html>

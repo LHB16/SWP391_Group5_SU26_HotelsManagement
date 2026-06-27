@@ -3,7 +3,7 @@
 
 <head>
     <!-- Include general head fragment of the system -->
-    <th:block th:replace="~{fragment/fag :: head}"></th:block>
+    <th:block th:replace="~{fragment/frag :: head}"></th:block>
     
     <!-- Link custom stylesheet for Dashboard (CSS is separated from HTML) -->
     <link th:href="@{/assets/css/dashboard.css}" rel="stylesheet"/>
@@ -15,7 +15,7 @@
 <body class="d-flex flex-column h-100">
 
     <!-- Use system common navbar for consistent styling -->
-    <nav th:replace="~{fragment/fag :: navBar}"></nav>
+    <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
     <!-- Main Container using Bootstrap fluid layout to prevent clipping on right side -->
     <main class="flex-shrink-0 dashboard-container container-fluid">
@@ -284,10 +284,10 @@
     </script>
 
     <!-- Use system footer -->
-    <footer th:replace="~{fragment/fag :: footer}"></footer>
+    <footer th:replace="~{fragment/frag :: footer}"></footer>
 
     <!-- Bootstrap Bundle and default scripts -->
-    <th:block th:replace="~{fragment/fag :: scripts}"></th:block>
+    <th:block th:replace="~{fragment/frag :: scripts}"></th:block>
 
     <!-- Connect custom interactive JS file -->
     <script th:src="@{/assets/js/dashboard.js}"></script>
