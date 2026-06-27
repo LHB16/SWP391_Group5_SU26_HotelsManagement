@@ -30,11 +30,11 @@
                     </div>
                     <div class="sidebar-nav">
                         <!-- Navigation Tab Buttons: Set active link based on model data -->
-                        <button class="sidebar-link" th:classappend="${selectedCustomer == null} ? 'active' : ''" data-tab="revenuePanel">
+                        <button class="sidebar-link" th:classappend="${tab == 'revenuePanel'} ? 'active' : ''" data-tab="revenuePanel">
                             <i data-lucide="bar-chart-3" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
                             <span>Revenue Overview</span>
                         </button>
-                        <button class="sidebar-link" th:classappend="${selectedCustomer != null} ? 'active' : ''" data-tab="customerPanel">
+                        <button class="sidebar-link" th:classappend="${tab == 'customerPanel'} ? 'active' : ''" data-tab="customerPanel">
                             <i data-lucide="users" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
                             <span>Customer Accounts</span>
                         </button>
@@ -46,7 +46,7 @@
             <div class="col-lg-9 col-md-8 mb-4">
                 
                 <!-- PANEL 1: REVENUE OVERVIEW -->
-                <div id="revenuePanel" class="tab-panel" th:classappend="${selectedCustomer == null} ? 'active' : ''">
+                <div id="revenuePanel" class="tab-panel" th:classappend="${tab == 'revenuePanel'} ? 'active' : ''">
                     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
                         <div>
                             <!-- Header Title (No icon on the left of title) -->
@@ -177,7 +177,7 @@
                 </div>
 
                 <!-- PANEL 2: CUSTOMER ACCOUNTS -->
-                <div id="customerPanel" class="tab-panel" th:classappend="${selectedCustomer != null} ? 'active' : ''">
+                <div id="customerPanel" class="tab-panel" th:classappend="${tab == 'customerPanel'} ? 'active' : ''">
                     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
                         <div>
                             <!-- Header Title (No icon on the left of title) -->
@@ -187,117 +187,83 @@
                     </div>
 
                     <div class="dashboard-section">
-                        <div class="customer-layout">
+                        <div class="customer-layout-single">
                             
                             <!-- Customer Accounts List -->
-                            <div class="customer-list-box">
+                            <div class="customer-list-box-full">
                                 <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
                                     <i data-lucide="list" style="stroke-width: 1.5; width: 18px; height: 18px; color: #4f46e5;"></i>
-                                    Accounts List
+                                    Customer Accounts List
                                 </h5>
-                                <div class="list-group" style="max-height: 500px; overflow-y: auto;">
-                                    <a th:href="@{/admin/dashboard(customerid=${c.id})}" 
-                                       th:classappend="${selectedCustomer != null && selectedCustomer.id == c.id} ? 'active-customer' : ''"
-                                       class="list-group-item list-group-item-action customer-item border-0 py-3 mb-2 rounded-3 shadow-sm bg-light"
+
+                                <!-- Search & Filter Form (Pure Thymeleaf/HTML GET, No JS) -->
+                                <form th:action="@{/admin/dashboard}" method="get" class="mb-4">
+                                    <input type="hidden" name="tab" value="customerPanel" />
+                                    <div class="row g-2">
+                                        <div class="col-md-3">
+                                            <select name="searchType" class="form-select filter-select w-100" style="height: 100%; min-height: 42px;">
+                                                <option value="username" th:selected="${searchType == 'username'}">Username</option>
+                                                <option value="fullName" th:selected="${searchType == 'fullName'}">Full Name</option>
+                                                <option value="email" th:selected="${searchType == 'email'}">Email Address</option>
+                                                <option value="id" th:selected="${searchType == 'id'}">Customer ID</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <input type="text" name="searchQuery" class="form-control filter-select w-100" 
+                                                   placeholder="Search query..." th:value="${searchQuery}" style="height: 100%; min-height: 42px;" />
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="submit" class="btn btn-primary w-100" style="min-height: 42px; border-radius: 8px; font-weight: 600; background-color: #4f46e5; border-color: #4f46e5;">
+                                                Search
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 text-end" th:if="${searchQuery != null && !searchQuery.isEmpty()}">
+                                        <a th:href="@{/admin/dashboard(tab='customerPanel')}" class="text-muted small" style="text-decoration: underline;">Clear search filter</a>
+                                    </div>
+                                </form>
+
+                                <div class="list-group">
+                                    <a th:href="@{/admin/customer-detail(id=${c.id})}" 
+                                       class="list-group-item list-group-item-action customer-item border-0 py-3 mb-2 rounded-3 shadow-sm bg-light d-flex justify-content-between align-items-center"
                                        th:each="c : ${customers}">
                                         <div class="d-flex align-items-center gap-3">
-                                            <div class="avatar-btn m-0 bg-secondary-subtle text-secondary" style="width: 36px; height: 36px; font-size: 0.95rem;"
+                                            <div class="avatar-btn m-0 bg-secondary-subtle text-secondary" style="width: 40px; height: 40px; font-size: 1rem; display: flex; align-items: center; justify-content: center; border-radius: 50%;"
                                                  th:text="${#strings.substring(c.fullName, 0, 1).toUpperCase()}">C</div>
                                             <div>
                                                 <div class="fw-bold text-dark mb-0.5" th:text="${c.fullName}">Customer Name</div>
-                                                <small class="text-muted" th:text="'ID: ' + ${c.id}">ID: 1</small>
+                                                <small class="text-muted" th:text="'Email: ' + ${c.email}">Email: name@example.com</small>
                                             </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <span class="badge-status badge-status-success" th:if="${c.enabled}">Active</span>
+                                            <span class="badge-status badge-status-danger" th:if="${!c.enabled}">Inactive</span>
+                                            <i data-lucide="chevron-right" class="text-muted" style="width: 18px; height: 18px;"></i>
                                         </div>
                                     </a>
-                                    <div class="text-center text-muted py-4" th:if="${#lists.isEmpty(customers)}">
-                                        No customer accounts found.
+                                    <div class="text-center text-muted py-5 border border-dashed rounded-3 bg-light" th:if="${#lists.isEmpty(customers)}">
+                                        <i data-lucide="users" class="text-muted mb-2" style="width: 32px; height: 32px; stroke-width: 1.5;"></i>
+                                        <div>No customer accounts found.</div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <!-- Customer Accounts Profile & Booking Bills Detail -->
-                            <div class="customer-detail-panel">
-                                <!-- Placeholder (Show only when selectedCustomer is null) -->
-                                <div id="customerPlaceholder" class="text-center py-5 border border-dashed rounded-3 bg-light"
-                                     th:if="${selectedCustomer == null}">
-                                    <i data-lucide="user-x" class="text-muted mb-3" style="stroke-width: 1; width: 44px; height: 44px;"></i>
-                                    <h5 class="fw-bold text-dark">No Customer Selected</h5>
-                                    <p class="text-muted px-3">Select a customer profile from the list to review detailed transaction web booking bills.</p>
-                                </div>
-
-                                <!-- Detail Profile Box (Show only when selectedCustomer is NOT null) -->
-                                <div id="customerDetailBox" th:if="${selectedCustomer != null}">
-                                    <div class="customer-card-header">
-                                        <h4 class="fw-bold mb-1" th:text="${selectedCustomer.fullName}">Customer Name</h4>
-                                        <p class="mb-0 text-white-50">Customer Account Details</p>
-                                    </div>
-                                    <div class="customer-card-body">
-                                        <div class="row g-3 mb-4 border-bottom pb-4">
-                                            <div class="col-md-3">
-                                                <small class="text-uppercase text-muted d-block font-weight-bold mb-1">Customer ID</small>
-                                                <span class="fw-bold text-dark" th:text="'#' + ${selectedCustomer.id}">#0</span>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <small class="text-uppercase text-muted d-block font-weight-bold mb-1">Username</small>
-                                                <span class="text-dark" th:text="${selectedCustomer.username}">-</span>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <small class="text-uppercase text-muted d-block font-weight-bold mb-1">Email Address</small>
-                                                <span class="text-dark" th:text="${selectedCustomer.email}">-</span>
-                                            </div>
-                                            <div class="col-md-2">
-                                                <small class="text-uppercase text-muted d-block font-weight-bold mb-1">Status</small>
-                                                <div>
-                                                    <span class="badge bg-success-subtle text-success px-2 py-1" th:if="${selectedCustomer.enabled}">Active</span>
-                                                    <span class="badge bg-danger-subtle text-danger px-2 py-1" th:if="${!selectedCustomer.enabled}">Inactive</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Web Booking Bills listing -->
-                                        <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                                            <i data-lucide="receipt" style="stroke-width: 1.5; width: 18px; height: 18px; color: #4f46e5;"></i>
-                                            Web Booking Bills
-                                        </h5>
-                                        
-                                        <div class="custom-table-container">
-                                            <table class="custom-table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>ID</th>
-                                                        <th>Hotel</th>
-                                                        <th>Room Type</th>
-                                                        <th>Dates</th>
-                                                        <th>Price</th>
-                                                        <th>Booking</th>
-                                                        <th>Payment</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr th:each="b : ${customerBookings}">
-                                                        <td><strong th:text="'#' + ${b.bookingId}">#1</strong></td>
-                                                        <td th:text="${b.hotelName}">Hotel</td>
-                                                        <td><small th:text="${b.roomType}">Room Type</small></td>
-                                                        <td th:text="${b.checkInDate} + ' - ' + ${b.checkOutDate}">Dates</td>
-                                                        <td>
-                                                            <strong class="text-dark" th:text="${#numbers.formatDecimal(b.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</strong>
-                                                        </td>
-                                                        <td>
-                                                            <span class="badge" th:classappend="${b.bookingStatus == 'CONFIRMED' || b.bookingStatus == 'CHECKED_OUT'} ? 'bg-success' : (${b.bookingStatus == 'PENDING'} ? 'bg-warning text-dark' : 'bg-danger')"
-                                                                  th:text="${b.bookingStatus}">STATUS</span>
-                                                        </td>
-                                                        <td>
-                                                            <span class="badge" th:classappend="${b.paymentStatus == 'SUCCESS'} ? 'bg-success' : (${b.paymentStatus == 'PENDING'} ? 'bg-warning text-dark' : 'bg-danger')"
-                                                                  th:text="${b.paymentStatus}">STATUS</span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr th:if="${#lists.isEmpty(customerBookings)}">
-                                                        <td colspan="7" class="text-center text-muted py-3">No bookings found for this customer.</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
+                                <!-- Pagination for Customers -->
+                                <div class="pagination-container" th:if="${totalPages > 1}">
+                                    <a th:href="@{/admin/dashboard(page=${currentPage - 1}, tab='customerPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
+                                       class="page-link-custom" th:classappend="${currentPage == 0} ? 'disabled' : ''">
+                                        <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>
+                                    </a>
+                                    
+                                    <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                                        <a th:href="@{/admin/dashboard(page=${i}, tab='customerPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
+                                           class="page-link-custom" th:classappend="${currentPage == i} ? 'active' : ''"
+                                           th:text="${i + 1}">1</a>
+                                    </th:block>
+                                    
+                                    <a th:href="@{/admin/dashboard(page=${currentPage + 1}, tab='customerPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
+                                       class="page-link-custom" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled' : ''">
+                                        <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+                                    </a>
                                 </div>
                             </div>
 

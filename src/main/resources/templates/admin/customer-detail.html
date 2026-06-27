@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en" class="h-100">
+
+<head>
+    <th:block th:replace="~{fragment/fag :: head}"></th:block>
+    <!-- Custom styling matching dashboard / admin layout -->
+    <link th:href="@{/assets/css/dashboard.css}" rel="stylesheet"/>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="d-flex flex-column h-100" style="background-color: #f8fafc;">
+
+    <nav th:replace="~{fragment/fag :: navBar}"></nav>
+
+    <main class="flex-shrink-0 container py-5">
+        
+        <!-- Back navigation link -->
+        <div class="mb-4">
+            <a th:href="@{/admin/dashboard}" class="back-btn">
+                <i data-lucide="arrow-left" style="stroke-width: 2; width: 18px; height: 18px;"></i>
+                <span>Back to Dashboard</span>
+            </a>
+        </div>
+
+        <div class="detail-card">
+            <div class="detail-header">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="avatar-btn m-0 bg-white-50 text-dark" style="width: 54px; height: 54px; font-size: 1.5rem; background-color: rgba(255,255,255,0.15); color: #ffffff; display: flex; align-items: center; justify-content: center; border-radius: 50%;"
+                         th:text="${#strings.substring(selectedCustomer.fullName, 0, 1).toUpperCase()}">C</div>
+                    <div>
+                        <h1 class="fw-bold m-0 h3 text-white" th:text="${selectedCustomer.fullName}">Customer Name</h1>
+                        <p class="mb-0 text-white-50 mt-1">Customer Account Details & Transaction History</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="detail-body">
+                <div class="row g-4 mb-5 border-bottom pb-4">
+                    <div class="col-md-3">
+                        <small class="text-uppercase text-muted d-block font-weight-bold mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Customer ID</small>
+                        <span class="fw-bold text-dark" th:text="'#' + ${selectedCustomer.id}">#0</span>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-uppercase text-muted d-block font-weight-bold mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Username</small>
+                        <span class="text-dark fw-medium" th:text="${selectedCustomer.username}">-</span>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-uppercase text-muted d-block font-weight-bold mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Email Address</small>
+                        <span class="text-dark fw-medium" th:text="${selectedCustomer.email}">-</span>
+                    </div>
+                    <div class="col-md-2">
+                        <small class="text-uppercase text-muted d-block font-weight-bold mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Status</small>
+                        <div>
+                            <span class="badge bg-success-subtle text-success px-2 py-1" th:if="${selectedCustomer.enabled}">Active</span>
+                            <span class="badge bg-danger-subtle text-danger px-2 py-1" th:if="${!selectedCustomer.enabled}">Inactive</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booking History Table -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                        <i data-lucide="receipt" style="stroke-width: 1.5; width: 20px; height: 20px; color: #4f46e5;"></i>
+                        Web Booking Bills
+                    </h5>
+                </div>
+
+                <div class="custom-table-container">
+                    <table class="custom-table w-100">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Hotel</th>
+                                <th>Room Type</th>
+                                <th>Dates</th>
+                                <th>Price</th>
+                                <th>Booking Status</th>
+                                <th>Payment Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="b : ${customerBookings}">
+                                <td><strong th:text="'#' + ${b.bookingId}">#1</strong></td>
+                                <td th:text="${b.hotelName}" class="fw-medium text-dark">Hotel</td>
+                                <td><small th:text="${b.roomType}" class="text-muted">Room Type</small></td>
+                                <td th:text="${b.checkInDate} + ' - ' + ${b.checkOutDate}">Dates</td>
+                                <td>
+                                    <strong class="text-dark" th:text="${#numbers.formatDecimal(b.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</strong>
+                                </td>
+                                <td>
+                                    <span class="badge-status" th:classappend="${b.bookingStatus == 'CONFIRMED' || b.bookingStatus == 'CHECKED_OUT'} ? 'badge-status-success' : (${b.bookingStatus == 'PENDING' || b.bookingStatus == 'CHECKED_IN'} ? 'badge-status-warning' : 'badge-status-danger')"
+                                          th:text="${b.bookingStatus}">STATUS</span>
+                                </td>
+                                <td>
+                                    <span class="badge-status" th:classappend="${b.paymentStatus == 'SUCCESS'} ? 'badge-status-success' : (${b.paymentStatus == 'PENDING'} ? 'badge-status-warning' : 'badge-status-danger')"
+                                          th:text="${b.paymentStatus}">STATUS</span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(customerBookings)}">
+                                <td colspan="7" class="text-center text-muted py-5">No bookings found for this customer.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination for Bookings -->
+                <div class="pagination-container" th:if="${totalPages > 1}">
+                    <a th:href="@{/admin/customer-detail(id=${selectedCustomer.id}, page=${currentPage - 1})}"
+                       class="page-link-custom" th:classappend="${currentPage == 0} ? 'disabled' : ''">
+                        <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>
+                    </a>
+                    
+                    <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                        <a th:href="@{/admin/customer-detail(id=${selectedCustomer.id}, page=${i})}"
+                           class="page-link-custom" th:classappend="${currentPage == i} ? 'active' : ''"
+                           th:text="${i + 1}">1</a>
+                    </th:block>
+                    
+                    <a th:href="@{/admin/customer-detail(id=${selectedCustomer.id}, page=${currentPage + 1})}"
+                       class="page-link-custom" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled' : ''">
+                        <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <footer th:replace="~{fragment/fag :: footer}"></footer>
+    <th:block th:replace="~{fragment/fag :: scripts}"></th:block>
+</body>
+</html>
