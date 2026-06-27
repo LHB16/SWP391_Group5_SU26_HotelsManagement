@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<!--
+    booking/qr-payment.html
+    Trang thanh toán QR Code – UC-14
+    Palette: Deep Navy (#0a1628) + Champagne Gold (#c9a96e)
+-->
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragment/frag :: head}"></head>
+
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- CSS riêng cho trang Booking -->
+    <link rel="stylesheet" th:href="@{/assets/css/booking.css}" />
+
+    <!-- NAVBAR -->
+    <nav th:replace="~{fragment/frag :: navBar}"></nav>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <main class="booking-page flex-grow-1">
+        <div class="container" style="max-width: 960px;">
+
+            <!-- Breadcrumb -->
+            <nav class="booking-breadcrumb">
+                <a th:href="@{/hotels}">Hotels</a>
+                <span>›</span>
+                <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}" th:text="${hotel.name}">Hotel Name</a>
+                <span>›</span>
+                <span style="color: #374151; font-weight: 600;">Book &amp; Pay</span>
+            </nav>
+
+            <!-- Page title -->
+            <div class="booking-section-title">Thanh toán đặt phòng</div>
+            <div class="booking-section-subtitle">Quét mã QR bằng ứng dụng ngân hàng để hoàn tất thanh toán</div>
+
+            <!-- Steps indicator -->
+            <div class="booking-steps mb-4">
+                <div class="step-item">
+                    <div class="step-circle done">✓</div>
+                    <div class="step-label">Chọn phòng</div>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step-item">
+                    <div class="step-circle done">✓</div>
+                    <div class="step-label">Chọn ngày</div>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step-item">
+                    <div class="step-circle active">3</div>
+                    <div class="step-label">Thanh toán QR</div>
+                </div>
+                <div class="step-connector" style="background: #f3f4f6;"></div>
+                <div class="step-item">
+                    <div class="step-circle pending">4</div>
+                    <div class="step-label">Xác nhận</div>
+                </div>
+            </div>
+
+            <!-- Two-column layout -->
+            <div class="row g-4">
+
+                <!-- ===== LEFT: Booking Summary ===== -->
+                <div class="col-12 col-md-5">
+                    <div class="booking-card h-100">
+
+                        <!-- Header -->
+                        <div class="summary-header">
+                            <div class="summary-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+                                    fill="none" stroke="#c9a96e" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="summary-hotel-name" th:text="${hotel.name}">Hotel Name</div>
+                                <div class="summary-room-type" th:text="${room.roomType}">Room Type</div>
+                            </div>
+                        </div>
+
+                        <!-- Booking details -->
+                        <div class="summary-row">
+                            <span class="summary-label">Check-in</span>
+                            <span class="summary-value"
+                                th:text="${#temporals.format(checkIn, 'dd/MM/yyyy')}">01/01/2026</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Check-out</span>
+                            <span class="summary-value"
+                                th:text="${#temporals.format(checkOut, 'dd/MM/yyyy')}">03/01/2026</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Số đêm</span>
+                            <span class="summary-value" th:text="${nights + ' đêm'}">2 đêm</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Giá/đêm</span>
+                            <span class="summary-value">
+                                <span th:text="${#numbers.formatInteger(room.price, 0, 'COMMA')}">500,000</span>
+                                VND
+                            </span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Khách hàng</span>
+                            <span class="summary-value" th:text="${user.fullName}">User Name</span>
+                        </div>
+
+                        <!-- Total -->
+                        <div class="summary-total">
+                            <div>
+                                <div class="summary-total-label">Tổng thanh toán</div>
+                            </div>
+                            <div>
+                                <span class="summary-total-amount"
+                                    th:text="${#numbers.formatInteger(totalPrice, 0, 'COMMA')}">1,000,000</span>
+                                <span class="summary-total-unit">VND</span>
+                            </div>
+                        </div>
+
+                        <!-- Notice -->
+                        <div class="booking-notice mt-3">
+                            <svg class="booking-notice-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                            <span>
+                                Sau khi chuyển khoản, nhấn <strong>"Xác nhận đã thanh toán"</strong>.
+                                Booking sẽ ở trạng thái <strong>Chờ xác nhận</strong> cho đến khi admin phê duyệt.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== RIGHT: QR Code + Actions ===== -->
+                <div class="col-12 col-md-7">
+                    <div class="booking-card qr-card">
+
+                        <!-- QR header -->
+                        <div class="qr-card-header">
+                            <div class="qr-card-title">Quét mã QR để thanh toán</div>
+                            <div class="qr-card-subtitle">
+                                Dùng app ngân hàng bất kỳ hỗ trợ VietQR để quét mã
+                            </div>
+                        </div>
+
+                        <!-- QR Image -->
+                        <div class="qr-image-wrap">
+                            <img th:src="${qrUrl}" alt="QR Code thanh toán" id="qrCodeImg"
+                                onerror="this.src='/assets/images/qr-fallback.png';" />
+                            <div class="qr-badge">VietQR</div>
+                        </div>
+
+                        <!-- Timer: hiển thị tĩnh bằng Thymeleaf, server tính sẵn -->
+                        <div class="qr-timer">
+                            <svg class="qr-timer-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                            <span>Mã QR có hiệu lực trong
+                                <strong th:text="${remainingLabel}">15:00</strong>
+                                (hết hạn lúc
+                                <span th:text="${#temporals.format(qrExpiresAt, 'HH:mm')}">--:--</span>)
+                            </span>
+                        </div>
+
+                        <!-- Bank info -->
+                        <div class="qr-bank-info">
+                            <div class="qr-bank-info-row">
+                                <span class="qr-bank-label">Ngân hàng</span>
+                                <span class="qr-bank-value" th:text="${bankCode}">MB Bank</span>
+                            </div>
+                            <div class="qr-bank-info-row">
+                                <span class="qr-bank-label">Số tài khoản</span>
+                                <span class="qr-bank-value" th:text="${bankAccount}">0349123456</span>
+                            </div>
+                            <div class="qr-bank-info-row">
+                                <span class="qr-bank-label">Chủ tài khoản</span>
+                                <span class="qr-bank-value" th:text="${accountName}">CHAU QUOC INH</span>
+                            </div>
+                            <div class="qr-bank-info-row">
+                                <span class="qr-bank-label">Số tiền</span>
+                                <span class="qr-bank-value" style="color: #c9a96e;">
+                                    <span th:text="${#numbers.formatInteger(totalPrice, 0, 'COMMA')}">1,000,000</span>
+                                    VND
+                                </span>
+                            </div>
+                            <div class="qr-bank-info-row">
+                                <span class="qr-bank-label">Nội dung CK</span>
+                                <span class="qr-bank-value" th:text="${transferInfo}"
+                                    style="font-size: .82rem; word-break: break-all;">Dat phong...</span>
+                            </div>
+                        </div>
+
+                        <!-- Form xác nhận thanh toán -->
+                        <form th:action="@{/booking/confirm}" method="post" id="confirmForm"
+                            style="width: 100%; text-align: left;">
+                            <input type="hidden" name="bookingId" th:value="${bookingId}" />
+
+                            <!-- Hiển thị thông báo lỗi khi không điền mã giao dịch -->
+                            <div th:if="${errorMessage}" class="alert alert-danger border-0 px-3 py-2 mb-3"
+                                th:text="${errorMessage}" style="font-size: 0.85rem; border-radius: 8px;"></div>
+
+                            <div class="qr-verify-section w-100 mb-3">
+                                <label for="transactionCode"
+                                    style="font-size: 0.9rem; font-weight: 600; color: #1e293b; margin-bottom: 6px; display: block;">
+                                    Nhập mã giao dịch chuyển tiền:
+                                </label>
+                                <input type="text" name="transactionCode" id="transactionCode" class="form-control"
+                                    placeholder="Nhập mã giao dịch từ hóa đơn chuyển tiền..."
+                                    style="border-radius: 8px; border: 1px solid #cbd5e1; padding: 10px; font-size: 0.9rem; width: 100%; outline: none;"
+                                    required />
+                                <small class="text-muted"
+                                    style="font-size: 0.78rem; display: block; margin-top: 5px; color: #64748b;">
+                                    * Sau khi chuyển khoản thành công, hãy điền mã giao dịch (mã tham chiếu) ở trên rồi
+                                    nhấn gửi để hoàn tất thanh toán.
+                                </small>
+                            </div>
+
+                            <button type="submit" class="btn-confirm-payment" id="confirmBtn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                                Gửi &amp; Xác nhận thanh toán
+                            </button>
+                        </form>
+
+                        <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}" class="btn-cancel-booking" id="cancelBtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12" />
+                                <polyline points="12 19 5 12 12 5" />
+                            </svg>
+                            Huỷ và quay lại
+                        </a>
+                    </div>
+                </div>
+                <!-- ===== END RIGHT ===== -->
+
+            </div>
+            <!-- end row -->
+
+        </div>
+    </main>
+
+    <footer th:replace="~{fragment/frag :: footer}"></footer>
+    <div th:replace="~{fragment/frag :: scripts}"></div>
+
+</body>
+
+</html>

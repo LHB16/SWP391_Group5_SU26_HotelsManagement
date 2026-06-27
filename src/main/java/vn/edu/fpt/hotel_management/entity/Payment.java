@@ -30,7 +30,14 @@ public class Payment {
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
 
+    @Column(name = "qr_expires_at")
+    private LocalDateTime qrExpiresAt;
+
     public Payment() {
+    }
+
+    public boolean isQrExpired() {
+        return qrExpiresAt != null && LocalDateTime.now().isAfter(qrExpiresAt);
     }
 
     public int getId() {
@@ -87,5 +94,13 @@ public class Payment {
 
     public void setPaidAt(LocalDateTime paidAt) {
         this.paidAt = paidAt;
+    }
+
+    public LocalDateTime getQrExpiresAt() {
+        return qrExpiresAt;
+    }
+
+    public void setQrExpiresAt(LocalDateTime qrExpiresAt) {
+        this.qrExpiresAt = qrExpiresAt;
     }
 }
