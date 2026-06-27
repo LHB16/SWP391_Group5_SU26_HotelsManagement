@@ -59,6 +59,8 @@ public class RoomController {
             @RequestParam(value = "types", required = false) List<String> types,
             @RequestParam(value = "minPrice", required = false, defaultValue = "0") long minPrice,
             @RequestParam(value = "maxPrice", required = false, defaultValue = "50000000") long maxPrice,
+            @RequestParam(value = "checkin", required = false) String checkin,
+            @RequestParam(value = "checkout", required = false) String checkout,
             HttpSession session,
             Model model
     ) {
@@ -98,6 +100,8 @@ public class RoomController {
         model.addAttribute("selectedTypes", types != null ? types : List.of());
         model.addAttribute("minPrice", minPrice);
         model.addAttribute("maxPrice", maxPrice);
+        model.addAttribute("checkin", checkin);
+        model.addAttribute("checkout", checkout);
         model.addAttribute("totalResults", rooms.size());
         model.addAttribute("user", loggedInUser);
         model.addAttribute("reviews", reviews);

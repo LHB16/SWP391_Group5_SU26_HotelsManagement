@@ -54,6 +54,8 @@ public class HotelController {
             @RequestParam(value = "minPrice", required = false, defaultValue = "0") BigDecimal minPrice,
             // Lọc theo khoảng giá: maxPrice mặc định 50,000,000 VND
             @RequestParam(value = "maxPrice", required = false, defaultValue = "50000000") BigDecimal maxPrice,
+            @RequestParam(value = "checkin", required = false) String checkin,
+            @RequestParam(value = "checkout", required = false) String checkout,
             HttpSession session,
             Model model
     ) {
@@ -69,6 +71,8 @@ public class HotelController {
         model.addAttribute("ratings", ratings != null ? ratings : List.of());
         model.addAttribute("minPrice", minPrice);
         model.addAttribute("maxPrice", maxPrice);
+        model.addAttribute("checkin", checkin);
+        model.addAttribute("checkout", checkout);
         model.addAttribute("totalResults", hotels.size());
         model.addAttribute("user", session.getAttribute("loggedInUser"));
 
