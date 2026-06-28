@@ -156,8 +156,8 @@
                                     <strong class="fs-4 text-primary" style="color: var(--navy-primary) !important;" th:text="${#numbers.formatInteger(grandTotal, 0, 'COMMA')} + ' VND'">0 VND</strong>
                                 </div>
 
-                                <button type="submit" class="btn-confirm-booking" onclick="alert('Thank you! Proceeding to confirm your booking reservation.')">
-                                    Confirm Reservation
+                                <button type="submit" class="btn-confirm-booking" th:formaction="@{/booking/qr-payment}">
+                                    Confirm Reservation & Pay
                                 </button>
                             </div>
 
