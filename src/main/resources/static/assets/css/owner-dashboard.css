@@ -1,110 +1,154 @@
 /* src/main/resources/static/assets/css/owner-dashboard.css */
 
-/* Sidebar */
-.sidebar {
-    min-height: 100vh;
-    background: #2c3e50;
+.owner-sidebar {
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 16px;
+    padding: 1.5rem 1.25rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
 }
 
-.sidebar .nav-link {
-    color: #ecf0f1;
-    padding: 12px 20px;
-    border-radius: 8px;
-    margin: 4px 8px;
-    transition: all 0.3s;
-}
-
-.sidebar .nav-link:hover {
-    background: #34495e;
-    color: white;
-}
-
-.sidebar .nav-link.active {
-    background: #3498db;
-    color: white;
-}
-
-.sidebar .nav-link i {
-    width: 24px;
-    margin-right: 10px;
-}
-
-/* Main */
-.main-content {
-    background: #f5f6fa;
-    min-height: 100vh;
-}
-
-/* Stat Cards */
-.stat-card {
-    background: white;
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s;
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-}
-
-.stat-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
+.owner-sidebar .avatar-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #4f46e5;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
 }
 
-.bg-primary-light {
-    background: #e3f2fd;
-    color: #1976d2;
-}
-
-.bg-success-light {
-    background: #e8f5e9;
-    color: #388e3c;
-}
-
-.bg-warning-light {
-    background: #fff3e0;
-    color: #f57c00;
-}
-
-.bg-danger-light {
-    background: #fce4ec;
-    color: #c62828;
-}
-
-/* Navbar */
-.navbar-brand {
+.owner-sidebar .role-badge {
+    background: #e0e7ff;
+    color: #4f46e5;
+    font-size: 0.65rem;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.15rem 0.75rem;
+    border-radius: 99px;
 }
 
-/* Responsive */
+.owner-sidebar .nav-link {
+    color: #475569;
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.owner-sidebar .nav-link:hover {
+    color: #0f172a;
+    background: #f1f5f9;
+}
+
+.owner-sidebar .nav-link.active {
+    color: #4f46e5;
+    background: #e0e7ff;
+}
+
+.owner-sidebar .nav-link svg {
+    width: 18px;
+    height: 18px;
+}
+
+.owner-stat-card {
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 14px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
+}
+
+.owner-stat-card:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+.owner-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(135deg, #4f46e5, #06b6d4);
+}
+
+.owner-stat-card.card-revenue::before {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.owner-stat-card.card-bookings::before {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+}
+
+.owner-stat-card.card-hotels::before {
+    background: linear-gradient(135deg, #4f46e5, #06b6d4);
+}
+
+.owner-stat-card .stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: rgba(79, 70, 229, 0.08);
+    color: #4f46e5;
+    margin-bottom: 1rem;
+}
+
+.owner-stat-card .stat-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.owner-stat-card.card-revenue .stat-icon {
+    background: rgba(16, 185, 129, 0.08);
+    color: #10b981;
+}
+
+.owner-stat-card.card-bookings .stat-icon {
+    background: rgba(59, 130, 246, 0.08);
+    color: #3b82f6;
+}
+
+.owner-stat-card .stat-value {
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.25rem;
+}
+
+.owner-stat-card .stat-label {
+    font-size: 0.85rem;
+    color: #475569;
+    font-weight: 500;
+}
+
+.owner-section {
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 14px;
+    padding: 1.75rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+    margin-bottom: 1.5rem;
+}
+
 @media (max-width: 768px) {
-    .sidebar {
-        min-height: auto;
-    }
-    .stat-card {
-        margin-bottom: 12px;
-    }
-}
-
-/* Animation */
-.fade-in {
-    animation: fadeIn 0.5s ease-in;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    .owner-stat-card .stat-value {
+        font-size: 1.4rem;
     }
 }

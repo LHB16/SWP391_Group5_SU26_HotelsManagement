@@ -1,15 +1,10 @@
 // src/main/resources/static/assets/js/owner-dashboard.js
 
 document.addEventListener('DOMContentLoaded', function() {
-
-    // Cập nhật thời gian
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
     updateDateTime();
-
-    // Active nav
-    setActiveNavItem();
-
-    // Animation stat cards
-    animateStatCards();
 });
 
 function updateDateTime() {
@@ -27,32 +22,9 @@ function updateDateTime() {
             minute: '2-digit',
             second: '2-digit'
         };
-        el.textContent = now.toLocaleDateString('vi-VN', options);
+        el.textContent = now.toLocaleDateString('en-US', options);
     }
 
     update();
     setInterval(update, 1000);
-}
-
-function setActiveNavItem() {
-    const currentPath = window.location.pathname;
-    document.querySelectorAll('.sidebar .nav-link').forEach(function(link) {
-        if (link.getAttribute('href') === currentPath) {
-            link.classList.add('active');
-        }
-    });
-}
-
-function animateStatCards() {
-    const observer = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('fade-in');
-            }
-        });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('.stat-card').forEach(function(card) {
-        observer.observe(card);
-    });
 }
