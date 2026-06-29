@@ -1,3 +1,4 @@
+// src/main/java/vn/edu/fpt/hotel_management/controller/LoginController.java
 package vn.edu.fpt.hotel_management.controller;
 
 import jakarta.servlet.http.HttpSession;
@@ -32,9 +33,13 @@ public class LoginController {
             User user = authService.login(username, password);
             session.setAttribute("loggedInUser", user);
 
+            // KIỂM TRA ROLE VÀ CHUYỂN HƯỚNG ĐÚNG
             if ("ADMIN".equalsIgnoreCase(user.getRole())) {
                 return "redirect:/admin/dashboard";
+            } else if ("HOTEL_OWNER".equalsIgnoreCase(user.getRole())) {
+                return "redirect:/owner/dashboard";
             } else {
+                // CUSTOMER hoặc role khác quay về home
                 return "redirect:/home";
             }
         } catch (Exception e) {
