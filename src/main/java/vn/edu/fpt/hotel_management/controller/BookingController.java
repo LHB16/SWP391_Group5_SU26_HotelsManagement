@@ -44,9 +44,29 @@ public class BookingController {
             model.addAttribute("user", loggedInUser);
         }
 
-        // Lấy danh sách các phòng
-        List<Room> rooms;
-        if (hotelId != null) {
+        // Lấy danh sách các phòng (chỉ lấy phòng được chọn nếu roomId hoặc roomIds có giá trị)
+        List<Room> rooms = new ArrayList<>();
+        if (roomId != null) {
+            Room r = roomRepository.findById(roomId).orElse(null);
+            if (r != null) {
+                rooms.add(r);
+            }
+            if (hotelId == null && r != null) {
+                hotelId = r.getHotelId();
+            }
+            model.addAttribute("selectedHotelId", hotelId);
+        } else if (roomIds != null && !roomIds.isEmpty()) {
+            for (Integer rId : roomIds) {
+                Room r = roomRepository.findById(rId).orElse(null);
+                if (r != null) {
+                    rooms.add(r);
+                }
+            }
+            if (hotelId == null && !rooms.isEmpty()) {
+                hotelId = rooms.get(0).getHotelId();
+            }
+            model.addAttribute("selectedHotelId", hotelId);
+        } else if (hotelId != null) {
             rooms = roomRepository.findByHotelId(hotelId);
             model.addAttribute("selectedHotelId", hotelId);
         } else {
