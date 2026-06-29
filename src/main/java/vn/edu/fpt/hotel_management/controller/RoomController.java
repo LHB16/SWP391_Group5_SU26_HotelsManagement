@@ -140,6 +140,8 @@ public class RoomController {
             @RequestParam(value = "bed",     defaultValue = "0") int    bed,
             @RequestParam("acreage")                            double acreage,
             @RequestParam("person")                             int    person,
+            @RequestParam(value = "facilities", defaultValue = "") String facilities,
+            @RequestParam(value = "bathroomAmenities", defaultValue = "") String bathroomAmenities,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
             RedirectAttributes redirectAttributes
     ) {
@@ -187,6 +189,8 @@ public class RoomController {
         room.setAcreage(acreage);
         room.setPerson(person);
         room.setImgUrl(imgUrl);
+        room.setFacilities(facilities.trim());
+        room.setBathroomAmenities(bathroomAmenities.trim());
 
         roomRepository.save(room);
 

@@ -150,4 +150,27 @@ public class Room {
     public void setNumWindow(int numWindow) {
         this.window = numWindow;
     }
+
+    @Column(name = "facilities", length = 1000)
+    private String facilities;
+
+    @Column(name = "bathroom_amenities", length = 1000)
+    private String bathroomAmenities;
+
+    public String getFacilities() {
+        return facilities;
+    }
+
+    public void setFacilities(String facilities) {
+        this.facilities = facilities;
+    }
+
+    public String getBathroomAmenities() {
+        return bathroomAmenities;
+    }
+
+    public void setBathroomAmenities(String bathroomAmenities) {
+        this.bathroomAmenities = bathroomAmenities;
+    }
 }
+
