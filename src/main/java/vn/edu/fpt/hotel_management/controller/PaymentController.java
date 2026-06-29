@@ -87,7 +87,7 @@ public class PaymentController {
         }
 
         // Tính toán chi phí thực tế (đồng bộ với BookingController)
-        BigDecimal subtotal = room.getPrice().multiply(BigDecimal.valueOf(nights));
+        BigDecimal subtotal = calculateRoomSubtotal(room.getPrice(), checkInDate, checkOutDate);
         BigDecimal serviceFee = subtotal.compareTo(BigDecimal.ZERO) > 0 ? BigDecimal.valueOf(50000) : BigDecimal.ZERO;
         BigDecimal tax = subtotal.multiply(BigDecimal.valueOf(0.1)).setScale(0, java.math.RoundingMode.HALF_UP);
         BigDecimal totalPrice = subtotal.add(tax).add(serviceFee);
@@ -208,5 +208,57 @@ public class PaymentController {
         redirectAttributes.addFlashAttribute("successMessage",
                 "Xác nhận thanh toán thành công! Booking của bạn đang chờ admin phê duyệt.");
         return "redirect:/hotels";
+    }
+
+    private boolean isHolidayOrWeekend(LocalDate date) {
+        // 1. Kiểm tra cuối tuần (Thứ 7 & Chủ Nhật)
+        java.time.DayOfWeek dayOfWeek = date.getDayOfWeek();
+        if (dayOfWeek == java.time.DayOfWeek.SATURDAY || dayOfWeek == java.time.DayOfWeek.SUNDAY) {
+            return true;
+        }
+
+        // 2. Kiểm tra ngày lễ
+        int m = date.getMonthValue();
+        int d = date.getDayOfMonth();
+
+        // Lễ dương lịch VN cố định
+        if (m == 1 && d == 1) return true;   // Tết Dương Lịch
+        if (m == 4 && d == 30) return true;  // Giải phóng Miền Nam
+        if (m == 5 && d == 1) return true;   // Quốc tế Lao động
+        if (m == 9 && d == 2) return true;   // Quốc khánh
+
+        // Các ngày lễ đặc biệt yêu cầu thêm
+        if (m == 2 && d == 14) return true;  // Valentine
+        if (m == 3 && d == 8) return true;   // Quốc tế Phụ nữ
+        if (m == 6 && d == 1) return true;   // Quốc tế Thiếu nhi
+        if (m == 10 && d == 20) return true; // Phụ nữ VN
+        if (m == 11 && d == 20) return true; // Nhà giáo VN
+        if (m == 12 && d == 25) return true; // Giáng sinh
+
+        // Tết Âm Lịch năm 2025 (Từ 28/01 đến 03/02/2025)
+        if (date.getYear() == 2025) {
+            if (m == 1 && d >= 28) return true;
+            if (m == 2 && d <= 3) return true;
+        }
+        // Tết Âm Lịch năm 2026 (Từ 16/02 đến 22/02/2026)
+        if (date.getYear() == 2026) {
+            if (m == 2 && d >= 16 && d <= 22) return true;
+        }
+
+        return false;
+    }
+
+    private BigDecimal calculateRoomSubtotal(BigDecimal basePrice, LocalDate checkin, LocalDate checkout) {
+        BigDecimal total = BigDecimal.ZERO;
+        LocalDate temp = checkin;
+        while (temp.isBefore(checkout)) {
+            BigDecimal dailyPrice = basePrice;
+            if (isHolidayOrWeekend(temp)) {
+                dailyPrice = dailyPrice.multiply(BigDecimal.valueOf(1.20));
+            }
+            total = total.add(dailyPrice);
+            temp = temp.plusDays(1);
+        }
+        return total;
     }
 }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 
 <head th:replace="~{fragment/frag :: head}"></head>
 
@@ -58,13 +58,13 @@
                             <!-- Check-in / Check-out -->
                             <div class="mb-3">
                                 <label class="filter-section-label" for="filterCheckin">Check-in Date</label>
-                                <input type="date" name="checkin" id="filterCheckin"
-                                       class="filter-input" th:value="${checkin}" />
+                                <input type="text" name="checkin" id="filterCheckin"
+                                       class="filter-input" th:value="${checkin}" placeholder="Select Check-in" />
                             </div>
                             <div class="mb-3">
                                 <label class="filter-section-label" for="filterCheckout">Check-out Date</label>
-                                <input type="date" name="checkout" id="filterCheckout"
-                                       class="filter-input" th:value="${checkout}" />
+                                <input type="text" name="checkout" id="filterCheckout"
+                                       class="filter-input" th:value="${checkout}" placeholder="Select Check-out" />
                             </div>
 
                             <hr class="border-gold-faint my-3">
@@ -74,9 +74,9 @@
                                 <div class="filter-section-label">Star Rating</div>
                                 <div class="d-flex flex-wrap gap-1">
                                     <th:block th:each="star : ${#numbers.sequence(1, 5)}">
-                                        <input type="checkbox" class="btn-check" name="ratings"
+                                        <input type="radio" class="btn-check" name="rating"
                                                th:id="${'star-' + star}" th:value="${star}"
-                                               th:checked="${#lists.contains(ratings, star)}" />
+                                               th:checked="${rating != null and rating == star}" />
                                         <label class="hl-star-label" th:for="${'star-' + star}"
                                                th:text="${star + ' ★'}">1 ★</label>
                                     </th:block>
@@ -165,7 +165,7 @@
                             <div class="card-footer d-flex justify-content-between align-items-center">
                                 <div>
                                     <span class="fw-bold text-gold-dark fs-6"
-                                        th:text="${#numbers.formatInteger(hotel.price, 0, 'COMMA')}">0</span>
+                                        th:text="${#numbers.formatInteger(hotelPricesMap != null ? hotelPricesMap.get(hotel.id) : hotel.price, 0, 'COMMA')}">0</span>
                                     <small class="text-muted"> VND/night</small>
                                 </div>
                                 <a th:href="@{/hotels/{id}/rooms(id=${hotel.id}, checkin=${checkin}, checkout=${checkout})}"
@@ -187,5 +187,45 @@
 
 <footer th:replace="~{fragment/frag :: footer}"></footer>
 <div th:replace="~{fragment/frag :: scripts}"></div>
+
+<script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function() {
+        const checkinVal = /*[[${checkin}]]*/ '';
+        const checkoutVal = /*[[${checkout}]]*/ '';
+        const todayVal = /*[[${today}]]*/ '';
+
+        const checkinPicker = flatpickr("#filterCheckin", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            altInputClass: "filter-input w-100",
+            minDate: todayVal ? todayVal : "today",
+            allowInput: false,
+            defaultDate: checkinVal ? checkinVal : null,
+            onChange: function(selectedDates, dateStr) {
+                if (selectedDates[0]) {
+                    const nextDay = new Date(selectedDates[0]);
+                    nextDay.setDate(nextDay.getDate() + 1);
+                    checkoutPicker.set("minDate", nextDay);
+
+                    const currentCheckout = checkoutPicker.selectedDates[0];
+                    if (currentCheckout && currentCheckout <= selectedDates[0]) {
+                        checkoutPicker.setDate(nextDay);
+                    }
+                }
+            }
+        });
+
+        const checkoutPicker = flatpickr("#filterCheckout", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            altInputClass: "filter-input w-100",
+            minDate: checkinVal ? new Date(new Date(checkinVal).getTime() + 86400000) : new Date().setDate(new Date().getDate() + 1),
+            allowInput: false,
+            defaultDate: checkoutVal ? checkoutVal : null
+        });
+    });
+</script>
 </body>
 </html>

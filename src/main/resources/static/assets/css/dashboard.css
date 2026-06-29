@@ -475,3 +475,18 @@ body {
     background-color: #e2e8f0;
     color: #0f172a;
 }
+
+/* Chặn màu bôi xanh khi focus input date */
+input[type="date"]::-webkit-datetime-edit-day-field:focus,
+input[type="date"]::-webkit-datetime-edit-month-field:focus,
+input[type="date"]::-webkit-datetime-edit-year-field:focus {
+    background-color: transparent !important;
+    color: inherit !important;
+}
+
+/* Chặn click focus vào các ô dd, mm, yyyy bên trong */
+input[type="date"]::-webkit-datetime-edit {
+    pointer-events: none;
+}
+
+

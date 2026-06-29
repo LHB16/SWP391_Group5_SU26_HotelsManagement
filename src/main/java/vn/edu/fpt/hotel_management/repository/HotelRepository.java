@@ -30,27 +30,23 @@ public interface HotelRepository extends JpaRepository<Hotel, Integer> {
     @Query("SELECT h FROM Hotel h WHERE h.active = true " +
            "AND h.price >= :minPrice " +
            "AND h.price <= :maxPrice " +
-           "ORDER BY h.price ASC")
+           "ORDER BY h.rating DESC, h.price ASC")
     List<Hotel> findByPriceRange(
             @Param("minPrice") BigDecimal minPrice,
             @Param("maxPrice") BigDecimal maxPrice
     );
 
     /**
-     * Lọc khách sạn theo nhiều mức sao (multi-select) VÀ khoảng giá.
-     * Sử dụng IN để lọc theo danh sách số sao được chọn.
-     *
-     * @param ratings  Danh sách số sao được chọn (ví dụ: [3, 4, 5])
-     * @param minPrice Giá tối thiểu mỗi đêm (VND)
-     * @param maxPrice Giá tối đa mỗi đêm (VND)
+     * Lọc khách sạn theo mức sao đơn lẻ (rating <= :rating) VÀ khoảng giá.
+     * Sắp xếp theo rating giảm dần và giá tăng dần.
      */
     @Query("SELECT h FROM Hotel h WHERE h.active = true " +
-           "AND h.rating IN :ratings " +
+           "AND h.rating <= :rating " +
            "AND h.price >= :minPrice " +
            "AND h.price <= :maxPrice " +
-           "ORDER BY h.price ASC")
-    List<Hotel> filterByRatingsAndPrice(
-            @Param("ratings") List<Integer> ratings,
+           "ORDER BY h.rating DESC, h.price ASC")
+    List<Hotel> filterByRatingAndPrice(
+            @Param("rating") double rating,
             @Param("minPrice") BigDecimal minPrice,
             @Param("maxPrice") BigDecimal maxPrice
     );
