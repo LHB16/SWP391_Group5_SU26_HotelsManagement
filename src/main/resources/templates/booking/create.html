@@ -98,7 +98,7 @@
                                     <!-- Price -->
                                     <div class="text-md-end mt-2 mt-md-0 flex-shrink-0">
                                         <div class="text-muted small">Price / Night</div>
-                                        <div class="room-price-tag" th:text="${#numbers.formatDecimal(room.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">420,000 VND</div>
+                                        <div class="room-price-tag" th:text="${#numbers.formatDecimal(roomPricesMap != null ? roomPricesMap.get(room.id) : room.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">420,000 VND</div>
                                     </div>
 
                                 </div>
@@ -115,11 +115,11 @@
                                 <h4 class="section-header">Stay Dates</h4>
                                 <div class="mb-3">
                                     <label for="checkinDate" class="form-label small fw-bold text-uppercase text-muted">Check-in Date</label>
-                                    <input type="date" id="checkinDate" name="checkin" class="form-control" th:value="${checkin}" th:min="${today}" th:max="${checkout}">
+                                    <input type="text" id="checkinDate" name="checkin" class="form-control" th:value="${checkin}">
                                 </div>
                                 <div class="mb-3">
                                     <label for="checkoutDate" class="form-label small fw-bold text-uppercase text-muted">Check-out Date</label>
-                                    <input type="date" id="checkoutDate" name="checkout" class="form-control" th:value="${checkout}" th:min="${checkin}">
+                                    <input type="text" id="checkoutDate" name="checkout" class="form-control" th:value="${checkout}">
                                 </div>
                                 <button type="submit" class="btn btn-outline-primary btn-sm w-100 fw-semibold">
                                     Update Selection & Price
@@ -175,5 +175,45 @@
 
     <!-- SCRIPTS -->
     <div th:replace="~{fragment/frag :: scripts}"></div>
+
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function() {
+            const checkinVal = /*[[${checkin}]]*/ '';
+            const checkoutVal = /*[[${checkout}]]*/ '';
+            const todayVal = /*[[${today}]]*/ '';
+
+            const checkinPicker = flatpickr("#checkinDate", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                altInputClass: "form-control",
+                minDate: todayVal ? todayVal : "today",
+                allowInput: false,
+                defaultDate: checkinVal ? checkinVal : null,
+                onChange: function(selectedDates, dateStr) {
+                    if (selectedDates[0]) {
+                        const nextDay = new Date(selectedDates[0]);
+                        nextDay.setDate(nextDay.getDate() + 1);
+                        checkoutPicker.set("minDate", nextDay);
+
+                        const currentCheckout = checkoutPicker.selectedDates[0];
+                        if (currentCheckout && currentCheckout <= selectedDates[0]) {
+                            checkoutPicker.setDate(nextDay);
+                        }
+                    }
+                }
+            });
+
+            const checkoutPicker = flatpickr("#checkoutDate", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                altInputClass: "form-control",
+                minDate: checkinVal ? new Date(new Date(checkinVal).getTime() + 86400000) : new Date().setDate(new Date().getDate() + 1),
+                allowInput: false,
+                defaultDate: checkoutVal ? checkoutVal : null
+            });
+        });
+    </script>
 </body>
 </html>

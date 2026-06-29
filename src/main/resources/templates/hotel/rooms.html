@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 
 <head th:replace="~{fragment/frag :: head}"></head>
 
@@ -186,7 +186,7 @@
                                     <div class="room-price-label">Price per Night</div>
                                     <div>
                                         <span class="room-price-amount"
-                                            th:text="${#numbers.formatInteger(room.price, 0, 'COMMA')}">500,000</span>
+                                            th:text="${#numbers.formatInteger(roomPricesMap != null ? roomPricesMap.get(room.id) : room.price, 0, 'COMMA')}">500,000</span>
                                         <span class="room-price-unit">VND</span>
                                     </div>
                                 </div>
@@ -461,7 +461,9 @@
                         </div>
                     </div>
 
-                    <div class="room-detail-smoking">No smoking</div>
+                    <div class="room-detail-smoking">
+                        <i class="bi bi-ban text-danger me-1"></i> No smoking
+                    </div>
                 </div>
 
                 <!-- Modal footer -->
