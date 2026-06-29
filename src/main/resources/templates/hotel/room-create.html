@@ -1,192 +1,156 @@
 <!DOCTYPE html>
-<!--
-    hotel/room-create.html
-    Form thêm phòng mới cho một khách sạn
-    Fields: type, price, description, window (int), bed (int), acreage, person, imageFile
-    * Không dùng JS – toàn bộ là HTML/Thymeleaf native *
--->
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head th:replace="~{fragment/frag :: head}"></head>
 
 <body class="d-flex flex-column min-vh-100">
+<link rel="stylesheet" th:href="@{/assets/css/room-create.css}" />
 
-    <!-- CSS riêng cho trang Room Create -->
-    <link rel="stylesheet" th:href="@{/assets/css/room-create.css}" />
+<nav th:replace="~{fragment/frag :: navBar}"></nav>
 
-    <!-- NAVBAR -->
-    <nav th:replace="~{fragment/frag :: navBar}"></nav>
+<!-- Hero Banner -->
+<section class="create-hero">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <a href="/hotels" class="bc-link">Hotels</a>
+            <span class="bc-sep">/</span>
+            <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}"
+               class="bc-link" th:text="${hotel.name}">Hotel</a>
+            <span class="bc-sep">/</span>
+            <span class="bc-active">Add Room</span>
+        </nav>
+        <h1>Add New Room</h1>
+        <p th:text="'Adding room for: ' + ${hotel.name} + ' · ' + ${hotel.address}">Hotel info</p>
+        <div class="hero-divider"></div>
+    </div>
+</section>
 
-    <!-- HERO BANNER -->
-    <section class="create-hero">
-        <div class="container">
-            <!-- Breadcrumb -->
-            <div class="mb-3">
-                <a href="/hotels" class="bc-link">Hotels</a>
-                <span class="bc-sep">/</span>
-                <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}"
-                   class="bc-link" th:text="${hotel.name}">Hotel</a>
-                <span class="bc-sep">/</span>
-                <span class="bc-active">Add Room</span>
-            </div>
-            <h1>Add New Room</h1>
-            <p th:text="'Adding room for: ' + ${hotel.name} + ' · ' + ${hotel.address}">Hotel info</p>
-            <div class="hero-divider"></div>
-        </div>
-    </section>
+<!-- Main Content -->
+<main class="flex-grow-1 py-4" style="background:var(--cream);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-8">
 
-    <!-- MAIN CONTENT -->
-    <main class="flex-grow-1 py-4" style="background:var(--cream);">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-12 col-lg-8">
-
-                    <!-- Flash messages -->
-                    <div th:if="${successMessage}" class="alert-ok">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                             fill="none" stroke="currentColor" stroke-width="2.5"
-                             stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                        <span th:text="${successMessage}"></span>
-                    </div>
-                    <div th:if="${errorMessage}" class="alert-err">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                             fill="none" stroke="currentColor" stroke-width="2.5"
-                             stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="12" y1="8" x2="12" y2="12"/>
-                            <line x1="12" y1="16" x2="12.01" y2="16"/>
-                        </svg>
-                        <span th:text="${errorMessage}"></span>
-                    </div>
-
-                    <!-- Form card -->
-                    <div class="form-card">
-                        <div class="form-card-header">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                 fill="none" stroke="#c9a96e" stroke-width="2"
-                                 stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                            </svg>
-                            <h5>Room Information</h5>
-                        </div>
-
-                        <div class="form-card-body">
-                            <form th:action="@{/hotels/{id}/rooms/new(id=${hotel.id})}"
-                                  method="post" enctype="multipart/form-data" id="roomForm">
-
-                                <!-- ── Loại phòng ── -->
-                                <div class="mb-4">
-                                    <label class="lbl" for="roomType">Room Type <span style="color:#ef4444;">*</span></label>
-                                    <input type="text" name="type" id="roomType" class="fc"
-                                           placeholder="e.g. Standard, Deluxe, Suite, Family"
-                                           required maxlength="100" />
-                                </div>
-
-                                <!-- ── Giá + Diện tích ── -->
-                                <div class="row g-4 mb-4">
-                                    <div class="col-12 col-sm-6">
-                                        <label class="lbl" for="roomPrice">Price / Night (VND) <span style="color:#ef4444;">*</span></label>
-                                        <input type="number" name="price" id="roomPrice" class="fc"
-                                               placeholder="e.g. 500000" min="0" step="1" required />
-                                    </div>
-                                    <div class="col-12 col-sm-6">
-                                        <label class="lbl" for="roomAcreage">Area (m²) <span style="color:#ef4444;">*</span></label>
-                                        <input type="number" name="acreage" id="roomAcreage" class="fc"
-                                               placeholder="e.g. 25" min="1" step="0.1" required />
-                                    </div>
-                                </div>
-
-                                <!-- ── Số người + Giường + Cửa sổ – input number native ── -->
-                                <div class="row g-4 mb-4">
-                                    <!-- Số người -->
-                                    <div class="col-12 col-sm-4">
-                                        <label class="lbl" for="personInput">
-                                            Max Guests <span style="color:#ef4444;">*</span>
-                                        </label>
-                                        <input type="number" name="person" id="personInput"
-                                               class="fc"
-                                               value="2" min="1" max="20" required />
-                                    </div>
-                                    <!-- Số giường -->
-                                    <div class="col-12 col-sm-4">
-                                        <label class="lbl" for="bedInput">Beds</label>
-                                        <input type="number" name="bed" id="bedInput"
-                                               class="fc"
-                                               value="1" min="0" max="10" />
-                                    </div>
-                                    <!-- Số cửa sổ -->
-                                    <div class="col-12 col-sm-4">
-                                        <label class="lbl" for="windowInput">Windows</label>
-                                        <input type="number" name="window" id="windowInput"
-                                               class="fc"
-                                               value="0" min="0" max="10" />
-                                    </div>
-                                </div>
-
-                                <!-- ── Mô tả phòng ── -->
-                                <div class="mb-4">
-                                    <label class="lbl" for="roomDesc">Description</label>
-                                    <textarea name="description" id="roomDesc" class="fc"
-                                              rows="4" placeholder="Describe the room's features, view, amenities..."
-                                              style="resize:vertical;"></textarea>
-                                </div>
-
-                                <div class="fdivider"></div>
-
-                                <!-- ── Upload ảnh phòng – input file native ── -->
-                                <div class="mb-4">
-                                    <label class="lbl" for="imageFile">Room Image</label>
-                                    <input type="file" name="imageFile" id="imageFile"
-                                           class="form-control"
-                                           accept="image/jpeg,image/png,image/webp,image/jpg" />
-                                    <div class="form-text text-muted mt-1">
-                                        JPG, PNG, WEBP · Max 10MB
-                                    </div>
-                                </div>
-
-                                <div class="fdivider"></div>
-
-                                <!-- ── Buttons ── -->
-                                <div class="d-flex gap-3 justify-content-end flex-wrap">
-                                    <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}" class="btn-cancel">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
-                                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                            <line x1="19" y1="12" x2="5" y2="12"/>
-                                            <polyline points="12 19 5 12 12 5"/>
-                                        </svg>
-                                        Cancel
-                                    </a>
-                                    <button type="submit" class="btn-submit" id="submitBtn">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
-                                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                                            <polyline points="17 21 17 13 7 13 7 21"/>
-                                            <polyline points="7 3 7 8 15 8"/>
-                                        </svg>
-                                        Save Room
-                                    </button>
-                                </div>
-
-                            </form>
-                        </div>
-                    </div>
-
+                <!-- Flash messages -->
+                <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span th:text="${successMessage}"></span>
                 </div>
+                <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span th:text="${errorMessage}"></span>
+                </div>
+
+                <!-- Form Card -->
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <i class="bi bi-door-open text-gold"></i>
+                        <h5>Room Information</h5>
+                    </div>
+
+                    <div class="form-card-body">
+                        <form th:action="@{/hotels/{id}/rooms/new(id=${hotel.id})}"
+                              method="post" enctype="multipart/form-data" id="roomForm">
+
+                            <!-- Loại phòng -->
+                            <div class="mb-4">
+                                <label class="lbl" for="roomType">Room Type <span class="text-danger">*</span></label>
+                                <input type="text" name="type" id="roomType" class="fc"
+                                       placeholder="e.g. Standard, Deluxe, Suite, Family"
+                                       required maxlength="100" />
+                            </div>
+
+                            <!-- Giá + Diện tích -->
+                            <div class="row g-4 mb-4">
+                                <div class="col-12 col-sm-6">
+                                    <label class="lbl" for="roomPrice">Price / Night (VND) <span class="text-danger">*</span></label>
+                                    <input type="number" name="price" id="roomPrice" class="fc"
+                                           placeholder="e.g. 500000" min="0" step="1" required />
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <label class="lbl" for="roomAcreage">Area (m²) <span class="text-danger">*</span></label>
+                                    <input type="number" name="acreage" id="roomAcreage" class="fc"
+                                           placeholder="e.g. 25" min="1" step="0.1" required />
+                                </div>
+                            </div>
+
+                            <!-- Số người / Giường / Cửa sổ -->
+                            <div class="row g-4 mb-4">
+                                <div class="col-12 col-sm-4">
+                                    <label class="lbl" for="personInput">Max Guests <span class="text-danger">*</span></label>
+                                    <input type="number" name="person" id="personInput" class="fc"
+                                           value="2" min="1" max="20" required />
+                                </div>
+                                <div class="col-12 col-sm-4">
+                                    <label class="lbl" for="bedInput">Beds</label>
+                                    <input type="number" name="bed" id="bedInput" class="fc"
+                                           value="1" min="0" max="10" />
+                                </div>
+                                <div class="col-12 col-sm-4">
+                                    <label class="lbl" for="windowInput">Windows</label>
+                                    <input type="number" name="window" id="windowInput" class="fc"
+                                           value="0" min="0" max="10" />
+                                </div>
+                            </div>
+
+                            <!-- Mô tả -->
+                            <div class="mb-4">
+                                <label class="lbl" for="roomDesc">Description</label>
+                                <textarea name="description" id="roomDesc" class="fc" rows="4"
+                                          placeholder="Describe the room's features, view, amenities..."
+                                          style="resize:vertical;"></textarea>
+                            </div>
+
+                            <!-- Room Facilities -->
+                            <div class="mb-4">
+                                <label class="lbl" for="roomFacilities">Room Facilities</label>
+                                <textarea name="facilities" id="roomFacilities" class="fc" rows="2"
+                                          placeholder="e.g. Air conditioning, Safety deposit box, Flat-screen TV, Desk, Wardrobe (comma-separated)"></textarea>
+                                <div class="form-text text-muted mt-1">Enter facilities separated by commas.</div>
+                            </div>
+
+                            <!-- Bathroom Amenities -->
+                            <div class="mb-4">
+                                <label class="lbl" for="bathroomAmenities">Bathroom Amenities</label>
+                                <textarea name="bathroomAmenities" id="bathroomAmenities" class="fc" rows="2"
+                                          placeholder="e.g. Free toiletries, Towels, Shower, Slippers, Hairdryer (comma-separated)"></textarea>
+                                <div class="form-text text-muted mt-1">Enter bathroom amenities separated by commas.</div>
+                            </div>
+
+                            <div class="fdivider"></div>
+
+                            <!-- Upload ảnh -->
+                            <div class="mb-4">
+                                <label class="lbl" for="imageFile">Room Image</label>
+                                <input type="file" name="imageFile" id="imageFile" class="form-control"
+                                       accept="image/jpeg,image/png,image/webp,image/jpg" />
+                                <div class="form-text text-muted mt-1">JPG, PNG, WEBP · Max 10MB</div>
+                            </div>
+
+                            <div class="fdivider"></div>
+
+                            <!-- Buttons -->
+                            <div class="d-flex gap-3 justify-content-end flex-wrap">
+                                <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}" class="btn-cancel">
+                                    <i class="bi bi-arrow-left"></i>
+                                    Cancel
+                                </a>
+                                <button type="submit" class="btn-submit" id="submitBtn">
+                                    <i class="bi bi-floppy"></i>
+                                    Save Room
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+
             </div>
         </div>
-    </main>
+    </div>
+</main>
 
-    <!-- FOOTER -->
-    <footer th:replace="~{fragment/frag :: footer}"></footer>
-
-    <!-- SCRIPTS -->
-    <div th:replace="~{fragment/frag :: scripts}"></div>
-
-
+<footer th:replace="~{fragment/frag :: footer}"></footer>
+<div th:replace="~{fragment/frag :: scripts}"></div>
 </body>
 </html>

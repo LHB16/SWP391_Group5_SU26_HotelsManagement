@@ -1,560 +1,361 @@
 <!DOCTYPE html>
-<!--
-    hotel/rooms.html
-    Trang danh sách phòng của một khách sạn – phong cách Lion Hotel
-    Palette: Deep Navy (#0a1628) + Champagne Gold (#c9a96e)
-    * Không dùng JS – toàn bộ là Thymeleaf + Bootstrap native *
--->
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head th:replace="~{fragment/frag :: head}"></head>
 
 <body class="d-flex flex-column min-vh-100">
+<link rel="stylesheet" th:href="@{/assets/css/room-list.css}" />
 
-    <!-- CSS riêng cho trang Rooms -->
-    <link rel="stylesheet" th:href="@{/assets/css/room-list.css}" />
+<nav th:replace="~{fragment/frag :: navBar}"></nav>
 
-    <!-- NAVBAR -->
-    <nav th:replace="~{fragment/frag :: navBar}"></nav>
+<!-- ==================== HERO BANNER ==================== -->
+<section class="room-hero">
+    <div class="container">
+        <h1 class="room-hero-title" th:text="${hotel.name}">Hotel Name</h1>
+        <p class="room-hero-subtitle">
+            <i class="bi bi-geo-alt me-1"></i>
+            <span th:text="${hotel.address}">Hotel Address</span>
+        </p>
+        <div class="room-hero-divider"></div>
 
-    <!-- ==================== HERO BANNER ==================== -->
-    <section class="room-hero">
-        <div class="container">
-            <h1 class="room-hero-title" th:text="${hotel.name}">Hotel Name</h1>
-            <p class="room-hero-subtitle">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"
-                    style="vertical-align:-1px;">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                    <circle cx="12" cy="10" r="3" />
-                </svg>
-                <span th:text="${hotel.address}">Hotel Address</span>
-            </p>
-            <div class="room-hero-divider"></div>
-
-            <!-- Badge sao + số phòng -->
-            <div class="d-flex align-items-center gap-3 flex-wrap" style="margin-top:14px;">
-                <span class="room-hero-badge">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-                        fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <polygon
-                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                    </svg>
-                    <span
-                        th:text="${avgRating > 0 ? avgRating + ' / 5 (' + totalReviews + ' reviews)' : hotel.rating + ' Stars'}">5
-                        Stars</span>
-                </span>
-                <span class="room-hero-badge">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                    </svg>
-                    <span><strong th:text="${totalResults}">0</strong> rooms found</span>
-                </span>
-            </div>
+        <div class="d-flex align-items-center gap-3 flex-wrap mt-3">
+            <span class="room-hero-badge">
+                <i class="bi bi-star-fill text-gold me-1"></i>
+                <span th:text="${avgRating > 0 ? avgRating + ' / 5 (' + totalReviews + ' reviews)' : hotel.rating + ' Stars'}">5 Stars</span>
+            </span>
+            <span class="room-hero-badge">
+                <i class="bi bi-door-open me-1"></i>
+                <strong th:text="${totalResults}">0</strong>&nbsp;rooms found
+            </span>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- ==================== MAIN CONTENT ==================== -->
-    <main class="flex-grow-1 py-4" style="background:#faf8f4;">
-        <div class="container-fluid px-3 px-md-4">
-            <div class="row g-4">
+<!-- ==================== MAIN CONTENT ==================== -->
+<main class="flex-grow-1 py-4 bg-cream">
+    <div class="container-fluid px-3 px-md-4">
+        <div class="row g-4">
 
-                <!-- ===== FILTER SIDEBAR ===== -->
-                <div class="col-12 col-lg-3">
-                    <div class="filter-card">
-                        <div class="filter-card-header">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                fill="none" stroke="#c9a96e" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                            </svg>
-                            <h5>Filter Rooms</h5>
-                        </div>
+            <!-- ===== FILTER SIDEBAR ===== -->
+            <div class="col-12 col-lg-3">
+                <div class="card filter-card border-0 shadow-sm" style="border-radius:16px; overflow:hidden; position:sticky; top:80px;">
+                    <div class="card-header filter-card-header text-gold border-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-funnel text-gold"></i>
+                        Filter Rooms
+                    </div>
+                    <div class="card-body filter-card-body">
+                        <form th:action="@{/hotels/{id}/rooms(id=${hotel.id})}" method="get" id="roomFilterForm">
 
-                        <div class="filter-card-body">
-                            <form th:action="@{/hotels/{id}/rooms(id=${hotel.id})}" method="get" id="roomFilterForm">
+                            <!-- Loại phòng -->
+                            <div class="mb-4">
+                                <label class="filter-section-label" for="roomTypeSelect">Room Type</label>
+                                <select name="types" id="roomTypeSelect" class="form-select form-select-sm">
+                                    <option value="" th:selected="${selectedTypes == null or selectedTypes.isEmpty()}">All Types</option>
+                                    <option th:each="t : ${allTypes}" th:value="${t}" th:text="${t}"
+                                        th:selected="${#lists.contains(selectedTypes, t)}"></option>
+                                </select>
+                            </div>
 
-                                <!-- Lọc loại phòng – Dropdown -->
-                                <div class="mb-4">
-                                    <div class="filter-section-label">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                            stroke-linecap="round" stroke-linejoin="round" class="me-1">
-                                            <rect x="3" y="3" width="7" height="7" />
-                                            <rect x="14" y="3" width="7" height="7" />
-                                            <rect x="14" y="14" width="7" height="7" />
-                                            <rect x="3" y="14" width="7" height="7" />
-                                        </svg>
-                                        Room Type
+                            <!-- Khoảng giá -->
+                            <div class="mb-4">
+                                <label class="filter-section-label">Price Range / Night (VND)</label>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label small text-muted mb-1">From</label>
+                                        <input type="number" name="minPrice" id="minPriceInput"
+                                               class="form-control form-control-sm"
+                                               min="0" max="50000000" step="100000"
+                                               th:value="${minPrice}" placeholder="0" />
                                     </div>
-                                    <select name="types" id="roomTypeSelect"
-                                            style="width:100%; padding:9px 12px;
-                                                   border:1.5px solid #e5e7eb; border-radius:10px;
-                                                   font-size:.88rem; color:#374151; background:#fafafa;
-                                                   cursor:pointer; outline:none;
-                                                   font-family:'Inter',sans-serif;">
-                                        <option value=""
-                                            th:selected="${selectedTypes == null or selectedTypes.isEmpty()}">
-                                            All Types
-                                        </option>
-                                        <option th:each="t : ${allTypes}" th:value="${t}" th:text="${t}"
-                                            th:selected="${#lists.contains(selectedTypes, t)}">
-                                        </option>
-                                    </select>
-                                </div>
-
-                                <!-- Lọc khoảng giá – 2 input number native -->
-                                <div class="mb-4">
-                                    <div class="filter-section-label">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                            stroke-linecap="round" stroke-linejoin="round" class="me-1">
-                                            <line x1="12" y1="1" x2="12" y2="23" />
-                                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                                        </svg>
-                                        Price Range / Night (VND)
-                                    </div>
-                                    <div class="row g-2 mt-1">
-                                        <div class="col-6">
-                                            <label style="font-size:.75rem; color:#9ca3af; display:block; margin-bottom:4px;">From</label>
-                                            <input type="number" name="minPrice" id="minPriceInput"
-                                                   style="width:100%; padding:7px 10px; border:1.5px solid #e5e7eb;
-                                                          border-radius:8px; font-size:.85rem; color:#374151;
-                                                          background:#fafafa; outline:none; font-family:'Inter',sans-serif;"
-                                                   min="0" max="50000000" step="100000"
-                                                   th:value="${minPrice}" placeholder="0" />
-                                        </div>
-                                        <div class="col-6">
-                                            <label style="font-size:.75rem; color:#9ca3af; display:block; margin-bottom:4px;">To</label>
-                                            <input type="number" name="maxPrice" id="maxPriceInput"
-                                                   style="width:100%; padding:7px 10px; border:1.5px solid #e5e7eb;
-                                                          border-radius:8px; font-size:.85rem; color:#374151;
-                                                          background:#fafafa; outline:none; font-family:'Inter',sans-serif;"
-                                                   min="0" max="50000000" step="100000"
-                                                   th:value="${maxPrice}" placeholder="50,000,000" />
-                                        </div>
+                                    <div class="col-6">
+                                        <label class="form-label small text-muted mb-1">To</label>
+                                        <input type="number" name="maxPrice" id="maxPriceInput"
+                                               class="form-control form-control-sm"
+                                               min="0" max="50000000" step="100000"
+                                               th:value="${maxPrice}" placeholder="50M" />
                                     </div>
                                 </div>
+                            </div>
 
-                                <button type="submit" class="btn-filter-search" id="roomFilterSubmit">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                                        stroke-linejoin="round">
-                                        <circle cx="11" cy="11" r="8" />
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                                    </svg>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-gold btn-sm" id="roomFilterSubmit">
+                                    <i class="bi bi-search me-1"></i>
                                     Search Rooms
                                 </button>
-                                <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}" class="btn-filter-clear">Clear
-                                    Filters</a>
-                            </form>
-                        </div>
+                                <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}" class="btn btn-outline-secondary btn-sm">
+                                    Clear Filters
+                                </a>
+                            </div>
+                        </form>
                     </div>
                 </div>
-
-                <!-- ===== DANH SÁCH PHÒNG ===== -->
-                <div class="col-12 col-lg-9">
-
-                    <!-- Results header -->
-                    <div class="results-header">
-                        <div>
-                            <div class="results-title">Room Listings</div>
-                            <div class="results-count">
-                                Found <strong th:text="${totalResults}">0</strong> room(s)
-                                <span th:if="${!selectedTypes.isEmpty()}">
-                                    &nbsp;· Filtering:
-                                    <span th:each="t, iter : ${selectedTypes}">
-                                        <span th:text="${t}"></span><span th:if="${!iter.last}">, </span>
-                                    </span>
-                                </span>
-                            </div>
-                        </div>
-                        <!-- Nút thêm phòng -->
-                        <a th:href="@{/hotels/{id}/rooms/new(id=${hotel.id})}" style="display:inline-flex; align-items:center; gap:7px;
-                                  background:linear-gradient(135deg,#a8824e,#c9a96e);
-                                  color:#fff; text-decoration:none; border-radius:10px;
-                                  padding:10px 20px; font-weight:700; font-size:.88rem;
-                                  transition:.3s; box-shadow:0 4px 12px rgba(168,130,78,.3);">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <line x1="12" y1="5" x2="12" y2="19" />
-                                <line x1="5" y1="12" x2="19" y2="12" />
-                            </svg>
-                            Add Room
-                        </a>
-                    </div>
-
-                    <!-- Flash messages -->
-                    <div th:if="${successMessage}" style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px;
-                                padding:12px 16px; color:#16a34a; font-size:.88rem; font-weight:500;
-                                display:flex; align-items:center; gap:8px; margin-bottom:16px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        <span th:text="${successMessage}"></span>
-                    </div>
-                    <div th:if="${errorMessage}" style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px;
-                                padding:12px 16px; color:#dc2626; font-size:.88rem; font-weight:500;
-                                display:flex; align-items:center; gap:8px; margin-bottom:16px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10" />
-                            <line x1="12" y1="8" x2="12" y2="12" />
-                            <line x1="12" y1="16" x2="12.01" y2="16" />
-                        </svg>
-                        <span th:text="${errorMessage}"></span>
-                    </div>
-
-                    <!-- Empty state -->
-                    <div th:if="${rooms == null or rooms.isEmpty()}" class="empty-state">
-                        <div class="empty-state-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                            </svg>
-                        </div>
-                        <div class="empty-state-title">No Rooms Found</div>
-                        <p class="empty-state-desc">
-                            Try adjusting your filters or
-                            <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}"
-                                style="color:#c9a96e; text-decoration:none; font-weight:600;">
-                                clear all filters
-                            </a>
-                            to see all available rooms.
-                        </p>
-                    </div>
-
-                    <!-- Danh sách phòng -->
-                    <div th:if="${rooms != null and !rooms.isEmpty()}">
-                        <div th:each="room : ${rooms}" class="room-card">
-
-                            <!-- Ảnh phòng (trái) -->
-                            <div class="room-card-img-wrap">
-                                <img th:if="${room.imgUrl != null and !room.imgUrl.isEmpty()}" th:src="${room.imgUrl}"
-                                    th:alt="${room.roomType + ' - ' + hotel.name}" class="room-card-img" />
-                                <div th:if="${room.imgUrl == null or room.imgUrl.isEmpty()}"
-                                    class="room-card-img-placeholder">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"
-                                        stroke-linejoin="round">
-                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                                        <circle cx="8.5" cy="8.5" r="1.5" />
-                                        <polyline points="21 15 16 10 5 21" />
-                                    </svg>
-                                </div>
-                            </div>
-
-                            <!-- Thông tin phòng (phải) -->
-                            <div class="room-card-body">
-
-                                <div style="font-size:1.6rem; font-weight:800;
-                                            text-transform:uppercase;
-                                            color:#c9a96e; margin-bottom:10px;
-                                            font-family:'Playfair Display',serif;
-                                            line-height:1.1;" th:text="${room.roomType}">
-                                    ROOM TYPE
-                                </div>
-
-                                <p class="room-card-desc"
-                                    th:text="${room.description != null and !room.description.isEmpty()
-                                             ? room.description
-                                             : 'A luxurious room equipped with modern amenities to provide guests with the finest hospitality experience.'}">
-                                    Room Description
-                                </p>
-
-                                <div style="height:2px;
-                                            background:linear-gradient(90deg,#c9a96e,#e8d5a3,#c9a96e);
-                                            border-radius:99px; margin:14px 0;"></div>
-
-                                <!-- Tiện nghi -->
-                                <div class="room-amenities">
-                                    <span class="amenity-badge">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round">
-                                            <polyline points="15 3 21 3 21 9" />
-                                            <polyline points="9 21 3 21 3 15" />
-                                            <line x1="21" y1="3" x2="14" y2="10" />
-                                            <line x1="3" y1="21" x2="10" y2="14" />
-                                        </svg>
-                                        <span th:text="${room.acreage + ' m²'}">25 m²</span>
-                                    </span>
-                                    <span class="amenity-badge">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                                            <circle cx="9" cy="7" r="4" />
-                                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                                        </svg>
-                                        <span th:text="${room.person + ' guest(s)'}">2 guest(s)</span>
-                                    </span>
-                                    <span class="amenity-badge">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M2 4v16" />
-                                            <path d="M2 8h18a2 2 0 0 1 2 2v10" />
-                                            <path d="M2 17h20" />
-                                            <path d="M6 8v9" />
-                                        </svg>
-                                        <span th:text="${room.bed + ' bed(s)'}">2 bed(s)</span>
-                                    </span>
-                                    <span class="amenity-badge">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round">
-                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                                            <line x1="12" y1="3" x2="12" y2="21" />
-                                            <line x1="3" y1="12" x2="21" y2="12" />
-                                        </svg>
-                                        <span th:text="${room.numWindow + ' window(s)'}">2 window(s)</span>
-                                    </span>
-                                </div>
-
-                                <!-- Footer: giá + nút -->
-                                <div class="room-card-footer">
-                                    <div>
-                                        <div class="room-price-label">Price per Night</div>
-                                        <div>
-                                            <span class="room-price-amount"
-                                                th:text="${#numbers.formatInteger(room.price, 0, 'COMMA')}">
-                                                500,000
-                                            </span>
-                                            <span class="room-price-unit">VND</span>
-                                        </div>
-                                    </div>
-                                    <div class="room-action-btns">
-                                        <!-- Nút View Detail – kích hoạt Bootstrap modal -->
-                                        <button type="button"
-                                                class="btn-view-detail"
-                                                data-bs-toggle="modal"
-                                                th:data-bs-target="${'#roomModal-' + room.id}"
-                                                th:id="${'detail-btn-' + room.id}">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
-                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                                stroke-linecap="round" stroke-linejoin="round">
-                                                <circle cx="11" cy="11" r="8"/>
-                                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                                                <line x1="11" y1="8" x2="11" y2="14"/>
-                                                <line x1="8" y1="11" x2="14" y2="11"/>
-                                            </svg>
-                                            View Detail
-                                        </button>
-                                        <!-- Nút Book Now -->
-                                        <a th:href="@{/booking(hotelId=${hotel.id}, roomId=${room.id}, checkin=${checkin}, checkout=${checkout})}"
-                                           class="btn-book-room"
-                                           th:id="${'book-btn-' + room.id}">
-                                            Book Now
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
-                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                                stroke-linecap="round" stroke-linejoin="round">
-                                                <line x1="5" y1="12" x2="19" y2="12" />
-                                                <polyline points="12 5 19 12 12 19" />
-                                            </svg>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-                <!-- ===== KẾT THÚC DANH SÁCH PHÒNG ===== -->
-
             </div>
 
-            <!-- ==================== REVIEWS SECTION ==================== -->
-            <div class="row g-4 mt-5">
-                <div class="col-12">
-                    <div class="reviews-card">
-                        <h3 class="reviews-title">Hotel Reviews</h3>
+            <!-- ===== DANH SÁCH PHÒNG ===== -->
+            <div class="col-12 col-lg-9">
 
-                        <div class="row g-4">
-                            <!-- Left: Rating Summary & Form -->
-                            <div class="col-12 col-md-4">
-                                <div class="rating-summary-card">
-                                    <div class="rating-summary-number" th:text="${avgRating > 0 ? avgRating : '0.0'}">
-                                        0.0</div>
-                                    <div class="rating-summary-stars">
-                                        <span th:each="i : ${#numbers.sequence(1, 5)}"
-                                            th:text="${i <= avgRating ? '★' : '☆'}"></span>
-                                    </div>
-                                    <div class="rating-summary-count" th:text="${totalReviews + ' reviews in total'}">0
-                                        reviews in total</div>
-                                </div>
+                <!-- Results header -->
+                <div class="results-header">
+                    <div>
+                        <div class="results-title">Room Listings</div>
+                        <div class="results-count">
+                            Found <strong th:text="${totalResults}">0</strong> room(s)
+                            <span th:if="${!selectedTypes.isEmpty()}">
+                                &nbsp;· <span th:each="t, i : ${selectedTypes}">
+                                    <span th:text="${t}"></span><span th:if="${!i.last}">, </span>
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                    <a th:href="@{/hotels/{id}/rooms/new(id=${hotel.id})}" class="btn btn-gold">
+                        <i class="bi bi-plus-lg me-1"></i>
+                        Add Room
+                    </a>
+                </div>
 
-                                <!-- Form to Submit Review – CSS-only radio star rating -->
-                                <div th:if="${user != null and user.role == 'CUSTOMER' and !hasReviewed}"
-                                    class="card border-0 shadow-sm p-4 bg-light">
-                                    <h5 class="fw-bold mb-3" style="color: var(--navy);">Write a Review</h5>
-                                    <form th:action="@{/hotels/{id}/reviews(id=${hotel.id})}" method="post">
-                                        <div class="mb-3">
-                                            <label class="form-label small fw-semibold text-uppercase">Your Rating</label>
-                                            <!-- CSS-only radio star rating -->
-                                            <div class="star-radio-group">
-                                                <th:block th:each="star : ${#numbers.sequence(5, 1, -1)}">
-                                                    <input type="radio"
-                                                           name="rating"
-                                                           th:id="${'star-review-' + star}"
-                                                           th:value="${star}"
-                                                           th:checked="${star == 5}" />
-                                                    <label th:for="${'star-review-' + star}" title="star">★</label>
-                                                </th:block>
-                                            </div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="commentInput"
-                                                class="form-label small fw-semibold text-uppercase">Your Comment</label>
-                                            <textarea class="form-control" id="commentInput" name="comment" rows="4"
-                                                placeholder="Share details of your experience at this hotel..."
-                                                required></textarea>
-                                        </div>
-                                        <button type="submit" class="btn-review-submit w-100">Submit Review</button>
-                                    </form>
-                                </div>
-                                <div th:if="${user != null and user.role == 'CUSTOMER' and hasReviewed}"
-                                    class="card border-0 shadow-sm p-4 bg-light text-center">
-                                    <h5 class="fw-bold mb-2" style="color: var(--navy);">Write a Review</h5>
-                                    <p class="text-muted small">You have already reviewed this hotel. You can only
-                                        submit one review.</p>
-                                </div>
-                                <div th:if="${user == null}" class="card border-0 shadow-sm p-4 bg-light text-center">
-                                    <h5 class="fw-bold mb-2" style="color: var(--navy);">Write a Review</h5>
-                                    <p class="text-muted small">Please log in to share your experience with this hotel.
-                                    </p>
-                                    <a href="/login" class="btn btn-sm btn-outline-primary mt-2">Log In Now</a>
-                                </div>
-                                <div th:if="${user != null and user.role != 'CUSTOMER'}"
-                                    class="card border-0 shadow-sm p-4 bg-light text-center">
-                                    <h5 class="fw-bold mb-2" style="color: var(--navy);">Write a Review</h5>
-                                    <p class="text-muted small">Only customers can submit reviews.</p>
-                                </div>
+                <!-- Flash messages -->
+                <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span th:text="${successMessage}"></span>
+                </div>
+                <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span th:text="${errorMessage}"></span>
+                </div>
+
+                <!-- Empty state -->
+                <div th:if="${rooms == null or rooms.isEmpty()}" class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-door-open fs-1 text-gold mb-3 opacity-50 d-block"></i>
+                    </div>
+                    <div class="empty-state-title">No Rooms Found</div>
+                    <p class="empty-state-desc">
+                        <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}" class="text-gold fw-semibold">Clear all filters</a>
+                        to see all available rooms.
+                    </p>
+                </div>
+
+                <!-- Room list -->
+                <div th:if="${rooms != null and !rooms.isEmpty()}">
+                    <div th:each="room : ${rooms}" class="room-card">
+
+                        <!-- Ảnh -->
+                        <div class="room-card-img-wrap">
+                            <img th:if="${room.imgUrl != null and !room.imgUrl.isEmpty()}"
+                                th:src="${room.imgUrl}" th:alt="${room.roomType}" class="room-card-img" />
+                            <div th:if="${room.imgUrl == null or room.imgUrl.isEmpty()}" class="room-card-img-placeholder">
+                                <i class="bi bi-image text-muted fs-3"></i>
+                            </div>
+                        </div>
+
+                        <!-- Thông tin -->
+                        <div class="room-card-body">
+                            <div class="room-type-title" th:text="${room.roomType}">ROOM TYPE</div>
+
+                            <p class="room-card-desc"
+                                th:text="${room.description != null and !room.description.isEmpty()
+                                         ? room.description
+                                         : 'A luxurious room equipped with modern amenities for the finest hospitality experience.'}">
+                            </p>
+
+                            <div class="room-gold-divider"></div>
+
+                            <!-- Amenities -->
+                            <div class="room-amenities">
+                                <span class="amenity-badge">
+                                    <i class="bi bi-arrows-fullscreen me-1"></i>
+                                    <span th:text="${room.acreage + ' m²'}">25 m²</span>
+                                </span>
+                                <span class="amenity-badge">
+                                    <i class="bi bi-people me-1"></i>
+                                    <span th:text="${room.person + ' guest(s)'}">2 guest(s)</span>
+                                </span>
+                                <span class="amenity-badge">
+                                    <i class="bi bi-door-closed me-1"></i>
+                                    <span th:text="${room.bed + ' bed(s)'}">2 bed(s)</span>
+                                </span>
+                                <span class="amenity-badge">
+                                    <i class="bi bi-grid-3x3-gap me-1"></i>
+                                    <span th:text="${room.numWindow + ' window(s)'}">2 window(s)</span>
+                                </span>
                             </div>
 
-                            <!-- Right: Reviews Feed -->
-                            <div class="col-12 col-md-8">
-                                <h5 class="fw-bold mb-3" style="color: var(--navy);">Guest Feedback</h5>
-
-                                <div th:if="${reviews == null or reviews.isEmpty()}"
-                                    class="text-center py-5 bg-light rounded">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"
-                                        fill="none" stroke="#ccc" stroke-width="1.5" stroke-linecap="round"
-                                        stroke-linejoin="round" class="mb-2">
-                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                                    </svg>
-                                    <p class="text-muted mb-0">No reviews yet for this hotel. Be the first to share your
-                                        experience!</p>
+                            <!-- Footer: giá + nút -->
+                            <div class="room-card-footer">
+                                <div>
+                                    <div class="room-price-label">Price per Night</div>
+                                    <div>
+                                        <span class="room-price-amount"
+                                            th:text="${#numbers.formatInteger(room.price, 0, 'COMMA')}">500,000</span>
+                                        <span class="room-price-unit">VND</span>
+                                    </div>
                                 </div>
+                                <div class="room-action-btns">
+                                    <!-- View Detail – Bootstrap modal -->
+                                    <button type="button" class="btn btn-outline-secondary btn-sm btn-view-detail"
+                                            data-bs-toggle="modal"
+                                            th:data-bs-target="${'#roomModal-' + room.id}"
+                                            th:id="${'detail-btn-' + room.id}">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Detail
+                                    </button>
+                                    <!-- Book Now -->
+                                    <a th:href="@{/booking(hotelId=${hotel.id}, roomId=${room.id}, checkin=${checkin}, checkout=${checkout})}"
+                                       class="btn btn-gold btn-sm btn-book-room"
+                                       th:id="${'book-btn-' + room.id}">
+                                        Book Now
+                                        <i class="bi bi-arrow-right ms-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                                <div th:if="${reviews != null and !reviews.isEmpty()}">
-                                    <div th:each="review : ${reviews}" class="review-item-card">
-                                        <div class="d-flex align-items-start gap-3">
-                                            <div class="review-user-avatar"
-                                                th:text="${#strings.substring(review.userFullName,0,1)}">U</div>
-                                            <div class="flex-grow-1">
-                                                <div class="d-flex align-items-center justify-content-between">
-                                                    <div class="review-user-name" th:text="${review.userFullName}">User
-                                                        Name</div>
-                                                    <div class="review-date"
-                                                        th:text="${#temporals.format(review.createdAt, 'dd-MM-yyyy HH:mm')}">
-                                                        Date</div>
-                                                </div>
-                                                <div class="review-stars my-1">
-                                                    <span th:each="i : ${#numbers.sequence(1, 5)}"
-                                                        th:text="${i <= review.rating ? '★' : '☆'}"></span>
-                                                </div>
-                                                <p class="review-comment" th:text="${review.comment}">Review comment
-                                                    goes here.</p>
+            </div>
+        </div>
 
-                                                <!-- Edit section (chỉ chủ review) – Bootstrap collapse, không JS -->
-                                                <div th:if="${user != null and user.id == review.userId}"
-                                                    class="mt-2">
-                                                    <div style="display:flex; justify-content:flex-end; gap:8px;">
-                                                        <!-- Nút toggle form edit bằng Bootstrap collapse -->
-                                                        <button type="button"
-                                                                class="btn-review-edit"
-                                                                data-bs-toggle="collapse"
-                                                                th:data-bs-target="${'#editForm-' + review.id}"
-                                                                aria-expanded="false">Edit</button>
-                                                        <!-- Nút Delete -->
-                                                        <form
-                                                            th:action="@{/hotels/{id}/reviews/{reviewId}/delete(id=${hotel.id}, reviewId=${review.id})}"
-                                                            method="post"
-                                                            onsubmit="return confirm('Are you sure you want to delete this review?');"
-                                                            style="display:inline;">
-                                                            <button type="submit" class="btn-review-delete">Delete</button>
-                                                        </form>
-                                                    </div>
+        <!-- ==================== REVIEWS SECTION ==================== -->
+        <div class="row g-4 mt-5">
+            <div class="col-12">
+                <div class="reviews-card">
+                    <h3 class="reviews-title">Hotel Reviews</h3>
 
-                                                    <!-- Form edit inline – Bootstrap collapse -->
-                                                    <div class="collapse mt-3" th:id="${'editForm-' + review.id}">
-                                                        <div style="background:#f9f9f9; border-radius:12px; padding:20px; border:1px solid #e5e7eb;">
-                                                            <form th:action="@{/hotels/{id}/reviews/{reviewId}/edit(id=${hotel.id}, reviewId=${review.id})}"
-                                                                  method="post">
-                                                                <!-- Star Rating – CSS-only radio -->
-                                                                <div class="mb-3">
-                                                                    <label class="form-label small fw-semibold text-uppercase">Rating</label>
-                                                                    <div class="star-radio-group">
-                                                                        <th:block th:each="star : ${#numbers.sequence(5, 1, -1)}">
-                                                                            <input type="radio"
-                                                                                   name="rating"
-                                                                                   th:id="${'edit-star-' + review.id + '-' + star}"
-                                                                                   th:value="${star}"
-                                                                                   th:checked="${star == review.rating}" />
-                                                                            <label th:for="${'edit-star-' + review.id + '-' + star}" title="star">★</label>
-                                                                        </th:block>
-                                                                    </div>
-                                                                </div>
-                                                                <!-- Comment -->
-                                                                <div class="mb-3">
-                                                                    <label class="form-label small fw-semibold text-uppercase">Your Comment</label>
-                                                                    <textarea name="comment" rows="3"
-                                                                              class="form-control"
-                                                                              th:text="${review.comment}"
-                                                                              placeholder="Share your updated experience..."
-                                                                              required></textarea>
-                                                                </div>
-                                                                <div style="display:flex; gap:10px;">
-                                                                    <!-- Cancel collapse -->
-                                                                    <button type="button"
-                                                                            class="btn btn-outline-secondary btn-sm"
-                                                                            data-bs-toggle="collapse"
-                                                                            th:data-bs-target="${'#editForm-' + review.id}">
-                                                                        Cancel
-                                                                    </button>
-                                                                    <button type="submit"
-                                                                            style="flex:2; padding:8px 16px; border:none;
-                                                                                   background:linear-gradient(135deg,#a8824e,#c9a96e);
-                                                                                   color:#fff; border-radius:8px; font-weight:700;
-                                                                                   font-size:.88rem; cursor:pointer;">
-                                                                        Save Changes
-                                                                    </button>
-                                                                </div>
-                                                            </form>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                    <div class="row g-4">
+                        <!-- Left: Rating Summary + Form -->
+                        <div class="col-12 col-md-4">
+                            <div class="rating-summary-card">
+                                <div class="rating-summary-number" th:text="${avgRating > 0 ? avgRating : '0.0'}">0.0</div>
+                                <div class="rating-summary-stars">
+                                    <span th:each="i : ${#numbers.sequence(1, 5)}"
+                                        th:text="${i <= avgRating ? '★' : '☆'}"></span>
+                                </div>
+                                <div class="rating-summary-count" th:text="${totalReviews + ' reviews in total'}">0 reviews</div>
+                            </div>
 
-                                                <!-- Delete button (ADMIN, không hiện Edit) -->
-                                                <div th:if="${user != null and user.role == 'ADMIN' and user.id != review.userId}"
-                                                    class="mt-2 text-end">
-                                                    <form
-                                                        th:action="@{/hotels/{id}/reviews/{reviewId}/delete(id=${hotel.id}, reviewId=${review.id})}"
-                                                        method="post"
-                                                        onsubmit="return confirm('Are you sure you want to delete this review?');"
-                                                        style="display:inline;">
+                            <!-- Form viết review (chỉ CUSTOMER chưa review) -->
+                            <div th:if="${user != null and user.role == 'CUSTOMER' and !hasReviewed}"
+                                 class="card border-0 shadow-sm p-4 bg-light">
+                                <h5 class="fw-bold mb-3 text-navy">Write a Review</h5>
+                                <form th:action="@{/hotels/{id}/reviews(id=${hotel.id})}" method="post">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-uppercase text-muted">Your Rating</label>
+                                        <div class="star-radio-group">
+                                            <th:block th:each="star : ${#numbers.sequence(5, 1, -1)}">
+                                                <input type="radio" name="rating"
+                                                       th:id="${'star-review-' + star}"
+                                                       th:value="${star}" th:checked="${star == 5}" />
+                                                <label th:for="${'star-review-' + star}" title="star">★</label>
+                                            </th:block>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="commentInput" class="form-label small fw-semibold text-uppercase text-muted">Your Comment</label>
+                                        <textarea class="form-control" id="commentInput" name="comment"
+                                                  rows="4" placeholder="Share details of your experience..." required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-gold w-100">Submit Review</button>
+                                </form>
+                            </div>
+
+                            <div th:if="${user != null and user.role == 'CUSTOMER' and hasReviewed}"
+                                 class="card border-0 shadow-sm p-4 bg-light text-center">
+                                <h5 class="fw-bold mb-2 text-navy">Write a Review</h5>
+                                <p class="text-muted small">You have already reviewed this hotel.</p>
+                            </div>
+                            <div th:if="${user == null}" class="card border-0 shadow-sm p-4 bg-light text-center">
+                                <h5 class="fw-bold mb-2 text-navy">Write a Review</h5>
+                                <p class="text-muted small">Please log in to share your experience.</p>
+                                <a href="/login" class="btn btn-outline-secondary btn-sm mt-2">Log In Now</a>
+                            </div>
+                            <div th:if="${user != null and user.role != 'CUSTOMER'}"
+                                 class="card border-0 shadow-sm p-4 bg-light text-center">
+                                <h5 class="fw-bold mb-2 text-navy">Write a Review</h5>
+                                <p class="text-muted small">Only customers can submit reviews.</p>
+                            </div>
+                        </div>
+
+                        <!-- Right: Reviews Feed -->
+                        <div class="col-12 col-md-8">
+                            <h5 class="fw-bold mb-3 text-navy">Guest Feedback</h5>
+
+                            <div th:if="${reviews == null or reviews.isEmpty()}" class="text-center py-5 bg-light rounded">
+                                <i class="bi bi-chat-left-dots fs-1 text-muted opacity-50 mb-2 d-block"></i>
+                                <p class="text-muted mb-0">No reviews yet. Be the first to share your experience!</p>
+                            </div>
+
+                            <div th:if="${reviews != null and !reviews.isEmpty()}">
+                                <div th:each="review : ${reviews}" class="review-item-card">
+                                    <div class="d-flex align-items-start gap-3">
+                                        <div class="review-user-avatar"
+                                            th:text="${#strings.substring(review.userFullName,0,1)}">U</div>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div class="review-user-name" th:text="${review.userFullName}">User Name</div>
+                                                <div class="review-date"
+                                                    th:text="${#temporals.format(review.createdAt, 'dd-MM-yyyy HH:mm')}">Date</div>
+                                            </div>
+                                            <div class="review-stars my-1">
+                                                <span th:each="i : ${#numbers.sequence(1, 5)}"
+                                                    th:text="${i <= review.rating ? '★' : '☆'}"></span>
+                                            </div>
+                                            <p class="review-comment" th:text="${review.comment}">Comment</p>
+
+                                            <!-- Edit/Delete (chủ review) -->
+                                            <div th:if="${user != null and user.id == review.userId}" class="mt-2">
+                                                <div class="d-flex justify-content-end gap-2">
+                                                    <button type="button" class="btn-review-edit"
+                                                            data-bs-toggle="collapse"
+                                                            th:data-bs-target="${'#editForm-' + review.id}"
+                                                            aria-expanded="false">Edit</button>
+                                                    <form th:action="@{/hotels/{id}/reviews/{rid}/delete(id=${hotel.id}, rid=${review.id})}"
+                                                          method="post" style="display:inline;"
+                                                          onsubmit="return confirm('Delete this review?');">
                                                         <button type="submit" class="btn-review-delete">Delete</button>
                                                     </form>
                                                 </div>
+
+                                                <!-- Inline edit form – Bootstrap collapse -->
+                                                <div class="collapse mt-3" th:id="${'editForm-' + review.id}">
+                                                    <div class="card card-body bg-light border-0">
+                                                        <form th:action="@{/hotels/{id}/reviews/{rid}/edit(id=${hotel.id}, rid=${review.id})}"
+                                                              method="post">
+                                                            <div class="mb-3">
+                                                                <label class="form-label small fw-semibold text-uppercase text-muted">Rating</label>
+                                                                <div class="star-radio-group">
+                                                                    <th:block th:each="star : ${#numbers.sequence(5, 1, -1)}">
+                                                                        <input type="radio" name="rating"
+                                                                               th:id="${'edit-star-' + review.id + '-' + star}"
+                                                                               th:value="${star}"
+                                                                               th:checked="${star == review.rating}" />
+                                                                        <label th:for="${'edit-star-' + review.id + '-' + star}" title="star">★</label>
+                                                                    </th:block>
+                                                                </div>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label small fw-semibold text-uppercase text-muted">Comment</label>
+                                                                <textarea name="comment" rows="3" class="form-control"
+                                                                          th:text="${review.comment}" required></textarea>
+                                                            </div>
+                                                            <div class="d-flex gap-2">
+                                                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                                        data-bs-toggle="collapse"
+                                                                        th:data-bs-target="${'#editForm-' + review.id}">Cancel</button>
+                                                                <button type="submit" class="btn btn-gold btn-sm flex-grow-1">Save Changes</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Delete only (ADMIN) -->
+                                            <div th:if="${user != null and user.role == 'ADMIN' and user.id != review.userId}"
+                                                 class="mt-2 text-end">
+                                                <form th:action="@{/hotels/{id}/reviews/{rid}/delete(id=${hotel.id}, rid=${review.id})}"
+                                                      method="post" style="display:inline;"
+                                                      onsubmit="return confirm('Delete this review?');">
+                                                    <button type="submit" class="btn-review-delete">Delete</button>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>
@@ -564,236 +365,121 @@
                     </div>
                 </div>
             </div>
-
         </div>
-    </main>
 
-    <!-- ==================== ROOM DETAIL MODALS (Thymeleaf th:each, Bootstrap native) ==================== -->
-    <th:block th:if="${rooms != null and !rooms.isEmpty()}">
-        <div th:each="room : ${rooms}"
-             class="modal fade"
-             th:id="${'roomModal-' + room.id}"
-             tabindex="-1"
-             aria-modal="true"
-             role="dialog">
-            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-                <div class="modal-content" style="border-radius:18px; overflow:hidden; border:none;">
+    </div>
+</main>
 
-                    <!-- Ảnh phòng -->
-                    <div th:if="${room.imgUrl != null and !room.imgUrl.isEmpty()}"
-                         style="height:260px; overflow:hidden; position:relative;">
-                        <img th:src="${room.imgUrl}"
-                             th:alt="${room.roomType}"
-                             style="width:100%; height:100%; object-fit:cover;" />
-                        <!-- Type badge -->
-                        <span class="room-detail-type-badge"
-                              style="position:absolute; bottom:16px; left:20px;"
-                              th:text="${room.roomType}"></span>
-                    </div>
-                    <div th:if="${room.imgUrl == null or room.imgUrl.isEmpty()}"
-                         style="height:180px; background:#f3f4f6; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px; color:#9ca3af;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                            <circle cx="8.5" cy="8.5" r="1.5" />
-                            <polyline points="21 15 16 10 5 21" />
-                        </svg>
-                        <span style="font-size:.85rem;">No image available</span>
-                        <!-- Type badge fallback -->
-                        <span class="room-detail-type-badge" th:text="${room.roomType}"></span>
-                    </div>
+<!-- ==================== ROOM DETAIL MODALS (Bootstrap modal per room) ==================== -->
+<th:block th:if="${rooms != null and !rooms.isEmpty()}">
+    <div th:each="room : ${rooms}" class="modal fade"
+         th:id="${'roomModal-' + room.id}" tabindex="-1" aria-modal="true" role="dialog">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content" style="border-radius:18px; overflow:hidden; border:none;">
 
-                    <!-- Modal body -->
-                    <div class="modal-body p-4">
-                        <!-- Close button -->
-                        <button type="button" class="room-detail-close-btn" data-bs-dismiss="modal" title="Close"
-                                style="position:absolute; top:14px; right:14px; z-index:10;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18"/>
-                                <line x1="6" y1="6" x2="18" y2="18"/>
-                            </svg>
-                        </button>
-
-                        <!-- Header: tên phòng + giá -->
-                        <div class="room-detail-header">
-                            <div>
-                                <h2 class="room-detail-title" th:text="${room.roomType}">Room Name</h2>
-                                <p class="room-detail-hotel" th:text="${hotel.name}">Hotel Name</p>
-                            </div>
-                            <div class="room-detail-price-box">
-                                <div class="room-detail-price-label">Price per Night</div>
-                                <div>
-                                    <span class="room-detail-price-amount"
-                                          th:text="${#numbers.formatInteger(room.price, 0, 'COMMA')}">0</span>
-                                    <span class="room-detail-price-unit">VND</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Divider vàng -->
-                        <div style="height:2px; background:linear-gradient(90deg,#c9a96e,#e8d5a3,#c9a96e); border-radius:99px; margin:16px 0;"></div>
-
-                        <!-- Specs -->
-                        <div class="room-detail-section">
-                            <div class="room-detail-specs-row">
-                                <div class="room-detail-spec-item">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <polyline points="15 3 21 3 21 9"/>
-                                        <polyline points="9 21 3 21 3 15"/>
-                                        <line x1="21" y1="3" x2="14" y2="10"/>
-                                        <line x1="3" y1="21" x2="10" y2="14"/>
-                                    </svg>
-                                    <span>Room size</span>
-                                    <strong th:text="${room.acreage + ' m²'}">25 m²</strong>
-                                </div>
-                                <div class="room-detail-spec-item">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M2 4v16"/>
-                                        <path d="M2 8h18a2 2 0 0 1 2 2v10"/>
-                                        <path d="M2 17h20"/>
-                                        <path d="M6 8v9"/>
-                                    </svg>
-                                    <span th:text="${room.bed + ' bed(s)'}">1 bed</span>
-                                </div>
-                                <div class="room-detail-spec-item">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                                        <circle cx="9" cy="7" r="4"/>
-                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                                    </svg>
-                                    <span th:text="${room.person + ' guest(s)'}">2 guest(s)</span>
-                                </div>
-                                <div class="room-detail-spec-item">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                                        <line x1="12" y1="3" x2="12" y2="21"/>
-                                        <line x1="3" y1="12" x2="21" y2="12"/>
-                                    </svg>
-                                    <span th:text="${room.numWindow + ' window(s)'}">2 window(s)</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Mô tả -->
-                        <p class="room-detail-desc"
-                           th:text="${room.description != null and !room.description.isEmpty()
-                                    ? room.description
-                                    : 'A luxurious room equipped with modern amenities to provide guests with the finest hospitality experience.'}">
-                        </p>
-
-                        <!-- Private Bathroom -->
-                        <div class="room-detail-feature-section">
-                            <div class="room-detail-feature-title">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M9 6 L20 6 L20 14 Q20 18 16 18 L8 18 Q4 18 4 14 L4 10 Q4 6 9 6"/>
-                                    <path d="M4 10 L2 10"/>
-                                </svg>
-                                In your private bathroom:
-                            </div>
-                            <div class="room-detail-checklist-grid">
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Free toiletries</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Towels</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Shower</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Slippers</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Bathrobe</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Hairdryer</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Bidet</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Toilet paper</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Toilet</div>
-                            </div>
-                        </div>
-
-                        <!-- View -->
-                        <div class="room-detail-feature-section">
-                            <div class="room-detail-feature-title">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="12" cy="12" r="3"/>
-                                    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/>
-                                </svg>
-                                View:
-                            </div>
-                            <div class="room-detail-checklist-grid">
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> City view</div>
-                            </div>
-                        </div>
-
-                        <!-- Facilities -->
-                        <div class="room-detail-feature-section">
-                            <div class="room-detail-feature-title">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <line x1="12" y1="8" x2="12" y2="12"/>
-                                    <line x1="12" y1="16" x2="12.01" y2="16"/>
-                                </svg>
-                                Facilities:
-                            </div>
-                            <div class="room-detail-checklist-grid">
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Air conditioning</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Carpeted</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Safety deposit box</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Electric kettle</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Linen</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Wake-up service</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Socket near the bed</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Wardrobe or closet</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Desk</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Upper floors accessible by elevator</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> TV</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Entire unit wheelchair accessible</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Telephone</div>
-                                <div class="room-detail-check-item"><span class="rdm-check">✓</span> Flat-screen TV</div>
-                            </div>
-                        </div>
-
-                        <!-- Smoking -->
-                        <div class="room-detail-smoking">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="1" y1="1" x2="23" y2="23"/>
-                                <path d="M1 14h12"/>
-                                <path d="M17 14h2"/>
-                                <path d="M19 10v4"/>
-                                <path d="M21 14h1"/>
-                            </svg>
-                            <strong>Smoking:</strong> No smoking
-                        </div>
-                    </div>
-
-                    <!-- Modal footer -->
-                    <div class="modal-footer" style="border-top:1px solid #f0ede8; padding:16px 24px;">
-                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-                        <a th:href="@{/booking(hotelId=${hotel.id}, roomId=${room.id}, checkin=${checkin}, checkout=${checkout})}"
-                           class="btn-book-room" style="font-size:.88rem; padding:10px 22px;">
-                            Book Now
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="5" y1="12" x2="19" y2="12" />
-                                <polyline points="12 5 19 12 12 19" />
-                            </svg>
-                        </a>
-                    </div>
-
+                <!-- Ảnh -->
+                <div th:if="${room.imgUrl != null and !room.imgUrl.isEmpty()}"
+                     style="height:260px; overflow:hidden; position:relative;">
+                    <img th:src="${room.imgUrl}" th:alt="${room.roomType}"
+                         class="w-100 h-100 object-fit-cover" />
+                    <span class="room-detail-type-badge" style="position:absolute; bottom:16px; left:20px;"
+                          th:text="${room.roomType}"></span>
                 </div>
+                <div th:if="${room.imgUrl == null or room.imgUrl.isEmpty()}"
+                     class="d-flex align-items-center justify-content-center bg-light"
+                     style="height:180px;">
+                    <i class="bi bi-image text-muted fs-1 mb-2 d-block"></i>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body p-4 position-relative">
+                    <button type="button" class="btn-close position-absolute top-0 end-0 m-3"
+                            data-bs-dismiss="modal" aria-label="Close"></button>
+
+                    <div class="room-detail-header">
+                        <div>
+                            <h2 class="room-detail-title" th:text="${room.roomType}">Room Name</h2>
+                            <p class="room-detail-hotel" th:text="${hotel.name}">Hotel Name</p>
+                        </div>
+                        <div class="room-detail-price-box">
+                            <div class="room-detail-price-label">Price per Night</div>
+                            <div>
+                                <span class="room-detail-price-amount"
+                                      th:text="${#numbers.formatInteger(room.price, 0, 'COMMA')}">0</span>
+                                <span class="room-detail-price-unit">VND</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="room-gold-divider my-3"></div>
+
+                    <!-- Specs -->
+                    <div class="room-detail-specs-row">
+                        <div class="room-detail-spec-item">
+                            <i class="bi bi-arrows-fullscreen"></i>
+                            <span th:text="${room.acreage + ' m²'}">25 m²</span>
+                        </div>
+                        <div class="room-detail-spec-item">
+                            <i class="bi bi-door-closed"></i>
+                            <span th:text="${room.bed + ' bed(s)'}">1 bed</span>
+                        </div>
+                        <div class="room-detail-spec-item">
+                            <i class="bi bi-people"></i>
+                            <span th:text="${room.person + ' guest(s)'}">2 guest(s)</span>
+                        </div>
+                        <div class="room-detail-spec-item">
+                            <i class="bi bi-grid-3x3-gap"></i>
+                            <span th:text="${room.numWindow + ' window(s)'}">2 window(s)</span>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <p class="room-detail-desc mt-3"
+                       th:text="${room.description != null and !room.description.isEmpty()
+                                ? room.description
+                                : 'A luxurious room equipped with modern amenities for the finest hospitality experience.'}">
+                    </p>
+
+                    <!-- Amenity checklists -->
+                    <div class="room-detail-feature-section" th:if="${room.bathroomAmenities != null and !#strings.isEmpty(room.bathroomAmenities)}">
+                        <div class="room-detail-feature-title">In your private bathroom:</div>
+                        <div class="room-detail-checklist-grid">
+                            <div class="room-detail-check-item" th:each="amenity : ${#strings.arraySplit(room.bathroomAmenities, ',')}">
+                                <span class="rdm-check">✓</span>
+                                <span th:text="${#strings.trim(amenity)}">Free toiletries</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="room-detail-feature-section" th:if="${room.facilities != null and !#strings.isEmpty(room.facilities)}">
+                        <div class="room-detail-feature-title">Facilities:</div>
+                        <div class="room-detail-checklist-grid">
+                            <div class="room-detail-check-item" th:each="facility : ${#strings.arraySplit(room.facilities, ',')}">
+                                <span class="rdm-check">✓</span>
+                                <span th:text="${#strings.trim(facility)}">Air conditioning</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="room-detail-smoking">No smoking</div>
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                    <a th:href="@{/booking(hotelId=${hotel.id}, roomId=${room.id}, checkin=${checkin}, checkout=${checkout})}"
+                       class="btn btn-gold btn-sm">
+                        Book Now
+                        <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+
             </div>
         </div>
-    </th:block>
-    <!-- ==================== KẾT THÚC ROOM DETAIL MODALS ==================== -->
+    </div>
+</th:block>
 
-    <footer th:replace="~{fragment/frag :: footer}"></footer>
-    <div th:replace="~{fragment/frag :: scripts}"></div>
-
-
-
+<footer th:replace="~{fragment/frag :: footer}"></footer>
+<div th:replace="~{fragment/frag :: scripts}"></div>
 </body>
-
 </html>

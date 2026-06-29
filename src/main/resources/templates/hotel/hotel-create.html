@@ -1,196 +1,140 @@
 <!DOCTYPE html>
-<!--
-    hotel/hotel-create.html
-    Form thêm mới khách sạn – hỗ trợ upload ảnh
-    Fields: name, address, rating (1-5 sao), price, active, imageFile
-    * Không dùng JS – toàn bộ là HTML/Thymeleaf native *
--->
 <html xmlns:th="http://www.thymeleaf.org">
 
-<!-- ==================== HEAD (từ fragment) ==================== -->
 <head th:replace="~{fragment/frag :: head}"></head>
 
-<body class="d-flex flex-column min-vh-100 bg-light">
+<body class="d-flex flex-column min-vh-100">
+<link rel="stylesheet" th:href="@{/assets/css/hotel-create.css}" />
 
-    <!-- CSS riêng cho form tạo khách sạn -->
-    <link rel="stylesheet" th:href="@{/assets/css/hotel-create.css}" />
+<nav th:replace="~{fragment/frag :: navBar}"></nav>
 
-    <!-- ==================== NAVBAR ==================== -->
-    <nav th:replace="~{fragment/frag :: navBar}"></nav>
+<!-- Hero Banner -->
+<section class="create-hero border-bottom border-warning-subtle">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <a href="/hotels" class="bc-link">Hotels</a>
+            <span class="bc-sep">/</span>
+            <span class="bc-active">Add New Hotel</span>
+        </nav>
+        <h1>Add New Hotel</h1>
+        <p>Fill in the details below to register a new hotel into the system.</p>
+    </div>
+</section>
 
-    <!-- ==================== HERO ==================== -->
-    <section class="create-hero">
-        <div class="container">
-            <!-- Breadcrumb -->
-            <div class="mb-3">
-                <a href="/hotels" class="bc-link">Hotels</a>
-                <span class="bc-sep">/</span>
-                <span class="bc-active">Add New Hotel</span>
-            </div>
-            <h1>Add New Hotel</h1>
-            <p>Fill in the details below to register a new hotel into the system.</p>
-        </div>
-    </section>
+<!-- Main Content -->
+<main class="flex-grow-1 py-4" style="background:var(--cream);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-8">
 
-    <!-- ==================== MAIN CONTENT ==================== -->
-    <main class="flex-grow-1 py-4" style="background: var(--cream);">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-12 col-lg-8">
-
-                    <!-- Alert messages từ redirect -->
-                    <div th:if="${successMessage}" class="alert-success">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                        <span th:text="${successMessage}">Success</span>
-                    </div>
-                    <div th:if="${errorMessage}" class="alert-error">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="12" y1="8" x2="12" y2="12"/>
-                            <line x1="12" y1="16" x2="12.01" y2="16"/>
-                        </svg>
-                        <span th:text="${errorMessage}">Error</span>
-                    </div>
-
-                    <!-- Form card -->
-                    <div class="form-card">
-                        <div class="form-card-header">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                 viewBox="0 0 24 24" fill="none" stroke="#c9a96e"
-                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                                <polyline points="9 22 9 12 15 12 15 22"/>
-                            </svg>
-                            <h5>Hotel Information</h5>
-                        </div>
-
-                        <div class="form-card-body">
-                            <!-- Form gửi POST với enctype multipart để upload ảnh -->
-                            <form action="/hotels/new" method="post"
-                                  enctype="multipart/form-data" id="hotelCreateForm">
-
-                                <!-- ── Tên khách sạn ── -->
-                                <div class="mb-4">
-                                    <label class="form-label-custom" for="hotelName">
-                                        Hotel Name <span style="color:#ef4444;">*</span>
-                                    </label>
-                                    <input type="text" name="name" id="hotelName"
-                                           class="fc" placeholder="e.g. Lion Hotel 6"
-                                           required maxlength="200" />
-                                </div>
-
-                                <!-- ── Địa chỉ ── -->
-                                <div class="mb-4">
-                                    <label class="form-label-custom" for="hotelAddress">
-                                        Address <span style="color:#ef4444;">*</span>
-                                    </label>
-                                    <input type="text" name="address" id="hotelAddress"
-                                           class="fc" placeholder="e.g. 123 Nguyen Van Cu, Can Tho"
-                                           required maxlength="500" />
-                                </div>
-
-                                <div class="row g-4 mb-4">
-                                    <!-- ── Số sao – Select native ── -->
-                                    <div class="col-12 col-sm-6">
-                                        <label class="form-label-custom" for="ratingSelect">
-                                            Star Rating <span style="color:#ef4444;">*</span>
-                                        </label>
-                                        <select name="rating" id="ratingSelect" class="fc" required>
-                                            <option th:each="star : ${#numbers.sequence(1, 5)}"
-                                                    th:value="${star}"
-                                                    th:text="${star + ' ★'}"
-                                                    th:selected="${star == 3}">3 ★</option>
-                                        </select>
-                                    </div>
-
-                                    <!-- ── Giá/đêm ── -->
-                                    <div class="col-12 col-sm-6">
-                                        <label class="form-label-custom" for="hotelPrice">
-                                            Price / Night (VND) <span style="color:#ef4444;">*</span>
-                                        </label>
-                                        <input type="number" name="price" id="hotelPrice"
-                                               class="fc" placeholder="e.g. 500000"
-                                               min="0" step="1" required />
-                                    </div>
-                                </div>
-
-                                <!-- ── Trạng thái hoạt động – Checkbox native ── -->
-                                <div class="mb-4">
-                                    <label class="form-label-custom">Status</label>
-                                    <div class="d-flex align-items-center gap-3 mt-1">
-                                        <div class="form-check form-switch mb-0">
-                                            <input class="form-check-input" type="checkbox"
-                                                   role="switch"
-                                                   id="activeCheckbox"
-                                                   name="active"
-                                                   value="true"
-                                                   checked />
-                                            <label class="form-check-label fw-semibold" for="activeCheckbox">
-                                                Hotel Active
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="form-divider"></div>
-
-                                <!-- ── Upload ảnh ── -->
-                                <div class="mb-4">
-                                    <label class="form-label-custom" for="imageFile">Hotel Image</label>
-                                    <input type="file" name="imageFile" id="imageFile"
-                                           class="form-control"
-                                           accept="image/jpeg,image/png,image/webp,image/jpg" />
-                                    <div class="form-text text-muted mt-1">
-                                        JPG, PNG, WEBP · Max 10MB
-                                    </div>
-                                </div>
-
-                                <div class="form-divider"></div>
-
-                                <!-- ── Buttons ── -->
-                                <div class="d-flex gap-3 justify-content-end flex-wrap">
-                                    <a href="/hotels" class="btn-cancel">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
-                                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                            <line x1="19" y1="12" x2="5" y2="12"/>
-                                            <polyline points="12 19 5 12 12 5"/>
-                                        </svg>
-                                        Cancel
-                                    </a>
-                                    <button type="submit" class="btn-submit" id="submitBtn">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
-                                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                                            <polyline points="17 21 17 13 7 13 7 21"/>
-                                            <polyline points="7 3 7 8 15 8"/>
-                                        </svg>
-                                        Save Hotel
-                                    </button>
-                                </div>
-
-                            </form>
-                        </div>
-                    </div>
-
+                <!-- Flash messages (dùng Bootstrap alert + Bootstrap Icons) -->
+                <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span th:text="${successMessage}"></span>
                 </div>
+                <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span th:text="${errorMessage}"></span>
+                </div>
+
+                <!-- Form Card -->
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <i class="bi bi-building text-gold"></i>
+                        <h5>Hotel Information</h5>
+                    </div>
+
+                    <div class="form-card-body">
+                        <form action="/hotels/new" method="post" enctype="multipart/form-data" id="hotelCreateForm">
+
+                            <!-- Tên khách sạn -->
+                            <div class="mb-4">
+                                <label class="form-label-custom" for="hotelName">
+                                    Hotel Name <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" name="name" id="hotelName" class="fc"
+                                       placeholder="e.g. Lion Hotel 6" required maxlength="200" />
+                            </div>
+
+                            <!-- Địa chỉ -->
+                            <div class="mb-4">
+                                <label class="form-label-custom" for="hotelAddress">
+                                    Address <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" name="address" id="hotelAddress" class="fc"
+                                       placeholder="e.g. 123 Nguyen Van Cu, Can Tho"
+                                       required maxlength="500" />
+                            </div>
+
+                            <div class="row g-4 mb-4">
+                                <!-- Số sao -->
+                                <div class="col-12 col-sm-6">
+                                    <label class="form-label-custom" for="ratingSelect">
+                                        Star Rating <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="rating" id="ratingSelect" class="fc" required>
+                                        <option th:each="star : ${#numbers.sequence(1, 5)}"
+                                                th:value="${star}" th:text="${star + ' ★'}"
+                                                th:selected="${star == 3}">3 ★</option>
+                                    </select>
+                                </div>
+
+                                <!-- Giá/đêm -->
+                                <div class="col-12 col-sm-6">
+                                    <label class="form-label-custom" for="hotelPrice">
+                                        Price / Night (VND) <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" name="price" id="hotelPrice" class="fc"
+                                           placeholder="e.g. 500000" min="0" step="1" required />
+                                </div>
+                            </div>
+
+                            <!-- Trạng thái hoạt động -->
+                            <div class="mb-4">
+                                <label class="form-label-custom">Status</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch"
+                                           id="activeCheckbox" name="active" value="true" checked />
+                                    <label class="form-check-label fw-semibold" for="activeCheckbox">
+                                        Hotel Active
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-divider"></div>
+
+                            <!-- Upload ảnh -->
+                            <div class="mb-4">
+                                <label class="form-label-custom" for="imageFile">Hotel Image</label>
+                                <input type="file" name="imageFile" id="imageFile" class="form-control"
+                                       accept="image/jpeg,image/png,image/webp,image/jpg" />
+                                <div class="form-text text-muted mt-1">JPG, PNG, WEBP · Max 10MB</div>
+                            </div>
+
+                            <div class="form-divider"></div>
+
+                            <!-- Buttons -->
+                            <div class="d-flex gap-3 justify-content-end flex-wrap">
+                                <a href="/hotels" class="btn-cancel">
+                                    <i class="bi bi-arrow-left"></i>
+                                    Cancel
+                                </a>
+                                <button type="submit" class="btn-submit" id="submitBtn">
+                                    <i class="bi bi-floppy"></i>
+                                    Save Hotel
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+
             </div>
         </div>
-    </main>
+    </div>
+</main>
 
-    <!-- ==================== FOOTER ==================== -->
-    <footer th:replace="~{fragment/frag :: footer}"></footer>
-
-    <!-- ==================== SCRIPTS ==================== -->
-    <div th:replace="~{fragment/frag :: scripts}"></div>
-
-
+<footer th:replace="~{fragment/frag :: footer}"></footer>
+<div th:replace="~{fragment/frag :: scripts}"></div>
 </body>
 </html>
