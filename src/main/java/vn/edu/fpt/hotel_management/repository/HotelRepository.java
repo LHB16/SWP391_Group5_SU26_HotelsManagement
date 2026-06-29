@@ -28,9 +28,9 @@ public interface HotelRepository extends JpaRepository<Hotel, Integer> {
      * @param maxPrice Giá tối đa mỗi đêm (VND)
      */
     @Query("SELECT h FROM Hotel h WHERE h.active = true " +
-           "AND h.price >= :minPrice " +
-           "AND h.price <= :maxPrice " +
-           "ORDER BY h.rating DESC, h.price ASC")
+           "AND (SELECT COALESCE(MIN(r.price), 0) FROM Room r WHERE r.hotelId = h.id) >= :minPrice " +
+           "AND (SELECT COALESCE(MIN(r.price), 0) FROM Room r WHERE r.hotelId = h.id) <= :maxPrice " +
+           "ORDER BY h.rating DESC, (SELECT COALESCE(MIN(r.price), 0) FROM Room r WHERE r.hotelId = h.id) ASC")
     List<Hotel> findByPriceRange(
             @Param("minPrice") BigDecimal minPrice,
             @Param("maxPrice") BigDecimal maxPrice
@@ -42,9 +42,9 @@ public interface HotelRepository extends JpaRepository<Hotel, Integer> {
      */
     @Query("SELECT h FROM Hotel h WHERE h.active = true " +
            "AND h.rating <= :rating " +
-           "AND h.price >= :minPrice " +
-           "AND h.price <= :maxPrice " +
-           "ORDER BY h.rating DESC, h.price ASC")
+           "AND (SELECT COALESCE(MIN(r.price), 0) FROM Room r WHERE r.hotelId = h.id) >= :minPrice " +
+           "AND (SELECT COALESCE(MIN(r.price), 0) FROM Room r WHERE r.hotelId = h.id) <= :maxPrice " +
+           "ORDER BY h.rating DESC, (SELECT COALESCE(MIN(r.price), 0) FROM Room r WHERE r.hotelId = h.id) ASC")
     List<Hotel> filterByRatingAndPrice(
             @Param("rating") double rating,
             @Param("minPrice") BigDecimal minPrice,

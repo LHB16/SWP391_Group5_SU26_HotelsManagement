@@ -28,9 +28,7 @@ public class Hotel {
     @Column(nullable = false)
     private double rating;
 
-    // Giá/đêm (VND) – dùng long để tránh floating-point precision
-    @Column(nullable = false)
-    private BigDecimal price;
+
 
     // Đường dẫn ảnh
     @Column(name = "image_url")
@@ -45,11 +43,10 @@ public class Hotel {
     public Hotel() {
     }
 
-    public Hotel(String name, String address, double rating, BigDecimal price, String imageUrl) {
+    public Hotel(String name, String address, double rating, String imageUrl) {
         this.name = name;
         this.address = address;
         this.rating = rating;
-        this.price = price;
         this.imageUrl = imageUrl;
         this.active = true;
     }
@@ -88,13 +85,7 @@ public class Hotel {
         this.rating = rating;
     }
 
-    public BigDecimal getPrice() {
-        return price;
-    }
 
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
 
     public String getImageUrl() {
         return imageUrl;

@@ -103,11 +103,10 @@ public class BookingController {
                 java.time.LocalDate d1 = java.time.LocalDate.parse(checkin.trim());
                 java.time.LocalDate d2 = java.time.LocalDate.parse(checkout.trim());
                 
-                // Tính giá thực tế (trung bình mỗi đêm) cho tất cả các phòng hiển thị
+                // Tính giá thực tế (tổng tiền) cho tất cả các phòng hiển thị
                 for (Room r : rooms) {
                     BigDecimal actualSubtotal = calculateRoomSubtotal(r.getPrice(), d1, d2);
-                    BigDecimal averagePrice = actualSubtotal.divide(BigDecimal.valueOf(nights), 2, java.math.RoundingMode.HALF_UP);
-                    roomPricesMap.put(r.getId(), averagePrice);
+                    roomPricesMap.put(r.getId(), actualSubtotal);
                 }
 
                 // Cộng dồn subtotal cho các phòng được chọn
@@ -120,7 +119,7 @@ public class BookingController {
             } catch (Exception e) {
                 System.err.println("BookingController subtotal date parse error: " + e.getMessage());
                 for (Room r : rooms) {
-                    roomPricesMap.put(r.getId(), r.getPrice());
+                    roomPricesMap.put(r.getId(), r.getPrice().multiply(BigDecimal.valueOf(nights)));
                 }
                 for (Integer rId : selectedRoomIds) {
                     Room r = roomRepository.findById(rId).orElse(null);
@@ -131,7 +130,7 @@ public class BookingController {
             }
         } else {
             for (Room r : rooms) {
-                roomPricesMap.put(r.getId(), r.getPrice());
+                roomPricesMap.put(r.getId(), r.getPrice().multiply(BigDecimal.valueOf(nights)));
             }
             for (Integer rId : selectedRoomIds) {
                 Room r = roomRepository.findById(rId).orElse(null);

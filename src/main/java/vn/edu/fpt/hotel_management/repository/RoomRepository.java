@@ -35,4 +35,8 @@ public interface RoomRepository extends JpaRepository<Room, Integer> {
             @Param("minPrice") BigDecimal minPrice,
             @Param("maxPrice") BigDecimal maxPrice
     );
+
+    // Lấy giá phòng thấp nhất của khách sạn
+    @Query("SELECT MIN(r.price) FROM Room r WHERE r.hotelId = :hotelId")
+    BigDecimal findMinPriceByHotelId(@Param("hotelId") int hotelId);
 }

@@ -97,8 +97,8 @@
 
                                     <!-- Price -->
                                     <div class="text-md-end mt-2 mt-md-0 flex-shrink-0">
-                                        <div class="text-muted small">Price / Night</div>
-                                        <div class="room-price-tag" th:text="${#numbers.formatDecimal(roomPricesMap != null ? roomPricesMap.get(room.id) : room.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">420,000 VND</div>
+                                        <div class="text-muted small">Total Price</div>
+                                        <div class="room-price-tag" th:text="${#numbers.formatDecimal(roomPricesMap != null && roomPricesMap.get(room.id) != null ? roomPricesMap.get(room.id) : room.price, 0, 'COMMA', 0, 'POINT')} + ' VND / ' + ${nights} + ' night' + (${nights > 1} ? 's' : '')">420,000 VND / 1 night</div>
                                     </div>
 
                                 </div>

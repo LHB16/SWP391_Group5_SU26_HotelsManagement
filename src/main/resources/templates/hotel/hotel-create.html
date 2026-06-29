@@ -68,7 +68,7 @@
 
                             <div class="row g-4 mb-4">
                                 <!-- Số sao -->
-                                <div class="col-12 col-sm-6">
+                                <div class="col-12">
                                     <label class="form-label-custom" for="ratingSelect">
                                         Star Rating <span class="text-danger">*</span>
                                     </label>
@@ -77,15 +77,6 @@
                                                 th:value="${star}" th:text="${star + ' ★'}"
                                                 th:selected="${star == 3}">3 ★</option>
                                     </select>
-                                </div>
-
-                                <!-- Giá/đêm -->
-                                <div class="col-12 col-sm-6">
-                                    <label class="form-label-custom" for="hotelPrice">
-                                        Price / Night (VND) <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="number" name="price" id="hotelPrice" class="fc"
-                                           placeholder="e.g. 500000" min="0" step="1" required />
                                 </div>
                             </div>
 
