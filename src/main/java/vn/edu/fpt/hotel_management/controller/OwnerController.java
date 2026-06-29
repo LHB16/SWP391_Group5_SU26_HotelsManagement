@@ -15,17 +15,22 @@ public class OwnerController {
     @GetMapping("/dashboard")
     public String dashboard(HttpSession session, Model model) {
 
-        // KHÔNG KIỂM TRA ĐĂNG NHẬP - AI CŨNG VÀO ĐƯỢC
+        // 1. Lấy user từ session
+        User user = (User) session.getAttribute("loggedInUser");
 
-        // Tạo user giả để hiển thị giao diện
-        User fakeUser = new User();
-        fakeUser.setId(1);
-        fakeUser.setFullName("Hotel Owner");
-        fakeUser.setUsername("owner");
-        fakeUser.setEmail("owner@gmail.com");
-        fakeUser.setRole("HOTEL_OWNER");
+        // 2. Kiểm tra đã đăng nhập chưa?
+        if (user == null) {
+            return "redirect:/login";
+        }
 
-        model.addAttribute("user", fakeUser);
+
+        if (!"HOTEL_OWNER".equals(user.getRole())) {
+            // Nếu không phải HOTEL_OWNER -> về homepage
+            return "redirect:/home";
+        }
+
+        // 4. Đúng HOTEL_OWNER -> hiển thị dashboard
+        model.addAttribute("user", user);
         return "owner/dashboard";
     }
 }
