@@ -1236,3 +1236,30 @@ body {
     background: #c9a96e;
     color: #fff;
 }
+
+/* ────────────────────────────────────────────────────────────
+   CSS-only Star Radio Rating
+   ──────────────────────────────────────────────────────────── */
+.star-radio-group {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+.star-radio-group input[type="radio"] {
+    display: none;
+}
+
+.star-radio-group label {
+    font-size: 1.6rem;
+    color: #d1d5db;
+    cursor: pointer;
+    transition: color .15s;
+}
+
+.star-radio-group input[type="radio"]:checked ~ label,
+.star-radio-group label:hover,
+.star-radio-group label:hover ~ label {
+    color: #c9a96e;
+}

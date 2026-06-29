@@ -4,6 +4,7 @@
     Trang danh sách khách sạn – Layout Bootstrap 12 cột:
     col-lg-3 (Filter) | col-lg-9 (Hotel Cards 3 cột)
     Dataset: active, address, imageUrl, name, price, rating
+    * Không dùng JS – toàn bộ filter là Thymeleaf + HTML native *
 -->
 <html xmlns:th="http://www.thymeleaf.org">
 
@@ -75,7 +76,7 @@
                     <div class="card border-0 shadow-sm position-sticky" style="top: 80px;">
                         <div class="card-body">
                             <h5 class="card-title fw-bold text-primary border-bottom pb-2 mb-3">
-                                <!-- Icon phễu lọc (Lucide) -->
+                                <!-- Icon phễu lọc -->
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                     stroke-linejoin="round" class="me-1" style="vertical-align:-2px;">
@@ -84,61 +85,61 @@
                                 Filter by:
                             </h5>
 
-                            <!-- Form gửi GET /hotels -->
+                            <!-- Form gửi GET /hotels – tất cả filter trong một form -->
                             <form th:action="@{/hotels}" method="get" id="filterForm">
-                                <input type="hidden" name="checkin" id="filterCheckin" th:value="${checkin}" />
-                                <input type="hidden" name="checkout" id="filterCheckout" th:value="${checkout}" />
 
-                                <!-- Lọc theo số sao (Multi-select Buttons) -->
+                                <!-- ── Ngày Check-in / Check-out ── -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-uppercase small">Check-in Date</label>
+                                    <input type="date" name="checkin" id="filterCheckin"
+                                           class="form-control form-control-sm"
+                                           th:value="${checkin}" />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-uppercase small">Check-out Date</label>
+                                    <input type="date" name="checkout" id="filterCheckout"
+                                           class="form-control form-control-sm"
+                                           th:value="${checkout}" />
+                                </div>
+
+                                <!-- ── Lọc theo số sao (Checkbox, style như button) ── -->
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold text-uppercase small">Star Rating</label>
                                     <div class="d-flex flex-wrap gap-1">
-                                        <!-- Nút "All" -->
-                                        <button type="button" class="btn btn-sm hotel-star-btn"
-                                            th:classappend="${ratings.isEmpty()} ? ' active' : ''" data-value="0">
-                                            All
-                                        </button>
-                                        <!-- 5 nút 1★ đến 5★ -->
-                                        <button type="button" th:each="star : ${#numbers.sequence(1, 5)}"
-                                            class="btn btn-sm hotel-star-btn"
-                                            th:classappend="${#lists.contains(ratings, star)} ? ' active' : ''"
-                                            th:data-value="${star}" th:text="${star + ' ★'}">
-                                            1 ★
-                                        </button>
-                                    </div>
-                                    <!-- Container chứa hidden inputs cho ratings (JS quản lý) -->
-                                    <div id="ratingsContainer">
-                                        <input th:each="r : ${ratings}" type="hidden" name="ratings" th:value="${r}" />
+                                        <!-- 5 checkbox 1★ đến 5★, style như button -->
+                                        <th:block th:each="star : ${#numbers.sequence(1, 5)}">
+                                            <input type="checkbox"
+                                                   class="btn-check"
+                                                   name="ratings"
+                                                   th:id="${'star-' + star}"
+                                                   th:value="${star}"
+                                                   th:checked="${#lists.contains(ratings, star)}" />
+                                            <label class="btn btn-sm btn-outline-warning"
+                                                   th:for="${'star-' + star}"
+                                                   th:text="${star + ' ★'}">1 ★</label>
+                                        </th:block>
                                     </div>
                                 </div>
 
-                                <!-- Lọc theo khoảng giá (Dual Range Slider) -->
+                                <!-- ── Lọc theo khoảng giá (2 input number) ── -->
                                 <div class="mb-4">
-                                    <label class="form-label fw-semibold text-uppercase small">Price Range (per night)
-                                    </label>
-                                    <!-- Hiển thị min-max -->
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span class="badge bg-primary bg-opacity-10 text-primary" id="minPriceDisplay">0
-                                            VND</span>
-                                        <span class="badge bg-primary bg-opacity-10 text-primary"
-                                            id="maxPriceDisplay">50,000,000 VND</span>
+                                    <label class="form-label fw-semibold text-uppercase small">Price Range (per night)</label>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label for="minPriceInput" class="form-label small text-muted mb-1">From (VND)</label>
+                                            <input type="number" id="minPriceInput" name="minPrice"
+                                                   class="form-control form-control-sm"
+                                                   min="0" max="50000000" step="50000"
+                                                   th:value="${minPrice}" placeholder="0" />
+                                        </div>
+                                        <div class="col-6">
+                                            <label for="maxPriceInput" class="form-label small text-muted mb-1">To (VND)</label>
+                                            <input type="number" id="maxPriceInput" name="maxPrice"
+                                                   class="form-control form-control-sm"
+                                                   min="0" max="50000000" step="50000"
+                                                   th:value="${maxPrice}" placeholder="50,000,000" />
+                                        </div>
                                     </div>
-                                    <!-- Dual range slider -->
-                                    <div class="hotel-dual-range-wrap">
-                                        <div class="hotel-dual-range-track"></div>
-                                        <div class="hotel-dual-range-highlight" id="rangeHighlight"></div>
-                                        <input type="range" id="minPriceSlider" class="hotel-dual-range-input" min="0"
-                                            max="50000000" step="50000" th:value="${minPrice}" />
-                                        <input type="range" id="maxPriceSlider" class="hotel-dual-range-input" min="0"
-                                            max="50000000" step="50000" th:value="${maxPrice}" />
-                                    </div>
-                                    <div class="d-flex justify-content-between mt-1">
-                                        <small class="text-muted">0 VND</small>
-                                        <small class="text-muted">50,000,000 VND</small>
-                                    </div>
-                                    <!-- Hidden inputs -->
-                                    <input type="hidden" id="minPriceInput" name="minPrice" th:value="${minPrice}" />
-                                    <input type="hidden" id="maxPriceInput" name="maxPrice" th:value="${maxPrice}" />
                                 </div>
 
                                 <!-- Nút hành động -->
@@ -167,43 +168,6 @@
                 <!-- ===== CỘT DANH SÁCH KHÁCH SẠN (col-lg-9) ===== -->
                 <div class="col-12 col-lg-9">
 
-                    <!-- Thanh chọn ngày Check-in / Check-out -->
-                    <div class="card border-0 shadow-sm mb-4">
-                        <div class="card-body p-3">
-                            <div class="row g-3 align-items-center">
-                                <div class="col-12 col-md-5">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="text-primary bg-primary bg-opacity-10 p-2 rounded">
-                                            <!-- Calendar Icon -->
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <label for="listCheckinDate" class="form-label small fw-semibold text-uppercase text-muted mb-0" style="font-size: 0.75rem;">Check-in Date</label>
-                                            <input type="date" id="listCheckinDate" class="form-control border-0 fw-semibold p-0 shadow-none" style="font-size: 0.95rem; background: transparent;" th:value="${checkin}">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-12 col-md-5">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="text-primary bg-primary bg-opacity-10 p-2 rounded">
-                                            <!-- Calendar Icon -->
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <label for="listCheckoutDate" class="form-label small fw-semibold text-uppercase text-muted mb-0" style="font-size: 0.75rem;">Check-out Date</label>
-                                            <input type="date" id="listCheckoutDate" class="form-control border-0 fw-semibold p-0 shadow-none" style="font-size: 0.95rem; background: transparent;" th:value="${checkout}">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-12 col-md-2 d-grid">
-                                    <button type="button" id="btnSearchWithDates" class="btn btn-primary fw-semibold text-nowrap">
-                                        Apply Dates
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Trường hợp KHÔNG có khách sạn -->
                     <div th:if="${hotels == null or hotels.isEmpty()}"
                         class="text-center py-5 bg-white rounded-3 border border-dashed">
@@ -224,13 +188,11 @@
                         <div class="col" th:each="hotel : ${hotels}">
                             <div class="card h-100 border-0 shadow-sm hotel-card">
 
-                                <!-- Ảnh khách sạn (dùng imageUrl từ database) -->
+                                <!-- Ảnh khách sạn -->
                                 <div class="position-relative overflow-hidden" style="height: 200px;">
-                                    <!-- Hiển thị ảnh từ imageUrl -->
                                     <img th:if="${hotel.imageUrl != null and !hotel.imageUrl.isEmpty()}"
                                         th:src="@{${hotel.imageUrl}}" th:alt="${hotel.name}"
                                         class="card-img-top w-100 h-100 object-fit-cover hotel-card-img" />
-                                    <!-- Placeholder khi không có ảnh -->
                                     <div th:if="${hotel.imageUrl == null or hotel.imageUrl.isEmpty()}"
                                         class="w-100 h-100 d-flex align-items-center justify-content-center bg-secondary bg-opacity-10">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"
@@ -242,14 +204,14 @@
                                         </svg>
                                     </div>
 
-                                    <!-- Badge số sao (rating) - màu vàng gold -->
+                                    <!-- Badge số sao (rating) -->
                                     <span
                                         class="badge position-absolute top-0 start-0 m-2"
                                         style="background: #ffff00; color:#1a1a1a; font-size:.78rem; letter-spacing:.04em;">
                                         <span th:text="${hotel.rating}">5</span> ★
                                     </span>
 
-                                    <!-- Badge trạng thái hoạt động (active) -->
+                                    <!-- Badge trạng thái hoạt động -->
                                     <span class="badge position-absolute top-0 end-0 m-2"
                                         th:classappend="${hotel.active} ? 'bg-success' : 'bg-danger'"
                                         th:text="${hotel.active} ? 'Activate' : 'Deactivate'">
@@ -259,10 +221,9 @@
 
                                 <!-- Nội dung card -->
                                 <div class="card-body d-flex flex-column">
-                                    <!-- Tên khách sạn (name) -->
                                     <h5 class="card-title fw-bold mb-1" th:text="${hotel.name}">Hotel Name</h5>
 
-                                    <!-- Địa chỉ (address) -->
+                                    <!-- Địa chỉ -->
                                     <p class="text-muted small mb-2">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -274,22 +235,18 @@
                                         <span th:text="${hotel.address}">Hotel Address</span>
                                     </p>
 
-                                    <!-- Spacer đẩy footer xuống dưới cùng -->
                                     <div class="mt-auto"></div>
                                 </div>
 
-                                <!-- Footer card: giá (price) + nút xem phòng -->
-                                <div
-                                    class="card-footer bg-light border-top d-flex justify-content-between align-items-center">
+                                <!-- Footer card: giá + nút xem phòng -->
+                                <div class="card-footer bg-light border-top d-flex justify-content-between align-items-center">
                                     <div>
-                                        <!-- Giá/đêm (price) -->
                                         <span class="fw-bold text-primary"
                                             th:text="${#numbers.formatInteger(hotel.price, 0, 'COMMA')}">0</span>
                                         <small class="text-muted fw-bold">VND</small>
                                     </div>
-                                    <!-- Nút xem phòng -->
+                                    <!-- Nút xem phòng – truyền checkin/checkout qua Thymeleaf -->
                                     <a th:href="@{/hotels/{id}/rooms(id=${hotel.id}, checkin=${checkin}, checkout=${checkout})}"
-                                       th:data-base-url="@{/hotels/{id}/rooms(id=${hotel.id})}"
                                        class="btn btn-sm btn-primary btn-view-rooms">
                                         View Rooms
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
@@ -320,8 +277,6 @@
     <!-- ==================== SCRIPTS (từ fragment) ==================== -->
     <div th:replace="~{fragment/frag :: scripts}"></div>
 
-    <!-- JS riêng cho trang Hotels -->
-    <script th:src="@{/assets/js/hotel-list.js}"></script>
 
 </body>
 
