@@ -48,29 +48,65 @@ public class HotelController {
 
     @GetMapping("/hotels")
     public String showHotelsPage(
-            // Lọc theo số sao: chọn nhiều giá trị cùng lúc (multi-select)
-            @RequestParam(value = "ratings", required = false) List<Integer> ratings,
+            // Lọc theo số sao đơn lẻ
+            @RequestParam(value = "rating", required = false) Double rating,
             // Lọc theo khoảng giá: minPrice mặc định 0 VND
             @RequestParam(value = "minPrice", required = false, defaultValue = "0") BigDecimal minPrice,
             // Lọc theo khoảng giá: maxPrice mặc định 50,000,000 VND
             @RequestParam(value = "maxPrice", required = false, defaultValue = "50000000") BigDecimal maxPrice,
+            @RequestParam(value = "checkin", required = false) String checkin,
+            @RequestParam(value = "checkout", required = false) String checkout,
             HttpSession session,
             Model model
     ) {
         // Lấy danh sách khách sạn theo bộ lọc từ database
         List<Hotel> hotels;
-        if (ratings == null || ratings.isEmpty()) {
+        if (rating == null || rating <= 0) {
             hotels = hotelRepository.findByPriceRange(minPrice, maxPrice);
         } else {
-            hotels = hotelRepository.filterByRatingsAndPrice(ratings, minPrice, maxPrice);
+            hotels = hotelRepository.filterByRatingAndPrice(rating, minPrice, maxPrice);
+        }
+
+        // Tính toán số đêm và giá thực tế của từng khách sạn
+        long nights = 1;
+        java.util.Map<Integer, BigDecimal> hotelPricesMap = new java.util.HashMap<>();
+        if (checkin != null && checkout != null && !checkin.trim().isEmpty() && !checkout.trim().isEmpty()) {
+            try {
+                java.time.LocalDate d1 = java.time.LocalDate.parse(checkin.trim());
+                java.time.LocalDate d2 = java.time.LocalDate.parse(checkout.trim());
+                if (d2.isAfter(d1)) {
+                    nights = java.time.temporal.ChronoUnit.DAYS.between(d1, d2);
+                } else {
+                    d2 = d1.plusDays(1);
+                    checkout = d2.toString();
+                    nights = 1;
+                }
+                for (Hotel h : hotels) {
+                    BigDecimal actualPrice = calculateHotelSubtotal(h.getPrice(), d1, d2);
+                    BigDecimal averagePrice = actualPrice.divide(BigDecimal.valueOf(nights), 2, java.math.RoundingMode.HALF_UP);
+                    hotelPricesMap.put(h.getId(), averagePrice);
+                }
+            } catch (Exception e) {
+                for (Hotel h : hotels) {
+                    hotelPricesMap.put(h.getId(), h.getPrice());
+                }
+            }
+        } else {
+            for (Hotel h : hotels) {
+                hotelPricesMap.put(h.getId(), h.getPrice());
+            }
         }
 
         model.addAttribute("hotels", hotels);
-        model.addAttribute("ratings", ratings != null ? ratings : List.of());
+        model.addAttribute("hotelPricesMap", hotelPricesMap);
+        model.addAttribute("rating", rating);
         model.addAttribute("minPrice", minPrice);
         model.addAttribute("maxPrice", maxPrice);
+        model.addAttribute("checkin", checkin);
+        model.addAttribute("checkout", checkout);
         model.addAttribute("totalResults", hotels.size());
         model.addAttribute("user", session.getAttribute("loggedInUser"));
+        model.addAttribute("today", java.time.LocalDate.now().toString());
 
         return "hotel/hotel-list";
     }
@@ -90,8 +126,8 @@ public class HotelController {
     public String createHotel(
             @RequestParam("name")        String name,
             @RequestParam("address")     String address,
-            @RequestParam("rating")      int rating,
-            @RequestParam("price")       long price,
+            @RequestParam("rating")      double rating,
+            @RequestParam("price")       BigDecimal price,
             @RequestParam("active")      boolean active,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
             RedirectAttributes redirectAttributes
@@ -128,7 +164,7 @@ public class HotelController {
         hotel.setName(name);
         hotel.setAddress(address);
         hotel.setRating(rating);
-        hotel.setPrice(BigDecimal.valueOf(price));
+        hotel.setPrice(price);
         hotel.setActive(active);
         hotel.setImageUrl(imageUrl);
 
@@ -136,5 +172,57 @@ public class HotelController {
 
         redirectAttributes.addFlashAttribute("successMessage", "Hotel \"" + name + "\" added successfully!");
         return "redirect:/hotels";
+    }
+
+    private boolean isHolidayOrWeekend(java.time.LocalDate date) {
+        // 1. Kiểm tra cuối tuần (Thứ 7 & Chủ Nhật)
+        java.time.DayOfWeek dayOfWeek = date.getDayOfWeek();
+        if (dayOfWeek == java.time.DayOfWeek.SATURDAY || dayOfWeek == java.time.DayOfWeek.SUNDAY) {
+            return true;
+        }
+
+        // 2. Kiểm tra ngày lễ
+        int m = date.getMonthValue();
+        int d = date.getDayOfMonth();
+
+        // Lễ dương lịch VN cố định
+        if (m == 1 && d == 1) return true;   // Tết Dương Lịch
+        if (m == 4 && d == 30) return true;  // Giải phóng Miền Nam
+        if (m == 5 && d == 1) return true;   // Quốc tế Lao động
+        if (m == 9 && d == 2) return true;   // Quốc khánh
+
+        // Các ngày lễ đặc biệt yêu cầu thêm
+        if (m == 2 && d == 14) return true;  // Valentine
+        if (m == 3 && d == 8) return true;   // Quốc tế Phụ nữ
+        if (m == 6 && d == 1) return true;   // Quốc tế Thiếu nhi
+        if (m == 10 && d == 20) return true; // Phụ nữ VN
+        if (m == 11 && d == 20) return true; // Nhà giáo VN
+        if (m == 12 && d == 25) return true; // Giáng sinh
+
+        // Tết Âm Lịch năm 2025 (Từ 28/01 đến 03/02/2025)
+        if (date.getYear() == 2025) {
+            if (m == 1 && d >= 28) return true;
+            if (m == 2 && d <= 3) return true;
+        }
+        // Tết Âm Lịch năm 2026 (Từ 16/02 đến 22/02/2026)
+        if (date.getYear() == 2026) {
+            if (m == 2 && d >= 16 && d <= 22) return true;
+        }
+
+        return false;
+    }
+
+    private BigDecimal calculateHotelSubtotal(BigDecimal basePrice, java.time.LocalDate checkin, java.time.LocalDate checkout) {
+        BigDecimal total = BigDecimal.ZERO;
+        java.time.LocalDate temp = checkin;
+        while (temp.isBefore(checkout)) {
+            BigDecimal dailyPrice = basePrice;
+            if (isHolidayOrWeekend(temp)) {
+                dailyPrice = dailyPrice.multiply(BigDecimal.valueOf(1.20));
+            }
+            total = total.add(dailyPrice);
+            temp = temp.plusDays(1);
+        }
+        return total;
     }
 }

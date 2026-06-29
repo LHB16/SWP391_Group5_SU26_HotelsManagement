@@ -1,138 +1,219 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đặt phòng khách sạn</title>
-</head>
-<body>
-    <h1>Trang Đặt Phòng Khách Sạn (Create Booking)</h1>
-    <p>Chọn các phòng bạn muốn đặt bên dưới. Giá tiền sẽ được hiển thị bằng Việt Nam Đồng (đ).</p>
-    
-    <hr>
-    
-    <div th:if="${rooms == null or rooms.isEmpty()}">
-        <p>Không có phòng nào khả dụng.</p>
-    </div>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragment/frag :: head}"></head>
+<body class="d-flex flex-column min-vh-100 bg-light">
 
-    <div th:if="${rooms != null and !rooms.isEmpty()}">
-        <h2>Danh sách phòng khả dụng</h2>
-        
-        <table border="1" cellpadding="10" cellspacing="0">
-            <thead>
-                <tr>
-                    <th>Chọn đặt</th>
-                    <th>Ảnh phòng</th>
-                    <th>Loại phòng</th>
-                    <th>Khách sạn</th>
-                    <th>Diện tích</th>
-                    <th>Số giường</th>
-                    <th>Số khách tối đa</th>
-                    <th>Số cửa sổ</th>
-                    <th>Mô tả</th>
-                    <th>Giá / Đêm</th>
-                    <th>Số đêm đặt</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="room : ${rooms}">
-                    <td align="center">
-                        <input type="checkbox" 
-                               th:id="'room-' + ${room.id}" 
-                               th:value="${room.id}"
-                               th:data-price="${room.price}"
-                               onclick="calculateTotal()">
-                    </td>
-                    <td>
-                        <img th:if="${room.imgUrl != null}" th:src="${room.imgUrl}" alt="Room Image" width="120">
-                        <span th:if="${room.imgUrl == null}">Không có ảnh</span>
-                    </td>
-                    <td th:text="${room.type}">STANDARD DOUBLE</td>
-                    <td th:text="${hotelMap != null ? hotelMap.get(room.hotelId) : 'Khách sạn #' + room.hotelId}">Tên khách sạn</td>
-                    <td th:text="${room.acreage} + ' m²'">20 m²</td>
-                    <td th:text="${room.bed}">1</td>
-                    <td th:text="${room.person} + ' người'">2 người</td>
-                    <td th:text="${room.window}">0</td>
-                    <td th:text="${room.description}">Mô tả phòng</td>
-                    <td>
-                        <span th:text="${#numbers.formatDecimal(room.price, 0, 'POINT', 0, 'POINT')} + ' đ'">420.000 đ</span>
-                    </td>
-                    <td>
-                        <input type="number" 
-                               th:id="'nights-' + ${room.id}" 
-                               value="1" 
-                               min="1" 
-                               style="width: 50px;"
-                               onchange="calculateTotal()">
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    <!-- NAVBAR -->
+    <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
-        <hr>
+    <!-- CSS riêng cho trang Booking -->
+    <link rel="stylesheet" th:href="@{/assets/css/booking.css}" />
 
-        <h2>Tóm tắt hóa đơn (Order Summary)</h2>
-        <table border="0" cellpadding="5">
-            <tr>
-                <td>Tạm tính:</td>
-                <td><strong id="subtotal-display">0 đ</strong></td>
-            </tr>
-            <tr>
-                <td>Thuế VAT (10%):</td>
-                <td><span id="tax-display">0 đ</span></td>
-            </tr>
-            <tr>
-                <td>Phí dịch vụ:</td>
-                <td><span id="service-display">0 đ</span></td>
-            </tr>
-            <tr>
-                <td><strong>Tổng cộng:</strong></td>
-                <td><strong id="total-display" style="color: blue; font-size: 1.2em;">0 đ</strong></td>
-            </tr>
-        </table>
-
-        <br>
-        <form action="#" method="POST">
-            <!-- Nút gửi form giả định, không thực hiện chuyển trang như yêu cầu -->
-            <button type="button" onclick="alert('Đã nhấn nút Tiến hành đặt phòng!')">Tiến hành đặt phòng</button>
-        </form>
-    </div>
-
-    <script>
-        function calculateTotal() {
-            let subtotal = 0;
-            // Lấy tất cả các checkbox phòng
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    <!-- MAIN CONTENT -->
+    <main class="flex-grow-1 py-5">
+        <div class="container">
             
-            checkboxes.forEach(checkbox => {
-                if (checkbox.checked) {
-                    const roomId = checkbox.value;
-                    const price = parseFloat(checkbox.getAttribute('data-price'));
-                    // Lấy số đêm đặt của phòng tương ứng
-                    const nightsInput = document.getElementById('nights-' + roomId);
-                    const nights = nightsInput ? parseInt(nightsInput.value) || 1 : 1;
+            <!-- Page Title -->
+            <div class="mb-4">
+                <h1 class="checkout-title mb-1">Room Reservation Checkout</h1>
+                <p class="text-muted">Review your selection, choose dates of stay, and complete your reservation.</p>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${rooms == null or rooms.isEmpty()}" class="text-center py-5 booking-card p-5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#dee2e6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <h4 class="mt-3 text-dark fw-bold">No Rooms Available</h4>
+                <p class="text-muted">Please go back and select a hotel or try checking other options.</p>
+                <a href="/hotels" class="btn btn-primary mt-2">Back to Hotels</a>
+            </div>
+
+            <!-- Booking Form (Pure Thymeleaf/Spring Boot) -->
+            <form th:if="${rooms != null and !rooms.isEmpty()}" th:action="@{/booking}" method="get">
+                <!-- Keep hotelId state -->
+                <input type="hidden" name="hotelId" th:value="${selectedHotelId}">
+
+                <div class="row g-4">
                     
-                    subtotal += price * nights;
+                    <!-- LEFT COLUMN: Room Checklist -->
+                    <div class="col-12 col-lg-8">
+                        <div class="booking-card p-4">
+                            <h4 class="section-header d-flex justify-content-between align-items-center">
+                                <span>Available Rooms</span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary fs-6 fw-normal" th:text="${rooms.size() + ' Room(s)'}">0 Rooms</span>
+                            </h4>
+
+                            <div class="d-flex flex-column gap-3">
+                                <!-- Loop Room Cards -->
+                                <div th:each="room : ${rooms}" class="room-item-card p-3 d-flex flex-column flex-md-row align-items-md-center gap-3">
+                                    
+                                    <!-- Checkbox -->
+                                    <div class="custom-checkbox-wrapper">
+                                        <input type="checkbox" 
+                                               name="roomIds"
+                                               th:id="'room-' + ${room.id}" 
+                                               th:value="${room.id}"
+                                               th:checked="${selectedRoomIds != null and #lists.contains(selectedRoomIds, room.id)}">
+                                    </div>
+
+                                    <!-- Image -->
+                                    <div class="room-img-container rounded overflow-hidden bg-light">
+                                        <img th:if="${room.imgUrl != null}" th:src="${room.imgUrl}" alt="Room Image" class="room-img">
+                                        <div th:if="${room.imgUrl == null}" class="w-100 h-100 d-flex align-items-center justify-content-center text-muted small">No Image</div>
+                                    </div>
+
+                                    <!-- Details -->
+                                    <div class="flex-grow-1">
+                                        <h5 class="fw-bold mb-1" th:text="${room.type}" style="color: var(--navy-primary);">STANDARD DOUBLE</h5>
+                                        <div class="text-muted small mb-2 d-flex align-items-center gap-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                                            <span th:text="${hotelMap != null ? hotelMap.get(room.hotelId) : 'Hotel #' + room.hotelId}">Hotel Name</span>
+                                        </div>
+
+                                        <!-- Specs -->
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <span class="badge-specs">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+                                                <span th:text="${room.acreage} + ' m²'">20 m²</span>
+                                            </span>
+                                            <span class="badge-specs">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/></svg>
+                                                <span th:text="${room.bed} + ' Bed(s)'">1 Bed</span>
+                                            </span>
+                                            <span class="badge-specs">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                                                <span th:text="${room.person} + ' Guest(s)'">2 Guests</span>
+                                            </span>
+                                            <span class="badge-specs">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
+                                                <span th:text="${room.window} + ' Window(s)'">0 Windows</span>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Price -->
+                                    <div class="text-md-end mt-2 mt-md-0 flex-shrink-0">
+                                        <div class="text-muted small">Price / Night</div>
+                                        <div class="room-price-tag" th:text="${#numbers.formatDecimal(roomPricesMap != null ? roomPricesMap.get(room.id) : room.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">420,000 VND</div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: Stay Dates & Order Summary -->
+                    <div class="col-12 col-lg-4">
+                        <div class="sticky-summary d-flex flex-column gap-4">
+                            
+                            <!-- Stay Dates Selector -->
+                            <div class="booking-card p-4">
+                                <h4 class="section-header">Stay Dates</h4>
+                                <div class="mb-3">
+                                    <label for="checkinDate" class="form-label small fw-bold text-uppercase text-muted">Check-in Date</label>
+                                    <input type="text" id="checkinDate" name="checkin" class="form-control" th:value="${checkin}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="checkoutDate" class="form-label small fw-bold text-uppercase text-muted">Check-out Date</label>
+                                    <input type="text" id="checkoutDate" name="checkout" class="form-control" th:value="${checkout}">
+                                </div>
+                                <button type="submit" class="btn btn-outline-primary btn-sm w-100 fw-semibold">
+                                    Update Selection & Price
+                                </button>
+                            </div>
+
+                            <!-- Invoice Summary -->
+                            <div class="booking-card p-4 gold-border-top">
+                                <h4 class="section-header">Order Summary</h4>
+                                
+                                <div class="d-flex flex-column gap-2 mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-muted">Stay Duration</span>
+                                        <strong class="text-dark" th:text="${nights} + ' Night(s)'">1 Night(s)</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-muted">Subtotal</span>
+                                        <span class="fw-semibold" th:text="${#numbers.formatInteger(subtotal, 0, 'COMMA')} + ' VND'">0 VND</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-muted">VAT (10%)</span>
+                                        <span class="text-muted" th:text="${#numbers.formatInteger(tax, 0, 'COMMA')} + ' VND'">0 VND</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-muted">Service Fee</span>
+                                        <span class="text-muted" th:text="${#numbers.formatInteger(serviceFee, 0, 'COMMA')} + ' VND'">0 VND</span>
+                                    </div>
+                                </div>
+
+                                <hr class="my-3">
+
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <span class="fw-bold fs-5" style="color: var(--navy-primary);">Total Amount</span>
+                                    <strong class="fs-4 text-primary" style="color: var(--navy-primary) !important;" th:text="${#numbers.formatInteger(grandTotal, 0, 'COMMA')} + ' VND'">0 VND</strong>
+                                </div>
+
+                                <button type="submit" class="btn-confirm-booking" th:formaction="@{/booking/qr-payment}">
+                                    Confirm Reservation & Pay
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer th:replace="~{fragment/frag :: footer}"></footer>
+
+    <!-- SCRIPTS -->
+    <div th:replace="~{fragment/frag :: scripts}"></div>
+
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function() {
+            const checkinVal = /*[[${checkin}]]*/ '';
+            const checkoutVal = /*[[${checkout}]]*/ '';
+            const todayVal = /*[[${today}]]*/ '';
+
+            const checkinPicker = flatpickr("#checkinDate", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                altInputClass: "form-control",
+                minDate: todayVal ? todayVal : "today",
+                allowInput: false,
+                defaultDate: checkinVal ? checkinVal : null,
+                onChange: function(selectedDates, dateStr) {
+                    if (selectedDates[0]) {
+                        const nextDay = new Date(selectedDates[0]);
+                        nextDay.setDate(nextDay.getDate() + 1);
+                        checkoutPicker.set("minDate", nextDay);
+
+                        const currentCheckout = checkoutPicker.selectedDates[0];
+                        if (currentCheckout && currentCheckout <= selectedDates[0]) {
+                            checkoutPicker.setDate(nextDay);
+                        }
+                    }
                 }
             });
 
-            // Mặc định phí dịch vụ là 50000 đ nếu có chọn phòng
-            const serviceFee = subtotal > 0 ? 50000 : 0;
-            // Thuế VAT 10%
-            const tax = Math.round(subtotal * 0.1);
-            // Tổng cộng
-            const grandTotal = subtotal + tax + serviceFee;
-
-            // Hiển thị kết quả bằng định dạng tiền tệ VND
-            document.getElementById('subtotal-display').innerText = formatVND(subtotal);
-            document.getElementById('tax-display').innerText = formatVND(tax);
-            document.getElementById('service-display').innerText = formatVND(serviceFee);
-            document.getElementById('total-display').innerText = formatVND(grandTotal);
-        }
-
-        function formatVND(amount) {
-            return amount.toLocaleString('vi-VN') + ' đ';
-        }
+            const checkoutPicker = flatpickr("#checkoutDate", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                altInputClass: "form-control",
+                minDate: checkinVal ? new Date(new Date(checkinVal).getTime() + 86400000) : new Date().setDate(new Date().getDate() + 1),
+                allowInput: false,
+                defaultDate: checkoutVal ? checkoutVal : null
+            });
+        });
     </script>
 </body>
 </html>

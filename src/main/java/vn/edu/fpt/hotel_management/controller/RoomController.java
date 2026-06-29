@@ -59,6 +59,8 @@ public class RoomController {
             @RequestParam(value = "types", required = false) List<String> types,
             @RequestParam(value = "minPrice", required = false, defaultValue = "0") long minPrice,
             @RequestParam(value = "maxPrice", required = false, defaultValue = "50000000") long maxPrice,
+            @RequestParam(value = "checkin", required = false) String checkin,
+            @RequestParam(value = "checkout", required = false) String checkout,
             HttpSession session,
             Model model
     ) {
@@ -92,18 +94,52 @@ public class RoomController {
             hasReviewed = reviewRepository.existsByHotelIdAndUserId(id, loggedInUser.getId());
         }
 
+        // Tính toán số đêm và giá thực tế của từng phòng
+        long nights = 1;
+        java.util.Map<Integer, BigDecimal> roomPricesMap = new java.util.HashMap<>();
+        if (checkin != null && checkout != null && !checkin.trim().isEmpty() && !checkout.trim().isEmpty()) {
+            try {
+                java.time.LocalDate d1 = java.time.LocalDate.parse(checkin.trim());
+                java.time.LocalDate d2 = java.time.LocalDate.parse(checkout.trim());
+                if (d2.isAfter(d1)) {
+                    nights = java.time.temporal.ChronoUnit.DAYS.between(d1, d2);
+                } else {
+                    d2 = d1.plusDays(1);
+                    checkout = d2.toString();
+                    nights = 1;
+                }
+                for (Room r : rooms) {
+                    BigDecimal actualPrice = calculateRoomSubtotal(r.getPrice(), d1, d2);
+                    BigDecimal averagePrice = actualPrice.divide(BigDecimal.valueOf(nights), 2, java.math.RoundingMode.HALF_UP);
+                    roomPricesMap.put(r.getId(), averagePrice);
+                }
+            } catch (Exception e) {
+                for (Room r : rooms) {
+                    roomPricesMap.put(r.getId(), r.getPrice());
+                }
+            }
+        } else {
+            for (Room r : rooms) {
+                roomPricesMap.put(r.getId(), r.getPrice());
+            }
+        }
+
         model.addAttribute("hotel", hotel);
         model.addAttribute("rooms", rooms);
+        model.addAttribute("roomPricesMap", roomPricesMap);
         model.addAttribute("allTypes", allTypes);
         model.addAttribute("selectedTypes", types != null ? types : List.of());
         model.addAttribute("minPrice", minPrice);
         model.addAttribute("maxPrice", maxPrice);
+        model.addAttribute("checkin", checkin);
+        model.addAttribute("checkout", checkout);
         model.addAttribute("totalResults", rooms.size());
         model.addAttribute("user", loggedInUser);
         model.addAttribute("reviews", reviews);
         model.addAttribute("avgRating", avgRating);
         model.addAttribute("totalReviews", reviews.size());
         model.addAttribute("hasReviewed", hasReviewed);
+        model.addAttribute("today", java.time.LocalDate.now().toString());
 
         return "hotel/rooms";
     }
@@ -136,6 +172,8 @@ public class RoomController {
             @RequestParam(value = "bed",     defaultValue = "0") int    bed,
             @RequestParam("acreage")                            double acreage,
             @RequestParam("person")                             int    person,
+            @RequestParam(value = "facilities", defaultValue = "") String facilities,
+            @RequestParam(value = "bathroomAmenities", defaultValue = "") String bathroomAmenities,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
             RedirectAttributes redirectAttributes
     ) {
@@ -183,11 +221,65 @@ public class RoomController {
         room.setAcreage(acreage);
         room.setPerson(person);
         room.setImgUrl(imgUrl);
+        room.setFacilities(facilities.trim());
+        room.setBathroomAmenities(bathroomAmenities.trim());
 
         roomRepository.save(room);
 
         redirectAttributes.addFlashAttribute("successMessage",
                 "Room \"" + type + "\" added successfully!");
         return "redirect:/hotels/" + id + "/rooms";
+    }
+
+    private boolean isHolidayOrWeekend(java.time.LocalDate date) {
+        // 1. Kiểm tra cuối tuần (Thứ 7 & Chủ Nhật)
+        java.time.DayOfWeek dayOfWeek = date.getDayOfWeek();
+        if (dayOfWeek == java.time.DayOfWeek.SATURDAY || dayOfWeek == java.time.DayOfWeek.SUNDAY) {
+            return true;
+        }
+
+        // 2. Kiểm tra ngày lễ
+        int m = date.getMonthValue();
+        int d = date.getDayOfMonth();
+
+        // Lễ dương lịch VN cố định
+        if (m == 1 && d == 1) return true;   // Tết Dương Lịch
+        if (m == 4 && d == 30) return true;  // Giải phóng Miền Nam
+        if (m == 5 && d == 1) return true;   // Quốc tế Lao động
+        if (m == 9 && d == 2) return true;   // Quốc khánh
+
+        // Các ngày lễ đặc biệt yêu cầu thêm
+        if (m == 2 && d == 14) return true;  // Valentine
+        if (m == 3 && d == 8) return true;   // Quốc tế Phụ nữ
+        if (m == 6 && d == 1) return true;   // Quốc tế Thiếu nhi
+        if (m == 10 && d == 20) return true; // Phụ nữ VN
+        if (m == 11 && d == 20) return true; // Nhà giáo VN
+        if (m == 12 && d == 25) return true; // Giáng sinh
+
+        // Tết Âm Lịch năm 2025 (Từ 28/01 đến 03/02/2025)
+        if (date.getYear() == 2025) {
+            if (m == 1 && d >= 28) return true;
+            if (m == 2 && d <= 3) return true;
+        }
+        // Tết Âm Lịch năm 2026 (Từ 16/02 đến 22/02/2026)
+        if (date.getYear() == 2026) {
+            if (m == 2 && d >= 16 && d <= 22) return true;
+        }
+
+        return false;
+    }
+
+    private BigDecimal calculateRoomSubtotal(BigDecimal basePrice, java.time.LocalDate checkin, java.time.LocalDate checkout) {
+        BigDecimal total = BigDecimal.ZERO;
+        java.time.LocalDate temp = checkin;
+        while (temp.isBefore(checkout)) {
+            BigDecimal dailyPrice = basePrice;
+            if (isHolidayOrWeekend(temp)) {
+                dailyPrice = dailyPrice.multiply(BigDecimal.valueOf(1.20));
+            }
+            total = total.add(dailyPrice);
+            temp = temp.plusDays(1);
+        }
+        return total;
     }
 }
