@@ -36,14 +36,14 @@ CREATE TABLE users (
     created_at  DATETIME2 DEFAULT GETDATE()
 );
 
--- 2. HOTEL (Đã xóa cột price và city để khớp 100% với Entity Hotel.java)
+-- 2. HOTEL (Đã xóa cột price và city để khớp 100% với Entity Hotel.java, đổi kiểu rating sang FLOAT)
 CREATE TABLE hotel (
     id        INT PRIMARY KEY IDENTITY(1,1),
     owner_id  INT FOREIGN KEY REFERENCES users(id),
     name      NVARCHAR(255) NOT NULL,
     address   NVARCHAR(255) NOT NULL,
     image_url NVARCHAR(500),
-    rating    NUMERIC(3, 1) CONSTRAINT chk_hotel_rating CHECK (rating BETWEEN 0 AND 5),
+    rating    FLOAT CONSTRAINT chk_hotel_rating CHECK (rating BETWEEN 0 AND 5),
     active    BIT DEFAULT 1
 );
 
