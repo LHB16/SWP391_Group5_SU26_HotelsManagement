@@ -39,7 +39,7 @@ public class UserService {
     public void savePendingUser(String fullName, String username,
                                 String password, String email, String otp, String role) {
         // Kiểm tra role hợp lệ
-        if (!"CUSTOMER".equalsIgnoreCase(role) && !"OWNER".equalsIgnoreCase(role)) {
+        if (!"CUSTOMER".equalsIgnoreCase(role) && !"HOTEL_OWNER".equalsIgnoreCase(role)) {
             throw new RuntimeException("Invalid role selected!");
         }
 
