@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.hotel_management.entity.Hotel;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
+import vn.edu.fpt.hotel_management.repository.RoomRepository;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -20,15 +21,17 @@ import java.util.List;
 @Controller
 public class HotelController {
 
-    // Inject HotelRepository để truy vấn dữ liệu khách sạn
+    // Inject HotelRepository và RoomRepository để truy vấn dữ liệu
     private final HotelRepository hotelRepository;
+    private final RoomRepository roomRepository;
 
     // Thư mục con trong static resources để lưu ảnh khách sạn
     private static final String HOTEL_IMAGE_SUBDIR = "assets/images/hotel";
     private static final String HOTEL_IMAGE_URL_PREFIX = "/assets/images/hotel/";
 
-    public HotelController(HotelRepository hotelRepository) {
+    public HotelController(HotelRepository hotelRepository, RoomRepository roomRepository) {
         this.hotelRepository = hotelRepository;
+        this.roomRepository = roomRepository;
     }
 
     /**
@@ -69,6 +72,7 @@ public class HotelController {
 
         // Tính toán số đêm và giá thực tế của từng khách sạn
         long nights = 1;
+        boolean isFiltered = false;
         java.util.Map<Integer, BigDecimal> hotelPricesMap = new java.util.HashMap<>();
         if (checkin != null && checkout != null && !checkin.trim().isEmpty() && !checkout.trim().isEmpty()) {
             try {
@@ -76,29 +80,37 @@ public class HotelController {
                 java.time.LocalDate d2 = java.time.LocalDate.parse(checkout.trim());
                 if (d2.isAfter(d1)) {
                     nights = java.time.temporal.ChronoUnit.DAYS.between(d1, d2);
+                    isFiltered = true;
                 } else {
                     d2 = d1.plusDays(1);
                     checkout = d2.toString();
                     nights = 1;
+                    isFiltered = true;
                 }
                 for (Hotel h : hotels) {
-                    BigDecimal actualPrice = calculateHotelSubtotal(h.getPrice(), d1, d2);
-                    BigDecimal averagePrice = actualPrice.divide(BigDecimal.valueOf(nights), 2, java.math.RoundingMode.HALF_UP);
-                    hotelPricesMap.put(h.getId(), averagePrice);
+                    BigDecimal basePrice = roomRepository.findMinPriceByHotelId(h.getId());
+                    if (basePrice == null) basePrice = BigDecimal.ZERO;
+                    BigDecimal actualPrice = calculateHotelSubtotal(basePrice, d1, d2);
+                    hotelPricesMap.put(h.getId(), actualPrice);
                 }
             } catch (Exception e) {
+                isFiltered = false;
                 for (Hotel h : hotels) {
-                    hotelPricesMap.put(h.getId(), h.getPrice());
+                    BigDecimal basePrice = roomRepository.findMinPriceByHotelId(h.getId());
+                    hotelPricesMap.put(h.getId(), basePrice != null ? basePrice : BigDecimal.ZERO);
                 }
             }
         } else {
             for (Hotel h : hotels) {
-                hotelPricesMap.put(h.getId(), h.getPrice());
+                BigDecimal basePrice = roomRepository.findMinPriceByHotelId(h.getId());
+                hotelPricesMap.put(h.getId(), basePrice != null ? basePrice : BigDecimal.ZERO);
             }
         }
 
         model.addAttribute("hotels", hotels);
         model.addAttribute("hotelPricesMap", hotelPricesMap);
+        model.addAttribute("nights", nights);
+        model.addAttribute("isFiltered", isFiltered);
         model.addAttribute("rating", rating);
         model.addAttribute("minPrice", minPrice);
         model.addAttribute("maxPrice", maxPrice);
@@ -127,7 +139,7 @@ public class HotelController {
             @RequestParam("name")        String name,
             @RequestParam("address")     String address,
             @RequestParam("rating")      double rating,
-            @RequestParam("price")       BigDecimal price,
+            @RequestParam(value = "price", required = false) BigDecimal price,
             @RequestParam("active")      boolean active,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
             RedirectAttributes redirectAttributes
@@ -164,7 +176,6 @@ public class HotelController {
         hotel.setName(name);
         hotel.setAddress(address);
         hotel.setRating(rating);
-        hotel.setPrice(price);
         hotel.setActive(active);
         hotel.setImageUrl(imageUrl);
 

@@ -14,6 +14,8 @@ import vn.edu.fpt.hotel_management.entity.User;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 import vn.edu.fpt.hotel_management.repository.RoomRepository;
 import vn.edu.fpt.hotel_management.repository.ReviewRepository;
+import vn.edu.fpt.hotel_management.repository.WishlistRepository;
+import vn.edu.fpt.hotel_management.entity.Wishlist;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -26,15 +28,17 @@ public class RoomController {
     private final RoomRepository roomRepository;
     private final HotelRepository hotelRepository;
     private final ReviewRepository reviewRepository;
+    private final WishlistRepository wishlistRepository;
 
     // Lấy đường dẫn thư mục static từ classpath (absolute khi runtime)
     // Ảnh phòng lưu trong: {project}/src/main/resources/static/assets/images/room/
     private static final String ROOM_IMAGE_SUBDIR = "assets/images/room";
 
-    public RoomController(RoomRepository roomRepository, HotelRepository hotelRepository, ReviewRepository reviewRepository) {
+    public RoomController(RoomRepository roomRepository, HotelRepository hotelRepository, ReviewRepository reviewRepository, WishlistRepository wishlistRepository) {
         this.roomRepository = roomRepository;
         this.hotelRepository = hotelRepository;
         this.reviewRepository = reviewRepository;
+        this.wishlistRepository = wishlistRepository;
     }
 
     /**
@@ -90,12 +94,18 @@ public class RoomController {
 
         boolean hasReviewed = false;
         User loggedInUser = (User) session.getAttribute("loggedInUser");
+        java.util.Set<Integer> wishlistRoomIds = new java.util.HashSet<>();
         if (loggedInUser != null) {
             hasReviewed = reviewRepository.existsByHotelIdAndUserId(id, loggedInUser.getId());
+            List<Wishlist> userWishlist = wishlistRepository.findByCustomerIdOrderByAddedAtDesc(loggedInUser.getId());
+            for (Wishlist wl : userWishlist) {
+                wishlistRoomIds.add(wl.getRoom().getId());
+            }
         }
 
         // Tính toán số đêm và giá thực tế của từng phòng
         long nights = 1;
+        boolean isFiltered = false;
         java.util.Map<Integer, BigDecimal> roomPricesMap = new java.util.HashMap<>();
         if (checkin != null && checkout != null && !checkin.trim().isEmpty() && !checkout.trim().isEmpty()) {
             try {
@@ -103,17 +113,19 @@ public class RoomController {
                 java.time.LocalDate d2 = java.time.LocalDate.parse(checkout.trim());
                 if (d2.isAfter(d1)) {
                     nights = java.time.temporal.ChronoUnit.DAYS.between(d1, d2);
+                    isFiltered = true;
                 } else {
                     d2 = d1.plusDays(1);
                     checkout = d2.toString();
                     nights = 1;
+                    isFiltered = true;
                 }
                 for (Room r : rooms) {
                     BigDecimal actualPrice = calculateRoomSubtotal(r.getPrice(), d1, d2);
-                    BigDecimal averagePrice = actualPrice.divide(BigDecimal.valueOf(nights), 2, java.math.RoundingMode.HALF_UP);
-                    roomPricesMap.put(r.getId(), averagePrice);
+                    roomPricesMap.put(r.getId(), actualPrice);
                 }
             } catch (Exception e) {
+                isFiltered = false;
                 for (Room r : rooms) {
                     roomPricesMap.put(r.getId(), r.getPrice());
                 }
@@ -127,6 +139,9 @@ public class RoomController {
         model.addAttribute("hotel", hotel);
         model.addAttribute("rooms", rooms);
         model.addAttribute("roomPricesMap", roomPricesMap);
+        model.addAttribute("wishlistRoomIds", wishlistRoomIds);
+        model.addAttribute("nights", nights);
+        model.addAttribute("isFiltered", isFiltered);
         model.addAttribute("allTypes", allTypes);
         model.addAttribute("selectedTypes", types != null ? types : List.of());
         model.addAttribute("minPrice", minPrice);

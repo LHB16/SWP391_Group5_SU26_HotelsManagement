@@ -5,6 +5,7 @@
 
 <body class="d-flex flex-column min-vh-100">
 <link rel="stylesheet" th:href="@{/assets/css/room-list.css}" />
+<link rel="stylesheet" th:href="@{/assets/css/wishlist.css}" />
 
 <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
@@ -47,7 +48,7 @@
                         <form th:action="@{/hotels/{id}/rooms(id=${hotel.id})}" method="get" id="roomFilterForm">
 
                             <!-- Loại phòng -->
-                            <div class="mb-4">
+                            <div class="mb-3">
                                 <label class="filter-section-label" for="roomTypeSelect">Room Type</label>
                                 <select name="types" id="roomTypeSelect" class="form-select form-select-sm">
                                     <option value="" th:selected="${selectedTypes == null or selectedTypes.isEmpty()}">All Types</option>
@@ -56,28 +57,19 @@
                                 </select>
                             </div>
 
-                            <!-- Khoảng giá -->
-                            <div class="mb-4">
-                                <label class="filter-section-label">Price Range / Night (VND)</label>
-                                <div class="row g-2">
-                                    <div class="col-6">
-                                        <label class="form-label small text-muted mb-1">From</label>
-                                        <input type="number" name="minPrice" id="minPriceInput"
-                                               class="form-control form-control-sm"
-                                               min="0" max="50000000" step="100000"
-                                               th:value="${minPrice}" placeholder="0" />
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label small text-muted mb-1">To</label>
-                                        <input type="number" name="maxPrice" id="maxPriceInput"
-                                               class="form-control form-control-sm"
-                                               min="0" max="50000000" step="100000"
-                                               th:value="${maxPrice}" placeholder="50M" />
-                                    </div>
-                                </div>
+                            <!-- Check-in / Check-out -->
+                            <div class="mb-3">
+                                <label class="filter-section-label" for="filterCheckin">Check-in Date</label>
+                                <input type="text" name="checkin" id="filterCheckin"
+                                       class="form-control form-control-sm filter-input" th:value="${checkin}" placeholder="Select Check-in" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="filter-section-label" for="filterCheckout">Check-out Date</label>
+                                <input type="text" name="checkout" id="filterCheckout"
+                                       class="form-control form-control-sm filter-input" th:value="${checkout}" placeholder="Select Check-out" />
                             </div>
 
-                            <div class="d-grid gap-2">
+                            <div class="d-grid gap-2 mt-4">
                                 <button type="submit" class="btn btn-gold btn-sm" id="roomFilterSubmit">
                                     <i class="bi bi-search me-1"></i>
                                     Search Rooms
@@ -107,7 +99,8 @@
                             </span>
                         </div>
                     </div>
-                    <a th:href="@{/hotels/{id}/rooms/new(id=${hotel.id})}" class="btn btn-gold">
+                    <a th:if="${session.loggedInUser != null && (session.loggedInUser.role == 'ADMIN' || session.loggedInUser.role == 'OWNER')}"
+                       th:href="@{/hotels/{id}/rooms/new(id=${hotel.id})}" class="btn btn-gold">
                         <i class="bi bi-plus-lg me-1"></i>
                         Add Room
                     </a>
@@ -140,12 +133,19 @@
                     <div th:each="room : ${rooms}" class="room-card">
 
                         <!-- Ảnh -->
-                        <div class="room-card-img-wrap">
+                        <div class="room-card-img-wrap" style="position: relative;">
                             <img th:if="${room.imgUrl != null and !room.imgUrl.isEmpty()}"
                                 th:src="${room.imgUrl}" th:alt="${room.roomType}" class="room-card-img" />
                             <div th:if="${room.imgUrl == null or room.imgUrl.isEmpty()}" class="room-card-img-placeholder">
                                 <i class="bi bi-image text-muted fs-3"></i>
                             </div>
+                            <!-- Wishlist Heart Button (chỉ cho account đã đăng nhập) -->
+                            <a th:if="${user != null}" 
+                               th:href="@{/wishlist/toggle(roomId=${room.id}, checkin=${checkin != null ? checkin : ''}, checkout=${checkout != null ? checkout : ''}, types=${selectedTypes != null and !selectedTypes.isEmpty() ? selectedTypes[0] : ''})}"
+                               class="wishlist-heart-btn" 
+                               title="Wishlist">
+                                <i th:class="${wishlistRoomIds != null and wishlistRoomIds.contains(room.id)} ? 'bi bi-heart-fill pink-heart' : 'bi bi-heart pink-heart'"></i>
+                            </a>
                         </div>
 
                         <!-- Thông tin -->
@@ -183,11 +183,11 @@
                             <!-- Footer: giá + nút -->
                             <div class="room-card-footer">
                                 <div>
-                                    <div class="room-price-label">Price per Night</div>
+                                    <div class="room-price-label" th:text="${isFiltered} ? 'Total Price' : 'Price per Night'">Price per Night</div>
                                     <div>
                                         <span class="room-price-amount"
                                             th:text="${#numbers.formatInteger(roomPricesMap != null ? roomPricesMap.get(room.id) : room.price, 0, 'COMMA')}">500,000</span>
-                                        <span class="room-price-unit">VND</span>
+                                        <span class="room-price-unit" th:text="${isFiltered} ? 'VND / ' + ${nights} + ' night' + (${nights > 1} ? 's' : '') : 'VND'">VND</span>
                                     </div>
                                 </div>
                                 <div class="room-action-btns">
@@ -483,5 +483,45 @@
 
 <footer th:replace="~{fragment/frag :: footer}"></footer>
 <div th:replace="~{fragment/frag :: scripts}"></div>
+
+<script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function() {
+        const checkinVal = /*[[${checkin}]]*/ '';
+        const checkoutVal = /*[[${checkout}]]*/ '';
+        const todayVal = /*[[${today}]]*/ '';
+
+        const checkinPicker = flatpickr("#filterCheckin", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            altInputClass: "form-control form-control-sm filter-input w-100",
+            minDate: todayVal ? todayVal : "today",
+            allowInput: false,
+            defaultDate: checkinVal ? checkinVal : null,
+            onChange: function(selectedDates, dateStr) {
+                if (selectedDates[0]) {
+                    const nextDay = new Date(selectedDates[0]);
+                    nextDay.setDate(nextDay.getDate() + 1);
+                    checkoutPicker.set("minDate", nextDay);
+
+                    const currentCheckout = checkoutPicker.selectedDates[0];
+                    if (currentCheckout && currentCheckout <= selectedDates[0]) {
+                        checkoutPicker.setDate(nextDay);
+                    }
+                }
+            }
+        });
+
+        const checkoutPicker = flatpickr("#filterCheckout", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            altInputClass: "form-control form-control-sm filter-input w-100",
+            minDate: checkinVal ? new Date(new Date(checkinVal).getTime() + 86400000) : new Date().setDate(new Date().getDate() + 1),
+            allowInput: false,
+            defaultDate: checkoutVal ? checkoutVal : null
+        });
+    });
+</script>
 </body>
 </html>
