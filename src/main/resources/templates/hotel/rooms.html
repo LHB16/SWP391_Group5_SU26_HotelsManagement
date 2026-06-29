@@ -53,9 +53,34 @@
                     </svg>
                     <span><strong th:text="${totalResults}">0</strong> rooms found</span>
                 </span>
+
+                <!-- Nút Chat with Owner: hiển thị khi Customer đã đăng nhập -->
+                <th:block th:if="${user != null and user.role == 'CUSTOMER'}">
+                    <a th:href="@{/chat/hotel/{id}(id=${hotel.id})}"
+                       class="room-hero-badge"
+                       style="background: rgba(201, 169, 110, 0.15) !important; 
+                              border: 1px solid rgba(201, 169, 110, 0.35) !important; 
+                              color: #c9a96e !important; 
+                              text-decoration: none; 
+                              cursor: pointer; 
+                              display: inline-flex; 
+                              align-items: center; 
+                              gap: 6px;
+                              margin-top: 12px !important;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        <span>Chat with Owner</span>
+                    </a>
+                </th:block>
+
+
+
             </div>
         </div>
     </section>
+
 
     <!-- ==================== MAIN CONTENT ==================== -->
     <main class="flex-grow-1 py-4" style="background:#faf8f4;">

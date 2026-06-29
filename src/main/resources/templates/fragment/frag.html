@@ -34,6 +34,11 @@
                         <a class="nav-link" th:href="@{/admin/dashboard}">Admin Dashboard</a>
                     </li>
                 </th:block>
+                <th:block th:if="${session.loggedInUser != null && session.loggedInUser.role == 'OWNER'}">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/chat/inbox}">📥 Inbox</a>
+                    </li>
+                </th:block>
             </ul>
             <ul class="navbar-nav ms-auto align-items-center gap-2">
                 <th:block th:if="${session.loggedInUser == null}">

@@ -37,14 +37,15 @@ public class HotelController {
      */
     private Path resolveStaticDir(String subDir) throws IOException {
         Path path = Paths.get(System.getProperty("user.dir"),
-                              "src", "main", "resources", "static", subDir);
+                "src", "main", "resources", "static", subDir);
         if (!Files.exists(path)) {
             Files.createDirectories(path);
         }
         return path;
     }
 
-    // ======================== GET /hotels – Danh sách khách sạn ========================
+    // ======================== GET /hotels – Danh sách khách sạn
+    // ========================
 
     @GetMapping("/hotels")
     public String showHotelsPage(
@@ -57,8 +58,7 @@ public class HotelController {
             @RequestParam(value = "checkin", required = false) String checkin,
             @RequestParam(value = "checkout", required = false) String checkout,
             HttpSession session,
-            Model model
-    ) {
+            Model model) {
         // Lấy danh sách khách sạn theo bộ lọc từ database
         List<Hotel> hotels;
         if (ratings == null || ratings.isEmpty()) {
@@ -79,7 +79,8 @@ public class HotelController {
         return "hotel/hotel-list";
     }
 
-    // ======================== GET /hotels/new – Form thêm khách sạn ========================
+    // ======================== GET /hotels/new – Form thêm khách sạn
+    // ========================
 
     @GetMapping("/hotels/new")
     public String showCreateHotelForm(Model model, HttpSession session) {
@@ -88,18 +89,18 @@ public class HotelController {
         return "hotel/hotel-create";
     }
 
-    // ======================== POST /hotels/new – Xử lý thêm khách sạn ========================
+    // ======================== POST /hotels/new – Xử lý thêm khách sạn
+    // ========================
 
     @PostMapping("/hotels/new")
     public String createHotel(
-            @RequestParam("name")        String name,
-            @RequestParam("address")     String address,
-            @RequestParam("rating")      int rating,
-            @RequestParam("price")       long price,
-            @RequestParam("active")      boolean active,
+            @RequestParam("name") String name,
+            @RequestParam("address") String address,
+            @RequestParam("rating") int rating,
+            @RequestParam("price") long price,
+            @RequestParam("active") boolean active,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
-            RedirectAttributes redirectAttributes
-    ) {
+            RedirectAttributes redirectAttributes) {
         String imageUrl = null;
 
         // Xử lý upload ảnh nếu có file được chọn
@@ -108,15 +109,16 @@ public class HotelController {
                 // Tạo tên file an toàn: bỏ khoảng trắng, ký tự đặc biệt
                 String originalFilename = imageFile.getOriginalFilename();
                 String safeFilename = System.currentTimeMillis() + "_"
-                        + (originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_") : "hotel.jpg");
+                        + (originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_")
+                                : "hotel.jpg");
 
                 // Lấy absolute path đến thư mục lưu ảnh
                 Path uploadPath = resolveStaticDir(HOTEL_IMAGE_SUBDIR);
 
                 // Lưu file vào thư mục
                 Files.copy(imageFile.getInputStream(),
-                           uploadPath.resolve(safeFilename),
-                           StandardCopyOption.REPLACE_EXISTING);
+                        uploadPath.resolve(safeFilename),
+                        StandardCopyOption.REPLACE_EXISTING);
 
                 // Đường dẫn URL để lưu vào DB
                 imageUrl = HOTEL_IMAGE_URL_PREFIX + safeFilename;
