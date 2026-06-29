@@ -1,7 +1,6 @@
 -- =============================================
 -- FULL DATABASE SCRIPT - HOTEL MANAGEMENT
 -- Tên Database: hotel_db
--- Tên tệp: schema.sql
 -- =============================================
 
 USE master;
@@ -47,13 +46,13 @@ CREATE TABLE hotel (
     active    BIT DEFAULT 1
 );
 
--- 3. ROOM (Đã xóa status, thêm facilities và bathroom_amenities để khớp 100% với Entity Room.java)
+-- 3. ROOM (Đã xóa status, thêm facilities và bathroom_amenities để khớp 100% với Entity Room.java, đổi numeric sang decimal)
 CREATE TABLE room (
     id                 INT PRIMARY KEY IDENTITY(1,1),
     hotel_id           INT NOT NULL FOREIGN KEY REFERENCES hotel(id),
     room_type          NVARCHAR(255),
     description        NVARCHAR(MAX),
-    price              NUMERIC(38, 2) CONSTRAINT chk_room_price CHECK (price >= 0),
+    price              DECIMAL(38, 2) CONSTRAINT chk_room_price CHECK (price >= 0),
     acreage            FLOAT,
     bed                INT,
     person             INT,
@@ -91,7 +90,7 @@ CREATE TABLE bookings (
     room_id        INT NOT NULL FOREIGN KEY REFERENCES room(id),
     check_in_date  DATE NOT NULL,
     check_out_date DATE NOT NULL,
-    total_price    NUMERIC(38, 2),
+    total_price    DECIMAL(38, 2),
     status         NVARCHAR(50) DEFAULT 'PENDING'
                    CONSTRAINT chk_booking_status CHECK (status IN ('PENDING','CONFIRMED','CHECKED_IN','CHECKED_OUT','CANCELLED')),
     created_at     DATETIME2 DEFAULT GETDATE(),
@@ -102,7 +101,7 @@ CREATE TABLE bookings (
 CREATE TABLE payments (
     id          INT PRIMARY KEY IDENTITY(1,1),
     booking_id  INT NOT NULL UNIQUE FOREIGN KEY REFERENCES bookings(id),
-    amount      NUMERIC(38, 2) CONSTRAINT chk_payment_amount CHECK (amount >= 0),
+    amount      DECIMAL(38, 2) CONSTRAINT chk_payment_amount CHECK (amount >= 0),
     method      NVARCHAR(50) DEFAULT 'QR_CODE' 
                 CONSTRAINT chk_payment_method CHECK (method IN ('QR_CODE')),
     status      NVARCHAR(50) DEFAULT 'PENDING'
@@ -128,7 +127,7 @@ CREATE TABLE promotions (
     hotel_id         INT NOT NULL FOREIGN KEY REFERENCES hotel(id),
     title            NVARCHAR(255),
     description      NVARCHAR(MAX),
-    discount_percent NUMERIC(5, 2),
+    discount_percent DECIMAL(5, 2),
     start_date       DATE,
     end_date         DATE,
     status           NVARCHAR(50) DEFAULT 'DRAFT'
