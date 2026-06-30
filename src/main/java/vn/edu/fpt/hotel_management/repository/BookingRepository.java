@@ -17,4 +17,18 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
 
     @Query("SELECT b FROM Booking b WHERE b.customer.id = :customerId ORDER BY b.createdAt DESC")
     Page<Booking> findByCustomerId(@Param("customerId") int customerId, Pageable pageable);
+    @Query("""
+            SELECT b FROM Booking b
+            WHERE b.customer.id = :customerId
+              AND b.room.id     = :roomId
+              AND b.checkInDate  = :checkIn
+              AND b.checkOutDate = :checkOut
+              AND b.status = 'PENDING'
+            ORDER BY b.createdAt DESC
+            """)
+    java.util.List<Booking> findPendingBookings(
+            @Param("customerId") int customerId,
+            @Param("roomId")     int roomId,
+            @Param("checkIn")    java.time.LocalDate checkIn,
+            @Param("checkOut")   java.time.LocalDate checkOut);
 }

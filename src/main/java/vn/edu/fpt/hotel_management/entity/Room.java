@@ -29,7 +29,7 @@ public class Room {
     @Column(name = "num_window", nullable = false)
     private int window;
 
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "NVARCHAR(MAX)")
     private String description;
 
     @Column(name = "img_url")
