@@ -1,0 +1,555 @@
+/* === Layout chung của trang === */
+.bh-page-layout {
+    min-height: 100vh;
+    background-color: #f4f7ff;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Khu vực nội dung chính, có padding trên dưới */
+.bh-main {
+    padding: 48px 0 64px;
+    flex: 1;
+}
+
+/* === Sidebar điều hướng bên trái === */
+.bh-sidebar {
+    background: #ffffff;
+    border: 1px solid #e8eeff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(15, 76, 129, 0.06);
+}
+
+/* Tiêu đề của sidebar */
+.bh-sidebar-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #0f4c81;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #eff4ff;
+}
+
+/* Danh sách menu trong sidebar */
+.bh-sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.bh-sidebar-item {
+    margin-bottom: 6px;
+}
+
+/* Mỗi link trong sidebar */
+.bh-sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    color: #495057;
+    text-decoration: none;
+    font-size: 14.5px;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+/* Hiệu ứng hover cho link sidebar */
+.bh-sidebar-link:hover {
+    background-color: #eff4ff;
+    color: #0f4c81;
+}
+
+/* Trạng thái active (trang đang xem) */
+.bh-sidebar-link.bh-active {
+    background-color: #0f4c81;
+    color: #ffffff;
+}
+
+/* === Header khu vực nội dung === */
+.bh-content-header {
+    margin-bottom: 28px;
+}
+
+/* Tiêu đề chính */
+.bh-content-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+
+/* Mô tả phụ bên dưới tiêu đề */
+.bh-content-subtitle {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+/* === Danh sách các booking card === */
+.bh-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Thẻ (card) đại diện cho một booking */
+.bh-card {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #e8eeff;
+    box-shadow: 0 2px 12px rgba(15, 76, 129, 0.05);
+    overflow: hidden;
+    transition: box-shadow 0.25s ease, transform 0.2s ease;
+}
+
+/* Hiệu ứng hover khi di chuột vào card */
+.bh-card:hover {
+    box-shadow: 0 8px 28px rgba(15, 76, 129, 0.13);
+    transform: translateY(-2px);
+}
+
+/* Bố cục bên trong card: ảnh trái, nội dung phải */
+.bh-card-inner {
+    display: flex;
+    gap: 0;
+}
+
+/* Khung chứa ảnh phòng */
+.bh-card-img-wrap {
+    flex-shrink: 0;
+    width: 220px;
+    height: 180px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Ảnh phòng */
+.bh-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.35s ease;
+}
+
+/* Hiệu ứng zoom ảnh khi hover card */
+.bh-card:hover .bh-card-img {
+    transform: scale(1.05);
+}
+
+/* Placeholder khi phòng không có ảnh */
+.bh-card-img-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #eff4ff 0%, #c7d9f5 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0f4c81;
+}
+
+/* Khu vực nội dung chữ của card */
+.bh-card-body {
+    flex: 1;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Hàng trên: tên phòng + badge trạng thái */
+.bh-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+/* Tên loại phòng */
+.bh-card-room-type {
+    font-size: 17px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 4px;
+    line-height: 1.3;
+}
+
+/* Tên khách sạn với icon vị trí */
+.bh-card-hotel-name {
+    font-size: 13px;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* === Badge hiển thị trạng thái booking === */
+.bh-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Badge: Đang chờ check-in (vàng) */
+.bh-badge-pending {
+    background-color: #fef9c3;
+    color: #92400e;
+}
+
+/* Badge: Đã hoàn thành / checkout đúng ngày (xanh lá) */
+.bh-badge-done {
+    background-color: #dcfce7;
+    color: #15803d;
+}
+
+/* Badge: Đã hủy (đỏ) */
+.bh-badge-cancelled {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+/* Badge: Trạng thái mặc định / không xác định */
+.bh-badge-default {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+/* === Khu vực thông tin chi tiết (check-in, check-out, số đêm, tổng tiền) === */
+.bh-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin: 14px 0;
+}
+
+/* Mỗi mục thông tin chi tiết */
+.bh-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+/* Nhãn tiêu đề của từng mục */
+.bh-meta-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+/* Giá trị hiển thị */
+.bh-meta-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+/* Giá trị tổng tiền (nổi bật hơn) */
+.bh-meta-value-price {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f4c81;
+}
+
+/* === Footer của card: booking ID + khu vực hành động === */
+.bh-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background-color: #f8faff;
+    border-top: 1px solid #e8eeff;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Hiển thị booking ID và thời gian đặt */
+.bh-booking-id {
+    font-size: 12px;
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.bh-booking-id span {
+    color: #6b7280;
+    font-weight: 600;
+}
+
+/* Khu vực chứa nút hành động (Cancel / Completed / Cancelled note) */
+.bh-card-actions {
+    display: flex;
+    align-items: center;
+}
+
+/* === Nút Cancel Booking (chỉ hiện khi PENDING) === */
+.bh-btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 18px;
+    background-color: #ffffff;
+    color: #b91c1c;
+    border: 1.5px solid #fca5a5;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.bh-btn-cancel:hover {
+    background-color: #fee2e2;
+    border-color: #b91c1c;
+    color: #b91c1c;
+}
+
+/* === Nút xóa booking (icon thùng rác, luôn hiển thị) === */
+.bh-btn-delete {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    background-color: transparent;
+    color: #9ca3af;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-left: 8px;
+}
+
+.bh-btn-delete:hover {
+    background-color: #fee2e2;
+    border-color: #fca5a5;
+    color: #b91c1c;
+    transform: scale(1.1);
+}
+
+/* === Ghi chú trạng thái (không có nút bấm) === */
+.bh-status-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Ghi chú trạng thái Done (xanh lá) */
+.bh-note-done {
+    color: #15803d;
+}
+
+/* Ghi chú trạng thái Cancelled (đỏ) */
+.bh-note-cancelled {
+    color: #b91c1c;
+}
+
+/* Ghi chú trạng thái quá hạn hủy phòng (màu cam) */
+.bh-note-expired {
+    color: #d97706;
+}
+
+/* Ghi chú trạng thái Unpaid / chưa hoàn tất thanh toán (xám) */
+.bh-note-unpaid {
+    color: #6b7280;
+}
+
+/* === Nút quay lại trang thanh toán (chỉ hiện khi PENDING / Unpaid) === */
+.bh-btn-pay {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 18px;
+    background-color: #0f4c81;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.bh-btn-pay:hover {
+    background-color: #0a3a63;
+    color: #ffffff;
+    transform: translateX(2px);
+}
+
+/* === Trạng thái rỗng (chưa có booking nào) === */
+.bh-empty {
+    text-align: center;
+    padding: 72px 32px;
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px dashed #c7d9f5;
+}
+
+/* Vòng tròn chứa icon minh họa */
+.bh-empty-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #eff4ff 0%, #dde8fb 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    color: #0f4c81;
+}
+
+/* Tiêu đề trạng thái rỗng */
+.bh-empty-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 8px;
+}
+
+/* Mô tả trạng thái rỗng */
+.bh-empty-desc {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 28px;
+}
+
+/* Nút khám phá khách sạn */
+.bh-btn-explore {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 28px;
+    background-color: #0f4c81;
+    color: #ffffff;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.bh-btn-explore:hover {
+    background-color: #0a3a63;
+    color: #ffffff;
+}
+
+/* === Phân trang === */
+.bh-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 36px;
+    flex-wrap: wrap;
+}
+
+/* Nút số trang / prev / next */
+.bh-page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1.5px solid #e8eeff;
+    color: #374151;
+    background: #ffffff;
+    transition: all 0.2s ease;
+}
+
+.bh-page-btn:hover {
+    background-color: #eff4ff;
+    border-color: #0f4c81;
+    color: #0f4c81;
+}
+
+/* Trang đang được chọn */
+.bh-page-btn.bh-page-active {
+    background-color: #0f4c81;
+    border-color: #0f4c81;
+    color: #ffffff;
+    cursor: default;
+}
+
+/* Nút bị vô hiệu hóa (trang đầu / trang cuối) */
+.bh-page-btn.bh-page-disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* === Thanh thống kê tổng số booking === */
+.bh-stats-bar {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+/* Mỗi chip thống kê nhỏ */
+.bh-stat-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #ffffff;
+    border: 1px solid #e8eeff;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    box-shadow: 0 1px 6px rgba(15, 76, 129, 0.04);
+}
+
+/* Số trong chip (nổi bật) */
+.bh-stat-chip-num {
+    font-weight: 700;
+    color: #0f4c81;
+    font-size: 15px;
+}
+
+/* === Responsive: màn hình nhỏ hơn 768px === */
+@media (max-width: 768px) {
+    /* Chuyển card từ ngang sang dọc */
+    .bh-card-inner {
+        flex-direction: column;
+    }
+
+    /* Ảnh full chiều ngang trên mobile */
+    .bh-card-img-wrap {
+        width: 100%;
+        height: 200px;
+    }
+
+    .bh-card-meta {
+        gap: 14px;
+    }
+
+    .bh-card-top {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .bh-card-footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

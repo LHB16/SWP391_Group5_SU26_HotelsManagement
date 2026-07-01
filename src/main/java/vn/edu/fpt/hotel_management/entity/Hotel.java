@@ -29,6 +29,9 @@ public class Hotel {
     private double rating;
 
 
+    // Giá/đêm (VND) – dùng long để tránh floating-point precision
+    @Column(nullable = true)
+    private BigDecimal price;
 
     // Đường dẫn ảnh
     @Column(name = "image_url")
@@ -109,5 +112,13 @@ public class Hotel {
 
     public void setOwnerId(Integer ownerId) {
         this.ownerId = ownerId;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
     }
 }
