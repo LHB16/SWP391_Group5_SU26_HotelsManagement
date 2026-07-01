@@ -29,7 +29,7 @@ public class Hotel {
     private int rating;
 
     // Giá/đêm (VND) – dùng long để tránh floating-point precision
-    @Column(nullable = false)
+    @Column(nullable = true)
     private BigDecimal price;
 
     // Đường dẫn ảnh

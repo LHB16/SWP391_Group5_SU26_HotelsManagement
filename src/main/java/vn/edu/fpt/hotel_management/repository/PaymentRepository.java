@@ -6,4 +6,5 @@ import vn.edu.fpt.hotel_management.entity.Payment;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Integer> {
+    java.util.Optional<Payment> findByBookingId(int bookingId);
 }

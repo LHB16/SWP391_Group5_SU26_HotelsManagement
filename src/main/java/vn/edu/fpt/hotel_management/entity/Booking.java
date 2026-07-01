@@ -100,6 +100,13 @@ public class Booking {
         this.status = status;
     }
 
+    public boolean isCancelable() {
+        if (this.createdAt == null || !"CONFIRMED".equalsIgnoreCase(this.status)) {
+            return false;
+        }
+        return java.time.Duration.between(this.createdAt, java.time.LocalDateTime.now()).toHours() < 24;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
