@@ -15,20 +15,15 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     
     List<Booking> findAllByOrderByCreatedAtDesc();
 
-    @Query("SELECT b FROM Booking b WHERE b.customer.id = :customerId ORDER BY b.createdAt DESC")
-    Page<Booking> findByCustomerId(@Param("customerId") int customerId, Pageable pageable);
-    @Query("""
-            SELECT b FROM Booking b
-            WHERE b.customer.id = :customerId
-              AND b.room.id     = :roomId
-              AND b.checkInDate  = :checkIn
-              AND b.checkOutDate = :checkOut
-              AND b.status = 'PENDING'
-            ORDER BY b.createdAt DESC
-            """)
-    java.util.List<Booking> findPendingBookings(
-            @Param("customerId") int customerId,
-            @Param("roomId")     int roomId,
-            @Param("checkIn")    java.time.LocalDate checkIn,
-            @Param("checkOut")   java.time.LocalDate checkOut);
+    // Magic Method lấy danh sách booking của khách hàng và sắp xếp giảm dần theo thời gian tạo
+    Page<Booking> findByCustomerIdOrderByCreatedAtDesc(int customerId, Pageable pageable);
+
+    // Magic Method tìm booking đang chờ xử lý (PENDING) dựa trên khách hàng, phòng, thời gian thuê và trạng thái
+    List<Booking> findByCustomerIdAndRoomIdAndCheckInDateAndCheckOutDateAndStatusOrderByCreatedAtDesc(
+            int customerId,
+            int roomId,
+            java.time.LocalDate checkInDate,
+            java.time.LocalDate checkOutDate,
+            String status
+    );
 }
