@@ -110,7 +110,8 @@ public class PaymentController {
         // 6. Idempotency: reuse existing PENDING booking ONLY if its QR is still valid.
         //    If QR has expired the user must be allowed to create a fresh booking.
         java.util.Optional<Booking> existingOpt = bookingRepository
-                .findPendingBookings(loggedInUser.getId(), roomId, checkInDate, checkOutDate)
+                .findByCustomerIdAndRoomIdAndCheckInDateAndCheckOutDateAndStatusOrderByCreatedAtDesc(
+                        loggedInUser.getId(), roomId, checkInDate, checkOutDate, "PENDING")
                 .stream()
                 .filter(b -> {
                     // Accept booking only when its payment QR is still within the valid window
@@ -297,6 +298,20 @@ public class PaymentController {
         }
 
         Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
+
+        // Kiểm tra nếu mã QR đã hết hạn (quá 15 phút)
+        if (payment != null && payment.isQrExpired()) {
+            booking.setStatus("CANCELLED");
+            booking.setUpdatedAt(LocalDateTime.now());
+            bookingRepository.save(booking);
+
+            payment.setStatus("FAILED");
+            paymentRepository.save(payment);
+
+            redirectAttributes.addFlashAttribute("errorMessage", 
+                "This payment session has expired. Please make a new reservation.");
+            return "redirect:/booking/history";
+        }
 
         Room room = booking.getRoom();
         Hotel hotel = (room != null) ? hotelRepository.findById(room.getHotelId()).orElse(null) : null;

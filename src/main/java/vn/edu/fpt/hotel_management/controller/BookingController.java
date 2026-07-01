@@ -2,13 +2,17 @@ package vn.edu.fpt.hotel_management.controller;
 
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import vn.edu.fpt.hotel_management.entity.Room;
-import vn.edu.fpt.hotel_management.entity.Hotel;
-import vn.edu.fpt.hotel_management.entity.User;
+import vn.edu.fpt.hotel_management.entity.*;
+import vn.edu.fpt.hotel_management.repository.BookingRepository;
+import vn.edu.fpt.hotel_management.repository.PaymentRepository;
 import vn.edu.fpt.hotel_management.repository.RoomRepository;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 
@@ -27,6 +31,144 @@ public class BookingController {
 
     @Autowired
     private HotelRepository hotelRepository;
+
+    @Autowired
+    private BookingRepository bookingRepository;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+    // Hiển thị trang lịch sử đặt phòng của người dùng đang đăng nhập
+    @GetMapping("/booking/history")
+    public String showBookingHistory(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            HttpSession session,
+            Model model) {
+
+        // Kiểm tra đăng nhập, chưa đăng nhập thì redirect về trang login
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+
+        // Lấy danh sách booking của user, sắp xếp mới nhất trước, phân trang 6 booking/trang
+        int pageSize = 6;
+        Page<Booking> bookingPage = bookingRepository.findByCustomerIdOrderByCreatedAtDesc(
+                loggedInUser.getId(),
+                PageRequest.of(page, pageSize)
+        );
+
+        // Tạo map hotelId -> tên khách sạn để hiển thị trên card
+        List<Hotel> hotels = hotelRepository.findAll();
+        Map<Integer, String> hotelMap = new HashMap<>();
+        for (Hotel hotel : hotels) {
+            hotelMap.put(hotel.getId(), hotel.getName());
+        }
+
+        // Truyền dữ liệu vào model để render template
+        model.addAttribute("user", loggedInUser);
+        model.addAttribute("bookings", bookingPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", bookingPage.getTotalPages());
+        model.addAttribute("totalItems", bookingPage.getTotalElements());
+        model.addAttribute("hotelMap", hotelMap);
+
+        return "booking/history";
+    }
+
+    // Hủy booking: chỉ cho phép hủy khi booking đang ở trạng thái CONFIRMED (đã thanh toán) và trong vòng 24 giờ kể từ lúc đặt
+    @PostMapping("/booking/cancel/{id}")
+    public String cancelBooking(
+            @PathVariable("id") int bookingId,
+            HttpSession session,
+            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+
+        // Kiểm tra đăng nhập
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+
+        // Tìm booking theo id
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking != null && booking.getCustomer().getId() == loggedInUser.getId()) {
+            if ("CONFIRMED".equalsIgnoreCase(booking.getStatus())) {
+                // Kiểm tra điều kiện 24 giờ
+                if (booking.getCreatedAt() != null) {
+                    long hours = java.time.Duration.between(booking.getCreatedAt(), java.time.LocalDateTime.now()).toHours();
+                    if (hours < 24) {
+                        booking.setStatus("CANCELLED");
+                        booking.setUpdatedAt(java.time.LocalDateTime.now());
+                        bookingRepository.save(booking);
+
+                        // Cập nhật trạng thái payment tương ứng nếu có
+                        Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
+                        if (payment != null) {
+                            payment.setStatus("REFUNDED");
+                            paymentRepository.save(payment);
+                        }
+
+                        // Tính số tiền hoàn lại (80%)
+                        java.math.BigDecimal refundAmount = booking.getTotalPrice().multiply(java.math.BigDecimal.valueOf(0.8));
+                        String formattedRefund = String.format("%,.0f", refundAmount.doubleValue());
+                        
+                        redirectAttributes.addFlashAttribute("successMessage", 
+                            "Booking cancelled successfully! 80% of your payment (" + formattedRefund + " ₫) will be refunded shortly.");
+                    } else {
+                        redirectAttributes.addFlashAttribute("errorMessage", 
+                            "Cannot cancel this booking because it has been more than 24 hours since the booking was created.");
+                    }
+                } else {
+                    // Nếu không có thông tin createdAt, cho phép hủy mặc định
+                    booking.setStatus("CANCELLED");
+                    booking.setUpdatedAt(java.time.LocalDateTime.now());
+                    bookingRepository.save(booking);
+                    redirectAttributes.addFlashAttribute("successMessage", "Booking cancelled successfully!");
+                }
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "Only bookings in 'Pending' status (confirmed payment) can be cancelled.");
+            }
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage", "Booking not found.");
+        }
+
+        return "redirect:/booking/history";
+    }
+
+    // Xóa booking khỏi lịch sử của người dùng (xóa vĩnh viễn khỏi database)
+    // Xóa payment trước (nếu có) để tránh lỗi foreign key, sau đó mới xóa booking
+    @PostMapping("/booking/delete/{id}")
+    public String deleteBooking(
+            @PathVariable("id") int bookingId,
+            HttpSession session,
+            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+
+        // Kiểm tra đăng nhập
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+
+        // Chỉ xóa nếu booking thuộc về người dùng hiện tại
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking != null && booking.getCustomer().getId() == loggedInUser.getId()) {
+            // Giải phóng liên kết 2 chiều để tránh lỗi TransientPropertyValueException của Hibernate
+            Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
+            if (payment != null) {
+                booking.setPayment(null);
+                bookingRepository.saveAndFlush(booking); // Đồng bộ trạng thái Booking
+                paymentRepository.delete(payment);
+                paymentRepository.flush();
+            }
+            // Xóa booking
+            bookingRepository.delete(booking);
+            redirectAttributes.addFlashAttribute("successMessage", "Booking history record removed successfully!");
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage", "Booking record not found or access denied.");
+        }
+
+        return "redirect:/booking/history";
+    }
 
     @GetMapping({"/booking", "/booking/create"})
     public String showCreateBookingPage(
