@@ -53,7 +53,7 @@ public class BookingController {
 
         // Lấy danh sách booking của user, sắp xếp mới nhất trước, phân trang 6 booking/trang
         int pageSize = 6;
-        Page<Booking> bookingPage = bookingRepository.findByCustomerIdOrderByCreatedAtDesc(
+        Page<Booking> bookingPage = bookingRepository.findByCustomerId(
                 loggedInUser.getId(),
                 PageRequest.of(page, pageSize)
         );

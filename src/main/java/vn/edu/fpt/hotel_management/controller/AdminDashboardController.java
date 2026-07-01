@@ -142,7 +142,7 @@ public class AdminDashboardController {
 
         // Lấy danh sách đặt phòng có phân trang (10 items/trang)
         Pageable pageable = PageRequest.of(page, 10);
-        Page<Booking> bookingPage = bookingRepository.findByCustomerIdOrderByCreatedAtDesc(customerId, pageable);
+        Page<Booking> bookingPage = bookingRepository.findByCustomerId(customerId, pageable);
 
         // Map sang dữ liệu để dễ hiển thị ngoài HTML
         List<Map<String, Object>> customerBookings = bookingPage.getContent().stream().map(b -> {
