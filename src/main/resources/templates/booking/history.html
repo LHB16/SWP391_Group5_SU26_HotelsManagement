@@ -118,16 +118,22 @@
                                                     <i class="bi bi-check-circle"></i>
                                                     Done
                                                 </span>
-                                                <!-- Đã hủy bởi người dùng (đỏ) -->
-                                                <span th:case="'CANCELLED'" class="bh-badge bh-badge-cancelled">
-                                                    <i class="bi bi-x-circle"></i>
-                                                    Cancelled
-                                                </span>
-                                                <!-- Chưa hoàn tất thanh toán (xám) -->
-                                                <span th:case="'PENDING'" class="bh-badge bh-badge-default">
-                                                    <i class="bi bi-hourglass-split"></i>
-                                                    Unpaid
-                                                </span>
+                                                 <!-- Đã hủy bởi người dùng -->
+                                                 <span th:case="'CANCELLED'">
+                                                      <span th:if="${refundEligibleMap != null and refundEligibleMap[booking.id]}" class="bh-badge bh-badge-pending">
+                                                          <i class="bi bi-clock"></i>
+                                                          Pending
+                                                      </span>
+                                                     <span th:if="${refundEligibleMap == null or !refundEligibleMap[booking.id]}" class="bh-badge bh-badge-cancelled">
+                                                         <i class="bi bi-x-circle"></i>
+                                                         Cancelled
+                                                     </span>
+                                                 </span>
+                                                 <!-- Chưa hoàn tất thanh toán (trả về màu vàng nhạt/cam đất) -->
+                                                 <span th:case="'PENDING'" class="bh-badge" style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a;">
+                                                     <i class="bi bi-clock"></i>
+                                                     Unpaid
+                                                 </span>
                                                 <!-- Trạng thái không xác định -->
                                                 <span th:case="*" class="bh-badge bh-badge-default"
                                                       th:text="${booking.status ?: 'Unknown'}">Unknown</span>
@@ -176,21 +182,24 @@
 
                                 <!-- Nút hành động theo từng trạng thái + nút xóa luôn hiển thị -->
                                 <div class="bh-card-actions">
-                                    <!-- CONFIRMED (đã thanh toán, chờ check-in): hiển thị nút Cancel để hủy booking nếu trong vòng 24 giờ -->
-                                    <form th:if="${booking.status == 'CONFIRMED' and (booking.createdAt == null or T(java.time.temporal.ChronoUnit).HOURS.between(booking.createdAt, T(java.time.LocalDateTime).now()) < 24)}"
+                                    <!-- CONFIRMED: hiển thị nút Cancel khi chưa đến ngày check-in -->
+                                    <form th:if="${booking.status == 'CONFIRMED' and cancelableMap.get(booking.id)}"
                                           th:action="@{/booking/cancel/{id}(id=${booking.id})}"
                                           method="post"
                                           class="cancel-booking-form d-inline">
-                                        <button type="button" class="bh-btn-cancel trigger-cancel-btn">
-                                            <i class="bi bi-x-circle"></i>
-                                            Cancel Booking
-                                        </button>
+                                         <!-- Thông báo chính sách hoàn tiền theo deadline -->
+                                         <button type="button" class="bh-btn-cancel trigger-cancel-btn"
+                                                 th:data-booking-id="${booking.id}"
+                                                 th:data-refund-policy="${refundPolicyMap.get(booking.id)}">
+                                             <i class="bi bi-x-circle"></i>
+                                             Cancel
+                                         </button>
                                     </form>
 
-                                    <!-- Hiển thị ghi chú nếu quá 24 giờ kể từ lúc đặt -->
-                                    <span th:if="${booking.status == 'CONFIRMED' and booking.createdAt != null and T(java.time.temporal.ChronoUnit).HOURS.between(booking.createdAt, T(java.time.LocalDateTime).now()) >= 24}" class="bh-status-note bh-note-expired">
-                                        <i class="bi bi-exclamation-triangle"></i>
-                                        Non-refundable (>24h)
+                                    <!-- Booking đã tới ngày check-in: không còn hủy được -->
+                                    <span th:if="${booking.status == 'CONFIRMED' and !cancelableMap.get(booking.id)}" class="bh-status-note bh-note-expired">
+                                         <i class="bi bi-lock"></i>
+                                         Non-cancellable
                                     </span>
 
                                     <!-- DONE: không có nút, chỉ hiện ghi chú hoàn thành -->
@@ -199,15 +208,30 @@
                                         Completed
                                     </span>
 
-                                    <!-- CANCELLED: không có nút, chỉ hiện ghi chú đã hủy -->
-                                    <span th:if="${booking.status == 'CANCELLED'}" class="bh-status-note bh-note-cancelled">
-                                        <i class="bi bi-slash-circle"></i>
-                                        Booking Cancelled
-                                    </span>
+                                    <!-- CANCELLED: hiển thị trạng thái hoàn tiền tương ứng -->
+                                    <th:block th:if="${booking.status == 'CANCELLED'}">
+                                         <!-- Hiện nút Refund nếu payment có status REFUNDED và chưa gửi request -->
+                                         <a th:if="${refundEligibleMap != null and refundEligibleMap[booking.id]}"
+                                            th:href="@{/booking/cancel-policy(bookingId=${booking.id})}"
+                                            class="bh-btn-cancel" style="text-decoration: none;">
+                                             <i class="bi bi-x-circle"></i>
+                                             Cancel
+                                         </a>
+                                        <!-- Đã gửi yêu cầu hoàn tiền rồi -->
+                                        <span th:if="${refundSubmittedMap != null and refundSubmittedMap[booking.id]}" class="bh-status-note bh-note-refund-submitted">
+                                            <i class="bi bi-hourglass-split"></i>
+                                            Refund Requested
+                                        </span>
+                                        <!-- Booking hủy nhưng chưa thanh toán (không eligible) -->
+                                        <span th:if="${(refundEligibleMap == null or !refundEligibleMap[booking.id]) and (refundSubmittedMap == null or !refundSubmittedMap[booking.id])}" class="bh-status-note bh-note-cancelled">
+                                            <i class="bi bi-slash-circle"></i>
+                                            Booking Cancelled
+                                        </span>
+                                    </th:block>
 
                                     <!-- PENDING (chưa hoàn tất thanh toán): nút quay lại trang thanh toán -->
                                     <a th:if="${booking.status == 'PENDING'}"
-                                       th:href="@{/booking/qr-payment-status(bookingId=${booking.id})}"
+                                       th:href="@{/booking/qr-payment-status(bookingId=${booking.id},from='history')}"
                                        class="bh-btn-pay">
                                         <i class="bi bi-qr-code"></i>
                                         Go to Payment
@@ -302,11 +326,12 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content shadow border-0" style="border-radius: 14px;">
                 <div class="modal-body text-center p-4">
-                    <div class="mb-3" style="color: #d97706; font-size: 54px;">
+                    <div class="mb-3" id="cancelModalIcon" style="font-size: 54px;">
                         <i class="bi bi-exclamation-triangle"></i>
                     </div>
                     <h4 class="modal-title fw-bold mb-2" id="cancelConfirmModalLabel" style="color: #0f172a;">Cancel Booking?</h4>
-                    <p class="text-muted mb-4">Are you sure you want to cancel this booking? You will receive a portion of the amount you paid.</p>
+                    <p class="mb-1" id="cancelModalMessage" style="color: #64748b;"></p>
+                    <div id="cancelRefundBadge" class="mb-4" style="display:inline-block; margin-top:8px; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 700;"></div>
                     <div class="d-flex gap-2">
                         <button type="button" class="btn btn-light w-50" data-bs-dismiss="modal" style="border-radius: 8px; font-weight: 600; padding: 10px;">
                             No, keep it
@@ -378,21 +403,44 @@
                 myErrorModal.show();
             }
 
-            // Lưu trữ form chuẩn bị thực hiện action
-            var activeFormToSubmit = null;
+            // Lưu trữ bookingId chuẩn bị thực hiện action
+            var activeBookingId = null;
 
             // 2. Xử lý hiển thị modal hủy đặt phòng
             var cancelModal = new bootstrap.Modal(document.getElementById('cancelConfirmModal'));
             document.querySelectorAll('.trigger-cancel-btn').forEach(function(button) {
                 button.addEventListener('click', function(e) {
-                    activeFormToSubmit = this.closest('.cancel-booking-form');
+                    activeBookingId = this.getAttribute('data-booking-id');
+
+                    // Đọc chính sách hoàn tiền từ data attribute
+                    var policy = this.getAttribute('data-refund-policy');
+                    var msgEl   = document.getElementById('cancelModalMessage');
+                    var iconEl  = document.getElementById('cancelModalIcon');
+                    var badgeEl = document.getElementById('cancelRefundBadge');
+
+                    if (policy === 'full') {
+                        iconEl.style.color  = '#d97706';
+                        msgEl.textContent   = 'Are you sure you want to cancel this booking?';
+                        badgeEl.textContent = '✅ Full refund (100%) will be processed';
+                        badgeEl.style.background = '#ecfdf5';
+                        badgeEl.style.color = '#047857';
+                        badgeEl.style.border = '1px solid #a7f3d0';
+                    } else {
+                        iconEl.style.color  = '#ef4444';
+                        msgEl.textContent   = 'This booking is within 3 days of check-in. Cancellations in this period are non-refundable.';
+                        badgeEl.textContent = '⚠️ No refund will be issued (0%)';
+                        badgeEl.style.background = '#fef2f2';
+                        badgeEl.style.color = '#b91c1c';
+                        badgeEl.style.border = '1px solid #fecaca';
+                    }
+
                     cancelModal.show();
                 });
             });
 
             document.getElementById('confirmCancelBtn').addEventListener('click', function() {
-                if (activeFormToSubmit) {
-                    activeFormToSubmit.submit();
+                if (activeBookingId) {
+                    window.location.href = '/booking/cancel-policy?bookingId=' + activeBookingId;
                 }
             });
 

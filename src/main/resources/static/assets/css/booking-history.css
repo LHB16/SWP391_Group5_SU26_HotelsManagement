@@ -526,6 +526,46 @@
     font-size: 15px;
 }
 
+/* === Nút Request Refund === */
+.bh-btn-refund {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #0f4c81 0%, #1a6cb8 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 3px 8px rgba(15, 76, 129, 0.2);
+}
+
+.bh-btn-refund:hover {
+    background: linear-gradient(135deg, #0d3f6a 0%, #155fa0 100%);
+    color: #ffffff;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 12px rgba(15, 76, 129, 0.3);
+}
+
+/* === Badge Refund Requested (đã gửi yêu cầu) === */
+.bh-note-refund-submitted {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    color: #1d4ed8;
+    font-size: 13px;
+    font-weight: 600;
+}
+
 /* === Responsive: màn hình nhỏ hơn 768px === */
 @media (max-width: 768px) {
     /* Chuyển card từ ngang sang dọc */
