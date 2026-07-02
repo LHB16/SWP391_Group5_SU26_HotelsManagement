@@ -3,64 +3,110 @@
 
 <head>
     <th:block th:replace="~{fragment/frag :: head}"></th:block>
-    <!-- Custom styling matching dashboard / admin layout -->
-    <link th:href="@{/assets/css/dashboard.css}" rel="stylesheet"/>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Dashboard CSS shared with admin/dashboard.html -->
 </head>
 
-<body class="d-flex flex-column h-100" style="background-color: #f8fafc;">
+<body class="d-flex flex-column h-100">
 
     <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
     <main class="flex-shrink-0 container py-5">
-        
+
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}"
+             class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2 mb-4 shadow-sm"
+             role="alert"
+             style="border-radius: 12px; border-left: 4px solid #16a34a;">
+            <i class="bi bi-check-circle-fill" style="font-size: 1.1rem; flex-shrink: 0;"></i>
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorMessage}"
+             class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2 mb-4 shadow-sm"
+             role="alert"
+             style="border-radius: 12px; border-left: 4px solid #dc2626;">
+            <i class="bi bi-exclamation-circle-fill" style="font-size: 1.1rem; flex-shrink: 0;"></i>
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
         <!-- Back navigation link -->
         <div class="mb-4">
             <a th:href="@{/admin/dashboard}" class="back-btn">
-                <i data-lucide="arrow-left" style="stroke-width: 2; width: 18px; height: 18px;"></i>
+                <i class="bi bi-arrow-left"></i>
                 <span>Back to Dashboard</span>
             </a>
         </div>
 
         <div class="detail-card">
             <div class="detail-header">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="avatar-btn m-0 bg-white-50 text-dark" style="width: 54px; height: 54px; font-size: 1.5rem; background-color: rgba(255,255,255,0.15); color: #ffffff; display: flex; align-items: center; justify-content: center; border-radius: 50%;"
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <!-- Avatar circle -->
+                    <div style="width: 54px; height: 54px; font-size: 1.4rem; font-weight: 700;
+                                background-color: rgba(255,255,255,0.15); color: #ffffff;
+                                display: flex; align-items: center; justify-content: center;
+                                border-radius: 50%; border: 2px solid rgba(255,255,255,0.25);"
                          th:text="${#strings.substring(selectedCustomer.fullName, 0, 1).toUpperCase()}">C</div>
                     <div>
                         <h1 class="fw-bold m-0 h3 text-white" th:text="${selectedCustomer.fullName}">Customer Name</h1>
-                        <p class="mb-0 text-white-50 mt-1">Customer Account Details & Transaction History</p>
+                        <p class="mb-0 mt-1" style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">
+                            Customer Account Details &amp; Transaction History
+                        </p>
+                    </div>
+                    <!-- Toggle Account Status Button -->
+                    <div class="ms-auto">
+                        <button type="button"
+                                class="btn fw-semibold d-flex align-items-center gap-2"
+                                data-bs-toggle="modal"
+                                data-bs-target="#toggleStatusModal"
+                                th:classappend="${selectedCustomer.enabled} ? 'btn-danger' : 'btn-success'"
+                                style="border-radius: 10px; padding: 9px 20px; font-size: 0.88rem;">
+                            <!-- Icon when Active → will Disable -->
+                            <i class="bi bi-person-x-fill" th:if="${selectedCustomer.enabled}"></i>
+                            <!-- Icon when Inactive → will Enable -->
+                            <i class="bi bi-person-check-fill" th:if="${!selectedCustomer.enabled}"></i>
+                            <span th:text="${selectedCustomer.enabled} ? 'Disable Account' : 'Enable Account'">Toggle Status</span>
+                        </button>
                     </div>
                 </div>
             </div>
-            
+
             <div class="detail-body">
+                <!-- Info row -->
                 <div class="row g-4 mb-5 border-bottom pb-4">
                     <div class="col-md-3">
-                        <small class="text-uppercase text-muted d-block font-weight-bold mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Customer ID</small>
+                        <small class="text-uppercase text-muted d-block fw-bold mb-1"
+                               style="font-size: 0.75rem; letter-spacing: 0.05em;">Customer ID</small>
                         <span class="fw-bold text-dark" th:text="'#' + ${selectedCustomer.id}">#0</span>
                     </div>
                     <div class="col-md-3">
-                        <small class="text-uppercase text-muted d-block font-weight-bold mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Username</small>
+                        <small class="text-uppercase text-muted d-block fw-bold mb-1"
+                               style="font-size: 0.75rem; letter-spacing: 0.05em;">Username</small>
                         <span class="text-dark fw-medium" th:text="${selectedCustomer.username}">-</span>
                     </div>
                     <div class="col-md-4">
-                        <small class="text-uppercase text-muted d-block font-weight-bold mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Email Address</small>
+                        <small class="text-uppercase text-muted d-block fw-bold mb-1"
+                               style="font-size: 0.75rem; letter-spacing: 0.05em;">Email Address</small>
                         <span class="text-dark fw-medium" th:text="${selectedCustomer.email}">-</span>
                     </div>
                     <div class="col-md-2">
-                        <small class="text-uppercase text-muted d-block font-weight-bold mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Status</small>
-                        <div>
-                            <span class="badge bg-success-subtle text-success px-2 py-1" th:if="${selectedCustomer.enabled}">Active</span>
-                            <span class="badge bg-danger-subtle text-danger px-2 py-1" th:if="${!selectedCustomer.enabled}">Inactive</span>
-                        </div>
+                        <small class="text-uppercase text-muted d-block fw-bold mb-1"
+                               style="font-size: 0.75rem; letter-spacing: 0.05em;">Status</small>
+                        <span class="badge-status badge-status-success"
+                              th:if="${selectedCustomer.enabled}">
+                            <i class="bi bi-check-circle-fill me-1"></i>Active
+                        </span>
+                        <span class="badge-status badge-status-danger"
+                              th:if="${!selectedCustomer.enabled}">
+                            <i class="bi bi-slash-circle-fill me-1"></i>Inactive
+                        </span>
                     </div>
                 </div>
 
                 <!-- Booking History Table -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                        <i data-lucide="receipt" style="stroke-width: 1.5; width: 20px; height: 20px; color: #4f46e5;"></i>
+                        <i class="bi bi-receipt" style="color: #4f46e5; font-size: 1.1rem;"></i>
                         Web Booking Bills
                     </h5>
                 </div>
@@ -83,21 +129,29 @@
                                 <td><strong th:text="'#' + ${b.bookingId}">#1</strong></td>
                                 <td th:text="${b.hotelName}" class="fw-medium text-dark">Hotel</td>
                                 <td><small th:text="${b.roomType}" class="text-muted">Room Type</small></td>
-                                <td th:text="${b.checkInDate} + ' - ' + ${b.checkOutDate}">Dates</td>
+                                <td th:text="${b.checkInDate} + ' → ' + ${b.checkOutDate}">Dates</td>
                                 <td>
-                                    <strong class="text-dark" th:text="${#numbers.formatDecimal(b.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</strong>
+                                    <strong class="text-dark"
+                                            th:text="${#numbers.formatDecimal(b.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</strong>
                                 </td>
                                 <td>
-                                    <span class="badge-status" th:classappend="${b.bookingStatus == 'CONFIRMED' || b.bookingStatus == 'CHECKED_OUT'} ? 'badge-status-success' : (${b.bookingStatus == 'PENDING' || b.bookingStatus == 'CHECKED_IN'} ? 'badge-status-warning' : 'badge-status-danger')"
+                                    <span class="badge-status"
+                                          th:classappend="${b.bookingStatus == 'CONFIRMED' || b.bookingStatus == 'CHECKED_OUT'} ? 'badge-status-success' :
+                                                         (${b.bookingStatus == 'PENDING' || b.bookingStatus == 'CHECKED_IN'} ? 'badge-status-warning' : 'badge-status-danger')"
                                           th:text="${b.bookingStatus}">STATUS</span>
                                 </td>
                                 <td>
-                                    <span class="badge-status" th:classappend="${b.paymentStatus == 'SUCCESS'} ? 'badge-status-success' : (${b.paymentStatus == 'PENDING'} ? 'badge-status-warning' : 'badge-status-danger')"
+                                    <span class="badge-status"
+                                          th:classappend="${b.paymentStatus == 'SUCCESS'} ? 'badge-status-success' :
+                                                         (${b.paymentStatus == 'PENDING'} ? 'badge-status-warning' : 'badge-status-danger')"
                                           th:text="${b.paymentStatus}">STATUS</span>
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(customerBookings)}">
-                                <td colspan="7" class="text-center text-muted py-5">No bookings found for this customer.</td>
+                                <td colspan="7" class="text-center text-muted py-5">
+                                    <i class="bi bi-inbox d-block mb-2" style="font-size: 2rem; opacity: 0.4;"></i>
+                                    No bookings found for this customer.
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -107,18 +161,18 @@
                 <div class="pagination-container" th:if="${totalPages > 1}">
                     <a th:href="@{/admin/customer-detail(id=${selectedCustomer.id}, page=${currentPage - 1})}"
                        class="page-link-custom" th:classappend="${currentPage == 0} ? 'disabled' : ''">
-                        <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>
+                        <i class="bi bi-chevron-left"></i>
                     </a>
-                    
+
                     <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
                         <a th:href="@{/admin/customer-detail(id=${selectedCustomer.id}, page=${i})}"
                            class="page-link-custom" th:classappend="${currentPage == i} ? 'active' : ''"
                            th:text="${i + 1}">1</a>
                     </th:block>
-                    
+
                     <a th:href="@{/admin/customer-detail(id=${selectedCustomer.id}, page=${currentPage + 1})}"
                        class="page-link-custom" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled' : ''">
-                        <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+                        <i class="bi bi-chevron-right"></i>
                     </a>
                 </div>
 
@@ -126,6 +180,76 @@
         </div>
 
     </main>
+
+    <!-- Toggle Status Confirmation Modal -->
+    <div class="modal fade" id="toggleStatusModal" tabindex="-1" aria-labelledby="toggleStatusModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
+
+                <!-- Modal Header -->
+                <div class="modal-header border-0 pb-0" style="padding: 24px 24px 12px;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             th:style="${selectedCustomer.enabled}
+                                 ? 'width: 44px; height: 44px; background: rgba(220,38,38,0.1);'
+                                 : 'width: 44px; height: 44px; background: rgba(22,163,74,0.1);'">
+                            <i class="bi bi-shield-exclamation"
+                               th:style="${selectedCustomer.enabled}
+                                   ? 'font-size: 1.3rem; color: #dc2626;'
+                                   : 'font-size: 1.3rem; color: #16a34a;'"></i>
+                        </div>
+                        <h5 class="modal-title fw-bold mb-0" id="toggleStatusModalLabel"
+                            th:text="${selectedCustomer.enabled} ? 'Confirm Disable Account' : 'Confirm Enable Account'"
+                            style="font-size: 1.05rem;">Confirm Status Change</h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body" style="padding: 12px 24px 20px;">
+                    <div class="rounded-3 p-3 mb-3"
+                         th:style="${selectedCustomer.enabled}
+                             ? 'background: #fff7ed; border: 1px solid #fed7aa;'
+                             : 'background: #f0fdf4; border: 1px solid #bbf7d0;'">
+                        <p class="mb-1 fw-semibold"
+                           th:style="${selectedCustomer.enabled} ? 'color: #c2410c; font-size: 0.9rem;' : 'color: #15803d; font-size: 0.9rem;'"
+                           th:text="${selectedCustomer.enabled}
+                               ? 'This action will DISABLE the account:'
+                               : 'This action will ENABLE the account:'">
+                        </p>
+                        <p class="mb-0 fw-bold text-dark" style="font-size: 1rem;"
+                           th:text="${selectedCustomer.fullName} + ' (@' + ${selectedCustomer.username} + ')'"></p>
+                    </div>
+                    <p class="text-muted mb-0" style="font-size: 0.875rem;"
+                       th:text="${selectedCustomer.enabled}
+                           ? 'The account will not be able to log in until it is re-activated. Are you sure you want to continue?'
+                           : 'The account will be able to log in and use the system normally. Are you sure you want to continue?'">
+                    </p>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer border-0" style="padding: 0 24px 24px; gap: 10px;">
+                    <button type="button" class="btn btn-light fw-medium" data-bs-dismiss="modal"
+                            style="border-radius: 8px; padding: 8px 20px;">
+                        <i class="bi bi-x-lg me-1"></i>Cancel
+                    </button>
+                    <form th:action="@{/admin/toggle-user-status}" method="post" style="display: inline;">
+                        <input type="hidden" name="userId" th:value="${selectedCustomer.id}" />
+                        <input type="hidden" name="page" th:value="${currentPage}" />
+                        <button type="submit"
+                                class="btn fw-semibold d-flex align-items-center gap-2"
+                                style="border-radius: 8px; padding: 8px 20px;"
+                                th:classappend="${selectedCustomer.enabled} ? 'btn-danger' : 'btn-success'">
+                            <i class="bi bi-person-x-fill" th:if="${selectedCustomer.enabled}"></i>
+                            <i class="bi bi-person-check-fill" th:if="${!selectedCustomer.enabled}"></i>
+                            <span th:text="${selectedCustomer.enabled} ? 'Confirm Disable' : 'Confirm Enable'">Confirm</span>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
 
     <footer th:replace="~{fragment/frag :: footer}"></footer>
     <th:block th:replace="~{fragment/frag :: scripts}"></th:block>

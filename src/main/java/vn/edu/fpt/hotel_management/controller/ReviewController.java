@@ -5,18 +5,27 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.fpt.hotel_management.entity.Review;
 import vn.edu.fpt.hotel_management.entity.User;
+import vn.edu.fpt.hotel_management.entity.Customer;
+import vn.edu.fpt.hotel_management.entity.Hotel;
 import vn.edu.fpt.hotel_management.repository.ReviewRepository;
+import vn.edu.fpt.hotel_management.repository.CustomerRepository;
+import vn.edu.fpt.hotel_management.repository.HotelRepository;
 
 @Controller
 public class ReviewController {
 
     private final ReviewRepository reviewRepository;
+    private final CustomerRepository customerRepository;
+    private final HotelRepository hotelRepository;
 
-    public ReviewController(ReviewRepository reviewRepository) {
+    public ReviewController(ReviewRepository reviewRepository,
+                            CustomerRepository customerRepository,
+                            HotelRepository hotelRepository) {
         this.reviewRepository = reviewRepository;
+        this.customerRepository = customerRepository;
+        this.hotelRepository = hotelRepository;
     }
 
-    // ======================== POST /hotels/{id}/reviews ========================
     @PostMapping("/hotels/{id}/reviews")
     public String createReview(
             @PathVariable("id") int hotelId,
@@ -29,14 +38,15 @@ public class ReviewController {
             return "redirect:/login";
         }
 
-        // Giới hạn chỉ cho khách hàng (CUSTOMER) gửi đánh giá
         if (!"CUSTOMER".equalsIgnoreCase(loggedInUser.getRole())) {
             session.setAttribute("errorMessage", "Only customers can submit reviews.");
             return "redirect:/hotels/" + hotelId + "/rooms";
         }
 
-        // Giới hạn mỗi tài khoản chỉ được đánh giá 1 lần cho 1 khách sạn
-        if (reviewRepository.existsByHotelIdAndUserId(hotelId, loggedInUser.getId())) {
+        Customer customer = customerRepository.findByUserAccount(loggedInUser)
+                .orElseThrow(() -> new RuntimeException("Customer profile not found!"));
+
+        if (reviewRepository.existsByHotelIdAndCustomerId(hotelId, customer.getId())) {
             session.setAttribute("errorMessage", "You have already reviewed this hotel. You can only review once.");
             return "redirect:/hotels/" + hotelId + "/rooms";
         }
@@ -46,10 +56,13 @@ public class ReviewController {
             return "redirect:/hotels/" + hotelId + "/rooms";
         }
 
+        Hotel hotel = hotelRepository.findById(hotelId)
+                .orElseThrow(() -> new RuntimeException("Hotel not found!"));
+
         Review review = new Review();
-        review.setHotelId(hotelId);
-        review.setUserId(loggedInUser.getId());
-        review.setUserFullName(loggedInUser.getFullName());
+        review.setHotel(hotel);
+        review.setCustomer(customer);
+        review.setUserFullName(customer.getFullName());
         review.setRating(rating);
         review.setComment(comment != null ? comment.trim() : "");
 
@@ -59,8 +72,6 @@ public class ReviewController {
         return "redirect:/hotels/" + hotelId + "/rooms";
     }
 
-    // ======================== POST /hotels/{id}/reviews/{reviewId}/edit
-    // ========================
     @PostMapping("/hotels/{id}/reviews/{reviewId}/edit")
     public String updateReview(
             @PathVariable("id") int hotelId,
@@ -74,14 +85,16 @@ public class ReviewController {
             return "redirect:/login";
         }
 
+        Customer customer = customerRepository.findByUserAccount(loggedInUser)
+                .orElseThrow(() -> new RuntimeException("Customer profile not found!"));
+
         Review review = reviewRepository.findById(reviewId).orElse(null);
         if (review == null) {
             session.setAttribute("errorMessage", "Review not found.");
             return "redirect:/hotels/" + hotelId + "/rooms";
         }
 
-        // Chỉ chủ review mới được sửa (ADMIN không được sửa review của người khác)
-        if (review.getUserId() != loggedInUser.getId()) {
+        if (review.getCustomer().getId() != customer.getId()) {
             session.setAttribute("errorMessage", "You are not authorized to edit this review.");
             return "redirect:/hotels/" + hotelId + "/rooms";
         }
@@ -99,8 +112,6 @@ public class ReviewController {
         return "redirect:/hotels/" + hotelId + "/rooms";
     }
 
-    // ======================== POST /hotels/{id}/reviews/{reviewId}/delete
-    // ========================
     @PostMapping("/hotels/{id}/reviews/{reviewId}/delete")
     public String deleteReview(
             @PathVariable("id") int hotelId,
@@ -118,7 +129,12 @@ public class ReviewController {
             return "redirect:/hotels/" + hotelId + "/rooms";
         }
 
-        if (review.getUserId() != loggedInUser.getId() && !"ADMIN".equalsIgnoreCase(loggedInUser.getRole())) {
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(loggedInUser.getRole());
+        boolean isOwner = customerRepository.findByUserAccount(loggedInUser)
+                .map(customer -> review.getCustomer() != null && review.getCustomer().getId() == customer.getId())
+                .orElse(false);
+
+        if (!isOwner && !isAdmin) {
             session.setAttribute("errorMessage", "You are not authorized to delete this review.");
             return "redirect:/hotels/" + hotelId + "/rooms";
         }

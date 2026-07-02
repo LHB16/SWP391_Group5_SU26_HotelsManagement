@@ -4,41 +4,65 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "reviews")
+@Table(name = "feedback")
 public class Review {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "hotel_id", nullable = false)
-    private int hotelId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
 
-    @Column(name = "user_id", nullable = false)
-    private int userId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "hotel_id", nullable = false)
+    private Hotel hotel;
 
-    @Column(name = "user_full_name", nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "room_id")
+    private Room room;
+
+    @Column(name = "user_full_name")
     private String userFullName;
 
-    @Column(nullable = false)
-    private int rating; // Điểm đánh giá từ 1 đến 5 sao
+    @Column(name = "room_type")
+    private String roomType;
+
+    @Column(name = "rating", nullable = false)
+    private int rating;
 
     @Column(columnDefinition = "NVARCHAR(MAX)")
     private String comment;
 
+    @Column(name = "upvote")
+    private int upvote = 0;
+
+    @Column(name = "downvote")
+    private int downvote = 0;
+
+    @Column(name = "status")
+    private String status = "PENDING";
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     public Review() {
     }
 
-    public Review(int hotelId, int userId, String userFullName, int rating, String comment) {
-        this.hotelId = hotelId;
-        this.userId = userId;
+    public Review(Customer customer, Hotel hotel, Room room, String userFullName, String roomType, int rating, String comment) {
+        this.customer = customer;
+        this.hotel = hotel;
+        this.room = room;
         this.userFullName = userFullName;
+        this.roomType = roomType;
         this.rating = rating;
         this.comment = comment;
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     public int getId() {
@@ -49,20 +73,28 @@ public class Review {
         this.id = id;
     }
 
-    public int getHotelId() {
-        return hotelId;
+    public Customer getCustomer() {
+        return customer;
     }
 
-    public void setHotelId(int hotelId) {
-        this.hotelId = hotelId;
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
 
-    public int getUserId() {
-        return userId;
+    public Hotel getHotel() {
+        return hotel;
     }
 
-    public void setUserId(int userId) {
-        this.userId = userId;
+    public void setHotel(Hotel hotel) {
+        this.hotel = hotel;
+    }
+
+    public Room getRoom() {
+        return room;
+    }
+
+    public void setRoom(Room room) {
+        this.room = room;
     }
 
     public String getUserFullName() {
@@ -71,6 +103,14 @@ public class Review {
 
     public void setUserFullName(String userFullName) {
         this.userFullName = userFullName;
+    }
+
+    public String getRoomType() {
+        return roomType;
+    }
+
+    public void setRoomType(String roomType) {
+        this.roomType = roomType;
     }
 
     public int getRating() {
@@ -89,11 +129,43 @@ public class Review {
         this.comment = comment;
     }
 
+    public int getUpvote() {
+        return upvote;
+    }
+
+    public void setUpvote(int upvote) {
+        this.upvote = upvote;
+    }
+
+    public int getDownvote() {
+        return downvote;
+    }
+
+    public void setDownvote(int downvote) {
+        this.downvote = downvote;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

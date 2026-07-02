@@ -3,16 +3,13 @@
     booking/qr-payment.html
     QR Code Payment Page – UC-14
     Palette: Deep Navy (#0a1628) + Champagne Gold (#c9a96e)
-    All styles in booking.css — no inline styles, no JavaScript.
+    All styles are loaded from the unified style.css file.
 -->
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 
 <head th:replace="~{fragment/frag :: head}"></head>
 
 <body class="d-flex flex-column min-vh-100">
-
-    <!-- Page-specific stylesheet -->
-    <link rel="stylesheet" th:href="@{/assets/css/booking.css}" />
 
     <!-- Shared navbar -->
     <nav th:replace="~{fragment/frag :: navBar}"></nav>

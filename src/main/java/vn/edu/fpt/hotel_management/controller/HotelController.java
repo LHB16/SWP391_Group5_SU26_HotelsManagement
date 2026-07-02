@@ -9,7 +9,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.hotel_management.entity.Hotel;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 import vn.edu.fpt.hotel_management.repository.RoomRepository;
-
+import vn.edu.fpt.hotel_management.repository.HotelOwnerRepository;
+import vn.edu.fpt.hotel_management.entity.HotelOwner;
+import vn.edu.fpt.hotel_management.entity.User;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -24,14 +26,16 @@ public class HotelController {
     // Inject HotelRepository và RoomRepository để truy vấn dữ liệu
     private final HotelRepository hotelRepository;
     private final RoomRepository roomRepository;
+    private final HotelOwnerRepository hotelOwnerRepository;
 
     // Thư mục con trong static resources để lưu ảnh khách sạn
     private static final String HOTEL_IMAGE_SUBDIR = "assets/images/hotel";
     private static final String HOTEL_IMAGE_URL_PREFIX = "/assets/images/hotel/";
 
-    public HotelController(HotelRepository hotelRepository, RoomRepository roomRepository) {
+    public HotelController(HotelRepository hotelRepository, RoomRepository roomRepository, HotelOwnerRepository hotelOwnerRepository) {
         this.hotelRepository = hotelRepository;
         this.roomRepository = roomRepository;
+        this.hotelOwnerRepository = hotelOwnerRepository;
     }
 
     /**
@@ -142,6 +146,7 @@ public class HotelController {
             @RequestParam(value = "price", required = false) BigDecimal price,
             @RequestParam("active")      boolean active,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+            HttpSession session,
             RedirectAttributes redirectAttributes
     ) {
         String imageUrl = null;
@@ -179,9 +184,30 @@ public class HotelController {
         hotel.setActive(active);
         hotel.setImageUrl(imageUrl);
 
-        hotelRepository.save(hotel);
+        // Gán owner_id bắt buộc (SQL NOT NULL constraint)
+        try {
+            User loggedInUser = (User) session.getAttribute("loggedInUser");
+            if (loggedInUser != null) {
+                // Thử tìm HotelOwner ứng với User này
+                hotelOwnerRepository.findByUserAccountId(loggedInUser.getId()).ifPresent(hotel::setOwner);
+            }
+        } catch (Exception e) {
+            // Bỏ qua lỗi cast class nếu session bị cũ
+        }
+        
+        // Nếu không có owner do lỗi hoặc Admin đang tạo, tạm thời lấy một owner đầu tiên hoặc báo lỗi
+        if (hotel.getOwner() == null) {
+             hotelOwnerRepository.findAll().stream().findFirst().ifPresent(hotel::setOwner);
+        }
 
-        redirectAttributes.addFlashAttribute("successMessage", "Hotel \"" + name + "\" added successfully!");
+        try {
+            hotelRepository.save(hotel);
+            redirectAttributes.addFlashAttribute("successMessage", "Hotel \"" + name + "\" added successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to save hotel: " + e.getMessage());
+            return "redirect:/hotels/new";
+        }
+
         return "redirect:/hotels";
     }
 

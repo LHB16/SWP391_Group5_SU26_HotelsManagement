@@ -4,9 +4,6 @@
 <head th:replace="~{fragment/frag :: head}"></head>
 
 <body class="d-flex flex-column min-vh-100">
-<link rel="stylesheet" th:href="@{/assets/css/room-list.css}" />
-<link rel="stylesheet" th:href="@{/assets/css/wishlist.css}" />
-
 <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
 <!-- ==================== HERO BANNER ==================== -->
@@ -99,7 +96,7 @@
                             </span>
                         </div>
                     </div>
-                    <a th:if="${session.loggedInUser != null && (session.loggedInUser.role == 'ADMIN' || session.loggedInUser.role == 'OWNER')}"
+                    <a th:if="${session.loggedInUser != null && (session.loggedInUser.role == 'ADMIN' || session.loggedInUser.role == 'HOTEL_OWNER')}"
                        th:href="@{/hotels/{id}/rooms/new(id=${hotel.id})}" class="btn btn-gold">
                         <i class="bi bi-plus-lg me-1"></i>
                         Add Room
@@ -187,7 +184,7 @@
                                     <div>
                                         <span class="room-price-amount"
                                             th:text="${#numbers.formatInteger(roomPricesMap != null ? roomPricesMap.get(room.id) : room.price, 0, 'COMMA')}">500,000</span>
-                                        <span class="room-price-unit" th:text="${isFiltered} ? 'VND / ' + ${nights} + ' night' + (${nights > 1} ? 's' : '') : 'VND'">VND</span>
+                                        <span class="room-price-unit" th:text="${isFiltered ? 'VND / ' + nights + ' night' + (nights > 1 ? 's' : '') : 'VND'}">VND</span>
                                     </div>
                                 </div>
                                 <div class="room-action-btns">
@@ -302,7 +299,7 @@
                                             <p class="review-comment" th:text="${review.comment}">Comment</p>
 
                                             <!-- Edit/Delete (chủ review) -->
-                                            <div th:if="${user != null and user.id == review.userId}" class="mt-2">
+                                            <div th:if="${currentCustomerId != null and review.customer != null and currentCustomerId == review.customer.id}" class="mt-2">
                                                 <div class="d-flex justify-content-end gap-2">
                                                     <button type="button" class="btn-review-edit"
                                                             data-bs-toggle="collapse"
@@ -349,7 +346,7 @@
                                             </div>
 
                                             <!-- Delete only (ADMIN) -->
-                                            <div th:if="${user != null and user.role == 'ADMIN' and user.id != review.userId}"
+                                            <div th:if="${user != null and user.role == 'ADMIN' and (currentCustomerId == null or review.customer == null or currentCustomerId != review.customer.id)}"
                                                  class="mt-2 text-end">
                                                 <form th:action="@{/hotels/{id}/reviews/{rid}/delete(id=${hotel.id}, rid=${review.id})}"
                                                       method="post" style="display:inline;"
@@ -373,7 +370,7 @@
 <!-- ==================== ROOM DETAIL MODALS (Bootstrap modal per room) ==================== -->
 <th:block th:if="${rooms != null and !rooms.isEmpty()}">
     <div th:each="room : ${rooms}" class="modal fade"
-         th:id="${'roomModal-' + room.id}" tabindex="-1" aria-modal="true" role="dialog">
+         th:id="${'roomModal-' + room.id}" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content" style="border-radius:18px; overflow:hidden; border:none;">
 
@@ -440,26 +437,7 @@
                                 : 'A luxurious room equipped with modern amenities for the finest hospitality experience.'}">
                     </p>
 
-                    <!-- Amenity checklists -->
-                    <div class="room-detail-feature-section" th:if="${room.bathroomAmenities != null and !#strings.isEmpty(room.bathroomAmenities)}">
-                        <div class="room-detail-feature-title">In your private bathroom:</div>
-                        <div class="room-detail-checklist-grid">
-                            <div class="room-detail-check-item" th:each="amenity : ${#strings.arraySplit(room.bathroomAmenities, ',')}">
-                                <span class="rdm-check">✓</span>
-                                <span th:text="${#strings.trim(amenity)}">Free toiletries</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="room-detail-feature-section" th:if="${room.facilities != null and !#strings.isEmpty(room.facilities)}">
-                        <div class="room-detail-feature-title">Facilities:</div>
-                        <div class="room-detail-checklist-grid">
-                            <div class="room-detail-check-item" th:each="facility : ${#strings.arraySplit(room.facilities, ',')}">
-                                <span class="rdm-check">✓</span>
-                                <span th:text="${#strings.trim(facility)}">Air conditioning</span>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="room-detail-smoking">
                         <i class="bi bi-ban text-danger me-1"></i> No smoking
@@ -486,6 +464,23 @@
 
 <script th:inline="javascript">
     document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll('.btn-view-detail[data-bs-target]').forEach(function(button) {
+            button.addEventListener('click', function(event) {
+                const targetSelector = button.getAttribute('data-bs-target');
+                const modalEl = targetSelector ? document.querySelector(targetSelector) : null;
+                if (!modalEl || !window.bootstrap || !window.bootstrap.Modal) {
+                    return;
+                }
+                event.preventDefault();
+                event.stopPropagation();
+                window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            });
+        });
+
+        if (typeof flatpickr !== 'function') {
+            return;
+        }
+
         const checkinVal = /*[[${checkin}]]*/ '';
         const checkoutVal = /*[[${checkout}]]*/ '';
         const todayVal = /*[[${today}]]*/ '';

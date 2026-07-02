@@ -4,9 +4,6 @@
 <head th:replace="~{fragment/frag :: head}"></head>
 
 <body class="d-flex flex-column min-vh-100">
-<link rel="stylesheet" th:href="@{/assets/css/room-list.css}" />
-<link rel="stylesheet" th:href="@{/assets/css/wishlist.css}" />
-
 <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
 <!-- ==================== HERO BANNER ==================== -->
@@ -148,8 +145,8 @@
                                         <div class="d-flex align-items-baseline gap-1">
                                             <span class="room-price-amount fs-4 fw-bold text-gold" style="color: #b45309;"
                                                 th:text="${#numbers.formatInteger(wishlistPricesMap.get(wl.id), 0, 'COMMA')}">500,000</span>
-                                            <span class="room-price-unit text-muted small" 
-                                                  th:text="${wishlistFilteredMap.get(wl.id)} ? 'VND / ' + ${wishlistNightsMap.get(wl.id)} + ' night' + (${wishlistNightsMap.get(wl.id) > 1} ? 's' : '') : 'VND / night'">VND</span>
+                                            <span class="room-price-unit text-muted small"
+                                                  th:text="${wishlistFilteredMap.get(wl.id) ? 'VND / ' + wishlistNightsMap.get(wl.id) + ' night' + (wishlistNightsMap.get(wl.id) > 1 ? 's' : '') : 'VND / night'}">VND</span>
                                         </div>
                                     </div>
                                     <div class="room-action-btns">

@@ -4,8 +4,6 @@
 <head th:replace="~{fragment/frag :: head}"></head>
 
 <body class="d-flex flex-column min-vh-100">
-<link rel="stylesheet" th:href="@{/assets/css/hotel-list.css}" />
-
 <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
 <!-- Hero Banner -->
@@ -21,7 +19,7 @@
                     Found <strong th:text="${totalResults}">0</strong> hotel(s) available
                 </p>
             </div>
-            <a th:if="${session.loggedInUser != null && (session.loggedInUser.role == 'ADMIN' || session.loggedInUser.role == 'OWNER')}" 
+            <a th:if="${session.loggedInUser != null && (session.loggedInUser.role == 'ADMIN' || session.loggedInUser.role == 'HOTEL_OWNER')}" 
                href="/hotels/new" class="btn btn-gold px-4 py-2">
                 <i class="bi bi-plus-lg me-1"></i>
                 Add Hotel
