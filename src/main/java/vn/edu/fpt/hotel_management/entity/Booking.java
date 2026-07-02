@@ -101,10 +101,11 @@ public class Booking {
     }
 
     public boolean isCancelable() {
-        if (this.createdAt == null || !"CONFIRMED".equalsIgnoreCase(this.status)) {
+        if (!"CONFIRMED".equalsIgnoreCase(this.status)) {
             return false;
         }
-        return java.time.Duration.between(this.createdAt, java.time.LocalDateTime.now()).toHours() < 24;
+        // Cho phép hủy khi chưa đến ngày check-in
+        return checkInDate != null && java.time.LocalDate.now().isBefore(checkInDate);
     }
 
     public LocalDateTime getCreatedAt() {

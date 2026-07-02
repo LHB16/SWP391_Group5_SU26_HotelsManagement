@@ -61,6 +61,7 @@ public class PaymentController {
             @RequestParam(value = "roomIds",  required = false) java.util.List<Integer> roomIds,
             @RequestParam(value = "checkin",  required = false) String checkin,
             @RequestParam(value = "checkout", required = false) String checkout,
+            @RequestParam(value = "from",     required = false) String from,
             HttpSession session,
             Model model
     ) {
@@ -183,6 +184,7 @@ public class PaymentController {
         model.addAttribute("bookingId",     booking.getId());
         model.addAttribute("qrExpiresAt",      qrExpiresAt);
         model.addAttribute("remainingSeconds",  remainingSeconds);
+        model.addAttribute("from",              from);
 
         return "booking/qr-payment";
     }
@@ -283,10 +285,10 @@ public class PaymentController {
             @RequestParam(value = "roomId", required = false, defaultValue = "0") int roomId,
             @RequestParam(value = "checkin",  required = false) String checkin,
             @RequestParam(value = "checkout", required = false) String checkout,
+            @RequestParam(value = "from",     required = false) String from,
             HttpSession session,
             Model model,
-            RedirectAttributes redirectAttributes
-    ) {
+            RedirectAttributes redirectAttributes) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
             return "redirect:/login";
@@ -357,6 +359,7 @@ public class PaymentController {
         model.addAttribute("bookingId",        bookingId);
         model.addAttribute("qrExpiresAt",      qrExpiresAt);
         model.addAttribute("remainingSeconds", remainingSeconds);
+        model.addAttribute("from",             from);
 
         return "booking/qr-payment";
     }
