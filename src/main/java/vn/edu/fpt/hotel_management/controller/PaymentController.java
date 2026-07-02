@@ -13,9 +13,11 @@ import vn.edu.fpt.hotel_management.repository.*;
 
 import java.math.BigDecimal;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -156,10 +158,11 @@ public class PaymentController {
 
         // 9. Build QR URL (VietQR)
         String transferInfo = buildTransferInfo(booking.getId(), hotel.getName(), room.getRoomType());
-        String encodedAccount = accountName.replace(" ", "%20");
+        String encodedTransferInfo = URLEncoder.encode(transferInfo, StandardCharsets.UTF_8);
+        String encodedAccount = URLEncoder.encode(accountName, StandardCharsets.UTF_8);
         String qrUrl = "https://img.vietqr.io/image/" + bankCode + "-" + bankAccount + "-compact.png"
                 + "?amount=" + totalPrice.longValue()
-                + "&addInfo=" + transferInfo
+                + "&addInfo=" + encodedTransferInfo
                 + "&accountName=" + encodedAccount;
 
         // Compute remaining seconds for the timer (passed to template)
@@ -332,11 +335,12 @@ public class PaymentController {
         BigDecimal tax = subtotal.multiply(BigDecimal.valueOf(0.1)).setScale(0, java.math.RoundingMode.HALF_UP);
 
         String transferInfo = buildTransferInfo(bookingId, hotel.getName(), room.getRoomType());
-        String encodedAccount = accountName.replace(" ", "%20");
+        String encodedTransferInfo2 = URLEncoder.encode(transferInfo, StandardCharsets.UTF_8);
+        String encodedAccount2 = URLEncoder.encode(accountName, StandardCharsets.UTF_8);
         String qrUrl = "https://img.vietqr.io/image/" + bankCode + "-" + bankAccount + "-compact.png"
                 + "?amount=" + totalPrice.longValue()
-                + "&addInfo=" + transferInfo
-                + "&accountName=" + encodedAccount;
+                + "&addInfo=" + encodedTransferInfo2
+                + "&accountName=" + encodedAccount2;
 
         LocalDateTime qrExpiresAt = (payment != null) ? payment.getQrExpiresAt() : LocalDateTime.now().plusMinutes(15);
         long remainingSeconds = Math.max(0, java.time.Duration.between(LocalDateTime.now(), qrExpiresAt).getSeconds());
