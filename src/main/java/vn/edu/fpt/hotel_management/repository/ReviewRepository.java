@@ -8,5 +8,5 @@ import java.util.List;
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Integer> {
     List<Review> findByHotelIdOrderByCreatedAtDesc(int hotelId);
-    boolean existsByHotelIdAndUserId(int hotelId, int userId);
+    boolean existsByHotelIdAndCustomerId(int hotelId, int customerId);
 }

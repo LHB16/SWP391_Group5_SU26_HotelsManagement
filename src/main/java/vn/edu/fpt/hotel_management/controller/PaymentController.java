@@ -26,6 +26,7 @@ public class PaymentController {
     private final PaymentRepository paymentRepository;
     private final RoomRepository roomRepository;
     private final HotelRepository hotelRepository;
+    private final CustomerRepository customerRepository;
 
     // Read from application.properties: payment.bank-code, etc.
     @Value("${payment.bank-code:MB}")
@@ -45,12 +46,14 @@ public class PaymentController {
             BookingRepository bookingRepository,
             PaymentRepository paymentRepository,
             RoomRepository roomRepository,
-            HotelRepository hotelRepository
+            HotelRepository hotelRepository,
+            CustomerRepository customerRepository
     ) {
         this.bookingRepository = bookingRepository;
         this.paymentRepository = paymentRepository;
         this.roomRepository = roomRepository;
         this.hotelRepository = hotelRepository;
+        this.customerRepository = customerRepository;
     }
 
     // ======================== GET /booking/qr-payment ========================
@@ -95,8 +98,14 @@ public class PaymentController {
         if (checkout == null || checkout.isBlank()) checkout = LocalDate.now().plusDays(1).toString();
 
         // 4. Parse dates
-        LocalDate checkInDate  = LocalDate.parse(checkin);
-        LocalDate checkOutDate = LocalDate.parse(checkout);
+        LocalDate checkInDate;
+        LocalDate checkOutDate;
+        try {
+            checkInDate = LocalDate.parse(checkin);
+            checkOutDate = LocalDate.parse(checkout);
+        } catch (Exception ex) {
+            return "redirect:/hotels/" + hotel.getId() + "/rooms";
+        }
 
         long nights = checkOutDate.toEpochDay() - checkInDate.toEpochDay();
         if (nights <= 0) nights = 1;
@@ -107,10 +116,16 @@ public class PaymentController {
         BigDecimal tax        = subtotal.multiply(BigDecimal.valueOf(0.1)).setScale(0, java.math.RoundingMode.HALF_UP);
         BigDecimal totalPrice = subtotal.add(tax).add(serviceFee);
 
+        java.util.Optional<Customer> customerOpt = customerRepository.findByUserAccount(loggedInUser);
+        if (customerOpt.isEmpty()) {
+            return "redirect:/hotels/" + hotel.getId() + "/rooms";
+        }
+        Customer customer = customerOpt.get();
+
         // 6. Idempotency: reuse existing PENDING booking ONLY if its QR is still valid.
         //    If QR has expired the user must be allowed to create a fresh booking.
         java.util.Optional<Booking> existingOpt = bookingRepository
-                .findPendingBookings(loggedInUser.getId(), roomId, checkInDate, checkOutDate)
+                .findPendingBookings(customer.getId(), roomId, checkInDate, checkOutDate)
                 .stream()
                 .filter(b -> {
                     // Accept booking only when its payment QR is still within the valid window
@@ -131,14 +146,13 @@ public class PaymentController {
 
         // No valid PENDING booking found → create a new one (first visit or after expiry)
         Booking booking = new Booking();
-        booking.setCustomer(loggedInUser);
+        booking.setCustomer(customer);
         booking.setRoom(room);
         booking.setCheckInDate(checkInDate);
         booking.setCheckOutDate(checkOutDate);
         booking.setTotalPrice(totalPrice);
         booking.setStatus("PENDING");
         booking.setCreatedAt(LocalDateTime.now());
-        booking.setUpdatedAt(LocalDateTime.now());
         bookingRepository.save(booking);
 
         // 8. Create Payment record with PENDING status (first visit only)
@@ -212,7 +226,6 @@ public class PaymentController {
         // 3. Check QR expiry
         if (payment != null && payment.isQrExpired()) {
             booking.setStatus("CANCELLED");
-            booking.setUpdatedAt(LocalDateTime.now());
             bookingRepository.save(booking);
             payment.setStatus("FAILED");
             paymentRepository.save(payment);
@@ -245,7 +258,6 @@ public class PaymentController {
         if (verified) {
             // Mark payment and booking as successful
             booking.setStatus("CONFIRMED");
-            booking.setUpdatedAt(LocalDateTime.now());
             bookingRepository.save(booking);
             if (payment != null) {
                 payment.setStatus("SUCCESS");

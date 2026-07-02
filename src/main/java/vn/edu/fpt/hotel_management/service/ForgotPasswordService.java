@@ -25,7 +25,8 @@ public class ForgotPasswordService {
     }
 
     public void sendResetOtp(String email) {
-        User user = userRepository.findByEmail(email)
+        email = normalizeEmail(email);
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("Email not found!"));
 
         if (!user.isEnabled()) {
@@ -42,13 +43,22 @@ public class ForgotPasswordService {
     }
 
     public void resetPassword(String email, String newPassword) {
-        User user = userRepository.findByEmail(email)
+        email = normalizeEmail(email);
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("Email not found!"));
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
     public User findByEmail(String email) {
-        return userRepository.findByEmail(email).orElse(null);
+        email = normalizeEmail(email);
+        return userRepository.findByEmailIgnoreCase(email).orElse(null);
+    }
+
+    private String normalizeEmail(String email) {
+        if (email != null) {
+            return email.trim();
+        }
+        return null;
     }
 }

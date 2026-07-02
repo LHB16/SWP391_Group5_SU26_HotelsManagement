@@ -1,18 +1,17 @@
 package vn.edu.fpt.hotel_management.controller;
 
 import jakarta.servlet.http.HttpSession;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import vn.edu.fpt.hotel_management.entity.Room;
 import vn.edu.fpt.hotel_management.entity.User;
+import vn.edu.fpt.hotel_management.entity.Customer;
 import vn.edu.fpt.hotel_management.entity.Wishlist;
 import vn.edu.fpt.hotel_management.repository.RoomRepository;
 import vn.edu.fpt.hotel_management.repository.WishlistRepository;
+import vn.edu.fpt.hotel_management.repository.CustomerRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -27,13 +26,16 @@ public class WishlistController {
 
     private final WishlistRepository wishlistRepository;
     private final RoomRepository roomRepository;
+    private final CustomerRepository customerRepository;
 
-    public WishlistController(WishlistRepository wishlistRepository, RoomRepository roomRepository) {
+    public WishlistController(WishlistRepository wishlistRepository,
+                              RoomRepository roomRepository,
+                              CustomerRepository customerRepository) {
         this.wishlistRepository = wishlistRepository;
         this.roomRepository = roomRepository;
+        this.customerRepository = customerRepository;
     }
 
-    // ======================== GET /wishlist ========================
     @GetMapping("/wishlist")
     public String showWishlistPage(HttpSession session, Model model) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
@@ -41,9 +43,14 @@ public class WishlistController {
             return "redirect:/login";
         }
 
-        List<Wishlist> wishlists = wishlistRepository.findByCustomerIdOrderByAddedAtDesc(loggedInUser.getId());
+        Optional<Customer> customerOpt = customerRepository.findByUserAccount(loggedInUser);
+        if (customerOpt.isEmpty()) {
+            return "redirect:/hotels";
+        }
+        Customer customer = customerOpt.get();
 
-        // Tính toán số đêm và giá thực tế của từng wishlist room dựa trên filter ngày lưu kèm
+        List<Wishlist> wishlists = wishlistRepository.findByCustomerIdOrderByAddedAtDesc(customer.getId());
+
         Map<Integer, BigDecimal> wishlistPricesMap = new HashMap<>();
         Map<Integer, Long> wishlistNightsMap = new HashMap<>();
         Map<Integer, Boolean> wishlistFilteredMap = new HashMap<>();
@@ -76,8 +83,6 @@ public class WishlistController {
         return "hotel/wishlist";
     }
 
-    // ======================== GET /wishlist/toggle (AJAX API) ========================
-    // ======================== GET /wishlist/toggle ========================
     @GetMapping("/wishlist/toggle")
     public String toggleWishlist(
             @RequestParam("roomId") int roomId,
@@ -91,9 +96,15 @@ public class WishlistController {
             return "redirect:/login";
         }
 
+        Optional<Customer> customerOpt = customerRepository.findByUserAccount(loggedInUser);
+        if (customerOpt.isEmpty()) {
+            return "redirect:/hotels";
+        }
+        Customer customer = customerOpt.get();
+
         Room room = roomRepository.findById(roomId).orElse(null);
         if (room != null) {
-            Optional<Wishlist> existing = wishlistRepository.findByCustomerIdAndRoomId(loggedInUser.getId(), roomId);
+            Optional<Wishlist> existing = wishlistRepository.findByCustomerIdAndRoomId(customer.getId(), roomId);
             if (existing.isPresent()) {
                 wishlistRepository.delete(existing.get());
             } else {
@@ -107,7 +118,7 @@ public class WishlistController {
                         // ignore
                     }
                 }
-                Wishlist wl = new Wishlist(loggedInUser, room, inDate, outDate);
+                Wishlist wl = new Wishlist(customer, room, inDate, outDate);
                 wishlistRepository.save(wl);
             }
             
@@ -129,7 +140,6 @@ public class WishlistController {
         return "redirect:/hotels";
     }
 
-    // ======================== GET /wishlist/remove ========================
     @GetMapping("/wishlist/remove")
     public String removeWishlist(@RequestParam("id") int id, HttpSession session) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
@@ -137,14 +147,19 @@ public class WishlistController {
             return "redirect:/login";
         }
 
+        Optional<Customer> customerOpt = customerRepository.findByUserAccount(loggedInUser);
+        if (customerOpt.isEmpty()) {
+            return "redirect:/hotels";
+        }
+        Customer customer = customerOpt.get();
+
         Optional<Wishlist> wl = wishlistRepository.findById(id);
-        if (wl.isPresent() && wl.get().getCustomer().getId() == loggedInUser.getId()) {
+        if (wl.isPresent() && wl.get().getCustomer().getId() == customer.getId()) {
             wishlistRepository.delete(wl.get());
         }
         return "redirect:/wishlist";
     }
 
-    // ======================== GET /wishlist/update-filter ========================
     @GetMapping("/wishlist/update-filter")
     public String updateWishlistFilter(
             @RequestParam("id") int id,
@@ -157,8 +172,14 @@ public class WishlistController {
             return "redirect:/login";
         }
 
+        Optional<Customer> customerOpt = customerRepository.findByUserAccount(loggedInUser);
+        if (customerOpt.isEmpty()) {
+            return "redirect:/hotels";
+        }
+        Customer customer = customerOpt.get();
+
         Optional<Wishlist> wlOpt = wishlistRepository.findById(id);
-        if (wlOpt.isPresent() && wlOpt.get().getCustomer().getId() == loggedInUser.getId()) {
+        if (wlOpt.isPresent() && wlOpt.get().getCustomer().getId() == customer.getId()) {
             Wishlist wl = wlOpt.get();
             LocalDate inDate = null;
             LocalDate outDate = null;
@@ -177,7 +198,6 @@ public class WishlistController {
         return "redirect:/wishlist";
     }
 
-    // ======================== Helper Methods ========================
     private boolean isHolidayOrWeekend(LocalDate date) {
         java.time.DayOfWeek dayOfWeek = date.getDayOfWeek();
         if (dayOfWeek == java.time.DayOfWeek.SATURDAY || dayOfWeek == java.time.DayOfWeek.SUNDAY) {

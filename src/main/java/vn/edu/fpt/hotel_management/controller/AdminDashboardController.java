@@ -8,13 +8,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.hotel_management.entity.Booking;
 import vn.edu.fpt.hotel_management.entity.Hotel;
 import vn.edu.fpt.hotel_management.entity.User;
+import vn.edu.fpt.hotel_management.entity.Customer;
 import vn.edu.fpt.hotel_management.repository.BookingRepository;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 import vn.edu.fpt.hotel_management.repository.UserRepository;
+import vn.edu.fpt.hotel_management.repository.CustomerRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -32,6 +36,9 @@ public class AdminDashboardController {
 
     @Autowired
     private BookingRepository bookingRepository;
+
+    @Autowired
+    private CustomerRepository customerRepository;
 
     @GetMapping("/admin/dashboard")
     public String showAdminDashboard(
@@ -51,43 +58,43 @@ public class AdminDashboardController {
         model.addAttribute("user", loggedInUser);
         model.addAttribute("tab", tab);
 
-        // 1. Dữ liệu doanh thu cho biểu đồ và bảng thống kê (Đã chuyển sang dạng thuần Java / DB-Independent)
+        // Thống kê dữ liệu doanh thu độc lập cơ sở dữ liệu
         List<Map<String, Object>> revenueData = getHotelRevenueStatistics();
         model.addAttribute("revenueData", revenueData);
 
-        // 2. Danh sách khách sạn cho bộ lọc doanh thu
+        // Danh sách khách sạn phục vụ lọc doanh thu
         model.addAttribute("hotels", hotelRepository.findAll());
 
-        // 3. Danh sách khách hàng (Role: CUSTOMER) có phân trang và tìm kiếm dùng Magic Methods
+        // Danh sách khách hàng kèm phân trang và tìm kiếm
         Pageable pageable = PageRequest.of(page, 10);
-        Page<User> customerPage;
+        Page<Customer> customerPage;
         if (searchQuery != null && !searchQuery.trim().isEmpty()) {
             String query = searchQuery.trim();
             if ("id".equals(searchType)) {
                 try {
                     int targetId = Integer.parseInt(query);
-                    customerPage = userRepository.findByRoleAndId("CUSTOMER", targetId, pageable);
+                    customerPage = customerRepository.findById(targetId, pageable);
                 } catch (NumberFormatException e) {
                     customerPage = Page.empty(pageable);
                 }
             } else if ("fullName".equals(searchType)) {
-                customerPage = userRepository.findByRoleAndFullNameContainingIgnoreCase("CUSTOMER", query, pageable);
+                customerPage = customerRepository.findByFullNameContainingIgnoreCase(query, pageable);
             } else if ("email".equals(searchType)) {
-                customerPage = userRepository.findByRoleAndEmailContainingIgnoreCase("CUSTOMER", query, pageable);
+                customerPage = customerRepository.findByUserAccountEmailContainingIgnoreCase(query, pageable);
             } else {
-                customerPage = userRepository.findByRoleAndUsernameContainingIgnoreCase("CUSTOMER", query, pageable);
+                customerPage = customerRepository.findByUserAccountUsernameContainingIgnoreCase(query, pageable);
             }
             model.addAttribute("searchQuery", searchQuery);
             model.addAttribute("searchType", searchType);
         } else {
-            customerPage = userRepository.findByRole("CUSTOMER", pageable);
+            customerPage = customerRepository.findAll(pageable);
         }
         model.addAttribute("customers", customerPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", customerPage.getTotalPages());
 
-        // 4. Danh sách hóa đơn đặt phòng của toàn bộ hệ thống (dùng cho JS lọc doanh thu)
-        // Ánh xạ sang Map đơn giản để tránh Lazy Loading Exception khi chuyển sang JSON bằng Thymeleaf
+        // Danh sách đặt phòng toàn hệ thống
+        // Ánh xạ sang Map để tránh Lazy Loading Exception khi chuyển sang JSON
         List<Booking> allBookings = bookingRepository.findAllByOrderByCreatedAtDesc();
         List<Map<String, Object>> mappedBookings = allBookings.stream().map(b -> {
             Map<String, Object> map = new HashMap<>();
@@ -95,7 +102,7 @@ public class AdminDashboardController {
             map.put("customerId", b.getCustomer() != null ? b.getCustomer().getId() : null);
             map.put("roomType", b.getRoom() != null ? b.getRoom().getRoomType() : null);
             
-            // Lấy tên khách sạn
+            // Lấy thông tin tên khách sạn
             if (b.getRoom() != null) {
                 int hotelId = b.getRoom().getHotelId();
                 Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
@@ -115,7 +122,7 @@ public class AdminDashboardController {
 
         model.addAttribute("bookings", mappedBookings);
 
-        // Trả về templates/admin/dashboard.html
+        // Hiển thị giao diện dashboard admin
         return "admin/dashboard";
     }
 
@@ -134,8 +141,8 @@ public class AdminDashboardController {
         model.addAttribute("user", loggedInUser);
 
         // Tìm khách hàng
-        User selectedCustomer = userRepository.findById(customerId).orElse(null);
-        if (selectedCustomer == null || !"CUSTOMER".equals(selectedCustomer.getRole())) {
+        Customer selectedCustomer = customerRepository.findById(customerId).orElse(null);
+        if (selectedCustomer == null) {
             return "redirect:/admin/dashboard";
         }
         model.addAttribute("selectedCustomer", selectedCustomer);
@@ -173,6 +180,38 @@ public class AdminDashboardController {
         return "admin/customer-detail";
     }
 
+    @PostMapping("/admin/toggle-user-status")
+    public String toggleUserStatus(
+            @RequestParam("userId") int userId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+
+        // Kiểm tra phân quyền admin
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"ADMIN".equals(loggedInUser.getRole())) {
+            return "redirect:/login";
+        }
+
+        Customer targetCustomer = customerRepository.findById(userId).orElse(null);
+        if (targetCustomer == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Account not found or you do not have permission to modify it.");
+            return "redirect:/admin/dashboard";
+        }
+        User targetUser = targetCustomer.getUserAccount();
+
+        // Đảo ngược trạng thái enabled
+        boolean newStatus = !targetUser.isEnabled();
+        targetUser.setEnabled(newStatus);
+        userRepository.save(targetUser);
+
+        String action = newStatus ? "enabled" : "disabled";
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Account \"" + targetCustomer.getFullName() + "\" has been " + action + " successfully.");
+
+        return "redirect:/admin/customer-detail?id=" + userId + "&page=" + page;
+    }
+
     /**
      * Thống kê doanh thu độc lập Database, chạy trực tiếp trên Java
      */
@@ -181,13 +220,13 @@ public class AdminDashboardController {
         List<Hotel> hotels = hotelRepository.findAll();
         Map<Integer, Hotel> hotelMap = hotels.stream().collect(Collectors.toMap(Hotel::getId, h -> h));
 
-        // Lọc theo trạng thái hợp lệ
+        // Lọc danh sách đơn đặt phòng hợp lệ
         List<Booking> filtered = bookings.stream()
                 .filter(b -> b.getStatus() != null && 
                         (b.getStatus().equals("CONFIRMED") || b.getStatus().equals("CHECKED_IN") || b.getStatus().equals("CHECKED_OUT")))
                 .collect(Collectors.toList());
 
-        // Gom nhóm theo hotelId, year, month
+        // Gom nhóm dữ liệu theo khách sạn và thời gian
         Map<String, Map<String, Object>> statsMap = new HashMap<>();
 
         for (Booking b : filtered) {
@@ -198,7 +237,7 @@ public class AdminDashboardController {
 
             LocalDateTime dateTime = b.getCreatedAt();
             if (dateTime == null) {
-                dateTime = LocalDateTime.now(); // Fallback
+                dateTime = LocalDateTime.now(); // Giá trị mặc định
             }
             int year = dateTime.getYear();
             int month = dateTime.getMonthValue();
@@ -228,7 +267,7 @@ public class AdminDashboardController {
 
         List<Map<String, Object>> result = new ArrayList<>(statsMap.values());
         
-        // Sắp xếp: year DESC, month DESC, hotelName ASC
+        // Sắp xếp kết quả theo thời gian và tên khách sạn
         result.sort((m1, m2) -> {
             int y1 = (int) m1.get("year");
             int y2 = (int) m2.get("year");

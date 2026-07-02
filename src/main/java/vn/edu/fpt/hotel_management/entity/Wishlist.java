@@ -16,7 +16,7 @@ public class Wishlist {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "customer_id", nullable = false)
-    private User customer;
+    private Customer customer;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "room_id", nullable = false)
@@ -34,7 +34,7 @@ public class Wishlist {
     public Wishlist() {
     }
 
-    public Wishlist(User customer, Room room, LocalDate checkInDate, LocalDate checkOutDate) {
+    public Wishlist(Customer customer, Room room, LocalDate checkInDate, LocalDate checkOutDate) {
         this.customer = customer;
         this.room = room;
         this.checkInDate = checkInDate;
@@ -50,11 +50,11 @@ public class Wishlist {
         this.id = id;
     }
 
-    public User getCustomer() {
+    public Customer getCustomer() {
         return customer;
     }
 
-    public void setCustomer(User customer) {
+    public void setCustomer(Customer customer) {
         this.customer = customer;
     }
 

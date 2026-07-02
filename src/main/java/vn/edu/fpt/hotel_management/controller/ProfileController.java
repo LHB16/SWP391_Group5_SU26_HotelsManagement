@@ -7,7 +7,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import vn.edu.fpt.hotel_management.entity.Admin;
+import vn.edu.fpt.hotel_management.entity.Customer;
+import vn.edu.fpt.hotel_management.entity.HotelOwner;
 import vn.edu.fpt.hotel_management.entity.User;
+import vn.edu.fpt.hotel_management.repository.AdminRepository;
+import vn.edu.fpt.hotel_management.repository.CustomerRepository;
+import vn.edu.fpt.hotel_management.repository.HotelOwnerRepository;
 import vn.edu.fpt.hotel_management.repository.UserRepository;
 import vn.edu.fpt.hotel_management.service.EmailService;
 import vn.edu.fpt.hotel_management.service.OtpService;
@@ -21,12 +27,24 @@ public class ProfileController {
     private final OtpService otpService;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
+    private final CustomerRepository customerRepository;
+    private final HotelOwnerRepository hotelOwnerRepository;
+    private final AdminRepository adminRepository;
 
-    public ProfileController(UserRepository userRepository, OtpService otpService, EmailService emailService, PasswordEncoder passwordEncoder) {
+    public ProfileController(UserRepository userRepository,
+                             OtpService otpService,
+                             EmailService emailService,
+                             PasswordEncoder passwordEncoder,
+                             CustomerRepository customerRepository,
+                             HotelOwnerRepository hotelOwnerRepository,
+                             AdminRepository adminRepository) {
         this.userRepository = userRepository;
         this.otpService = otpService;
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
+        this.customerRepository = customerRepository;
+        this.hotelOwnerRepository = hotelOwnerRepository;
+        this.adminRepository = adminRepository;
     }
 
     // Hiển thị thông tin cá nhân (View Profile)
@@ -51,6 +69,7 @@ public class ProfileController {
         // Lấy thông tin mới nhất từ DB
         User userInDb = userRepository.findById(loggedInUser.getId())
                 .orElse(loggedInUser);
+        userInDb.setFullName(getFullNameByRole(userInDb));
 
         model.addAttribute("user", userInDb);
         return "User/profile";
@@ -200,8 +219,8 @@ public class ProfileController {
             User userInDb = userRepository.findById(loggedInUser.getId())
                     .orElseThrow(() -> new RuntimeException("Account not found!"));
             
+            updateFullNameByRole(userInDb, fullName);
             userInDb.setFullName(fullName);
-            userRepository.save(userInDb);
 
             // Cập nhật session và dọn cờ
             session.setAttribute("loggedInUser", userInDb);
@@ -423,5 +442,37 @@ public class ProfileController {
         session.removeAttribute("pendingNewEmail");
         session.removeAttribute("pendingNewEmailOtpRequest");
         session.removeAttribute("pendingEditRequest");
+    }
+
+    private void updateFullNameByRole(User user, String fullName) {
+        if ("CUSTOMER".equalsIgnoreCase(user.getRole())) {
+            Customer customer = customerRepository.findByUserAccount(user)
+                    .orElseThrow(() -> new RuntimeException("Customer profile not found!"));
+            customer.setFullName(fullName);
+            customerRepository.save(customer);
+        } else if ("HOTEL_OWNER".equalsIgnoreCase(user.getRole())) {
+            HotelOwner owner = hotelOwnerRepository.findByUserAccount(user)
+                    .orElseThrow(() -> new RuntimeException("Hotel owner profile not found!"));
+            owner.setFullName(fullName);
+            hotelOwnerRepository.save(owner);
+        } else if ("ADMIN".equalsIgnoreCase(user.getRole())) {
+            Admin admin = adminRepository.findByUserAccount(user)
+                    .orElseThrow(() -> new RuntimeException("Admin profile not found!"));
+            admin.setFullName(fullName);
+            adminRepository.save(admin);
+        } else {
+            throw new RuntimeException("Unsupported account role!");
+        }
+    }
+
+    private String getFullNameByRole(User user) {
+        if ("CUSTOMER".equalsIgnoreCase(user.getRole())) {
+            return customerRepository.findByUserAccount(user).map(Customer::getFullName).orElse(user.getUsername());
+        } else if ("HOTEL_OWNER".equalsIgnoreCase(user.getRole())) {
+            return hotelOwnerRepository.findByUserAccount(user).map(HotelOwner::getFullName).orElse(user.getUsername());
+        } else if ("ADMIN".equalsIgnoreCase(user.getRole())) {
+            return adminRepository.findByUserAccount(user).map(Admin::getFullName).orElse(user.getUsername());
+        }
+        return user.getUsername();
     }
 }

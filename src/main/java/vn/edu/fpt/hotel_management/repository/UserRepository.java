@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByUsername(String username);
     Optional<User> findByEmail(String email);
+    Optional<User> findByEmailIgnoreCase(String email);
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
     List<User> findByEnabledFalseAndOtpExpiryBefore(LocalDateTime time);
@@ -21,8 +22,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Page<User> findByRoleAndId(String role, int id, Pageable pageable);
     
     Page<User> findByRoleAndUsernameContainingIgnoreCase(String role, String username, Pageable pageable);
-    
-    Page<User> findByRoleAndFullNameContainingIgnoreCase(String role, String fullName, Pageable pageable);
     
     Page<User> findByRoleAndEmailContainingIgnoreCase(String role, String email, Pageable pageable);
 }

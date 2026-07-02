@@ -16,6 +16,8 @@ import vn.edu.fpt.hotel_management.repository.RoomRepository;
 import vn.edu.fpt.hotel_management.repository.ReviewRepository;
 import vn.edu.fpt.hotel_management.repository.WishlistRepository;
 import vn.edu.fpt.hotel_management.entity.Wishlist;
+import vn.edu.fpt.hotel_management.entity.Customer;
+import vn.edu.fpt.hotel_management.repository.CustomerRepository;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -29,16 +31,18 @@ public class RoomController {
     private final HotelRepository hotelRepository;
     private final ReviewRepository reviewRepository;
     private final WishlistRepository wishlistRepository;
+    private final CustomerRepository customerRepository;
 
     // Lấy đường dẫn thư mục static từ classpath (absolute khi runtime)
     // Ảnh phòng lưu trong: {project}/src/main/resources/static/assets/images/room/
     private static final String ROOM_IMAGE_SUBDIR = "assets/images/room";
 
-    public RoomController(RoomRepository roomRepository, HotelRepository hotelRepository, ReviewRepository reviewRepository, WishlistRepository wishlistRepository) {
+    public RoomController(RoomRepository roomRepository, HotelRepository hotelRepository, ReviewRepository reviewRepository, WishlistRepository wishlistRepository, CustomerRepository customerRepository) {
         this.roomRepository = roomRepository;
         this.hotelRepository = hotelRepository;
         this.reviewRepository = reviewRepository;
         this.wishlistRepository = wishlistRepository;
+        this.customerRepository = customerRepository;
     }
 
     /**
@@ -93,13 +97,18 @@ public class RoomController {
         avgRating = Math.round(avgRating * 10.0) / 10.0;
 
         boolean hasReviewed = false;
+        Integer currentCustomerId = null;
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         java.util.Set<Integer> wishlistRoomIds = new java.util.HashSet<>();
         if (loggedInUser != null) {
-            hasReviewed = reviewRepository.existsByHotelIdAndUserId(id, loggedInUser.getId());
-            List<Wishlist> userWishlist = wishlistRepository.findByCustomerIdOrderByAddedAtDesc(loggedInUser.getId());
-            for (Wishlist wl : userWishlist) {
-                wishlistRoomIds.add(wl.getRoom().getId());
+            Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
+            if (customer != null) {
+                currentCustomerId = customer.getId();
+                hasReviewed = reviewRepository.existsByHotelIdAndCustomerId(id, customer.getId());
+                List<Wishlist> userWishlist = wishlistRepository.findByCustomerIdOrderByAddedAtDesc(customer.getId());
+                for (Wishlist wl : userWishlist) {
+                    wishlistRoomIds.add(wl.getRoom().getId());
+                }
             }
         }
 
@@ -150,6 +159,7 @@ public class RoomController {
         model.addAttribute("checkout", checkout);
         model.addAttribute("totalResults", rooms.size());
         model.addAttribute("user", loggedInUser);
+        model.addAttribute("currentCustomerId", currentCustomerId);
         model.addAttribute("reviews", reviews);
         model.addAttribute("avgRating", avgRating);
         model.addAttribute("totalReviews", reviews.size());
@@ -187,8 +197,6 @@ public class RoomController {
             @RequestParam(value = "bed",     defaultValue = "0") int    bed,
             @RequestParam("acreage")                            double acreage,
             @RequestParam("person")                             int    person,
-            @RequestParam(value = "facilities", defaultValue = "") String facilities,
-            @RequestParam(value = "bathroomAmenities", defaultValue = "") String bathroomAmenities,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
             RedirectAttributes redirectAttributes
     ) {
@@ -236,8 +244,6 @@ public class RoomController {
         room.setAcreage(acreage);
         room.setPerson(person);
         room.setImgUrl(imgUrl);
-        room.setFacilities(facilities.trim());
-        room.setBathroomAmenities(bathroomAmenities.trim());
 
         roomRepository.save(room);
 

@@ -1,4 +1,3 @@
-// src/main/java/vn/edu/fpt/hotel_management/service/AuthService.java
 package vn.edu.fpt.hotel_management.service;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,7 +11,7 @@ import java.time.LocalDateTime;
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;  // thêm
+    private final PasswordEncoder passwordEncoder;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
@@ -22,7 +21,7 @@ public class AuthService {
     public User login(String username, String password) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Username or password incorrect!"));
-        // Kiểm tra password đã mã hóa
+        // Kiểm tra độ khớp của mật khẩu
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Username or password incorrect!");
         }

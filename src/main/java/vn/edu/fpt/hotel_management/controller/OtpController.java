@@ -45,7 +45,11 @@ public class OtpController {
                 return "redirect:/reset-password";
             }
 
-            emailService.sendWelcome(email, user.getFullName(), user.getUsername());
+            String fullName = (String) session.getAttribute("pendingFullName");
+            if (fullName == null) {
+                fullName = user.getUsername();
+            }
+            emailService.sendWelcome(email, fullName, user.getUsername());
 
             session.removeAttribute("pendingOtp");
             session.removeAttribute("pendingFullName");

@@ -2,7 +2,12 @@ package vn.edu.fpt.hotel_management.service;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import vn.edu.fpt.hotel_management.entity.Customer;
+import vn.edu.fpt.hotel_management.entity.HotelOwner;
 import vn.edu.fpt.hotel_management.entity.User;
+import vn.edu.fpt.hotel_management.repository.CustomerRepository;
+import vn.edu.fpt.hotel_management.repository.HotelOwnerRepository;
 import vn.edu.fpt.hotel_management.repository.UserRepository;
 
 import java.time.LocalDateTime;
@@ -11,10 +16,17 @@ import java.time.LocalDateTime;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final CustomerRepository customerRepository;
+    private final HotelOwnerRepository hotelOwnerRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository,
+                       CustomerRepository customerRepository,
+                       HotelOwnerRepository hotelOwnerRepository,
+                       PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.customerRepository = customerRepository;
+        this.hotelOwnerRepository = hotelOwnerRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -35,23 +47,37 @@ public class UserService {
         });
     }
 
-    // Thêm tham số role
+    @Transactional
     public void savePendingUser(String fullName, String username,
                                 String password, String email, String otp, String role) {
-        // Kiểm tra role hợp lệ
         if (!"CUSTOMER".equalsIgnoreCase(role) && !"HOTEL_OWNER".equalsIgnoreCase(role)) {
             throw new RuntimeException("Invalid role selected!");
         }
 
         User user = new User();
-        user.setFullName(fullName);
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setEmail(email);
-        user.setRole(role.toUpperCase());  // Lưu role do người dùng chọn
+        user.setRole(role.toUpperCase());
         user.setOtp(otp);
         user.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
         user.setEnabled(false);
-        userRepository.save(user);
+        
+        User savedUser = userRepository.save(user);
+
+        if ("CUSTOMER".equalsIgnoreCase(role)) {
+            Customer customer = new Customer();
+            customer.setUserAccount(savedUser);
+            customer.setFullName(fullName);
+            customerRepository.save(customer);
+        } else if ("HOTEL_OWNER".equalsIgnoreCase(role)) {
+            HotelOwner owner = new HotelOwner();
+            owner.setUserAccount(savedUser);
+            owner.setFullName(fullName);
+            // Khởi tạo các trường thông tin trống để điền sau trong hồ sơ cá nhân
+            owner.setPhone(""); 
+            owner.setVerificationStatus("PENDING");
+            hotelOwnerRepository.save(owner);
+        }
     }
 }
