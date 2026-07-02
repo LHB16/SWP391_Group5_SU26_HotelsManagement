@@ -13,9 +13,11 @@ import vn.edu.fpt.hotel_management.repository.*;
 
 import java.math.BigDecimal;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -64,6 +66,7 @@ public class PaymentController {
             @RequestParam(value = "roomIds",  required = false) java.util.List<Integer> roomIds,
             @RequestParam(value = "checkin",  required = false) String checkin,
             @RequestParam(value = "checkout", required = false) String checkout,
+            @RequestParam(value = "from",     required = false) String from,
             HttpSession session,
             Model model
     ) {
@@ -168,10 +171,11 @@ public class PaymentController {
 
         // 9. Build QR URL (VietQR)
         String transferInfo = buildTransferInfo(booking.getId(), hotel.getName(), room.getRoomType());
-        String encodedAccount = accountName.replace(" ", "%20");
+        String encodedTransferInfo = URLEncoder.encode(transferInfo, StandardCharsets.UTF_8);
+        String encodedAccount = URLEncoder.encode(accountName, StandardCharsets.UTF_8);
         String qrUrl = "https://img.vietqr.io/image/" + bankCode + "-" + bankAccount + "-compact.png"
                 + "?amount=" + totalPrice.longValue()
-                + "&addInfo=" + transferInfo
+                + "&addInfo=" + encodedTransferInfo
                 + "&accountName=" + encodedAccount;
 
         // Compute remaining seconds for the timer (passed to template)
@@ -196,6 +200,7 @@ public class PaymentController {
         model.addAttribute("bookingId",     booking.getId());
         model.addAttribute("qrExpiresAt",      qrExpiresAt);
         model.addAttribute("remainingSeconds",  remainingSeconds);
+        model.addAttribute("from",              from);
 
         return "booking/qr-payment";
     }
@@ -294,10 +299,10 @@ public class PaymentController {
             @RequestParam(value = "roomId", required = false, defaultValue = "0") int roomId,
             @RequestParam(value = "checkin",  required = false) String checkin,
             @RequestParam(value = "checkout", required = false) String checkout,
+            @RequestParam(value = "from",     required = false) String from,
             HttpSession session,
             Model model,
-            RedirectAttributes redirectAttributes
-    ) {
+            RedirectAttributes redirectAttributes) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
             return "redirect:/login";
@@ -309,6 +314,20 @@ public class PaymentController {
         }
 
         Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
+
+        // Kiểm tra nếu mã QR đã hết hạn (quá 15 phút)
+        if (payment != null && payment.isQrExpired()) {
+            booking.setStatus("CANCELLED");
+            booking.setUpdatedAt(LocalDateTime.now());
+            bookingRepository.save(booking);
+
+            payment.setStatus("FAILED");
+            paymentRepository.save(payment);
+
+            redirectAttributes.addFlashAttribute("errorMessage", 
+                "This payment session has expired. Please make a new reservation.");
+            return "redirect:/booking/history";
+        }
 
         Room room = booking.getRoom();
         Hotel hotel = (room != null) ? hotelRepository.findById(room.getHotelId()).orElse(null) : null;
@@ -327,11 +346,12 @@ public class PaymentController {
         BigDecimal tax = subtotal.multiply(BigDecimal.valueOf(0.1)).setScale(0, java.math.RoundingMode.HALF_UP);
 
         String transferInfo = buildTransferInfo(bookingId, hotel.getName(), room.getRoomType());
-        String encodedAccount = accountName.replace(" ", "%20");
+        String encodedTransferInfo2 = URLEncoder.encode(transferInfo, StandardCharsets.UTF_8);
+        String encodedAccount2 = URLEncoder.encode(accountName, StandardCharsets.UTF_8);
         String qrUrl = "https://img.vietqr.io/image/" + bankCode + "-" + bankAccount + "-compact.png"
                 + "?amount=" + totalPrice.longValue()
-                + "&addInfo=" + transferInfo
-                + "&accountName=" + encodedAccount;
+                + "&addInfo=" + encodedTransferInfo2
+                + "&accountName=" + encodedAccount2;
 
         LocalDateTime qrExpiresAt = (payment != null) ? payment.getQrExpiresAt() : LocalDateTime.now().plusMinutes(15);
         long remainingSeconds = Math.max(0, java.time.Duration.between(LocalDateTime.now(), qrExpiresAt).getSeconds());
@@ -354,6 +374,7 @@ public class PaymentController {
         model.addAttribute("bookingId",        bookingId);
         model.addAttribute("qrExpiresAt",      qrExpiresAt);
         model.addAttribute("remainingSeconds", remainingSeconds);
+        model.addAttribute("from",             from);
 
         return "booking/qr-payment";
     }

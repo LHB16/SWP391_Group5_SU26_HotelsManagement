@@ -231,9 +231,8 @@
                                 </div>
                             </div>
 
-                            <!-- Cancel / Back link (small pill button, consistent with Book Now style) -->
                             <div class="d-flex justify-content-end mt-3">
-                                <a th:href="@{/hotels/{id}/rooms(id=${hotel.id},checkin=${#temporals.format(checkIn,'yyyy-MM-dd')},checkout=${#temporals.format(checkOut,'yyyy-MM-dd')})}"
+                                <a th:href="${from == 'history'} ? @{/booking/history} : @{/hotels/{id}/rooms(id=${hotel.id},checkin=${#temporals.format(checkIn,'yyyy-MM-dd')},checkout=${#temporals.format(checkOut,'yyyy-MM-dd')})}"
                                    class="btn-back-pill">
                                     ← Cancel &amp; go back
                                 </a>

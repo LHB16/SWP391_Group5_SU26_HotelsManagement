@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragment/frag :: head}"></head>
+
+<body class="bh-page-layout">
+
+    <th:block>
+        <link th:href="@{/assets/css/booking-history.css}" rel="stylesheet"/>
+        <link th:href="@{/assets/css/refund-request.css}" rel="stylesheet"/>
+    </th:block>
+
+    <nav th:replace="~{fragment/frag :: navBar}"></nav>
+
+    <main class="bh-main">
+        <div class="container">
+            <div class="row">
+
+                <!-- Sidebar -->
+                <div class="col-md-3 mb-4">
+                    <div class="bh-sidebar">
+                        <div class="bh-sidebar-title">PROFILE MANAGEMENT</div>
+                        <ul class="bh-sidebar-menu">
+                            <li class="bh-sidebar-item">
+                                <a th:href="@{/profile}" class="bh-sidebar-link">
+                                    <i class="bi bi-person"></i>
+                                    Profile Information
+                                </a>
+                            </li>
+                            <li class="bh-sidebar-item">
+                                <a th:href="@{/booking/history}" class="bh-sidebar-link bh-active">
+                                    <i class="bi bi-clock-history"></i>
+                                    Booking History
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Nội dung chính -->
+                <div class="col-md-9">
+
+                    <!-- Header -->
+                    <div class="bh-content-header">
+                        <div class="bh-content-title">Refund Request</div>
+                        <div class="bh-content-subtitle">Submit your bank account to receive the refund</div>
+                    </div>
+
+                    <!-- Thẻ tóm tắt booking bị hủy -->
+                    <div class="rf-booking-summary">
+                        <div class="rf-summary-header">
+                            <i class="bi bi-receipt"></i>
+                            <span>Booking Summary</span>
+                            <span class="rf-badge-cancelled">
+                                <i class="bi bi-x-circle"></i> Cancelled
+                            </span>
+                        </div>
+                        <div class="rf-summary-body">
+                            <div class="rf-summary-row">
+                                <span class="rf-label">Booking ID</span>
+                                <span class="rf-value" th:text="'#' + ${booking.id}">#001</span>
+                            </div>
+                            <div class="rf-summary-row">
+                                <span class="rf-label">Room Type</span>
+                                <span class="rf-value" th:text="${room != null ? room.roomType : 'N/A'}">Deluxe</span>
+                            </div>
+                            <div class="rf-summary-row">
+                                <span class="rf-label">Hotel</span>
+                                <span class="rf-value" th:text="${hotel != null ? hotel.name : 'N/A'}">Grand Hotel</span>
+                            </div>
+                            <div class="rf-summary-row">
+                                <span class="rf-label">Check-in</span>
+                                <span class="rf-value"
+                                      th:text="${#temporals.format(booking.checkInDate, 'dd/MM/yyyy')}">01/01/2025</span>
+                            </div>
+                            <div class="rf-summary-row">
+                                <span class="rf-label">Check-out</span>
+                                <span class="rf-value"
+                                      th:text="${#temporals.format(booking.checkOutDate, 'dd/MM/yyyy')}">05/01/2025</span>
+                            </div>
+                            <div class="rf-summary-divider"></div>
+                            <div class="rf-summary-row">
+                                <span class="rf-label">Total Paid</span>
+                                <span class="rf-value rf-value-price"
+                                      th:text="${#numbers.formatInteger(booking.totalPrice, 3, 'COMMA') + ' ₫'}">0 ₫</span>
+                            </div>
+                            <!-- Số tiền hoàn lại nổi bật -->
+                            <div class="rf-refund-highlight">
+                                <div class="rf-refund-icon">
+                                    <i class="bi bi-arrow-return-left"></i>
+                                </div>
+                                <div class="rf-refund-text">
+                                    <span class="rf-refund-label">Refund Amount (100% — Full Refund)</span>
+                                    <span class="rf-refund-amount"
+                                          th:text="${#numbers.formatInteger(refundAmount, 3, 'COMMA') + ' ₫'}">0 ₫</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form nhập tài khoản ngân hàng -->
+                    <div class="rf-form-card">
+                        <div class="rf-form-header">
+                            <i class="bi bi-bank"></i>
+                            <span>Bank Account Information</span>
+                        </div>
+                        <p class="rf-form-desc">
+                            Please provide your bank account details below. Since you cancelled more than 3 days before check-in,
+                            you are eligible for a <strong>full refund (100%)</strong>.
+                            The refund will be transferred within <strong>3–5 business days</strong> after verification.
+                        </p>
+
+                        <form th:action="@{/booking/refund-request}" method="post" id="refundForm">
+                            <input type="hidden" name="bookingId" th:value="${booking.id}"/>
+
+                            <!-- Tên ngân hàng -->
+                            <div class="rf-form-group">
+                                <label class="rf-form-label" for="bankName">
+                                    <i class="bi bi-building"></i>
+                                    Bank Name <span class="rf-required">*</span>
+                                </label>
+                                <select class="rf-form-select" id="bankName" name="bankName" required>
+                                    <option value="" disabled selected>-- Select your bank --</option>
+                                    <option value="Vietcombank">Vietcombank (VCB)</option>
+                                    <option value="VietinBank">VietinBank (CTG)</option>
+                                    <option value="BIDV">BIDV</option>
+                                    <option value="Agribank">Agribank</option>
+                                    <option value="MB Bank">MB Bank (MBB)</option>
+                                    <option value="Techcombank">Techcombank (TCB)</option>
+                                    <option value="ACB">ACB</option>
+                                    <option value="VPBank">VPBank</option>
+                                    <option value="TPBank">TPBank</option>
+                                    <option value="Sacombank">Sacombank</option>
+                                    <option value="HDBank">HDBank</option>
+                                    <option value="OCB">OCB</option>
+                                    <option value="MSB">MSB</option>
+                                    <option value="SeABank">SeABank</option>
+                                    <option value="SHB">SHB</option>
+                                    <option value="LienVietPostBank">LienVietPostBank</option>
+                                    <option value="Eximbank">Eximbank</option>
+                                    <option value="NamABank">Nam A Bank</option>
+                                    <option value="PVcomBank">PVcomBank</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <!-- Số tài khoản -->
+                            <div class="rf-form-group">
+                                <label class="rf-form-label" for="accountNumber">
+                                    <i class="bi bi-credit-card"></i>
+                                    Account Number <span class="rf-required">*</span>
+                                </label>
+                                <input type="text"
+                                       class="rf-form-input"
+                                       id="accountNumber"
+                                       name="accountNumber"
+                                       placeholder="e.g. 0326781606"
+                                       maxlength="20"
+                                       pattern="[0-9]{6,20}"
+                                       title="Account number must be 6-20 digits"
+                                       required/>
+                                <span class="rf-form-hint">Enter numbers only, no spaces or dashes.</span>
+                            </div>
+
+                            <!-- Tên chủ tài khoản -->
+                            <div class="rf-form-group">
+                                <label class="rf-form-label" for="accountHolder">
+                                    <i class="bi bi-person-badge"></i>
+                                    Account Holder Name <span class="rf-required">*</span>
+                                </label>
+                                <input type="text"
+                                       class="rf-form-input"
+                                       id="accountHolder"
+                                       name="accountHolder"
+                                       th:value="${user.fullName}"
+                                       placeholder="e.g. NGUYEN VAN A"
+                                       maxlength="100"
+                                       required/>
+                                <span class="rf-form-hint">Must match exactly as shown on your bank account (in UPPERCASE).</span>
+                            </div>
+
+                            <!-- Tóm tắt số tiền hoàn lại -->
+                            <div class="rf-amount-confirm">
+                                <i class="bi bi-info-circle"></i>
+                                <span>
+                                    The amount of
+                                    <strong th:text="${#numbers.formatInteger(refundAmount, 3, 'COMMA') + ' ₫'}">0 ₫</strong>
+                                    will be transferred to the account above.
+                                </span>
+                            </div>
+
+                            <!-- Nút hành động -->
+                            <div class="rf-form-actions">
+                                <a th:href="@{/booking/history}" class="rf-btn-back">
+                                    <i class="bi bi-arrow-left"></i>
+                                    Back to History
+                                </a>
+                                <button type="button" class="rf-btn-submit" id="submitRefundBtn">
+                                    <i class="bi bi-send"></i>
+                                    Submit Refund Request
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+                <!-- /Cột phải -->
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragment/frag :: footer}"></footer>
+    <div th:replace="~{fragment/frag :: scripts}"></div>
+
+    <!-- Modal xác nhận gửi yêu cầu hoàn tiền -->
+    <div class="modal fade" id="refundConfirmModal" tabindex="-1" aria-labelledby="refundConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow border-0" style="border-radius: 14px;">
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3" style="color: #0f4c81; font-size: 54px;">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h4 class="modal-title fw-bold mb-2" id="refundConfirmModalLabel" style="color: #0f172a;">Confirm Refund Request</h4>
+                    <p class="text-muted mb-1">You are about to submit a refund request to account:</p>
+                    <div class="rf-confirm-info mb-4">
+                        <div><strong id="confirmBank">-</strong></div>
+                        <div id="confirmAccount" style="font-size: 1.1rem; font-weight: 700; color: #0f4c81;">-</div>
+                        <div id="confirmHolder" style="color: #64748b;">-</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-light w-50" data-bs-dismiss="modal" style="border-radius: 8px; font-weight: 600; padding: 10px;">
+                            Cancel
+                        </button>
+                        <button type="button" id="confirmRefundBtn" class="btn text-white w-50" style="background-color: #0f4c81; border-radius: 8px; font-weight: 600; padding: 10px;">
+                            <i class="bi bi-send"></i> Confirm
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            var refundModal = new bootstrap.Modal(document.getElementById('refundConfirmModal'));
+            var refundForm = document.getElementById('refundForm');
+
+            document.getElementById('submitRefundBtn').addEventListener('click', function () {
+                var bankName = document.getElementById('bankName').value;
+                var accountNumber = document.getElementById('accountNumber').value;
+                var accountHolder = document.getElementById('accountHolder').value;
+
+                // Validate trước khi mở modal
+                if (!bankName || !accountNumber || !accountHolder) {
+                    refundForm.reportValidity();
+                    return;
+                }
+
+                // Hiển thị thông tin xác nhận
+                document.getElementById('confirmBank').textContent = bankName;
+                document.getElementById('confirmAccount').textContent = accountNumber;
+                document.getElementById('confirmHolder').textContent = accountHolder.toUpperCase();
+
+                refundModal.show();
+            });
+
+            document.getElementById('confirmRefundBtn').addEventListener('click', function () {
+                refundForm.submit();
+            });
+        });
+    </script>
+
+</body>
+</html>
