@@ -48,6 +48,9 @@ public class Booking {
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
     @OneToOne(mappedBy = "booking", fetch = FetchType.EAGER)
     private Payment payment;
 
@@ -156,6 +159,14 @@ public class Booking {
 
     public void setPayment(Payment payment) {
         this.payment = payment;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public boolean isCancelable() {

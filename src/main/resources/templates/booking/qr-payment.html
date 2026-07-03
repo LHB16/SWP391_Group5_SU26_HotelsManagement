@@ -7,7 +7,11 @@
 -->
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 
-<head th:replace="~{fragment/frag :: head}"></head>
+<head>
+    <th:block th:replace="~{fragment/frag :: head}"></th:block>
+    <!-- Tự động tải lại trang sau mỗi 5 giây để kiểm tra giao dịch ở phía Backend Java -->
+    <meta http-equiv="refresh" content="5" />
+</head>
 
 <body class="d-flex flex-column min-vh-100">
 
@@ -148,20 +152,7 @@
                         </div>
 
                         <!-- Instruction notice -->
-                        <div class="booking-notice mt-3">
-                            <svg class="booking-notice-icon" xmlns="http://www.w3.org/2000/svg"
-                                 width="16" height="16" viewBox="0 0 24 24"
-                                 fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"
-                                 stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"/>
-                                <line x1="12" y1="8" x2="12" y2="12"/>
-                                <line x1="12" y1="16" x2="12.01" y2="16"/>
-                            </svg>
-                            <span>
-                                After transferring, click <strong>"Verify Payment"</strong> to confirm.
-                                Use the exact reference code shown on the right when making the transfer.
-                            </span>
-                        </div>
+
 
                     </div>
                 </div>
@@ -208,11 +199,11 @@
                             <div class="qr-bank-info">
                                 <div class="qr-bank-info-row">
                                     <span class="qr-bank-label">Bank</span>
-                                    <span class="qr-bank-value" th:text="${bankCode}">MB Bank</span>
+                                    <span class="qr-bank-value" th:text="${bankCode}">Kienlongbank</span>
                                 </div>
                                 <div class="qr-bank-info-row">
                                     <span class="qr-bank-label">Account Number</span>
-                                    <span class="qr-bank-value" th:text="${bankAccount}">0326781606</span>
+                                    <span class="qr-bank-value" th:text="${bankAccount}">9614072005</span>
                                 </div>
                                 <div class="qr-bank-info-row">
                                     <span class="qr-bank-label">Account Name</span>
