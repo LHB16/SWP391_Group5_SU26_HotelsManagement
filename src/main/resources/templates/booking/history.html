@@ -6,10 +6,7 @@
 
 <body class="bh-page-layout">
 
-    <!-- Nhúng CSS riêng biệt cho trang Booking History -->
-    <th:block>
-        <link th:href="@{/assets/css/booking-history.css}" rel="stylesheet"/>
-    </th:block>
+
 
     <!-- Thanh điều hướng -->
     <nav th:replace="~{fragment/frag :: navBar}"></nav>
@@ -56,12 +53,12 @@
                     <div th:if="${totalItems > 0}" class="bh-stats-bar">
                         <!-- Chip tổng số booking -->
                         <div class="bh-stat-chip">
-                            <i class="bi bi-layers" style="color: #0f4c81;"></i>
+                            <i class="bi bi-layers" style="color: var(--hotel-navy);"></i>
                             Total bookings:&nbsp;<span class="bh-stat-chip-num" th:text="${totalItems}">0</span>
                         </div>
                         <!-- Chip số trang hiện tại / tổng trang -->
                         <div class="bh-stat-chip">
-                            <i class="bi bi-book" style="color: #0f4c81;"></i>
+                            <i class="bi bi-book" style="color: var(--hotel-navy);"></i>
                             Page:&nbsp;<span class="bh-stat-chip-num" th:text="${currentPage + 1}">1</span>
                             &nbsp;/&nbsp;<span class="bh-stat-chip-num" th:text="${totalPages}">1</span>
                         </div>
@@ -313,7 +310,7 @@
                     <h4 class="modal-title fw-bold mb-2" id="successModalLabel" style="color: #0f172a;">Success!</h4>
                     <p class="text-muted mb-4" th:text="${successMessage}">Action completed successfully.</p>
                     <button type="button" class="btn text-white w-100" data-bs-dismiss="modal" 
-                            style="background-color: #0f4c81; border-radius: 8px; font-weight: 600; padding: 10px;">
+                            style="background-color: var(--hotel-navy); border-radius: 8px; font-weight: 600; padding: 10px;">
                         OK
                     </button>
                 </div>

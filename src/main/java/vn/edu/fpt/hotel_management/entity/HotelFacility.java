@@ -50,6 +50,9 @@ public class HotelFacility {
     @Column(name = "bar_pub", nullable = false)
     private boolean barPub = false;
 
+    @Column(name = "rent_vehicle", nullable = false)
+    private boolean rentVehicle = false;
+
     public HotelFacility() {}
 
     // Getters and Setters
@@ -81,4 +84,6 @@ public class HotelFacility {
     public void setSwimmingPool(boolean swimmingPool) { this.swimmingPool = swimmingPool; }
     public boolean isBarPub() { return barPub; }
     public void setBarPub(boolean barPub) { this.barPub = barPub; }
+    public boolean isRentVehicle() { return rentVehicle; }
+    public void setRentVehicle(boolean rentVehicle) { this.rentVehicle = rentVehicle; }
 }

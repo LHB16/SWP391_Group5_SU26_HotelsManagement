@@ -95,13 +95,8 @@ public class BookingController {
                         !"PENDING".equalsIgnoreCase(p.getStatus()) &&
                         !"FAILED".equalsIgnoreCase(p.getStatus()) &&
                         !"NO_REFUND".equalsIgnoreCase(p.getStatus()));
-                // Kiểm tra thời điểm hủy so với deadline (dùng updatedAt — lúc booking bị cancel)
-                boolean withinDeadline = false;
-                if (b.getCheckInDate() != null && b.getUpdatedAt() != null) {
-                    java.time.LocalDateTime refundDeadline = b.getCheckInDate().minusDays(3).atTime(12, 0);
-                    withinDeadline = b.getUpdatedAt().isBefore(refundDeadline);
-                }
-                boolean eligible = hadPaid && withinDeadline && !alreadySubmitted;
+                // Kiểm tra điều kiện hoàn tiền: booking CANCELLED + trạng thái payment là REFUNDED + chưa gửi refund request
+                boolean eligible = (p != null && "REFUNDED".equalsIgnoreCase(p.getStatus())) && !alreadySubmitted;
                 refundEligibleMap.put(b.getId(), eligible);
                 refundSubmittedMap.put(b.getId(), alreadySubmitted);
             }
@@ -161,7 +156,8 @@ public class BookingController {
         java.time.LocalDateTime refundDeadline = booking.getCheckInDate().minusDays(3).atTime(12, 0);
         boolean isFullRefundEligible;
         if ("CANCELLED".equalsIgnoreCase(booking.getStatus())) {
-            isFullRefundEligible = booking.getUpdatedAt() != null && booking.getUpdatedAt().isBefore(refundDeadline);
+            Payment p = paymentRepository.findByBookingId(booking.getId()).orElse(null);
+            isFullRefundEligible = p != null && "REFUNDED".equalsIgnoreCase(p.getStatus());
         } else {
             isFullRefundEligible = java.time.LocalDateTime.now().isBefore(refundDeadline);
         }
@@ -222,7 +218,6 @@ public class BookingController {
 
         // Hủy booking
         booking.setStatus("CANCELLED");
-        booking.setUpdatedAt(java.time.LocalDateTime.now());
         bookingRepository.save(booking);
 
         // Cập nhật payment
@@ -275,17 +270,13 @@ public class BookingController {
             return "redirect:/booking/history";
         }
 
-        // Kiểm tra xem thời điểm hủy có trước deadline hoàn tiền không (dùng updatedAt)
-        if (booking.getCheckInDate() == null || booking.getUpdatedAt() == null) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Unable to verify refund eligibility.");
+        // Kiểm tra xem đơn đặt phòng có đủ điều kiện hoàn tiền không (kiểm tra trạng thái REFUNDED của Payment)
+        Payment p = paymentRepository.findByBookingId(bookingId).orElse(null);
+        if (p == null || !"REFUNDED".equalsIgnoreCase(p.getStatus())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "This booking is not eligible for a refund.");
             return "redirect:/booking/history";
         }
         java.time.LocalDateTime refundDeadline = booking.getCheckInDate().minusDays(3).atTime(12, 0);
-        if (!booking.getUpdatedAt().isBefore(refundDeadline)) {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                "This booking was cancelled within 3 days of check-in and is non-refundable per our policy.");
-            return "redirect:/booking/history";
-        }
 
         // Hoàn tiền 100%
         java.math.BigDecimal refundAmount = booking.getTotalPrice()
@@ -344,15 +335,10 @@ public class BookingController {
             return "redirect:/booking/refund-request?bookingId=" + bookingId;
         }
 
-        // Kiểm tra lại deadline bằng updatedAt (chặn truy cập trực tiếp qua URL)
-        if (booking.getCheckInDate() == null || booking.getUpdatedAt() == null) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Unable to verify refund eligibility.");
-            return "redirect:/booking/history";
-        }
-        java.time.LocalDateTime refundDeadline2 = booking.getCheckInDate().minusDays(3).atTime(12, 0);
-        if (!booking.getUpdatedAt().isBefore(refundDeadline2)) {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                "This booking was cancelled within 3 days of check-in and is non-refundable per our policy.");
+        // Kiểm tra lại deadline bằng trạng thái REFUNDED của Payment (chặn truy cập trực tiếp qua URL)
+        Payment p = paymentRepository.findByBookingId(bookingId).orElse(null);
+        if (p == null || !"REFUNDED".equalsIgnoreCase(p.getStatus())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "This booking is not eligible for a refund.");
             return "redirect:/booking/history";
         }
 

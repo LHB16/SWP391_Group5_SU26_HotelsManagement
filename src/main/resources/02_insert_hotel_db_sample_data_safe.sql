@@ -77,43 +77,43 @@ BEGIN TRY
     -- =====================================================
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'admin1')
         INSERT INTO user_accounts (email, username, password, role, enabled, otp, otp_expiry, otp_type)
-        VALUES (N'admin1@hotelbooking.test', N'admin1', N'123456', N'ADMIN', 1, NULL, NULL, NULL);
+        VALUES (N'admin1@hotelbooking.test', N'admin1', N'$2a$10$VL4tMhAlUol7RYcQMse.xOagGSNGWZbDw1iOwmqKtW18PbJA5n1Na', N'ADMIN', 1, NULL, NULL, NULL);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'admin2')
         INSERT INTO user_accounts (email, username, password, role, enabled, otp, otp_expiry, otp_type)
-        VALUES (N'admin2@hotelbooking.test', N'admin2', N'123456', N'ADMIN', 1, NULL, NULL, NULL);
+        VALUES (N'admin2@hotelbooking.test', N'admin2', N'$2a$10$VL4tMhAlUol7RYcQMse.xOagGSNGWZbDw1iOwmqKtW18PbJA5n1Na', N'ADMIN', 1, NULL, NULL, NULL);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'owner_thaodiem')
         INSERT INTO user_accounts (email, username, password, role, enabled, otp, otp_expiry, otp_type)
-        VALUES (N'owner.thaodiem@hotelbooking.test', N'owner_thaodiem', N'123456', N'HOTEL_OWNER', 1, NULL, NULL, NULL);
+        VALUES (N'owner.thaodiem@hotelbooking.test', N'owner_thaodiem', N'$2a$10$VL4tMhAlUol7RYcQMse.xOagGSNGWZbDw1iOwmqKtW18PbJA5n1Na', N'HOTEL_OWNER', 1, NULL, NULL, NULL);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'owner_sunhotel')
         INSERT INTO user_accounts (email, username, password, role, enabled, otp, otp_expiry, otp_type)
-        VALUES (N'owner.sunhotel@hotelbooking.test', N'owner_sunhotel', N'123456', N'HOTEL_OWNER', 1, NULL, NULL, NULL);
+        VALUES (N'owner.sunhotel@hotelbooking.test', N'owner_sunhotel', N'$2a$10$VL4tMhAlUol7RYcQMse.xOagGSNGWZbDw1iOwmqKtW18PbJA5n1Na', N'HOTEL_OWNER', 1, NULL, NULL, NULL);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'owner_rose')
         INSERT INTO user_accounts (email, username, password, role, enabled, otp, otp_expiry, otp_type)
-        VALUES (N'owner.rose@hotelbooking.test', N'owner_rose', N'123456', N'HOTEL_OWNER', 1, NULL, NULL, NULL);
+        VALUES (N'owner.rose@hotelbooking.test', N'owner_rose', N'$2a$10$VL4tMhAlUol7RYcQMse.xOagGSNGWZbDw1iOwmqKtW18PbJA5n1Na', N'HOTEL_OWNER', 1, NULL, NULL, NULL);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'customer_binh')
         INSERT INTO user_accounts (email, username, password, role, enabled, otp, otp_expiry, otp_type)
-        VALUES (N'binh.customer@hotelbooking.test', N'customer_binh', N'123456', N'CUSTOMER', 1, NULL, NULL, NULL);
+        VALUES (N'binh.customer@hotelbooking.test', N'customer_binh', N'$2a$10$VL4tMhAlUol7RYcQMse.xOagGSNGWZbDw1iOwmqKtW18PbJA5n1Na', N'CUSTOMER', 1, NULL, NULL, NULL);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'customer_lan')
         INSERT INTO user_accounts (email, username, password, role, enabled, otp, otp_expiry, otp_type)
-        VALUES (N'lan.customer@hotelbooking.test', N'customer_lan', N'123456', N'CUSTOMER', 1, N'284910', DATEADD(MINUTE, 10, GETDATE()), N'FORGOT_PASSWORD');
+        VALUES (N'lan.customer@hotelbooking.test', N'customer_lan', N'$2a$10$VL4tMhAlUol7RYcQMse.xOagGSNGWZbDw1iOwmqKtW18PbJA5n1Na', N'CUSTOMER', 1, N'284910', DATEADD(MINUTE, 10, GETDATE()), N'FORGOT_PASSWORD');
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'customer_minh')
         INSERT INTO user_accounts (email, username, password, role, enabled, otp, otp_expiry, otp_type)
-        VALUES (N'minh.customer@hotelbooking.test', N'customer_minh', N'123456', N'CUSTOMER', 1, NULL, NULL, NULL);
+        VALUES (N'minh.customer@hotelbooking.test', N'customer_minh', N'$2a$10$VL4tMhAlUol7RYcQMse.xOagGSNGWZbDw1iOwmqKtW18PbJA5n1Na', N'CUSTOMER', 1, NULL, NULL, NULL);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'customer_anh')
         INSERT INTO user_accounts (email, username, password, role, enabled, otp, otp_expiry, otp_type)
-        VALUES (N'anh.customer@hotelbooking.test', N'customer_anh', N'123456', N'CUSTOMER', 1, NULL, NULL, NULL);
+        VALUES (N'anh.customer@hotelbooking.test', N'customer_anh', N'$2a$10$VL4tMhAlUol7RYcQMse.xOagGSNGWZbDw1iOwmqKtW18PbJA5n1Na', N'CUSTOMER', 1, NULL, NULL, NULL);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'customer_khoa')
         INSERT INTO user_accounts (email, username, password, role, enabled, otp, otp_expiry, otp_type)
-        VALUES (N'khoa.customer@hotelbooking.test', N'customer_khoa', N'123456', N'CUSTOMER', 1, NULL, NULL, NULL);
+        VALUES (N'khoa.customer@hotelbooking.test', N'customer_khoa', N'$2a$10$VL4tMhAlUol7RYcQMse.xOagGSNGWZbDw1iOwmqKtW18PbJA5n1Na', N'CUSTOMER', 1, NULL, NULL, NULL);
 
     SELECT @admin1_user_id = id FROM user_accounts WHERE username = N'admin1';
     SELECT @admin2_user_id = id FROM user_accounts WHERE username = N'admin2';
@@ -290,25 +290,25 @@ BEGIN TRY
         INSERT INTO hotel_facilities (
             hotel_id, parking, restaurant, breakfast_available, fitness_centre,
             non_smoking_rooms, airport_shuttle, spa_wellness_centre, free_wifi,
-            ev_charging_station, wheelchair_accessible, swimming_pool, bar_pub
+            ev_charging_station, wheelchair_accessible, swimming_pool, bar_pub, rent_vehicle
         )
-        VALUES (@hotel1_id, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1);
+        VALUES (@hotel1_id, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1);
 
     IF NOT EXISTS (SELECT 1 FROM hotel_facilities WHERE hotel_id = @hotel2_id)
         INSERT INTO hotel_facilities (
             hotel_id, parking, restaurant, breakfast_available, fitness_centre,
             non_smoking_rooms, airport_shuttle, spa_wellness_centre, free_wifi,
-            ev_charging_station, wheelchair_accessible, swimming_pool, bar_pub
+            ev_charging_station, wheelchair_accessible, swimming_pool, bar_pub, rent_vehicle
         )
-        VALUES (@hotel2_id, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1);
+        VALUES (@hotel2_id, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1);
 
     IF NOT EXISTS (SELECT 1 FROM hotel_facilities WHERE hotel_id = @hotel3_id)
         INSERT INTO hotel_facilities (
             hotel_id, parking, restaurant, breakfast_available, fitness_centre,
             non_smoking_rooms, airport_shuttle, spa_wellness_centre, free_wifi,
-            ev_charging_station, wheelchair_accessible, swimming_pool, bar_pub
+            ev_charging_station, wheelchair_accessible, swimming_pool, bar_pub, rent_vehicle
         )
-        VALUES (@hotel3_id, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1);
+        VALUES (@hotel3_id, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0);
 
     IF NOT EXISTS (SELECT 1 FROM hotel_views WHERE hotel_id = @hotel1_id)
         INSERT INTO hotel_views (hotel_id, city_view, beach_view, garden_view, pool_view, river_view, mountain_view)

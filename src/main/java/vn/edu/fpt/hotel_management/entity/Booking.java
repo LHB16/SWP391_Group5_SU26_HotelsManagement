@@ -157,4 +157,10 @@ public class Booking {
     public void setPayment(Payment payment) {
         this.payment = payment;
     }
+
+    public boolean isCancelable() {
+        return "CONFIRMED".equalsIgnoreCase(this.status) 
+            && this.checkInDate != null 
+            && java.time.LocalDate.now().isBefore(this.checkInDate);
+    }
 }
