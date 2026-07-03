@@ -174,4 +174,10 @@ public class Booking {
             && this.checkInDate != null 
             && java.time.LocalDate.now().isBefore(this.checkInDate);
     }
+
+    public boolean isCancelable() {
+        return "CONFIRMED".equalsIgnoreCase(this.status) 
+            && this.checkInDate != null 
+            && java.time.LocalDate.now().isBefore(this.checkInDate);
+    }
 }
