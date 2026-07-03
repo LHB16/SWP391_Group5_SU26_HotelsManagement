@@ -50,7 +50,7 @@ public class HotelFacility {
     @Column(name = "bar_pub", nullable = false)
     private boolean barPub = false;
 
-    @Column(name = "rent_vehicle", nullable = false)
+    @Column(name = "rent_vehicle", nullable = false, columnDefinition = "bit default 0")
     private boolean rentVehicle = false;
 
     public HotelFacility() {}

@@ -16,6 +16,7 @@ import vn.edu.fpt.hotel_management.repository.PaymentRepository;
 import vn.edu.fpt.hotel_management.repository.RoomRepository;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 import vn.edu.fpt.hotel_management.repository.RefundRepository;
+import vn.edu.fpt.hotel_management.repository.CustomerRepository;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -42,6 +43,15 @@ public class BookingController {
     @Autowired
     private RefundRepository refundRepository;
 
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    @org.springframework.beans.factory.annotation.Value("${payment.payos.client-id:}")
+    private String payosClientId;
+
+    @org.springframework.beans.factory.annotation.Value("${payment.payos.api-key:}")
+    private String payosApiKey;
+
     // Hiển thị trang lịch sử đặt phòng của người dùng đang đăng nhập
     @GetMapping("/booking/history")
     public String showBookingHistory(
@@ -55,10 +65,13 @@ public class BookingController {
             return "redirect:/login";
         }
 
+        Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
+        int customerId = (customer != null) ? customer.getId() : 0;
+
         // Lấy danh sách booking của user, sắp xếp mới nhất trước, phân trang 6 booking/trang
         int pageSize = 6;
         Page<Booking> bookingPage = bookingRepository.findByCustomerIdOrderByCreatedAtDesc(
-                loggedInUser.getId(),
+                customerId,
                 PageRequest.of(page, pageSize)
         );
 
@@ -79,6 +92,23 @@ public class BookingController {
         java.time.LocalDateTime nowTime = java.time.LocalDateTime.now();
         
         for (Booking b : bookingPage.getContent()) {
+            // Tự động kiểm tra trạng thái thanh toán đối với các đơn hàng còn PENDING khi truy cập Lịch sử đặt phòng
+            if ("PENDING".equals(b.getStatus())) {
+                boolean verified = checkPayOSPaymentStatus(b.getId());
+                if (verified) {
+                    b.setStatus("CONFIRMED");
+                    b.setUpdatedAt(java.time.LocalDateTime.now());
+                    bookingRepository.save(b);
+                    
+                    Payment payment = paymentRepository.findByBookingId(b.getId()).orElse(null);
+                    if (payment != null) {
+                        payment.setStatus("PAID");
+                        payment.setPaidAt(java.time.LocalDateTime.now());
+                        paymentRepository.save(payment);
+                    }
+                }
+            }
+
             // Tính cancelable và refund policy trước khi hủy
             cancelableMap.put(b.getId(), b.isCancelable());
             if (b.getCheckInDate() != null) {
@@ -93,8 +123,7 @@ public class BookingController {
                 boolean alreadySubmitted = refundRepository.existsByBookingId(b.getId());
                 boolean hadPaid = (p != null &&
                         !"PENDING".equalsIgnoreCase(p.getStatus()) &&
-                        !"FAILED".equalsIgnoreCase(p.getStatus()) &&
-                        !"NO_REFUND".equalsIgnoreCase(p.getStatus()));
+                        !"FAILED".equalsIgnoreCase(p.getStatus()));
                 // Kiểm tra điều kiện hoàn tiền: booking CANCELLED + trạng thái payment là REFUNDED + chưa gửi refund request
                 boolean eligible = (p != null && "REFUNDED".equalsIgnoreCase(p.getStatus())) && !alreadySubmitted;
                 refundEligibleMap.put(b.getId(), eligible);
@@ -135,7 +164,8 @@ public class BookingController {
 
         // Tìm booking
         Booking booking = bookingRepository.findById(bookingId).orElse(null);
-        if (booking == null || booking.getCustomer().getId() != loggedInUser.getId()) {
+        Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
+        if (booking == null || customer == null || booking.getCustomer().getId() != customer.getId()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Booking not found.");
             return "redirect:/booking/history";
         }
@@ -195,7 +225,8 @@ public class BookingController {
 
         // Tìm booking theo id
         Booking booking = bookingRepository.findById(bookingId).orElse(null);
-        if (booking == null || booking.getCustomer().getId() != loggedInUser.getId()) {
+        Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
+        if (booking == null || customer == null || booking.getCustomer().getId() != customer.getId()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Booking not found.");
             return "redirect:/booking/history";
         }
@@ -223,8 +254,8 @@ public class BookingController {
         // Cập nhật payment
         Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
         if (payment != null) {
-            // Đánh dấu REFUNDED nếu còn trong thời hạn, NO_REFUND nếu quá hạn
-            payment.setStatus(isFullRefundEligible ? "REFUNDED" : "NO_REFUND");
+            // Đánh dấu REFUNDED nếu còn trong thời hạn, FAILED nếu quá hạn
+            payment.setStatus(isFullRefundEligible ? "REFUNDED" : "FAILED");
             paymentRepository.save(payment);
         }
 
@@ -253,7 +284,8 @@ public class BookingController {
         }
 
         Booking booking = bookingRepository.findById(bookingId).orElse(null);
-        if (booking == null || booking.getCustomer().getId() != loggedInUser.getId()) {
+        Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
+        if (booking == null || customer == null || booking.getCustomer().getId() != customer.getId()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Booking not found.");
             return "redirect:/booking/history";
         }
@@ -312,7 +344,8 @@ public class BookingController {
         }
 
         Booking booking = bookingRepository.findById(bookingId).orElse(null);
-        if (booking == null || booking.getCustomer().getId() != loggedInUser.getId()) {
+        Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
+        if (booking == null || customer == null || booking.getCustomer().getId() != customer.getId()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Booking not found.");
             return "redirect:/booking/history";
         }
@@ -600,5 +633,33 @@ public class BookingController {
             temp = temp.plusDays(1);
         }
         return total;
+    }
+
+    // Tự động đối soát giao dịch với PayOS khi người dùng xem trang Lịch sử
+    private boolean checkPayOSPaymentStatus(int bookingId) {
+        try {
+            if (payosClientId == null || payosClientId.isBlank() || payosApiKey == null || payosApiKey.isBlank()) {
+                return false;
+            }
+
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("https://api-merchant.payos.vn/v2/payment-requests/" + bookingId))
+                    .header("x-client-id", payosClientId)
+                    .header("x-api-key", payosApiKey)
+                    .header("Content-Type", "application/json")
+                    .GET()
+                    .build();
+
+            java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+            String body = response.body();
+
+            if (body != null && body.contains("\"status\"") && body.contains("\"PAID\"")) {
+                return true;
+            }
+        } catch (Exception e) {
+            System.err.println("[PayOS] Loi kiem tra trang thai tu dong: " + e.getMessage());
+        }
+        return false;
     }
 }
