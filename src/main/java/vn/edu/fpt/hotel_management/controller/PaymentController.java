@@ -616,7 +616,7 @@ public class PaymentController {
         }
     }
 
-    // Tách giá trị từ chuỗi JSON bằng Regex (không dùng thư viện ngoài)
+    // Tách giá trị từ chuỗi JSON bằng Regex
     private String extractJsonField(String json, String fieldName) {
         if (json == null || fieldName == null)
             return "";
