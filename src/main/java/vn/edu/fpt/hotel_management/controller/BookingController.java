@@ -123,8 +123,7 @@ public class BookingController {
                 boolean alreadySubmitted = refundRepository.existsByBookingId(b.getId());
                 boolean hadPaid = (p != null &&
                         !"PENDING".equalsIgnoreCase(p.getStatus()) &&
-                        !"FAILED".equalsIgnoreCase(p.getStatus()) &&
-                        !"NO_REFUND".equalsIgnoreCase(p.getStatus()));
+                        !"FAILED".equalsIgnoreCase(p.getStatus()));
                 // Kiểm tra điều kiện hoàn tiền: booking CANCELLED + trạng thái payment là REFUNDED + chưa gửi refund request
                 boolean eligible = (p != null && "REFUNDED".equalsIgnoreCase(p.getStatus())) && !alreadySubmitted;
                 refundEligibleMap.put(b.getId(), eligible);
@@ -165,7 +164,8 @@ public class BookingController {
 
         // Tìm booking
         Booking booking = bookingRepository.findById(bookingId).orElse(null);
-        if (booking == null || booking.getCustomer().getId() != loggedInUser.getId()) {
+        Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
+        if (booking == null || customer == null || booking.getCustomer().getId() != customer.getId()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Booking not found.");
             return "redirect:/booking/history";
         }
@@ -225,7 +225,8 @@ public class BookingController {
 
         // Tìm booking theo id
         Booking booking = bookingRepository.findById(bookingId).orElse(null);
-        if (booking == null || booking.getCustomer().getId() != loggedInUser.getId()) {
+        Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
+        if (booking == null || customer == null || booking.getCustomer().getId() != customer.getId()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Booking not found.");
             return "redirect:/booking/history";
         }
@@ -253,8 +254,8 @@ public class BookingController {
         // Cập nhật payment
         Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
         if (payment != null) {
-            // Đánh dấu REFUNDED nếu còn trong thời hạn, NO_REFUND nếu quá hạn
-            payment.setStatus(isFullRefundEligible ? "REFUNDED" : "NO_REFUND");
+            // Đánh dấu REFUNDED nếu còn trong thời hạn, FAILED nếu quá hạn
+            payment.setStatus(isFullRefundEligible ? "REFUNDED" : "FAILED");
             paymentRepository.save(payment);
         }
 
@@ -283,7 +284,8 @@ public class BookingController {
         }
 
         Booking booking = bookingRepository.findById(bookingId).orElse(null);
-        if (booking == null || booking.getCustomer().getId() != loggedInUser.getId()) {
+        Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
+        if (booking == null || customer == null || booking.getCustomer().getId() != customer.getId()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Booking not found.");
             return "redirect:/booking/history";
         }
@@ -342,7 +344,8 @@ public class BookingController {
         }
 
         Booking booking = bookingRepository.findById(bookingId).orElse(null);
-        if (booking == null || booking.getCustomer().getId() != loggedInUser.getId()) {
+        Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
+        if (booking == null || customer == null || booking.getCustomer().getId() != customer.getId()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Booking not found.");
             return "redirect:/booking/history";
         }
