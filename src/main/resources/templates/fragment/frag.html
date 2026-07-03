@@ -87,5 +87,17 @@
     <!-- Flatpickr JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </th:block>
-
+<!-- Thêm vào phần nav của Hotel Owner trong frag.html -->
+<th:block th:if="${session.loggedInUser != null && session.loggedInUser.role == 'HOTEL_OWNER'}">
+    <li class="nav-item">
+        <a class="nav-link" th:href="@{/owner/hotels}">
+            <i class="bi bi-building me-1"></i> My Hotels
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" th:href="@{/owner/dashboard}">
+            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+        </a>
+    </li>
+</th:block>
 </html>

@@ -21,13 +21,13 @@ public class HotelOwner {
     @Column(name = "phone", nullable = false)
     private String phone;
 
-    @Column(name = "address")
+    @Column(name = "address", nullable = false)
     private String address;
 
-    @Column(name = "id_card")
+    @Column(name = "id_card", nullable = false)
     private String idCard;
 
-    @Column(name = "tax_id")
+    @Column(name = "tax_id", nullable = false)
     private String taxId;
 
     @Column(name = "verification_status")
@@ -45,91 +45,37 @@ public class HotelOwner {
     public HotelOwner() {
     }
 
-    public int getId() {
-        return id;
-    }
+    // Getters and Setters
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+    public User getUserAccount() { return userAccount; }
+    public void setUserAccount(User userAccount) { this.userAccount = userAccount; }
 
-    public User getUserAccount() {
-        return userAccount;
-    }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
 
-    public void setUserAccount(User userAccount) {
-        this.userAccount = userAccount;
-    }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
 
-    public String getFullName() {
-        return fullName;
-    }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
+    public String getIdCard() { return idCard; }
+    public void setIdCard(String idCard) { this.idCard = idCard; }
 
-    public String getPhone() {
-        return phone;
-    }
+    public String getTaxId() { return taxId; }
+    public void setTaxId(String taxId) { this.taxId = taxId; }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
+    public String getVerificationStatus() { return verificationStatus; }
+    public void setVerificationStatus(String verificationStatus) { this.verificationStatus = verificationStatus; }
 
-    public String getAddress() {
-        return address;
-    }
+    public LocalDateTime getVerifiedAt() { return verifiedAt; }
+    public void setVerifiedAt(LocalDateTime verifiedAt) { this.verifiedAt = verifiedAt; }
 
-    public void setAddress(String address) {
-        this.address = address;
-    }
+    public String getRejectionReason() { return rejectionReason; }
+    public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
 
-    public String getIdCard() {
-        return idCard;
-    }
-
-    public void setIdCard(String idCard) {
-        this.idCard = idCard;
-    }
-
-    public String getTaxId() {
-        return taxId;
-    }
-
-    public void setTaxId(String taxId) {
-        this.taxId = taxId;
-    }
-
-    public String getVerificationStatus() {
-        return verificationStatus;
-    }
-
-    public void setVerificationStatus(String verificationStatus) {
-        this.verificationStatus = verificationStatus;
-    }
-
-    public LocalDateTime getVerifiedAt() {
-        return verifiedAt;
-    }
-
-    public void setVerifiedAt(LocalDateTime verifiedAt) {
-        this.verifiedAt = verifiedAt;
-    }
-
-    public String getRejectionReason() {
-        return rejectionReason;
-    }
-
-    public void setRejectionReason(String rejectionReason) {
-        this.rejectionReason = rejectionReason;
-    }
-
-    public String getIdCardDocument() {
-        return idCardDocument;
-    }
-
-    public void setIdCardDocument(String idCardDocument) {
-        this.idCardDocument = idCardDocument;
-    }
+    public String getIdCardDocument() { return idCardDocument; }
+    public void setIdCardDocument(String idCardDocument) { this.idCardDocument = idCardDocument; }
 }
