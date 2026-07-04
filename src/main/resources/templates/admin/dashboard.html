@@ -34,6 +34,10 @@
                             <i data-lucide="users" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
                             <span>Customer Accounts</span>
                         </button>
+                        <button class="sidebar-link" th:classappend="${tab == 'verificationPanel'} ? 'active' : ''" data-tab="verificationPanel">
+                            <i data-lucide="file-check" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
+                            <span>Verification Requests</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -257,6 +261,101 @@
                                     </th:block>
                                     
                                     <a th:href="@{/admin/dashboard(page=${currentPage + 1}, tab='customerPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
+                                       class="page-link-custom" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled' : ''">
+                                        <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL 3: VERIFICATION REQUESTS -->
+                <div id="verificationPanel" class="tab-panel" th:classappend="${tab == 'verificationPanel'} ? 'active' : ''">
+                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                        <div>
+                            <h1 class="fw-bold text-dark m-0">Admin Dashboard</h1>
+                            <p class="text-muted m-0 mt-1">Review identity verification requests from hotel owners.</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-section">
+                        <div class="customer-layout-single">
+                            
+                            <div class="customer-list-box-full">
+                                <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                                    <i data-lucide="list" style="stroke-width: 1.5; width: 18px; height: 18px; color: #4f46e5;"></i>
+                                    Verification Requests List
+                                </h5>
+
+                                <!-- Search & Filter Form -->
+                                <form th:action="@{/admin/dashboard}" method="get" class="mb-4">
+                                    <input type="hidden" name="tab" value="verificationPanel" />
+                                    <div class="row g-2">
+                                        <div class="col-md-3">
+                                            <select name="searchType" class="form-select filter-select w-100" style="height: 100%; min-height: 42px;">
+                                                <option value="username" th:selected="${searchType == 'username'}">Username</option>
+                                                <option value="fullName" th:selected="${searchType == 'fullName'}">Full Name</option>
+                                                <option value="email" th:selected="${searchType == 'email'}">Email Address</option>
+                                                <option value="phone" th:selected="${searchType == 'phone'}">Phone Number</option>
+                                                <option value="id" th:selected="${searchType == 'id'}">Owner ID</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <input type="text" name="searchQuery" class="form-control filter-select w-100" 
+                                                   placeholder="Search query..." th:value="${searchQuery}" style="height: 100%; min-height: 42px;" />
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="submit" class="btn btn-primary w-100" style="min-height: 42px; border-radius: 8px; font-weight: 600; background-color: #4f46e5; border-color: #4f46e5;">
+                                                Search
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 text-end" th:if="${searchQuery != null && !searchQuery.isEmpty()}">
+                                        <a th:href="@{/admin/dashboard(tab='verificationPanel')}" class="text-muted small" style="text-decoration: underline;">Clear search filter</a>
+                                    </div>
+                                </form>
+
+                                <div class="list-group">
+                                    <a th:href="@{/admin/owner-detail(id=${o.id})}" 
+                                       class="list-group-item list-group-item-action customer-item border-0 py-3 mb-2 rounded-3 shadow-sm bg-light d-flex justify-content-between align-items-center"
+                                       th:each="o : ${owners}">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="avatar-btn m-0 bg-secondary-subtle text-secondary" style="width: 40px; height: 40px; font-size: 1rem; display: flex; align-items: center; justify-content: center; border-radius: 50%;"
+                                                 th:text="${#strings.substring(o.fullName, 0, 1).toUpperCase()}">O</div>
+                                            <div>
+                                                <div class="fw-bold text-dark mb-0.5" th:text="${o.fullName}">Owner Name</div>
+                                                <small class="text-muted" th:text="'Email: ' + ${o.userAccount.email} + ' | Phone: ' + ${o.phone}">Email: name@example.com | Phone: 0123456789</small>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <span class="badge-status badge-status-warning" th:if="${o.verificationStatus == 'PENDING'}">Pending</span>
+                                            <span class="badge-status badge-status-success" th:if="${o.verificationStatus == 'APPROVED'}">Verified</span>
+                                            <span class="badge-status badge-status-danger" th:if="${o.verificationStatus == 'REJECTED'}">Rejected</span>
+                                            <i data-lucide="chevron-right" class="text-muted" style="width: 18px; height: 18px;"></i>
+                                        </div>
+                                    </a>
+                                    <div class="text-center text-muted py-5 border border-dashed rounded-3 bg-light" th:if="${#lists.isEmpty(owners)}">
+                                        <i data-lucide="file-check" class="text-muted mb-2" style="width: 32px; height: 32px; stroke-width: 1.5;"></i>
+                                        <div>No verification requests found.</div>
+                                    </div>
+                                </div>
+
+                                <!-- Pagination for Owners -->
+                                <div class="pagination-container" th:if="${totalPages > 1}">
+                                    <a th:href="@{/admin/dashboard(page=${currentPage - 1}, tab='verificationPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
+                                       class="page-link-custom" th:classappend="${currentPage == 0} ? 'disabled' : ''">
+                                        <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>
+                                    </a>
+                                    
+                                    <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                                        <a th:href="@{/admin/dashboard(page=${i}, tab='verificationPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
+                                           class="page-link-custom" th:classappend="${currentPage == i} ? 'active' : ''"
+                                           th:text="${i + 1}">1</a>
+                                    </th:block>
+                                    
+                                    <a th:href="@{/admin/dashboard(page=${currentPage + 1}, tab='verificationPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
                                        class="page-link-custom" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled' : ''">
                                         <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
                                     </a>

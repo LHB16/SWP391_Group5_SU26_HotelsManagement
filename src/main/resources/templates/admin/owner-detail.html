@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en" class="h-100">
+
+<head>
+    <th:block th:replace="~{fragment/frag :: head}"></th:block>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <title>Owner Detail — Admin Dashboard</title>
+</head>
+
+<body class="d-flex flex-column h-100">
+
+    <nav th:replace="~{fragment/frag :: navBar}"></nav>
+
+    <main class="flex-shrink-0 container py-5">
+
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}"
+             class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2 mb-4 shadow-sm"
+             role="alert"
+             style="border-radius: 12px; border-left: 4px solid #16a34a;">
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorMessage}"
+             class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2 mb-4 shadow-sm"
+             role="alert"
+             style="border-radius: 12px; border-left: 4px solid #dc2626;">
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Back Navigation -->
+        <div class="mb-4">
+            <a th:href="@{/admin/dashboard(tab='verificationPanel')}" class="back-btn">
+                <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+                <span>Back to Verification Requests</span>
+            </a>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════
+             OWNER PROFILE CARD
+             ═══════════════════════════════════════════════════════ -->
+        <div class="detail-card">
+            <!-- Header: gradient background with avatar + name -->
+            <div class="detail-header">
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <!-- Avatar circle -->
+                    <div style="width: 54px; height: 54px; font-size: 1.4rem; font-weight: 700;
+                                background-color: rgba(255,255,255,0.15); color: #ffffff;
+                                display: flex; align-items: center; justify-content: center;
+                                border-radius: 50%; border: 2px solid rgba(255,255,255,0.25);"
+                         th:text="${#strings.substring(selectedOwner.fullName, 0, 1).toUpperCase()}">O</div>
+                    <div>
+                        <h1 class="fw-bold m-0 h3 text-white" th:text="${selectedOwner.fullName}">Owner Name</h1>
+                        <p class="mb-0 mt-1" style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">
+                            Hotel Owner Profile &amp; Verification Details
+                        </p>
+                    </div>
+                    <!-- Verification status badge in header -->
+                    <div class="ms-auto">
+                        <span class="badge-status badge-status-warning"
+                              th:if="${selectedOwner.verificationStatus == 'PENDING'}"
+                              style="font-size: 0.85rem; padding: 0.4rem 1rem;">Pending Verification</span>
+                        <span class="badge-status badge-status-success"
+                              th:if="${selectedOwner.verificationStatus == 'APPROVED'}"
+                              style="font-size: 0.85rem; padding: 0.4rem 1rem;">Verified</span>
+                        <span class="badge-status badge-status-danger"
+                              th:if="${selectedOwner.verificationStatus == 'REJECTED'}"
+                              style="font-size: 0.85rem; padding: 0.4rem 1rem;">Rejected</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-body">
+
+                <!-- ── INFO ROW ────────────────────────────────────── -->
+                <div class="row g-4 mb-4 border-bottom pb-4">
+                    <div class="col-md-2">
+                        <small class="text-uppercase text-muted d-block fw-bold mb-1"
+                               style="font-size: 0.75rem; letter-spacing: 0.05em;">Owner ID</small>
+                        <span class="fw-bold text-dark" th:text="'#' + ${selectedOwner.id}">#0</span>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-uppercase text-muted d-block fw-bold mb-1"
+                               style="font-size: 0.75rem; letter-spacing: 0.05em;">Username</small>
+                        <span class="text-dark fw-medium" th:text="${selectedOwner.userAccount.username}">-</span>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-uppercase text-muted d-block fw-bold mb-1"
+                               style="font-size: 0.75rem; letter-spacing: 0.05em;">Email Address</small>
+                        <span class="text-dark fw-medium" th:text="${selectedOwner.userAccount.email}">-</span>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-uppercase text-muted d-block fw-bold mb-1"
+                               style="font-size: 0.75rem; letter-spacing: 0.05em;">Phone Number</small>
+                        <span class="text-dark fw-medium" th:text="${selectedOwner.phone}">-</span>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4 border-bottom pb-4">
+                    <div class="col-md-4">
+                        <small class="text-uppercase text-muted d-block fw-bold mb-1"
+                               style="font-size: 0.75rem; letter-spacing: 0.05em;">ID Card Number</small>
+                        <span class="text-dark fw-medium" th:text="${selectedOwner.idCard != null ? selectedOwner.idCard : '—'}">-</span>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-uppercase text-muted d-block fw-bold mb-1"
+                               style="font-size: 0.75rem; letter-spacing: 0.05em;">Tax ID</small>
+                        <span class="text-dark fw-medium" th:text="${selectedOwner.taxId != null ? selectedOwner.taxId : '—'}">-</span>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-uppercase text-muted d-block fw-bold mb-1"
+                               style="font-size: 0.75rem; letter-spacing: 0.05em;">Address</small>
+                        <span class="text-dark fw-medium" th:text="${selectedOwner.address != null ? selectedOwner.address : '—'}">-</span>
+                    </div>
+                </div>
+
+                <!-- ── ID CARD DOCUMENT ────────────────────────────── -->
+                <div class="mb-4 border-bottom pb-4">
+                    <small class="text-uppercase text-muted d-block fw-bold mb-2"
+                           style="font-size: 0.75rem; letter-spacing: 0.05em;">ID Card Document</small>
+                    <div th:if="${selectedOwner.idCardDocument != null && !selectedOwner.idCardDocument.isEmpty()}"
+                         class="d-flex gap-2 align-items-center">
+                        <a th:href="${selectedOwner.idCardDocument}" target="_blank"
+                           class="btn btn-sm"
+                           style="border-radius: 8px; font-weight: 600; font-size: 0.82rem; background-color: #eff6ff; color: #3b82f6; border: 1.5px solid #bfdbfe; padding: 5px 14px;">
+                            View Document
+                        </a>
+                        <a th:href="${selectedOwner.idCardDocument}"
+                           th:download="${selectedOwner.fullName + '_ID_Card'}"
+                           class="btn btn-sm"
+                           style="border-radius: 8px; font-weight: 600; font-size: 0.82rem; background-color: #f8fafc; color: #64748b; border: 1.5px solid #e2e8f0; padding: 5px 14px;">
+                            Download
+                        </a>
+                    </div>
+                    <span th:if="${selectedOwner.idCardDocument == null || selectedOwner.idCardDocument.isEmpty()}"
+                          class="text-muted fst-italic" style="font-size: 0.9rem;">No document uploaded.</span>
+                </div>
+
+                <!-- ── REJECTION REASON (if rejected) ─────────────── -->
+                <div th:if="${selectedOwner.verificationStatus == 'REJECTED'}"
+                     class="mb-4 border-bottom pb-4"
+                     style="background-color: #fef2f2; border-radius: 10px; padding: 16px 20px; border-left: 4px solid #fca5a5 !important;">
+                    <small class="text-uppercase fw-bold d-block mb-1"
+                           style="font-size: 0.75rem; letter-spacing: 0.05em; color: #dc2626;">Rejection Reason</small>
+                    <p class="mb-0 text-dark" th:text="${selectedOwner.rejectionReason}">Reason...</p>
+                </div>
+
+                <!-- ── APPROVE / REJECT ACTIONS (only if PENDING) ──── -->
+                <div th:if="${selectedOwner.verificationStatus == 'PENDING'}" class="mb-5">
+                    <h5 class="fw-bold text-dark mb-3" style="font-size: 1rem;">Owner Identity Verification Actions</h5>
+                    <div class="row g-3">
+                        <!-- Approve -->
+                        <div class="col-md-3">
+                            <form th:action="@{/admin/verify-owner/approve}" method="post">
+                                <input type="hidden" name="ownerId" th:value="${selectedOwner.id}" />
+                                <button type="submit" class="btn w-100 fw-semibold"
+                                        style="border-radius: 10px; padding: 10px 0; background-color: #10b981; border-color: #10b981; color: #fff; font-size: 0.9rem;">
+                                    Approve Identity
+                                </button>
+                            </form>
+                        </div>
+                        <!-- Reject with reason -->
+                        <div class="col-md-9">
+                            <form th:action="@{/admin/verify-owner/reject}" method="post" class="d-flex gap-2">
+                                <input type="hidden" name="ownerId" th:value="${selectedOwner.id}" />
+                                <input type="text" name="rejectionReason" class="form-control"
+                                       placeholder="Enter rejection reason (required)..." required
+                                       style="border-radius: 10px; font-size: 0.9rem; border: 1.5px solid #e2e8f0;" />
+                                <button type="submit" class="btn fw-semibold flex-shrink-0"
+                                        style="border-radius: 10px; padding: 10px 20px; background-color: #ef4444; border-color: #ef4444; color: #fff; font-size: 0.9rem;">
+                                    Reject
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════
+             HOTELS OWNED
+             ═══════════════════════════════════════════════════════ -->
+        <div class="mt-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                    <i data-lucide="building-2" style="color: #4f46e5; width: 20px; height: 20px; stroke-width: 1.5;"></i>
+                    Hotels Owned
+                    <span class="ms-2 badge rounded-pill"
+                          style="background-color: #ede9fe; color: #4f46e5; font-size: 0.78rem; font-weight: 600;"
+                          th:text="${#lists.size(ownerHotels)}">0</span>
+                </h5>
+            </div>
+
+            <!-- Empty state -->
+            <div th:if="${#lists.isEmpty(ownerHotels)}"
+                 class="text-center text-muted py-5 border border-dashed rounded-3 bg-light">
+                <i data-lucide="building-2" class="mb-3" style="width: 40px; height: 40px; opacity: 0.3; stroke-width: 1.5;"></i>
+                <div>This owner has no registered hotels yet.</div>
+            </div>
+
+            <!-- Hotel Cards -->
+            <div class="row g-4" th:if="${!#lists.isEmpty(ownerHotels)}">
+                <div class="col-12" th:each="hotel : ${ownerHotels}">
+                    <div class="detail-card" style="margin: 0;">
+
+                        <!-- Hotel header row -->
+                        <div class="detail-body" style="padding: 20px 24px;">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                                <!-- Left: Hotel info -->
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <h6 class="fw-bold text-dark mb-0" th:text="${hotel.name}">Hotel Name</h6>
+                                        <!-- Approval status -->
+                                        <span class="badge-status badge-status-success"
+                                              th:if="${hotel.approvalStatus == 'APPROVED'}">Approved</span>
+                                        <span class="badge-status badge-status-warning"
+                                              th:if="${hotel.approvalStatus == 'PENDING' || hotel.approvalStatus == null}">Pending</span>
+                                        <span class="badge-status badge-status-danger"
+                                              th:if="${hotel.approvalStatus == 'REJECTED'}">Rejected</span>
+                                        <!-- Active status -->
+                                        <span class="badge-status badge-status-success"
+                                              th:if="${hotel.active}">Active</span>
+                                        <span class="badge-status badge-status-neutral"
+                                              th:if="${!hotel.active}">Inactive</span>
+                                    </div>
+                                    <small class="text-muted" th:text="${hotel.address}">Address</small>
+                                    <small class="text-muted ms-3" th:if="${hotel.city != null}"
+                                           th:text="${hotel.city}">City</small>
+                                </div>
+                                <!-- Right: Hotel ID + rating -->
+                                <div class="text-end">
+                                    <div class="text-muted small" th:text="'Hotel ID: #' + ${hotel.id}">#0</div>
+                                    <div class="fw-semibold text-dark mt-1"
+                                         th:text="${#numbers.formatDecimal(hotel.rating, 1, 'COMMA', 1, 'POINT')} + ' ★'">0.0 ★</div>
+                                </div>
+                            </div>
+
+                            <!-- Verification Document section for this hotel -->
+                            <div class="mt-3 pt-3 border-top" th:with="doc=${hotelDocMap[hotel.id]}">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <small class="text-uppercase fw-bold text-muted"
+                                           style="font-size: 0.72rem; letter-spacing: 0.05em;">Verification Documents</small>
+                                    <span th:if="${doc == null}" class="text-muted small fst-italic">No documents submitted</span>
+                                    <div th:if="${doc != null}" class="d-flex align-items-center gap-2">
+                                        <span class="badge-status badge-status-warning" th:if="${doc.uploadStatus == 'PENDING'}">Pending Review</span>
+                                        <span class="badge-status badge-status-success" th:if="${doc.uploadStatus == 'APPROVED'}">Approved</span>
+                                        <span class="badge-status badge-status-danger" th:if="${doc.uploadStatus == 'REJECTED'}">Rejected</span>
+                                    </div>
+                                </div>
+
+                                <!-- Document links -->
+                                <div th:if="${doc != null}" class="row g-2 mb-3" style="font-size: 0.85rem;">
+                                    <!-- Business Registration -->
+                                    <div class="col-md-4">
+                                        <div class="p-2 rounded-2 border" style="background-color: #f8fafc;">
+                                            <div class="text-muted mb-1" style="font-size: 0.75rem; font-weight: 600;">Business Registration</div>
+                                            <div th:if="${doc.businessRegistrationDoc != null && !doc.businessRegistrationDoc.isEmpty()}" class="d-flex gap-2">
+                                                <a th:href="${doc.businessRegistrationDoc}" target="_blank"
+                                                   style="color: #4f46e5; font-weight: 600; text-decoration: none; font-size: 0.8rem;">View</a>
+                                                <a th:href="${doc.businessRegistrationDoc}"
+                                                   th:download="${hotel.name + '_Business_Registration'}"
+                                                   style="color: #64748b; font-weight: 600; text-decoration: none; font-size: 0.8rem;">Download</a>
+                                            </div>
+                                            <span th:if="${doc.businessRegistrationDoc == null || doc.businessRegistrationDoc.isEmpty()}"
+                                                  class="text-muted fst-italic" style="font-size: 0.8rem;">Missing</span>
+                                        </div>
+                                    </div>
+                                    <!-- Land Certificate -->
+                                    <div class="col-md-4">
+                                        <div class="p-2 rounded-2 border" style="background-color: #f8fafc;">
+                                            <div class="text-muted mb-1" style="font-size: 0.75rem; font-weight: 600;">Land Certificate</div>
+                                            <div th:if="${doc.landCertificateDoc != null && !doc.landCertificateDoc.isEmpty()}" class="d-flex gap-2">
+                                                <a th:href="${doc.landCertificateDoc}" target="_blank"
+                                                   style="color: #4f46e5; font-weight: 600; text-decoration: none; font-size: 0.8rem;">View</a>
+                                                <a th:href="${doc.landCertificateDoc}"
+                                                   th:download="${hotel.name + '_Land_Certificate'}"
+                                                   style="color: #64748b; font-weight: 600; text-decoration: none; font-size: 0.8rem;">Download</a>
+                                            </div>
+                                            <span th:if="${doc.landCertificateDoc == null || doc.landCertificateDoc.isEmpty()}"
+                                                  class="text-muted fst-italic" style="font-size: 0.8rem;">Missing</span>
+                                        </div>
+                                    </div>
+                                    <!-- Rental Contract -->
+                                    <div class="col-md-4">
+                                        <div class="p-2 rounded-2 border" style="background-color: #f8fafc;">
+                                            <div class="text-muted mb-1" style="font-size: 0.75rem; font-weight: 600;">Rental Contract</div>
+                                            <div th:if="${doc.rentalContractDoc != null && !doc.rentalContractDoc.isEmpty()}" class="d-flex gap-2">
+                                                <a th:href="${doc.rentalContractDoc}" target="_blank"
+                                                   style="color: #4f46e5; font-weight: 600; text-decoration: none; font-size: 0.8rem;">View</a>
+                                                <a th:href="${doc.rentalContractDoc}"
+                                                   th:download="${hotel.name + '_Rental_Contract'}"
+                                                   style="color: #64748b; font-weight: 600; text-decoration: none; font-size: 0.8rem;">Download</a>
+                                            </div>
+                                            <span th:if="${doc.rentalContractDoc == null || doc.rentalContractDoc.isEmpty()}"
+                                                  class="text-muted fst-italic" style="font-size: 0.8rem;">Missing</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Hotel Document Approve / Reject (only if PENDING) -->
+                                <div th:if="${doc != null && doc.uploadStatus == 'PENDING'}" class="row g-2 mt-1">
+                                    <div class="col-md-3">
+                                        <form th:action="@{/admin/verify-hotel/approve}" method="post">
+                                            <input type="hidden" name="docId" th:value="${doc.id}" />
+                                            <button type="submit" class="btn w-100 fw-semibold"
+                                                    style="border-radius: 8px; padding: 8px 0; background-color: #10b981; border-color: #10b981; color: #fff; font-size: 0.85rem;">
+                                                Approve Hotel Docs
+                                            </button>
+                                        </form>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <form th:action="@{/admin/verify-hotel/reject}" method="post" class="d-flex gap-2">
+                                            <input type="hidden" name="docId" th:value="${doc.id}" />
+                                            <input type="text" name="rejectionReason" class="form-control"
+                                                   placeholder="Enter rejection reason (required)..." required
+                                                   style="border-radius: 8px; font-size: 0.85rem; border: 1.5px solid #e2e8f0;" />
+                                            <button type="submit" class="btn fw-semibold flex-shrink-0"
+                                                    style="border-radius: 8px; padding: 8px 16px; background-color: #ef4444; border-color: #ef4444; color: #fff; font-size: 0.85rem;">
+                                                Reject
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- Rejection reason for hotel doc -->
+                                <div th:if="${doc != null && doc.uploadStatus == 'REJECTED'}"
+                                     class="mt-2 p-2 rounded-2"
+                                     style="background-color: #fef2f2; border-left: 3px solid #fca5a5;">
+                                    <small class="fw-bold" style="color: #dc2626;">Rejection Reason: </small>
+                                    <small th:text="${doc.rejectionReason}" class="text-dark">Reason...</small>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Use system footer -->
+    <footer th:replace="~{fragment/frag :: footer}"></footer>
+
+    <!-- Bootstrap Bundle and default scripts -->
+    <th:block th:replace="~{fragment/frag :: scripts}"></th:block>
+
+    <script>
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+    </script>
+
+</body>
+
+</html>
