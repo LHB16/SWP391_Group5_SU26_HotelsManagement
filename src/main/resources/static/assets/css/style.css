@@ -16619,6 +16619,109 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     }
 }
 
+/* === Booking History Filter Panel === */
+.bh-filter-card {
+    background: #ffffff;
+    border: 1px solid rgba(201, 169, 110, 0.2);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(10, 22, 40, 0.06);
+    margin-top: 20px;
+}
+.bh-filter-header {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--hotel-navy);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--hotel-cream);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.bh-filter-header i {
+    font-size: 14px;
+}
+.bh-filter-body form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.bh-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.bh-filter-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.bh-filter-select,
+.bh-filter-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #334155;
+    background-color: #ffffff;
+    transition: all 0.2s ease;
+}
+.bh-filter-select:focus,
+.bh-filter-input:focus {
+    outline: none;
+    border-color: var(--hotel-gold);
+    box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.15);
+}
+.bh-filter-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 6px;
+}
+.bh-filter-btn-search {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px;
+    background-color: var(--hotel-navy);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.bh-filter-btn-search:hover {
+    background-color: var(--hotel-gold);
+}
+.bh-filter-btn-clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    background-color: transparent;
+    color: #64748b;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.bh-filter-btn-clear:hover {
+    background-color: #f1f5f9;
+    color: #334155;
+    border-color: #94a3b8;
+}
+
 /* === cancel-policy.css (Gộp và Đồng bộ màu) === */
 .cp-container {
     max-width: 680px;
