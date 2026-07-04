@@ -49,7 +49,8 @@ public class UserService {
 
     @Transactional
     public void savePendingUser(String fullName, String username,
-                                String password, String email, String otp, String role) {
+                                String password, String email, String otp, String role,
+                                String phone, String address, String idCard, String taxId) {
         if (!"CUSTOMER".equalsIgnoreCase(role) && !"HOTEL_OWNER".equalsIgnoreCase(role)) {
             throw new RuntimeException("Invalid role selected!");
         }
@@ -62,7 +63,7 @@ public class UserService {
         user.setOtp(otp);
         user.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
         user.setEnabled(false);
-        
+
         User savedUser = userRepository.save(user);
 
         if ("CUSTOMER".equalsIgnoreCase(role)) {
@@ -74,8 +75,10 @@ public class UserService {
             HotelOwner owner = new HotelOwner();
             owner.setUserAccount(savedUser);
             owner.setFullName(fullName);
-            // Khởi tạo các trường thông tin trống để điền sau trong hồ sơ cá nhân
-            owner.setPhone(""); 
+            owner.setPhone(phone);
+            owner.setAddress(address);
+            owner.setIdCard(idCard);
+            owner.setTaxId(taxId);
             owner.setVerificationStatus("PENDING");
             hotelOwnerRepository.save(owner);
         }

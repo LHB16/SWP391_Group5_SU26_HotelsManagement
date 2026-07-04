@@ -7,7 +7,7 @@
 </head>
 <body>
 
-<!-- Header dùng chung với các trang khác -->
+<!-- Header dùng chung -->
 <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
 <!-- Main Content -->
@@ -27,20 +27,40 @@
                     </div>
                     <hr>
                     <nav class="nav flex-column">
+                        <!-- Dashboard -->
                         <a class="nav-link active" href="/owner/dashboard">
-                            <i data-lucide="layout-dashboard"></i> Overview
+                            <i data-lucide="layout-dashboard"></i>
+                            <span>Dashboard</span>
                         </a>
-                        <a class="nav-link" href="#">
-                            <i data-lucide="hotel"></i> Hotels
+
+                        <!-- My Hotels -->
+                        <a class="nav-link" href="/owner/hotels">
+                            <i data-lucide="hotel"></i>
+                            <span>My Hotels</span>
                         </a>
-                        <a class="nav-link" href="#">
-                            <i data-lucide="door-open"></i> Rooms
+
+                        <!-- Add Hotel -->
+                        <a class="nav-link" href="/owner/hotels/new">
+                            <i data-lucide="plus-circle"></i>
+                            <span>Add New Hotel</span>
                         </a>
-                        <a class="nav-link" href="#">
-                            <i data-lucide="calendar-check"></i> Bookings
+
+                        <!-- Manage Rooms -->
+                        <a class="nav-link" href="#" onclick="alert('Please select a hotel first to manage rooms.');">
+                            <i data-lucide="door-open"></i>
+                            <span>Manage Rooms</span>
                         </a>
+
+                        <!-- Bookings -->
                         <a class="nav-link" href="#">
-                            <i data-lucide="chart-line"></i> Revenue
+                            <i data-lucide="calendar-check"></i>
+                            <span>Bookings</span>
+                        </a>
+
+                        <!-- Revenue -->
+                        <a class="nav-link" href="#">
+                            <i data-lucide="dollar-sign"></i>
+                            <span>Revenue</span>
                         </a>
                     </nav>
                 </div>
@@ -63,59 +83,46 @@
                     </div>
                 </div>
 
-                <!-- Stats -->
+                <!-- Stats Cards -->
                 <div class="row g-4 mb-4">
                     <div class="col-md-3">
                         <div class="owner-stat-card card-hotels">
                             <div class="stat-icon"><i data-lucide="hotel"></i></div>
-                            <div class="stat-value">0</div>
-                            <div class="stat-label">Hotels</div>
+                            <div class="stat-value" id="hotelCount">0</div>
+                            <div class="stat-label">Total Hotels</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="owner-stat-card">
                             <div class="stat-icon"><i data-lucide="door-open"></i></div>
-                            <div class="stat-value">0</div>
-                            <div class="stat-label">Rooms</div>
+                            <div class="stat-value" id="roomCount">0</div>
+                            <div class="stat-label">Total Rooms</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="owner-stat-card card-bookings">
                             <div class="stat-icon"><i data-lucide="calendar-check"></i></div>
-                            <div class="stat-value">0</div>
-                            <div class="stat-label">Bookings</div>
+                            <div class="stat-value" id="bookingCount">0</div>
+                            <div class="stat-label">Total Bookings</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="owner-stat-card card-revenue">
                             <div class="stat-icon"><i data-lucide="dollar-sign"></i></div>
-                            <div class="stat-value">0 VND</div>
-                            <div class="stat-label">Revenue</div>
+                            <div class="stat-value" id="revenueTotal">0 VND</div>
+                            <div class="stat-label">Total Revenue</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Alert -->
+                <!-- Welcome Message -->
                 <div class="alert alert-info d-flex align-items-center gap-3">
                     <i data-lucide="info" style="color: #4f46e5;"></i>
                     <div>
                         <strong>Welcome to Owner Dashboard!</strong>
-                        <p class="mb-0 text-muted small">Manage your hotels, rooms, and bookings from here.</p>
-                    </div>
-                </div>
-
-                <!-- Empty State -->
-                <div class="owner-section">
-                    <div class="text-center py-5">
-                        <i data-lucide="construction" class="text-muted mb-3" style="width: 64px; height: 64px;"></i>
-                        <h4>Dashboard Under Construction</h4>
-                        <p class="text-muted">Features will be available soon.</p>
-                        <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
-                            <span class="badge bg-primary">Hotels</span>
-                            <span class="badge bg-success">Rooms</span>
-                            <span class="badge bg-warning text-dark">Bookings</span>
-                            <span class="badge bg-danger">Revenue</span>
-                        </div>
+                        <p class="mb-0 text-muted small">
+                            Use the sidebar to manage your hotels, rooms, and track bookings.
+                        </p>
                     </div>
                 </div>
 

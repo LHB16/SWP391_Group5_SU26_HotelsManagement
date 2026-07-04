@@ -6,26 +6,23 @@
 <body class="d-flex flex-column min-vh-100">
 <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
-<!-- Hero Banner -->
 <section class="create-hero border-bottom border-warning-subtle">
     <div class="container">
         <nav aria-label="breadcrumb" class="mb-3">
-            <a href="/hotels" class="bc-link">Hotels</a>
+            <a href="/owner/hotels" class="bc-link">My Hotels</a>
             <span class="bc-sep">/</span>
             <span class="bc-active">Add New Hotel</span>
         </nav>
-        <h1>Add New Hotel</h1>
-        <p>Fill in the details below to register a new hotel into the system.</p>
+        <h1>Register New Hotel</h1>
+        <p>Fill in all hotel information below to register your hotel</p>
     </div>
 </section>
 
-<!-- Main Content -->
 <main class="flex-grow-1 py-4" style="background:var(--cream);">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-12 col-lg-8">
 
-                <!-- Flash messages (dùng Bootstrap alert + Bootstrap Icons) -->
                 <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
                     <i class="bi bi-check-circle-fill"></i>
                     <span th:text="${successMessage}"></span>
@@ -35,7 +32,6 @@
                     <span th:text="${errorMessage}"></span>
                 </div>
 
-                <!-- Form Card -->
                 <div class="form-card">
                     <div class="form-card-header">
                         <i class="bi bi-building text-gold"></i>
@@ -43,56 +39,55 @@
                     </div>
 
                     <div class="form-card-body">
-                        <form action="/hotels/new" method="post" enctype="multipart/form-data" id="hotelCreateForm">
+                        <form action="/owner/hotels/new" method="post" enctype="multipart/form-data" id="hotelForm">
 
-                            <!-- Tên khách sạn -->
                             <div class="mb-4">
                                 <label class="form-label-custom" for="hotelName">
                                     Hotel Name <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" name="name" id="hotelName" class="fc"
-                                       placeholder="e.g. Lion Hotel 6" required maxlength="200" />
+                                       placeholder="Enter hotel name" required maxlength="200" />
+                                <div class="form-text text-muted">Enter the official hotel name</div>
                             </div>
 
-                            <!-- Địa chỉ -->
                             <div class="mb-4">
                                 <label class="form-label-custom" for="hotelAddress">
                                     Address <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" name="address" id="hotelAddress" class="fc"
-                                       placeholder="e.g. 123 Nguyen Van Cu, Can Tho"
-                                       required maxlength="500" />
+                                       placeholder="Enter full address" required maxlength="500" />
+                                <div class="form-text text-muted">Full street address of the hotel</div>
                             </div>
 
                             <div class="row g-4 mb-4">
-                                <!-- Số sao -->
-                                <div class="col-12">
-                                    <label class="form-label-custom" for="ratingSelect">
-                                        Star Rating <span class="text-danger">*</span>
+                                <div class="col-12 col-sm-6">
+                                    <label class="form-label-custom" for="hotelCity">
+                                        City <span class="text-danger">*</span>
                                     </label>
-                                    <select name="rating" id="ratingSelect" class="fc" required>
-                                        <option th:each="star : ${#numbers.sequence(1, 5)}"
-                                                th:value="${star}" th:text="${star + ' ★'}"
-                                                th:selected="${star == 3}">3 ★</option>
-                                    </select>
+                                    <input type="text" name="city" id="hotelCity" class="fc"
+                                           placeholder="Enter city" required maxlength="100" />
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <label class="form-label-custom" for="hotelDistrict">
+                                        District
+                                    </label>
+                                    <input type="text" name="district" id="hotelDistrict" class="fc"
+                                           placeholder="Enter district" maxlength="100" />
                                 </div>
                             </div>
 
-                            <!-- Trạng thái hoạt động -->
                             <div class="mb-4">
-                                <label class="form-label-custom">Status</label>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch"
-                                           id="activeCheckbox" name="active" value="true" checked />
-                                    <label class="form-check-label fw-semibold" for="activeCheckbox">
-                                        Hotel Active
-                                    </label>
-                                </div>
+                                <label class="form-label-custom" for="hotelDescription">
+                                    Description
+                                </label>
+                                <textarea name="description" id="hotelDescription" class="fc" rows="5"
+                                          placeholder="Describe your hotel, services, amenities, location advantages..."
+                                          style="resize:vertical;"></textarea>
+                                <div class="form-text text-muted">Provide detailed information about your hotel</div>
                             </div>
 
                             <div class="form-divider"></div>
 
-                            <!-- Upload ảnh -->
                             <div class="mb-4">
                                 <label class="form-label-custom" for="imageFile">Hotel Image</label>
                                 <input type="file" name="imageFile" id="imageFile" class="form-control"
@@ -100,18 +95,27 @@
                                 <div class="form-text text-muted mt-1">JPG, PNG, WEBP · Max 10MB</div>
                             </div>
 
+                            <input type="hidden" name="rating" value="0" />
+
                             <div class="form-divider"></div>
 
-                            <!-- Buttons -->
                             <div class="d-flex gap-3 justify-content-end flex-wrap">
-                                <a href="/hotels" class="btn-cancel">
+                                <a href="/owner/hotels" class="btn-cancel">
                                     <i class="bi bi-arrow-left"></i>
                                     Cancel
                                 </a>
                                 <button type="submit" class="btn-submit" id="submitBtn">
                                     <i class="bi bi-floppy"></i>
-                                    Save Hotel
+                                    Register Hotel
                                 </button>
+                            </div>
+
+                            <div class="mt-4 p-3 bg-light rounded-3" style="border-left: 4px solid var(--gold);">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    After registration, your hotel will be reviewed by admin before becoming visible to customers.
+                                    Customers will be able to rate your hotel after their stay.
+                                </small>
                             </div>
 
                         </form>
@@ -125,5 +129,6 @@
 
 <footer th:replace="~{fragment/frag :: footer}"></footer>
 <div th:replace="~{fragment/frag :: scripts}"></div>
+<script th:src="@{/assets/js/owner-hotel-create.js}"></script>
 </body>
 </html>

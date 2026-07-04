@@ -6,66 +6,109 @@
 <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
 <main class="flex-grow-1 d-flex align-items-center py-5">
-<div class="container d-flex justify-content-center">
-    <div class="card shadow" style="width: 420px;">
-        <div class="card-header bg-primary text-white text-center">
-            <h4 class="mb-0">Create Hotel Owner Account</h4>
-        </div>
-        <div class="card-body p-4">
+    <div class="container d-flex justify-content-center">
+        <div class="card shadow" style="width: 480px; max-width: 100%;">
+            <div class="card-header bg-primary text-white text-center">
+                <h4 class="mb-0">Create Hotel Owner Account</h4>
+            </div>
+            <div class="card-body p-4">
 
-            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+                <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
-            <form method="post" action="/register">
-                <!-- Ẩn role = OWNER -->
-                <input type="hidden" name="role" value="HOTEL_OWNER"/>
+                <form method="post" action="/register-owner">
 
-                <div class="mb-3">
-                    <label class="form-label">Full Name</label>
-                    <input type="text" name="fullName" class="form-control"
-                           placeholder="Enter your full name..."
-                           required minlength="2"/>
-                </div>
+                    <!-- Full Name -->
+                    <div class="mb-3">
+                        <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                        <input type="text" name="fullName" class="form-control"
+                               placeholder="Enter your full name..."
+                               th:value="${fullName}"
+                               required minlength="2"/>
+                    </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Username</label>
-                    <input type="text" name="username" class="form-control"
-                           placeholder="Enter your username..."
-                           required minlength="3"/>
-                </div>
+                    <!-- Username -->
+                    <div class="mb-3">
+                        <label class="form-label">Username <span class="text-danger">*</span></label>
+                        <input type="text" name="username" class="form-control"
+                               placeholder="Enter your username..."
+                               th:value="${username}"
+                               required minlength="3"/>
+                    </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Email</label>
-                    <input type="email" name="email" class="form-control"
-                           placeholder="Enter your email..."
-                           required/>
-                </div>
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label class="form-label">Email <span class="text-danger">*</span></label>
+                        <input type="email" name="email" class="form-control"
+                               placeholder="Enter your email..."
+                               th:value="${email}"
+                               required/>
+                    </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Password</label>
-                    <input type="password" name="password" class="form-control"
-                           placeholder="Enter your password..."
-                           required minlength="6"/>
-                </div>
+                    <!-- Password -->
+                    <div class="mb-3">
+                        <label class="form-label">Password <span class="text-danger">*</span></label>
+                        <input type="password" name="password" class="form-control"
+                               placeholder="Enter your password..."
+                               required minlength="6"/>
+                    </div>
 
-                <button type="submit" class="btn btn-primary w-100">Register as Owner</button>
-            </form>
+                    <hr class="my-4">
 
-            <!-- Nút chuyển sang đăng ký Customer -->
-            <div class="text-center mt-3">
+
+                    <!-- Phone -->
+                    <div class="mb-3">
+                        <label class="form-label">Phone Number <span class="text-danger">*</span></label>
+                        <input type="tel" name="phone" class="form-control"
+                               placeholder="Enter your phone number..."
+                               th:value="${phone}"
+                               required/>
+                    </div>
+
+                    <!-- Address -->
+                    <div class="mb-3">
+                        <label class="form-label">Address <span class="text-danger">*</span></label>
+                        <input type="text" name="address" class="form-control"
+                               placeholder="Enter your address..."
+                               th:value="${address}"
+                               required/>
+                    </div>
+
+                    <!-- ID Card -->
+                    <div class="mb-3">
+                        <label class="form-label">ID Card / CCCD <span class="text-danger">*</span></label>
+                        <input type="text" name="idCard" class="form-control"
+                               placeholder="Enter your ID card number..."
+                               th:value="${idCard}"
+                               required/>
+                    </div>
+
+                    <!-- Tax ID -->
+                    <div class="mb-3">
+                        <label class="form-label">Tax ID <span class="text-danger">*</span></label>
+                        <input type="text" name="taxId" class="form-control"
+                               placeholder="Enter your tax ID..."
+                               th:value="${taxId}"
+                               required/>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 mt-2">Register as Owner</button>
+                </form>
+
+                <div class="text-center mt-3">
                 <span class="text-muted small">Are you a customer?
                     <a th:href="@{/register}" class="fw-bold">Register as Customer</a>
                 </span>
-            </div>
+                </div>
 
-            <div class="text-center mt-2">
+                <div class="text-center mt-2">
                 <span class="text-muted small">Already have an account?
                     <a th:href="@{/login}">Login here</a>
                 </span>
-            </div>
+                </div>
 
+            </div>
         </div>
     </div>
-</div>
 </main>
 
 <footer th:replace="~{fragment/frag :: footer}"></footer>
