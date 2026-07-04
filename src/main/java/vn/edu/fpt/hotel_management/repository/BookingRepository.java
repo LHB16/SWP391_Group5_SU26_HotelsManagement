@@ -18,6 +18,9 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     // Magic Method lấy danh sách booking của khách hàng và sắp xếp giảm dần theo thời gian tạo
     Page<Booking> findByCustomerIdOrderByCreatedAtDesc(int customerId, Pageable pageable);
 
+    // Magic Method lấy toàn bộ booking của khách hàng (không phân trang) để filter trong controller
+    List<Booking> findByCustomerIdOrderByCreatedAtDesc(int customerId);
+
     // Magic Method tìm booking đang chờ xử lý (PENDING) dựa trên khách hàng, phòng, thời gian thuê và trạng thái
     List<Booking> findByCustomerIdAndRoomIdAndCheckInDateAndCheckOutDateAndStatusOrderByCreatedAtDesc(
             int customerId,

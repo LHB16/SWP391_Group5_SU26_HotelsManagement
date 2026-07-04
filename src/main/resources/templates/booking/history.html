@@ -36,6 +36,67 @@
                             </li>
                         </ul>
                     </div>
+
+                    <!-- ========== Filter Panel ========== -->
+                    <div class="bh-filter-card">
+                        <div class="bh-filter-header">
+                            <i class="bi bi-funnel"></i>
+                            Filter Bookings
+                        </div>
+                        <div class="bh-filter-body">
+                            <form th:action="@{/booking/history}" method="get" id="bookingFilterForm">
+
+                                <!-- Lọc theo trạng thái -->
+                                <div class="bh-filter-group">
+                                    <label class="bh-filter-label" for="filterStatus">STATUS</label>
+                                    <select name="status" id="filterStatus" class="bh-filter-select">
+                                        <option value="" th:selected="${selectedStatus == ''}">All Statuses</option>
+                                        <option value="PENDING" th:selected="${selectedStatus == 'PENDING'}">Unpaid</option>
+                                        <option value="CONFIRMED" th:selected="${selectedStatus == 'CONFIRMED'}">Pending</option>
+                                        <option value="DONE" th:selected="${selectedStatus == 'DONE'}">Done</option>
+                                        <option value="CANCELLED" th:selected="${selectedStatus == 'CANCELLED'}">Cancelled</option>
+                                    </select>
+                                </div>
+
+                                <!-- Lọc theo loại phòng -->
+                                <div class="bh-filter-group">
+                                    <label class="bh-filter-label" for="filterRoomType">ROOM TYPE</label>
+                                    <select name="roomType" id="filterRoomType" class="bh-filter-select">
+                                        <option value="" th:selected="${selectedRoomType == ''}">All Types</option>
+                                        <option th:each="rt : ${allRoomTypes}" th:value="${rt}" th:text="${rt}"
+                                                th:selected="${rt == selectedRoomType}"></option>
+                                    </select>
+                                </div>
+
+                                <!-- Lọc theo ngày check-in -->
+                                <div class="bh-filter-group">
+                                    <label class="bh-filter-label" for="filterCheckIn">CHECK-IN DATE</label>
+                                    <input type="text" name="checkIn" id="filterCheckIn"
+                                           class="bh-filter-input" th:value="${selectedCheckIn}"
+                                           placeholder="Select Check-in" readonly />
+                                </div>
+
+                                <!-- Lọc theo ngày check-out -->
+                                <div class="bh-filter-group">
+                                    <label class="bh-filter-label" for="filterCheckOut">CHECK-OUT DATE</label>
+                                    <input type="text" name="checkOut" id="filterCheckOut"
+                                           class="bh-filter-input" th:value="${selectedCheckOut}"
+                                           placeholder="Select Check-out" readonly />
+                                </div>
+
+                                <!-- Nút tìm kiếm và xóa filter -->
+                                <div class="bh-filter-actions">
+                                    <button type="submit" class="bh-filter-btn-search">
+                                        <i class="bi bi-search"></i>
+                                        Search Bookings
+                                    </button>
+                                    <a th:href="@{/booking/history}" class="bh-filter-btn-clear">
+                                        Clear Filters
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- ========== Cột phải: Nội dung chính ========== -->
@@ -208,12 +269,12 @@
                                     <!-- CANCELLED: hiển thị trạng thái hoàn tiền tương ứng -->
                                     <th:block th:if="${booking.status == 'CANCELLED'}">
                                          <!-- Hiện nút Refund nếu payment có status REFUNDED và chưa gửi request -->
-                                         <a th:if="${refundEligibleMap != null and refundEligibleMap[booking.id]}"
-                                            th:href="@{/booking/cancel-policy(bookingId=${booking.id})}"
-                                            class="bh-btn-cancel" style="text-decoration: none;">
-                                             <i class="bi bi-x-circle"></i>
-                                             Cancel
-                                         </a>
+                                          <a th:if="${refundEligibleMap != null and refundEligibleMap[booking.id]}"
+                                             th:href="@{/booking/cancel-policy(bookingId=${booking.id})}"
+                                             class="bh-btn-cancel" style="text-decoration: none;">
+                                              <i class="bi bi-arrow-return-left"></i>
+                                              Request Refund
+                                          </a>
                                         <!-- Đã gửi yêu cầu hoàn tiền rồi -->
                                         <span th:if="${refundSubmittedMap != null and refundSubmittedMap[booking.id]}" class="bh-status-note bh-note-refund-submitted">
                                             <i class="bi bi-hourglass-split"></i>
@@ -234,14 +295,6 @@
                                         Go to Payment
                                     </a>
 
-                                    <!-- Nút xóa booking khỏi lịch sử: luôn hiển thị bất kể trạng thái -->
-                                    <form th:action="@{/booking/delete/{id}(id=${booking.id})}"
-                                          method="post"
-                                          class="delete-booking-form d-inline">
-                                        <button type="button" class="bh-btn-delete trigger-delete-btn" title="Remove from history">
-                                            <i class="bi bi-trash3"></i>
-                                        </button>
-                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -264,23 +317,23 @@
 
                     <!-- ====== PHÂN TRANG: Chỉ hiển thị khi có hơn 1 trang ====== -->
                     <div th:if="${totalPages > 1}" class="bh-pagination">
-                        <!-- Nút Previous: trang trước -->
-                        <a th:href="@{/booking/history(page=${currentPage - 1})}"
+                        <!-- Nút Previous: trang trước (giữ filter params) -->
+                        <a th:href="@{/booking/history(page=${currentPage - 1}, status=${selectedStatus}, roomType=${selectedRoomType}, checkIn=${selectedCheckIn}, checkOut=${selectedCheckOut})}"
                            th:classappend="${currentPage == 0} ? 'bh-page-disabled' : ''"
                            class="bh-page-btn">
                             <i class="bi bi-chevron-left"></i>
                         </a>
 
-                        <!-- Danh sách số trang -->
+                        <!-- Danh sách số trang (giữ filter params) -->
                         <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
-                            <a th:href="@{/booking/history(page=${i})}"
+                            <a th:href="@{/booking/history(page=${i}, status=${selectedStatus}, roomType=${selectedRoomType}, checkIn=${selectedCheckIn}, checkOut=${selectedCheckOut})}"
                                th:text="${i + 1}"
                                th:classappend="${i == currentPage} ? 'bh-page-active' : ''"
                                class="bh-page-btn">1</a>
                         </th:block>
 
-                        <!-- Nút Next: trang sau -->
-                        <a th:href="@{/booking/history(page=${currentPage + 1})}"
+                        <!-- Nút Next: trang sau (giữ filter params) -->
+                        <a th:href="@{/booking/history(page=${currentPage + 1}, status=${selectedStatus}, roomType=${selectedRoomType}, checkIn=${selectedCheckIn}, checkOut=${selectedCheckOut})}"
                            th:classappend="${currentPage == totalPages - 1} ? 'bh-page-disabled' : ''"
                            class="bh-page-btn">
                             <i class="bi bi-chevron-right"></i>
@@ -342,28 +395,7 @@
         </div>
     </div>
 
-    <!-- Modal Xác nhận Xóa lịch sử -->
-    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content shadow border-0" style="border-radius: 14px;">
-                <div class="modal-body text-center p-4">
-                    <div class="mb-3" style="color: #ef4444; font-size: 54px;">
-                        <i class="bi bi-trash3"></i>
-                    </div>
-                    <h4 class="modal-title fw-bold mb-2" id="deleteConfirmModalLabel" style="color: #0f172a;">Remove History?</h4>
-                    <p class="text-muted mb-4">Are you sure you want to remove this room booking from your booking history?</p>
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-light w-50" data-bs-dismiss="modal" style="border-radius: 8px; font-weight: 600; padding: 10px;">
-                            Cancel
-                        </button>
-                        <button type="button" id="confirmDeleteBtn" class="btn text-white w-50" style="background-color: #ef4444; border-radius: 8px; font-weight: 600; padding: 10px;">
-                            Yes, remove
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Modal Thông báo lỗi (như hết hạn thanh toán) hiển thị ở chính giữa màn hình -->
     <div th:if="${errorMessage}" class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
@@ -418,14 +450,14 @@
                     if (policy === 'full') {
                         iconEl.style.color  = '#d97706';
                         msgEl.textContent   = 'Are you sure you want to cancel this booking?';
-                        badgeEl.textContent = '✅ Full refund (100%) will be processed';
+                        badgeEl.textContent = 'Full refund (100%) will be processed';
                         badgeEl.style.background = '#ecfdf5';
                         badgeEl.style.color = '#047857';
                         badgeEl.style.border = '1px solid #a7f3d0';
                     } else {
                         iconEl.style.color  = '#ef4444';
                         msgEl.textContent   = 'This booking is within 3 days of check-in. Cancellations in this period are non-refundable.';
-                        badgeEl.textContent = '⚠️ No refund will be issued (0%)';
+                        badgeEl.textContent = 'No refund will be issued (0%)';
                         badgeEl.style.background = '#fef2f2';
                         badgeEl.style.color = '#b91c1c';
                         badgeEl.style.border = '1px solid #fecaca';
@@ -441,19 +473,49 @@
                 }
             });
 
-            // 3. Xử lý hiển thị modal xóa lịch sử
-            var deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-            document.querySelectorAll('.trigger-delete-btn').forEach(function(button) {
-                button.addEventListener('click', function(e) {
-                    activeFormToSubmit = this.closest('.delete-booking-form');
-                    deleteModal.show();
-                });
+
+        });
+    </script>
+
+    <!-- Flatpickr cho bộ lọc ngày Check-in / Check-out -->
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function() {
+            const checkinVal = /*[[${selectedCheckIn}]]*/ '';
+            const checkoutVal = /*[[${selectedCheckOut}]]*/ '';
+
+            // Khởi tạo flatpickr cho Check-in Date
+            const checkinPicker = flatpickr("#filterCheckIn", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                altInputClass: "bh-filter-input",
+                allowInput: false,
+                defaultDate: checkinVal ? checkinVal : null,
+                onChange: function(selectedDates, dateStr) {
+                    if (selectedDates[0]) {
+                        // Đặt minDate cho checkout = ngày sau check-in
+                        const nextDay = new Date(selectedDates[0]);
+                        nextDay.setDate(nextDay.getDate() + 1);
+                        checkoutPicker.set("minDate", nextDay);
+
+                        // Nếu checkout hiện tại <= check-in mới → tự động đặt lại
+                        const currentCheckout = checkoutPicker.selectedDates[0];
+                        if (currentCheckout && currentCheckout <= selectedDates[0]) {
+                            checkoutPicker.setDate(nextDay);
+                        }
+                    }
+                }
             });
 
-            document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-                if (activeFormToSubmit) {
-                    activeFormToSubmit.submit();
-                }
+            // Khởi tạo flatpickr cho Check-out Date
+            const checkoutPicker = flatpickr("#filterCheckOut", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                altInputClass: "bh-filter-input",
+                allowInput: false,
+                minDate: checkinVal ? new Date(new Date(checkinVal).getTime() + 86400000) : null,
+                defaultDate: checkoutVal ? checkoutVal : null
             });
         });
     </script>
