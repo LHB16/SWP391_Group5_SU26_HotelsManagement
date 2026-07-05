@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -76,73 +77,69 @@ public class AdminDashboardController {
         model.addAttribute("hotels", hotelRepository.findAll());
 
         // Danh sách khách hàng & chủ khách sạn kèm phân trang và tìm kiếm
-        Pageable pageable = PageRequest.of(page, 10);
-        Page<Customer> customerPage = Page.empty(pageable);
-        Page<HotelOwner> ownerPage = Page.empty(pageable);
+        Pageable defaultCustomerPageable = PageRequest.of(page, 5, Sort.by("userAccount.username").ascending());
+        Pageable defaultOwnerPageable = PageRequest.of(page, 5, Sort.by("userAccount.username").ascending());
+        Pageable searchPageable = PageRequest.of(page, 5); // When searching, sorting could be by relevance or default
 
-        if ("customerPanel".equals(tab)) {
-            if (searchQuery != null && !searchQuery.trim().isEmpty()) {
-                String query = searchQuery.trim();
-                if ("id".equals(searchType)) {
-                    try {
-                        int targetId = Integer.parseInt(query);
-                        customerPage = customerRepository.findById(targetId, pageable);
-                    } catch (NumberFormatException e) {
-                        customerPage = Page.empty(pageable);
-                    }
-                } else if ("fullName".equals(searchType)) {
-                    customerPage = customerRepository.findByFullNameContainingIgnoreCase(query, pageable);
-                } else if ("email".equals(searchType)) {
-                    customerPage = customerRepository.findByUserAccountEmailContainingIgnoreCase(query, pageable);
-                } else {
-                    customerPage = customerRepository.findByUserAccountUsernameContainingIgnoreCase(query, pageable);
+        Page<Customer> customerPage = Page.empty(defaultCustomerPageable);
+        Page<HotelOwner> ownerPage = Page.empty(defaultOwnerPageable);
+
+        // --- Xử lý Customer ---
+        if ("customerPanel".equals(tab) && searchQuery != null && !searchQuery.trim().isEmpty()) {
+            String query = searchQuery.trim();
+            if ("id".equals(searchType)) {
+                try {
+                    int targetId = Integer.parseInt(query);
+                    customerPage = customerRepository.findById(targetId, searchPageable);
+                } catch (NumberFormatException e) {
+                    customerPage = Page.empty(searchPageable);
                 }
-                model.addAttribute("searchQuery", searchQuery);
-                model.addAttribute("searchType", searchType);
-                model.addAttribute("customers", customerPage.getContent());
-                model.addAttribute("currentPage", page);
-                model.addAttribute("totalPages", customerPage.getTotalPages());
+            } else if ("fullName".equals(searchType)) {
+                customerPage = customerRepository.findByFullNameContainingIgnoreCase(query, searchPageable);
+            } else if ("email".equals(searchType)) {
+                customerPage = customerRepository.findByUserAccountEmailContainingIgnoreCase(query, searchPageable);
             } else {
-                // Ban đầu không chọn gì, chỉ hiển thị tối đa 10 user đầu tiên
-                customerPage = customerRepository.findAll(PageRequest.of(0, 10));
-                model.addAttribute("customers", customerPage.getContent());
-                model.addAttribute("currentPage", 0);
-                model.addAttribute("totalPages", 1);
-            }
-        } else if ("verificationPanel".equals(tab)) {
-            if (searchQuery != null && !searchQuery.trim().isEmpty()) {
-                String query = searchQuery.trim();
-                if ("id".equals(searchType)) {
-                    try {
-                        int targetId = Integer.parseInt(query);
-                        ownerPage = hotelOwnerRepository.findById(targetId, pageable);
-                    } catch (NumberFormatException e) {
-                        ownerPage = Page.empty(pageable);
-                    }
-                } else if ("fullName".equals(searchType)) {
-                    ownerPage = hotelOwnerRepository.findByFullNameContainingIgnoreCase(query, pageable);
-                } else if ("email".equals(searchType)) {
-                    ownerPage = hotelOwnerRepository.findByUserAccountEmailContainingIgnoreCase(query, pageable);
-                } else if ("phone".equals(searchType)) {
-                    ownerPage = hotelOwnerRepository.findByPhoneContaining(query, pageable);
-                } else {
-                    ownerPage = hotelOwnerRepository.findByUserAccountUsernameContainingIgnoreCase(query, pageable);
-                }
-                model.addAttribute("searchQuery", searchQuery);
-                model.addAttribute("searchType", searchType);
-                model.addAttribute("owners", ownerPage.getContent());
-                model.addAttribute("currentPage", page);
-                model.addAttribute("totalPages", ownerPage.getTotalPages());
-            } else {
-                // Ban đầu không chọn gì, chỉ hiển thị tối đa 10 owner đầu tiên
-                ownerPage = hotelOwnerRepository.findAll(PageRequest.of(0, 10));
-                model.addAttribute("owners", ownerPage.getContent());
-                model.addAttribute("currentPage", 0);
-                model.addAttribute("totalPages", 1);
+                customerPage = customerRepository.findByUserAccountUsernameContainingIgnoreCase(query, searchPageable);
             }
         } else {
-            model.addAttribute("currentPage", 0);
-            model.addAttribute("totalPages", 0);
+            Pageable customerPageable = "customerPanel".equals(tab) ? defaultCustomerPageable : PageRequest.of(0, 5, Sort.by("userAccount.username").ascending());
+            customerPage = customerRepository.findAll(customerPageable);
+        }
+        model.addAttribute("customers", customerPage.getContent());
+        model.addAttribute("customerCurrentPage", "customerPanel".equals(tab) ? page : 0);
+        model.addAttribute("customerTotalPages", customerPage.getTotalPages());
+
+        // --- Xử lý Owner ---
+        if ("verificationPanel".equals(tab) && searchQuery != null && !searchQuery.trim().isEmpty()) {
+            String query = searchQuery.trim();
+            if ("id".equals(searchType)) {
+                try {
+                    int targetId = Integer.parseInt(query);
+                    ownerPage = hotelOwnerRepository.findById(targetId, searchPageable);
+                } catch (NumberFormatException e) {
+                    ownerPage = Page.empty(searchPageable);
+                }
+            } else if ("fullName".equals(searchType)) {
+                ownerPage = hotelOwnerRepository.findByFullNameContainingIgnoreCase(query, searchPageable);
+            } else if ("email".equals(searchType)) {
+                ownerPage = hotelOwnerRepository.findByUserAccountEmailContainingIgnoreCase(query, searchPageable);
+            } else if ("phone".equals(searchType)) {
+                ownerPage = hotelOwnerRepository.findByPhoneContaining(query, searchPageable);
+            } else {
+                ownerPage = hotelOwnerRepository.findByUserAccountUsernameContainingIgnoreCase(query, searchPageable);
+            }
+        } else {
+            Pageable ownerPageable = "verificationPanel".equals(tab) ? defaultOwnerPageable : PageRequest.of(0, 5, Sort.by("userAccount.username").ascending());
+            ownerPage = hotelOwnerRepository.findAll(ownerPageable);
+        }
+        model.addAttribute("owners", ownerPage.getContent());
+        model.addAttribute("ownerCurrentPage", "verificationPanel".equals(tab) ? page : 0);
+        model.addAttribute("ownerTotalPages", ownerPage.getTotalPages());
+
+        // --- Lưu lại thông tin search nếu có ---
+        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+            model.addAttribute("searchQuery", searchQuery);
+            model.addAttribute("searchType", searchType);
         }
 
         // Danh sách đặt phòng toàn hệ thống

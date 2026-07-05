@@ -248,20 +248,20 @@
                                 </div>
 
                                 <!-- Pagination for Customers -->
-                                <div class="pagination-container" th:if="${totalPages > 1}">
-                                    <a th:href="@{/admin/dashboard(page=${currentPage - 1}, tab='customerPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
-                                       class="page-link-custom" th:classappend="${currentPage == 0} ? 'disabled' : ''">
+                                <div class="pagination-container" th:if="${customerTotalPages > 1}">
+                                    <a th:href="@{/admin/dashboard(page=${customerCurrentPage - 1}, tab='customerPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
+                                       class="page-link-custom" th:classappend="${customerCurrentPage == 0} ? 'disabled' : ''">
                                         <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>
                                     </a>
                                     
-                                    <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                                    <th:block th:each="i : ${#numbers.sequence(0, customerTotalPages - 1)}">
                                         <a th:href="@{/admin/dashboard(page=${i}, tab='customerPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
-                                           class="page-link-custom" th:classappend="${currentPage == i} ? 'active' : ''"
+                                           class="page-link-custom" th:classappend="${customerCurrentPage == i} ? 'active' : ''"
                                            th:text="${i + 1}">1</a>
                                     </th:block>
                                     
-                                    <a th:href="@{/admin/dashboard(page=${currentPage + 1}, tab='customerPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
-                                       class="page-link-custom" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled' : ''">
+                                    <a th:href="@{/admin/dashboard(page=${customerCurrentPage + 1}, tab='customerPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
+                                       class="page-link-custom" th:classappend="${customerCurrentPage + 1 >= customerTotalPages} ? 'disabled' : ''">
                                         <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
                                     </a>
                                 </div>
@@ -286,7 +286,7 @@
                             <div class="customer-list-box-full">
                                 <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
                                     <i data-lucide="list" style="stroke-width: 1.5; width: 18px; height: 18px; color: #4f46e5;"></i>
-                                    Verification Requests List
+                                    Hotel Owner Accounts List
                                 </h5>
 
                                 <!-- Search & Filter Form -->
@@ -343,20 +343,20 @@
                                 </div>
 
                                 <!-- Pagination for Owners -->
-                                <div class="pagination-container" th:if="${totalPages > 1}">
-                                    <a th:href="@{/admin/dashboard(page=${currentPage - 1}, tab='verificationPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
-                                       class="page-link-custom" th:classappend="${currentPage == 0} ? 'disabled' : ''">
+                                <div class="pagination-container" th:if="${ownerTotalPages > 1}">
+                                    <a th:href="@{/admin/dashboard(page=${ownerCurrentPage - 1}, tab='verificationPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
+                                       class="page-link-custom" th:classappend="${ownerCurrentPage == 0} ? 'disabled' : ''">
                                         <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>
                                     </a>
                                     
-                                    <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                                    <th:block th:each="i : ${#numbers.sequence(0, ownerTotalPages - 1)}">
                                         <a th:href="@{/admin/dashboard(page=${i}, tab='verificationPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
-                                           class="page-link-custom" th:classappend="${currentPage == i} ? 'active' : ''"
+                                           class="page-link-custom" th:classappend="${ownerCurrentPage == i} ? 'active' : ''"
                                            th:text="${i + 1}">1</a>
                                     </th:block>
                                     
-                                    <a th:href="@{/admin/dashboard(page=${currentPage + 1}, tab='verificationPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
-                                       class="page-link-custom" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled' : ''">
+                                    <a th:href="@{/admin/dashboard(page=${ownerCurrentPage + 1}, tab='verificationPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
+                                       class="page-link-custom" th:classappend="${ownerCurrentPage + 1 >= ownerTotalPages} ? 'disabled' : ''">
                                         <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
                                     </a>
                                 </div>
