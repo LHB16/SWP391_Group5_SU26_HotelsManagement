@@ -242,9 +242,9 @@ public class PaymentController {
         // Kiểm tra qua PayOS (ưu tiên) hoặc Casso
         boolean verified = false;
         if (payosApiKey != null && !payosApiKey.isBlank()) {
-            verified = checkPayOSPaymentStatus(bookingId);
+            verified = checkPayOSPaymentStatus(bookingId, payment);
         } else if (cassoApiKey != null && !cassoApiKey.isBlank()) {
-            verified = checkCassoTransaction(transferInfo, expectedAmount);
+            verified = checkCassoTransaction(transferInfo, expectedAmount, payment);
         }
 
         if (verified) {
@@ -292,7 +292,7 @@ public class PaymentController {
 
         // Tự động kiểm tra PayOS khi vào trang
         if ("PENDING".equals(booking.getStatus()) && payosApiKey != null && !payosApiKey.isBlank()) {
-            if (checkPayOSPaymentStatus(bookingId)) {
+            if (checkPayOSPaymentStatus(bookingId, payment)) {
                 confirmBooking(booking, payment);
                 redirectAttributes.addFlashAttribute("successMessage",
                         "Payment verified successfully! Your booking is confirmed.");
@@ -355,7 +355,7 @@ public class PaymentController {
         Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
 
         // Kiểm tra PayOS và cập nhật nếu đã thanh toán
-        if (payosApiKey != null && !payosApiKey.isBlank() && checkPayOSPaymentStatus(bookingId)) {
+        if (payosApiKey != null && !payosApiKey.isBlank() && checkPayOSPaymentStatus(bookingId, payment)) {
             confirmBooking(booking, payment);
             return "CONFIRMED";
         }
@@ -501,11 +501,11 @@ public class PaymentController {
     }
 
     // Kiểm tra giao dịch qua API Casso
-    private boolean checkCassoTransaction(String transferInfo, BigDecimal expectedAmount) {
+    private boolean checkCassoTransaction(String transferInfo, BigDecimal expectedAmount, Payment payment) {
         try {
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://api.casso.vn/v2/transactions?sort=DESC&limit=20"))
+                    .uri(URI.create("https://api-casso.vn/v2/transactions?sort=DESC&limit=20"))
                     .header("Authorization", "Apikey " + cassoApiKey)
                     .GET().build();
             String body = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
@@ -515,14 +515,41 @@ public class PaymentController {
                 int idx = body.indexOf(transferInfo);
                 String window = body.substring(Math.max(0, idx - 500), Math.min(body.length(), idx + 500));
                 long expected = expectedAmount.longValue();
-                if (window.contains(String.valueOf(expected)))
-                    return true;
+                boolean isMatch = false;
+                if (window.contains(String.valueOf(expected))) {
+                    isMatch = true;
+                } else {
+                    // Kiểm tra thêm nếu số tiền >= mong đợi
+                    Matcher matcher = Pattern.compile("\"amount\"\\s*:\\s*(\\d+)").matcher(window);
+                    while (matcher.find()) {
+                        if (Long.parseLong(matcher.group(1)) >= expected) {
+                            isMatch = true;
+                            break;
+                        }
+                    }
+                }
 
-                // Kiểm tra thêm nếu số tiền >= mong đợi
-                Matcher matcher = Pattern.compile("\"amount\"\\s*:\\s*(\\d+)").matcher(window);
-                while (matcher.find()) {
-                    if (Long.parseLong(matcher.group(1)) >= expected)
-                        return true;
+                if (isMatch) {
+                    if (payment != null) {
+                        String accountNumber = extractJsonField(window, "corresponsiveAccount");
+                        String bankName = extractJsonField(window, "corresponsiveBankName");
+                        String accountName = extractJsonField(window, "corresponsiveName");
+                        String bankId = extractJsonField(window, "corresponsiveBankId");
+
+                        if (bankName.isEmpty() && !bankId.isEmpty()) {
+                            bankName = getBankNameByBin(bankId);
+                        }
+
+                        if (accountName.isEmpty() && !accountNumber.isEmpty()) {
+                            String description = extractJsonField(window, "description");
+                            accountName = extractSenderNameFromDescription(description, accountNumber);
+                        }
+
+                        if (!accountNumber.isEmpty()) payment.setSenderAccountNumber(accountNumber);
+                        if (!bankName.isEmpty()) payment.setSenderBankName(bankName);
+                        if (!accountName.isEmpty()) payment.setSenderAccountName(accountName);
+                    }
+                    return true;
                 }
             }
         } catch (Exception e) {
@@ -532,7 +559,7 @@ public class PaymentController {
     }
 
     // Kiểm tra trạng thái thanh toán qua PayOS
-    private boolean checkPayOSPaymentStatus(int bookingId) {
+    private boolean checkPayOSPaymentStatus(int bookingId, Payment payment) {
         try {
             if (payosClientId == null || payosClientId.isBlank())
                 return false;
@@ -543,7 +570,34 @@ public class PaymentController {
                     .header("x-api-key", payosApiKey)
                     .GET().build();
             String body = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
-            return body != null && body.contains("\"PAID\""); // Kiểm tra đã thanh toán chưa
+            if (body != null && body.contains("\"PAID\"")) {
+                if (payment != null) {
+                    String accountNumber = extractJsonField(body, "counterAccountNumber");
+                    String bankName = extractJsonField(body, "counterAccountBankName");
+                    String accountName = extractJsonField(body, "counterAccountName");
+                    String bankId = extractJsonField(body, "counterAccountBankId");
+
+                    if (bankName.isEmpty() && !bankId.isEmpty()) {
+                        bankName = getBankNameByBin(bankId);
+                    }
+
+                    if (accountName.isEmpty() && !accountNumber.isEmpty()) {
+                        // Trích xuất mô tả của giao dịch cụ thể
+                        String txDesc = "";
+                        int txIdx = body.indexOf("counterAccountNumber");
+                        if (txIdx != -1) {
+                            String txWindow = body.substring(Math.max(0, txIdx - 200), Math.min(body.length(), txIdx + 500));
+                            txDesc = extractJsonField(txWindow, "description");
+                        }
+                        accountName = extractSenderNameFromDescription(txDesc, accountNumber);
+                    }
+
+                    if (!accountNumber.isEmpty()) payment.setSenderAccountNumber(accountNumber);
+                    if (!bankName.isEmpty()) payment.setSenderBankName(bankName);
+                    if (!accountName.isEmpty()) payment.setSenderAccountName(accountName);
+                }
+                return true;
+            }
         } catch (Exception e) {
             System.err.println("[PayOS] Lỗi kiểm tra trạng thái: " + e.getMessage());
         }
@@ -628,6 +682,59 @@ public class PaymentController {
         m = Pattern.compile("\"" + fieldName + "\"\\s*:\\s*([0-9.-]+)").matcher(json);
         if (m.find())
             return m.group(1);
+        return "";
+    }
+
+    // Tra cứu tên ngân hàng theo mã BIN VietQR/Napas
+    private String getBankNameByBin(String bin) {
+        if (bin == null || bin.isBlank()) return "";
+        return switch (bin) {
+            case "970436" -> "Vietcombank";
+            case "970415" -> "VietinBank";
+            case "970418" -> "BIDV";
+            case "970422" -> "MB Bank";
+            case "970407" -> "Techcombank";
+            case "970416" -> "ACB";
+            case "970432" -> "VPBank";
+            case "970403" -> "Sacombank";
+            case "970423" -> "TPBank";
+            case "970441" -> "VIB";
+            case "970443" -> "SHB";
+            case "970425" -> "An Binh Bank";
+            case "970405" -> "Agribank";
+            case "970448" -> "OCB";
+            case "970437" -> "HDBank";
+            case "970428" -> "Nam A Bank";
+            case "970452" -> "KienlongBank";
+            case "970429" -> "Saigonbank";
+            case "970409" -> "Bac A Bank";
+            case "970454" -> "VietCapitalBank";
+            case "970440" -> "SeABank";
+            case "970438" -> "BaoVietBank";
+            case "970412" -> "PVcomBank";
+            case "970421" -> "VRB";
+            case "970433" -> "VietBank";
+            case "970431" -> "Eximbank";
+            case "970426" -> "MSB";
+            case "970430" -> "PG Bank";
+            case "970457" -> "Woori Bank";
+            case "970458" -> "Shinhan Bank";
+            default -> "Bank (BIN: " + bin + ")";
+        };
+    }
+
+    // Trích xuất tên người gửi từ nội dung chuyển khoản bằng Regex
+    private String extractSenderNameFromDescription(String description, String accountNumber) {
+        if (description == null || accountNumber == null || accountNumber.isBlank())
+            return "";
+        try {
+            Matcher m = Pattern.compile(accountNumber + "\\s+([A-Z]{2,}(?:\\s+[A-Z]{2,})*)").matcher(description);
+            if (m.find()) {
+                return m.group(1).trim();
+            }
+        } catch (Exception e) {
+            // Bỏ qua lỗi regex
+        }
         return "";
     }
 }

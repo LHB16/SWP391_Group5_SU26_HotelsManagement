@@ -76,6 +76,17 @@
                                 </a>
                             </div>
                         </form>
+
+                        <!-- Customer Support inside the same sticky filter card to prevent overlap on scroll -->
+                        <hr style="border-color: rgba(0, 0, 0, 0.08); margin: 20px 0;">
+                        <div class="text-center">
+                            <h6 class="fw-bold mb-2" style="font-size: 0.95rem; color: #0a1628;">Customer Support</h6>
+                            <p class="text-muted mb-3" style="font-size: 0.8rem; line-height: 1.4;">Have questions about rooms or services? Chat directly with the hotel owner!</p>
+                            <a th:href="@{/customer/chat(hotelId=${hotel.id})}" class="btn w-100 btn-sm" style="background-color: #0a1628; color: #c9a96e; font-weight: 600; border-radius: 8px;">
+                                <i class="bi bi-chat-left-dots-fill me-1"></i>
+                                Chat with Owner
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -23,8 +23,18 @@ public class Message {
     @JoinColumn(name = "booking_id")
     private Booking booking;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "hotel_id", nullable = false)
+    private Hotel hotel;
+
     @Column(name = "content", columnDefinition = "NVARCHAR(MAX)")
     private String content;
+
+    @Column(name = "reaction", length = 50)
+    private String reaction;
+
+    @Column(name = "image_url", length = 255)
+    private String imageUrl;
 
     @Column(name = "is_read", nullable = false)
     private boolean isRead = false;
@@ -34,7 +44,7 @@ public class Message {
 
     public Message() {}
 
-    // Getters and Setters
+    // Các phương thức Getter và Setter cho các thuộc tính
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
     public User getSender() { return sender; }
@@ -43,8 +53,14 @@ public class Message {
     public void setReceiver(User receiver) { this.receiver = receiver; }
     public Booking getBooking() { return booking; }
     public void setBooking(Booking booking) { this.booking = booking; }
+    public Hotel getHotel() { return hotel; }
+    public void setHotel(Hotel hotel) { this.hotel = hotel; }
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
+    public String getReaction() { return reaction; }
+    public void setReaction(String reaction) { this.reaction = reaction; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public boolean isRead() { return isRead; }
     public void setRead(boolean read) { this.isRead = read; }
     public LocalDateTime getSentAt() { return sentAt; }

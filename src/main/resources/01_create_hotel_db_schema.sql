@@ -264,6 +264,9 @@ CREATE TABLE payments (
     status NVARCHAR(50) NULL,
     qr_code_url NVARCHAR(500) NULL,
     transaction_id NVARCHAR(255) NULL,
+    sender_account_number NVARCHAR(50) NULL,
+    sender_bank_name NVARCHAR(255) NULL,
+    sender_account_name NVARCHAR(255) NULL,
     paid_at DATETIME2 NULL,
     created_at DATETIME2 NOT NULL CONSTRAINT DF_payments_created_at DEFAULT GETDATE(),
     qr_expires_at DATETIME2 NULL,
@@ -307,8 +310,11 @@ CREATE TABLE messages (
     id INT IDENTITY(1,1) PRIMARY KEY,
     sender_id INT NOT NULL,
     receiver_id INT NOT NULL,
+    hotel_id INT NOT NULL,
     booking_id INT NULL,
     content NVARCHAR(MAX) NULL,
+    reaction NVARCHAR(50) NULL,
+    image_url NVARCHAR(255) NULL,
     is_read BIT NOT NULL CONSTRAINT DF_messages_is_read DEFAULT 0,
     sent_at DATETIME2 NOT NULL CONSTRAINT DF_messages_sent_at DEFAULT GETDATE()
 );
@@ -466,6 +472,12 @@ GO
 ALTER TABLE messages
 ADD CONSTRAINT FK_messages_bookings
 FOREIGN KEY (booking_id) REFERENCES bookings(id)
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE messages
+ADD CONSTRAINT FK_messages_hotel
+FOREIGN KEY (hotel_id) REFERENCES hotel(id)
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 GO
 
