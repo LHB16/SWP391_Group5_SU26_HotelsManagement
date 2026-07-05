@@ -240,7 +240,7 @@ Table feedback {
   room_id INT [note: 'Khóa ngoại liên kết đến bảng room.']
   user_full_name NVARCHAR(255)
   room_type NVARCHAR(255)
-  comment NVARCHAR(1000)
+  comment NVARCHAR(MAX)
   rating INT
   upvote INT [default: 0]
   downvote INT [default: 0]
