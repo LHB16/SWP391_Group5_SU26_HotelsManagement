@@ -669,28 +669,94 @@ BEGIN TRY
     -- sender_id / receiver_id reference user_accounts.id
     -- =====================================================
     IF NOT EXISTS (SELECT 1 FROM messages WHERE sender_id = @customer1_user_id AND receiver_id = @owner1_user_id AND booking_id = @booking1_id AND content = N'Chào khách sạn, mình có thể check-in sớm lúc 12h không?')
-        INSERT INTO messages (sender_id, receiver_id, booking_id, content, is_read, sent_at)
-        VALUES (@customer1_user_id, @owner1_user_id, @booking1_id, N'Chào khách sạn, mình có thể check-in sớm lúc 12h không?', 1, DATEADD(HOUR, -6, GETDATE()));
+        INSERT INTO messages (sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at)
+        VALUES (@customer1_user_id, @owner1_user_id, @hotel1_id, @booking1_id, N'Chào khách sạn, mình có thể check-in sớm lúc 12h không?', 1, DATEADD(HOUR, -6, GETDATE()));
 
     IF NOT EXISTS (SELECT 1 FROM messages WHERE sender_id = @owner1_user_id AND receiver_id = @customer1_user_id AND booking_id = @booking1_id AND content = N'Chào bạn, khách sạn sẽ hỗ trợ nếu phòng sẵn sàng trước giờ check-in.')
-        INSERT INTO messages (sender_id, receiver_id, booking_id, content, is_read, sent_at)
-        VALUES (@owner1_user_id, @customer1_user_id, @booking1_id, N'Chào bạn, khách sạn sẽ hỗ trợ nếu phòng sẵn sàng trước giờ check-in.', 0, DATEADD(HOUR, -5, GETDATE()));
+        INSERT INTO messages (sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at)
+        VALUES (@owner1_user_id, @customer1_user_id, @hotel1_id, @booking1_id, N'Chào bạn, khách sạn sẽ hỗ trợ nếu phòng sẵn sàng trước giờ check-in.', 0, DATEADD(HOUR, -5, GETDATE()));
 
     IF NOT EXISTS (SELECT 1 FROM messages WHERE sender_id = @customer2_user_id AND receiver_id = @owner2_user_id AND booking_id = @booking2_id AND content = N'Phòng Deluxe City View có bao gồm bữa sáng không ạ?')
-        INSERT INTO messages (sender_id, receiver_id, booking_id, content, is_read, sent_at)
-        VALUES (@customer2_user_id, @owner2_user_id, @booking2_id, N'Phòng Deluxe City View có bao gồm bữa sáng không ạ?', 1, DATEADD(HOUR, -4, GETDATE()));
+        INSERT INTO messages (sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at)
+        VALUES (@customer2_user_id, @owner2_user_id, @hotel2_id, @booking2_id, N'Phòng Deluxe City View có bao gồm bữa sáng không ạ?', 1, DATEADD(HOUR, -4, GETDATE()));
 
     IF NOT EXISTS (SELECT 1 FROM messages WHERE sender_id = @owner2_user_id AND receiver_id = @customer2_user_id AND booking_id = @booking2_id AND content = N'Dạ có, giá phòng đã bao gồm bữa sáng cho 2 khách.')
-        INSERT INTO messages (sender_id, receiver_id, booking_id, content, is_read, sent_at)
-        VALUES (@owner2_user_id, @customer2_user_id, @booking2_id, N'Dạ có, giá phòng đã bao gồm bữa sáng cho 2 khách.', 0, DATEADD(HOUR, -3, GETDATE()));
+        INSERT INTO messages (sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at)
+        VALUES (@owner2_user_id, @customer2_user_id, @hotel2_id, @booking2_id, N'Dạ có, giá phòng đã bao gồm bữa sáng cho 2 khách.', 0, DATEADD(HOUR, -3, GETDATE()));
 
     IF NOT EXISTS (SELECT 1 FROM messages WHERE sender_id = @customer3_user_id AND receiver_id = @owner3_user_id AND booking_id = @booking3_id AND content = N'Mình muốn yêu cầu thêm gối cho phòng Suite.')
-        INSERT INTO messages (sender_id, receiver_id, booking_id, content, is_read, sent_at)
-        VALUES (@customer3_user_id, @owner3_user_id, @booking3_id, N'Mình muốn yêu cầu thêm gối cho phòng Suite.', 0, DATEADD(HOUR, -2, GETDATE()));
+        INSERT INTO messages (sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at)
+        VALUES (@customer3_user_id, @owner3_user_id, @hotel3_id, @booking3_id, N'Mình muốn yêu cầu thêm gối cho phòng Suite.', 0, DATEADD(HOUR, -2, GETDATE()));
 
     IF NOT EXISTS (SELECT 1 FROM messages WHERE sender_id = @customer5_user_id AND receiver_id = @owner2_user_id AND booking_id = @booking5_id AND content = N'Mình đã thanh toán nhưng hệ thống vẫn hiện pending, nhờ khách sạn kiểm tra giúp.')
-        INSERT INTO messages (sender_id, receiver_id, booking_id, content, is_read, sent_at)
-        VALUES (@customer5_user_id, @owner2_user_id, @booking5_id, N'Mình đã thanh toán nhưng hệ thống vẫn hiện pending, nhờ khách sạn kiểm tra giúp.', 0, DATEADD(HOUR, -1, GETDATE()));
+        INSERT INTO messages (sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at)
+        VALUES (@customer5_user_id, @owner2_user_id, @hotel2_id, @booking5_id, N'Mình đã thanh toán nhưng hệ thống vẫn hiện pending, nhờ khách sạn kiểm tra giúp.', 0, DATEADD(HOUR, -1, GETDATE()));
+
+    -- Chèn thêm 7 tin nhắn chat demo mới do người dùng yêu cầu
+    IF NOT EXISTS (SELECT 1 FROM messages WHERE id = 7) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 11) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 12) AND EXISTS (SELECT 1 FROM hotel WHERE id = 5)
+    BEGIN
+        SET IDENTITY_INSERT messages ON;
+        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, reaction, image_url)
+        VALUES (7, 11, 12, 5, NULL, N'Xin chào', 1, '2026-07-06 00:27:08.9928933', NULL, NULL);
+        SET IDENTITY_INSERT messages OFF;
+    END
+
+    IF NOT EXISTS (SELECT 1 FROM messages WHERE id = 8) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 11) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 12) AND EXISTS (SELECT 1 FROM hotel WHERE id = 5)
+    BEGIN
+        SET IDENTITY_INSERT messages ON;
+        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, reaction, image_url)
+        VALUES (8, 11, 12, 5, NULL, N'Phòng này ở được mấy người ạ', 1, '2026-07-06 00:29:10.2701432', N'❤️', NULL);
+        SET IDENTITY_INSERT messages OFF;
+    END
+
+    IF NOT EXISTS (SELECT 1 FROM messages WHERE id = 9) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 12) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 11) AND EXISTS (SELECT 1 FROM hotel WHERE id = 5)
+    BEGIN
+        SET IDENTITY_INSERT messages ON;
+        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, reaction, image_url)
+        VALUES (9, 12, 11, 5, NULL, N'Phòng này ở được 100 người em ạ', 1, '2026-07-06 00:30:10.3148074', N'❤️', NULL);
+        SET IDENTITY_INSERT messages OFF;
+    END
+
+    IF NOT EXISTS (SELECT 1 FROM messages WHERE id = 10) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 13) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 12) AND EXISTS (SELECT 1 FROM hotel WHERE id = 5)
+    BEGIN
+        SET IDENTITY_INSERT messages ON;
+        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, reaction, image_url)
+        VALUES (10, 13, 12, 5, NULL, N'Phòng này bao nhiêu ạ', 1, '2026-07-06 00:46:06.8212082', NULL, NULL);
+        SET IDENTITY_INSERT messages OFF;
+    END
+
+    IF NOT EXISTS (SELECT 1 FROM messages WHERE id = 11) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 12) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 13) AND EXISTS (SELECT 1 FROM hotel WHERE id = 5)
+    BEGIN
+        SET IDENTITY_INSERT messages ON;
+        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, reaction, image_url)
+        VALUES (11, 12, 13, 5, NULL, N'Phòng này 500 e nhé', 1, '2026-07-06 00:50:21.9652664', N'👍', NULL);
+        SET IDENTITY_INSERT messages OFF;
+    END
+
+    IF NOT EXISTS (SELECT 1 FROM messages WHERE id = 12) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 12) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 13) AND EXISTS (SELECT 1 FROM hotel WHERE id = 5)
+    BEGIN
+        SET IDENTITY_INSERT messages ON;
+        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, reaction, image_url)
+        VALUES (12, 12, 13, 5, NULL, NULL, 1, '2026-07-06 00:55:17.7665778', NULL, N'aa6ba30a-c4e7-4ba6-b293-cd66caceac91_186_lion5.1.jpg');
+        SET IDENTITY_INSERT messages OFF;
+    END
+
+    IF NOT EXISTS (SELECT 1 FROM messages WHERE id = 13) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 12) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 13) AND EXISTS (SELECT 1 FROM hotel WHERE id = 5)
+    BEGIN
+        SET IDENTITY_INSERT messages ON;
+        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, reaction, image_url)
+        VALUES (13, 12, 13, 5, NULL, NULL, 1, '2026-07-06 00:58:05.7115651', NULL, N'8848eb61-de07-4ae3-8638-a5628e948ec6_186_lion5.1.jpg');
+        SET IDENTITY_INSERT messages OFF;
+    END
+
+    -- Chèn thêm bản ghi thanh toán id 16 do người dùng yêu cầu
+    IF NOT EXISTS (SELECT 1 FROM payments WHERE id = 16) AND EXISTS (SELECT 1 FROM bookings WHERE id = 16)
+    BEGIN
+        SET IDENTITY_INSERT payments ON;
+        INSERT INTO payments (id, booking_id, amount, method, status, qr_code_url, transaction_id, paid_at, created_at, qr_expires_at, sender_account_name, sender_account_number, sender_bank_name)
+        VALUES (16, 16, 50330.00, N'QR_CODE', N'PAID', N'https://img.vietqr.io/image/970452-10142607066362623-compact.png?amount=50330&addInfo=BK16+QUOCIN+DELUX+1+Day&accountName=CHAU+QUOC+INH', NULL, '2026-07-06 00:08:06.0588432', '2026-07-06 00:07:41.8917388', '2026-07-06 00:22:41.8907388', N'CHAU QUOC INH', N'1036252596', N'Vietcombank');
+        SET IDENTITY_INSERT payments OFF;
+    END
 
     COMMIT TRANSACTION;
 

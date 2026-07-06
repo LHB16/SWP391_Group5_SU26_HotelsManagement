@@ -23,7 +23,7 @@ public class Promotion {
     @Column(name = "description", columnDefinition = "NVARCHAR(MAX)")
     private String description;
 
-    @Column(name = "discount_percent")
+    @Column(name = "discount_percent", precision = 5, scale = 2)
     private BigDecimal discountPercent;
 
     @Column(name = "start_date")
