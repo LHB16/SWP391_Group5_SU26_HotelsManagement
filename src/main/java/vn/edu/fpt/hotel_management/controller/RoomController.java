@@ -138,15 +138,15 @@ public class RoomController {
                 for (Wishlist wl : userWishlist) {
                     wishlistRoomIds.add(wl.getRoom().getId());
                 }
-                
+
                 customerBookings = bookingRepository.findBookingsByCustomerAndHotel(
                     customer.getId(),
                     id,
                     List.of("COMPLETED")
                 );
-                
+
                 List<Review> customerReviews = reviewRepository.findByHotelIdAndCustomerId(id, customer.getId());
-                
+
                 if (bookingId != null) {
                     Booking specifiedBooking = bookingRepository.findById(bookingId).orElse(null);
                     if (specifiedBooking != null && specifiedBooking.getCustomer().getId() == customer.getId() 
@@ -164,7 +164,7 @@ public class RoomController {
                         }
                     }
                 }
-                
+
                 if (resolvedBookingId == null) {
                     java.util.Map<Integer, Long> roomBookingCounts = customerBookings.stream()
                         .collect(java.util.stream.Collectors.groupingBy(b -> b.getRoom().getId(), java.util.stream.Collectors.counting()));
