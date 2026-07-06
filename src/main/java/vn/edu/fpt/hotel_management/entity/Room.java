@@ -87,6 +87,12 @@ public class Room {
     public void setImgUrl(String imgUrl) { this.imgUrl = imgUrl; }
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
+    @OneToOne(mappedBy = "room", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private RoomFacility facility;
+
+    public RoomFacility getFacility() { return facility; }
+    public void setFacility(RoomFacility facility) { this.facility = facility; }
+
     public String getRoomType() { return this.type; }
     public void setRoomType(String roomType) { this.type = roomType; }
     public int getNumWindow() { return this.window != null ? this.window : 0; }

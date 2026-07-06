@@ -11,7 +11,7 @@ import java.util.List;
 
 @Repository
 public interface RoomRepository extends JpaRepository<Room, Integer> {
-    
+
     // Tìm các phòng thuộc về một khách sạn cụ thể
     List<Room> findByHotelId(int hotelId);
 
@@ -19,24 +19,13 @@ public interface RoomRepository extends JpaRepository<Room, Integer> {
     @Query("SELECT DISTINCT r.type FROM Room r WHERE r.hotelId = :hotelId")
     List<String> findDistinctTypesByHotelId(@Param("hotelId") int hotelId);
 
-    // Lọc phòng theo khách sạn và khoảng giá
-    @Query("SELECT r FROM Room r WHERE r.hotelId = :hotelId AND r.price BETWEEN :minPrice AND :maxPrice")
-    List<Room> findByHotelIdAndPriceRange(
-            @Param("hotelId") int hotelId,
-            @Param("minPrice") BigDecimal minPrice,
-            @Param("maxPrice") BigDecimal maxPrice
-    );
+    // Lọc phòng theo khách sạn và khoảng giá (magic method)
+    List<Room> findByHotelIdAndPriceBetween(int hotelId, BigDecimal minPrice, BigDecimal maxPrice);
 
-    // Lọc phòng theo khách sạn, loại phòng và khoảng giá
-    @Query("SELECT r FROM Room r WHERE r.hotelId = :hotelId AND r.type IN :types AND r.price BETWEEN :minPrice AND :maxPrice")
-    List<Room> filterByHotelAndTypesAndPrice(
-            @Param("hotelId") int hotelId,
-            @Param("types") List<String> types,
-            @Param("minPrice") BigDecimal minPrice,
-            @Param("maxPrice") BigDecimal maxPrice
-    );
+    // Lọc phòng theo khách sạn, loại phòng và khoảng giá (magic method)
+    List<Room> findByHotelIdAndTypeInAndPriceBetween(int hotelId, List<String> types, BigDecimal minPrice,
+            BigDecimal maxPrice);
 
-    // Lấy giá phòng thấp nhất của khách sạn
-    @Query("SELECT MIN(r.price) FROM Room r WHERE r.hotelId = :hotelId")
-    BigDecimal findMinPriceByHotelId(@Param("hotelId") int hotelId);
+    // Tìm phòng có giá thấp nhất của khách sạn (magic method thay thế cho SELECT MIN)
+    java.util.Optional<Room> findFirstByHotelIdOrderByPriceAsc(int hotelId);
 }
