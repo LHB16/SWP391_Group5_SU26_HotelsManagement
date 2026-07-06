@@ -94,7 +94,7 @@ public class BookingController {
         for (Booking b : bookingPage.getContent()) {
             // Tự động kiểm tra trạng thái thanh toán đối với các đơn hàng còn PENDING khi truy cập Lịch sử đặt phòng
             if ("PENDING".equals(b.getStatus())) {
-                boolean verified = checkPayOSPaymentStatus(b.getId());
+                boolean verified = checkPayOSPaymentStatus(b.getId(), b.getTotalPrice());
                 if (verified) {
                     b.setStatus("CONFIRMED");
                     b.setUpdatedAt(java.time.LocalDateTime.now());
@@ -145,13 +145,14 @@ public class BookingController {
         model.addAttribute("refundEligibleMap", refundEligibleMap);
         model.addAttribute("refundSubmittedMap", refundSubmittedMap);
 
-        return "booking/history";
+        return "User/profile";
     }
 
     // Hiển thị trang chính sách hủy & điều khoản hoàn tiền
     @GetMapping("/booking/cancel-policy")
     public String showCancelPolicyPage(
             @RequestParam("bookingId") int bookingId,
+            @RequestParam(name = "action", defaultValue = "cancel") String action,
             HttpSession session,
             Model model,
             org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
@@ -205,8 +206,57 @@ public class BookingController {
         model.addAttribute("policy", isFullRefundEligible ? "full" : "none");
         model.addAttribute("formattedDeadline", formattedDeadline);
         model.addAttribute("isFullRefundEligible", isFullRefundEligible);
+        model.addAttribute("action", action);
 
         return "booking/cancel-policy";
+    }
+
+    // Hiển thị trang chọn lý do hủy đặt phòng
+    @GetMapping("/booking/cancel/{id}")
+    public String showCancelBookingPage(
+            @PathVariable("id") int bookingId,
+            HttpSession session,
+            Model model,
+            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+
+        // Kiểm tra đăng nhập
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+
+        // Tìm booking theo id
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
+        if (booking == null || customer == null || booking.getCustomer().getId() != customer.getId()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Booking not found.");
+            return "redirect:/booking/history";
+        }
+
+        if (!"CONFIRMED".equalsIgnoreCase(booking.getStatus())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Only confirmed bookings can be cancelled.");
+            return "redirect:/booking/history";
+        }
+
+        if (booking.getCheckInDate() == null || !java.time.LocalDate.now().isBefore(booking.getCheckInDate())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Cannot cancel a booking after check-in date.");
+            return "redirect:/booking/history";
+        }
+
+        // Tính toán chi phí hủy
+        java.time.LocalDateTime refundDeadline = booking.getCheckInDate().minusDays(3).atTime(12, 0);
+        boolean isFullRefundEligible = java.time.LocalDateTime.now().isBefore(refundDeadline);
+
+        java.math.BigDecimal cancellationFee = isFullRefundEligible ? java.math.BigDecimal.ZERO : booking.getTotalPrice();
+        
+        model.addAttribute("booking", booking);
+        model.addAttribute("hotel", booking.getHotel());
+        model.addAttribute("room", booking.getRoom());
+        model.addAttribute("cancellationFee", cancellationFee);
+        model.addAttribute("isFullRefundEligible", isFullRefundEligible);
+        model.addAttribute("user", loggedInUser);
+
+        return "booking/cancel";
     }
 
     // Hủy booking: cho phép hủy khi CONFIRMED và chưa đến ngày check-in
@@ -214,6 +264,7 @@ public class BookingController {
     @PostMapping("/booking/cancel/{id}")
     public String cancelBooking(
             @PathVariable("id") int bookingId,
+            @RequestParam(name = "reason", required = false) String reason,
             HttpSession session,
             org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
 
@@ -247,23 +298,26 @@ public class BookingController {
                 .atTime(12, 0);
         boolean isFullRefundEligible = java.time.LocalDateTime.now().isBefore(refundDeadline);
 
-        // Hủy booking
-        booking.setStatus("CANCELLED");
-        bookingRepository.save(booking);
-
-        // Cập nhật payment
-        Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
-        if (payment != null) {
-            // Đánh dấu REFUNDED nếu còn trong thời hạn, FAILED nếu quá hạn
-            payment.setStatus(isFullRefundEligible ? "REFUNDED" : "FAILED");
-            paymentRepository.save(payment);
-        }
-
         if (isFullRefundEligible) {
-            // Chuyển sang trang yêu cầu hoàn tiền (100%)
+            // Đủ điều kiện hoàn tiền: KHÔNG hủy ngay tại đây
+            // Lưu lý do hủy vào session
+            session.setAttribute("cancelReason_" + bookingId, reason);
             return "redirect:/booking/refund-request?bookingId=" + bookingId;
         } else {
-            // Quá hạn hoàn tiền → báo không được hoàn
+            // Quá hạn hoàn tiền: HỦY NGAY
+            booking.setStatus("CANCELLED");
+            if (reason != null && !reason.isBlank()) {
+                booking.setSpecialNotes((booking.getSpecialNotes() != null ? booking.getSpecialNotes() + "\n" : "") + "Reason for canceling: " + reason);
+            }
+            bookingRepository.save(booking);
+
+            // Cập nhật payment
+            Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
+            if (payment != null) {
+                payment.setStatus("FAILED");
+                paymentRepository.save(payment);
+            }
+
             redirectAttributes.addFlashAttribute("errorMessage",
                 "Booking cancelled. Unfortunately, cancellations within 3 days of check-in are non-refundable per our policy.");
             return "redirect:/booking/history";
@@ -290,9 +344,9 @@ public class BookingController {
             return "redirect:/booking/history";
         }
 
-        // Chỉ cho phép booking đã CANCELLED mới được yêu cầu hoàn tiền
-        if (!"CANCELLED".equalsIgnoreCase(booking.getStatus())) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Only cancelled bookings are eligible for a refund.");
+        // Chấp nhận booking CONFIRMED (đang trong luồng yêu cầu hoàn tiền để hủy)
+        if (!"CONFIRMED".equalsIgnoreCase(booking.getStatus())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Only confirmed bookings can initiate a refund.");
             return "redirect:/booking/history";
         }
 
@@ -302,13 +356,19 @@ public class BookingController {
             return "redirect:/booking/history";
         }
 
-        // Kiểm tra xem đơn đặt phòng có đủ điều kiện hoàn tiền không (kiểm tra trạng thái REFUNDED của Payment)
+        // Đảm bảo đơn đã thanh toán (Payment status là PAID hoặc SUCCESSFUL)
         Payment p = paymentRepository.findByBookingId(bookingId).orElse(null);
-        if (p == null || !"REFUNDED".equalsIgnoreCase(p.getStatus())) {
-            redirectAttributes.addFlashAttribute("errorMessage", "This booking is not eligible for a refund.");
+        if (p == null || (!"PAID".equalsIgnoreCase(p.getStatus()) && !"SUCCESSFUL".equalsIgnoreCase(p.getStatus()))) {
+            redirectAttributes.addFlashAttribute("errorMessage", "This booking has not been paid or is not eligible for a refund.");
             return "redirect:/booking/history";
         }
+
+        // Kiểm tra lại hạn hoàn tiền
         java.time.LocalDateTime refundDeadline = booking.getCheckInDate().minusDays(3).atTime(12, 0);
+        if (!java.time.LocalDateTime.now().isBefore(refundDeadline)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "The refund deadline has passed.");
+            return "redirect:/booking/history";
+        }
 
         // Hoàn tiền 100%
         java.math.BigDecimal refundAmount = booking.getTotalPrice()
@@ -350,8 +410,8 @@ public class BookingController {
             return "redirect:/booking/history";
         }
 
-        if (!"CANCELLED".equalsIgnoreCase(booking.getStatus())) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Only cancelled bookings are eligible for a refund.");
+        if (!"CONFIRMED".equalsIgnoreCase(booking.getStatus())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "This booking is not eligible for cancellation/refund.");
             return "redirect:/booking/history";
         }
 
@@ -368,12 +428,33 @@ public class BookingController {
             return "redirect:/booking/refund-request?bookingId=" + bookingId;
         }
 
-        // Kiểm tra lại deadline bằng trạng thái REFUNDED của Payment (chặn truy cập trực tiếp qua URL)
+        // Kiểm tra lại hạn hoàn tiền
+        java.time.LocalDateTime refundDeadline = booking.getCheckInDate().minusDays(3).atTime(12, 0);
+        if (!java.time.LocalDateTime.now().isBefore(refundDeadline)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "The refund deadline has passed.");
+            return "redirect:/booking/history";
+        }
+
         Payment p = paymentRepository.findByBookingId(bookingId).orElse(null);
-        if (p == null || !"REFUNDED".equalsIgnoreCase(p.getStatus())) {
+        if (p == null || (!"PAID".equalsIgnoreCase(p.getStatus()) && !"SUCCESSFUL".equalsIgnoreCase(p.getStatus()))) {
             redirectAttributes.addFlashAttribute("errorMessage", "This booking is not eligible for a refund.");
             return "redirect:/booking/history";
         }
+
+        // ĐỔI TRẠNG THÁI BOOKING THÀNH CANCELLED CHỈ KHI SUBMIT REFUND REQUEST THÀNH CÔNG
+        booking.setStatus("CANCELLED");
+        
+        // Lấy lý do hủy từ session và ghi vào specialNotes
+        String reason = (String) session.getAttribute("cancelReason_" + bookingId);
+        if (reason != null && !reason.isBlank()) {
+            booking.setSpecialNotes((booking.getSpecialNotes() != null ? booking.getSpecialNotes() + "\n" : "") + "Reason for canceling: " + reason);
+        }
+        bookingRepository.save(booking);
+        session.removeAttribute("cancelReason_" + bookingId); // dọn dẹp session
+
+        // Cập nhật payment thành REFUNDED
+        p.setStatus("REFUNDED");
+        paymentRepository.save(p);
 
         // Hoàn tiền 100%
         java.math.BigDecimal refundAmount = booking.getTotalPrice()
@@ -392,7 +473,7 @@ public class BookingController {
 
         String formattedAmount = String.format("%,.0f", refundAmount.doubleValue());
         redirectAttributes.addFlashAttribute("successMessage",
-                "Refund request submitted successfully! " + formattedAmount + " ₫ will be processed within 3-5 business days.");
+                "Booking cancelled and refund request submitted successfully! " + formattedAmount + " VND will be processed within 3-5 business days.");
         return "redirect:/booking/history";
     }
 
@@ -635,8 +716,75 @@ public class BookingController {
         return total;
     }
 
+    // Hiển thị chi tiết một booking
+    @GetMapping("/booking/detail/{id}")
+    public String showBookingDetail(
+            @PathVariable("id") int id,
+            HttpSession session,
+            Model model,
+            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+
+        // Kiểm tra đăng nhập
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+
+        // Tìm booking
+        Booking booking = bookingRepository.findById(id).orElse(null);
+        Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
+        if (booking == null || customer == null || booking.getCustomer().getId() != customer.getId()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Booking not found.");
+            return "redirect:/booking/history";
+        }
+
+        // Tự động kiểm tra trạng thái thanh toán đối với các đơn hàng còn PENDING
+        if ("PENDING".equals(booking.getStatus())) {
+            boolean verified = checkPayOSPaymentStatus(booking.getId(), booking.getTotalPrice());
+            if (verified) {
+                booking.setStatus("CONFIRMED");
+                booking.setUpdatedAt(java.time.LocalDateTime.now());
+                bookingRepository.save(booking);
+                
+                Payment payment = paymentRepository.findByBookingId(booking.getId()).orElse(null);
+                if (payment != null) {
+                    payment.setStatus("PAID");
+                    payment.setPaidAt(java.time.LocalDateTime.now());
+                    paymentRepository.save(payment);
+                }
+            }
+        }
+
+        // Kiểm tra điều kiện hủy và hoàn tiền
+        boolean cancelable = booking.isCancelable();
+        String refundPolicy = "none";
+        if (booking.getCheckInDate() != null) {
+            java.time.LocalDateTime refundDeadline = booking.getCheckInDate().minusDays(3).atTime(12, 0);
+            refundPolicy = java.time.LocalDateTime.now().isBefore(refundDeadline) ? "full" : "none";
+        }
+
+        boolean refundEligible = false;
+        boolean refundSubmitted = false;
+        if ("CANCELLED".equalsIgnoreCase(booking.getStatus())) {
+            Payment p = paymentRepository.findByBookingId(booking.getId()).orElse(null);
+            refundSubmitted = refundRepository.existsByBookingId(booking.getId());
+            refundEligible = (p != null && "REFUNDED".equalsIgnoreCase(p.getStatus())) && !refundSubmitted;
+        }
+
+        model.addAttribute("booking", booking);
+        model.addAttribute("hotel", booking.getHotel());
+        model.addAttribute("room", booking.getRoom());
+        model.addAttribute("cancelable", cancelable);
+        model.addAttribute("refundPolicy", refundPolicy);
+        model.addAttribute("refundEligible", refundEligible);
+        model.addAttribute("refundSubmitted", refundSubmitted);
+        model.addAttribute("user", loggedInUser);
+
+        return "booking/detail";
+    }
+
     // Tự động đối soát giao dịch với PayOS khi người dùng xem trang Lịch sử
-    private boolean checkPayOSPaymentStatus(int bookingId) {
+    private boolean checkPayOSPaymentStatus(int bookingId, java.math.BigDecimal expectedAmount) {
         try {
             if (payosClientId == null || payosClientId.isBlank() || payosApiKey == null || payosApiKey.isBlank()) {
                 return false;
@@ -654,8 +802,12 @@ public class BookingController {
             java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
             String body = response.body();
 
-            if (body != null && body.contains("\"status\"") && body.contains("\"PAID\"")) {
-                return true;
+            // Kiểm tra trạng thái PAID và đối chiếu số tiền để tránh trùng ID của đơn hàng test cũ trên sandbox
+            if (body != null && body.contains("\"status\":\"PAID\"")) {
+                long expectedVal = expectedAmount.setScale(0, java.math.RoundingMode.HALF_UP).longValue();
+                if (body.contains("\"amount\":" + expectedVal) || body.contains("\"amount\": " + expectedVal)) {
+                    return true;
+                }
             }
         } catch (Exception e) {
             System.err.println("[PayOS] Loi kiem tra trang thai tu dong: " + e.getMessage());

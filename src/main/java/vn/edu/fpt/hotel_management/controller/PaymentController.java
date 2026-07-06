@@ -543,7 +543,7 @@ public class PaymentController {
                     .header("x-api-key", payosApiKey)
                     .GET().build();
             String body = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
-            return body != null && body.contains("\"PAID\""); // Kiểm tra đã thanh toán chưa
+            return body != null && java.util.regex.Pattern.compile("\"status\"\\s*:\\s*\"PAID\"").matcher(body).find(); // Kiểm tra đã thanh toán chưa
         } catch (Exception e) {
             System.err.println("[PayOS] Lỗi kiểm tra trạng thái: " + e.getMessage());
         }

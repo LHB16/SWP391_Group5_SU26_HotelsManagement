@@ -16,143 +16,304 @@
                     <div class="profile-sidebar-title">PROFILE MANAGEMENT</div>
                     <ul class="profile-sidebar-menu">
                         <li class="profile-sidebar-item">
-                            <a th:href="@{/profile}" class="profile-sidebar-link active">
-                                <i class="bi bi-person me-2"></i>
+                            <a th:href="@{/profile}" class="profile-sidebar-link" th:classappend="${bookings == null} ? 'active' : ''">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user me-2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                 Profile Information
                             </a>
                         </li>
                         <li class="profile-sidebar-item">
-                            <a th:href="@{/booking/history}" class="profile-sidebar-link">
-                                <i class="bi bi-clock-history me-2"></i>
+                            <a th:href="@{/booking/history}" class="profile-sidebar-link" th:classappend="${bookings != null} ? 'active' : ''">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-history me-2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
                                 Booking History
                             </a>
                         </li>
                     </ul>
                 </div>
+
+                <!-- ========== Filter Panel ========== -->
+                <div class="profile-sidebar shadow-sm mt-3" th:if="${bookings != null}">
+                    <div class="profile-sidebar-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-filter me-2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                        FILTER BOOKINGS
+                    </div>
+                    <form th:action="@{/booking/history}" method="get" id="bookingFilterForm">
+                        <!-- Lọc theo trạng thái -->
+                        <div class="mb-3">
+                            <label class="form-label text-muted fw-semibold profile-label-sm" for="filterStatus">STATUS</label>
+                            <select name="status" id="filterStatus" class="form-select profile-input-editable">
+                                <option value="" th:selected="${selectedStatus == ''}">All Statuses</option>
+                                <option value="PENDING" th:selected="${selectedStatus == 'PENDING'}">Unpaid</option>
+                                <option value="CONFIRMED" th:selected="${selectedStatus == 'CONFIRMED'}">Pending</option>
+                                <option value="DONE" th:selected="${selectedStatus == 'DONE'}">Done</option>
+                                <option value="CANCELLED" th:selected="${selectedStatus == 'CANCELLED'}">Cancelled</option>
+                            </select>
+                        </div>
+
+                        <!-- Lọc theo loại phòng -->
+                        <div class="mb-3">
+                            <label class="form-label text-muted fw-semibold profile-label-sm" for="filterRoomType">ROOM TYPE</label>
+                            <select name="roomType" id="filterRoomType" class="form-select profile-input-editable">
+                                <option value="" th:selected="${selectedRoomType == ''}">All Types</option>
+                                <option th:each="rt : ${allRoomTypes}" th:value="${rt}" th:text="${rt}"
+                                        th:selected="${rt == selectedRoomType}"></option>
+                            </select>
+                        </div>
+
+                        <!-- Lọc theo ngày check-in -->
+                        <div class="mb-3">
+                            <label class="form-label text-muted fw-semibold profile-label-sm" for="filterCheckIn">CHECK-IN DATE</label>
+                            <input type="text" name="checkIn" id="filterCheckIn"
+                                   class="form-control profile-input-editable" th:value="${selectedCheckIn}"
+                                   placeholder="Select Check-in" readonly />
+                        </div>
+
+                        <!-- Lọc theo ngày check-out -->
+                        <div class="mb-3">
+                            <label class="form-label text-muted fw-semibold profile-label-sm" for="filterCheckOut">CHECK-OUT DATE</label>
+                            <input type="text" name="checkOut" id="filterCheckOut"
+                                   class="form-control profile-input-editable" th:value="${selectedCheckOut}"
+                                   placeholder="Select Check-out" readonly />
+                        </div>
+
+                        <!-- Nút tìm kiếm và xóa filter -->
+                        <div class="d-flex flex-column gap-2 mt-3">
+                            <button type="submit" class="btn text-white w-100 profile-btn-primary" style="background-color: #0f4c81;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search me-1"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                                Search
+                            </button>
+                            <a th:href="@{/booking/history}" class="btn btn-outline-secondary w-100 profile-btn-secondary" style="border-radius: 8px;">
+                                Clear Filters
+                            </a>
+                        </div>
+                    </form>
+                </div>
             </div>
 
-            <!-- Cột bên phải: Giao diện hiển thị chi tiết thông tin và sửa đổi trực tiếp từng trường -->
+            <!-- Cột bên phải: Giao diện hiển thị chi tiết thông tin và sửa đổi trực tiếp từng trường hoặc lịch sử đặt phòng -->
             <div class="col-md-9">
-                <!-- Hiển thị thông báo thành công hoặc lỗi nếu có -->
-                <div th:if="${successMessage}" class="alert alert-success border-0 px-3 py-2 mb-3 profile-alert-box" th:text="${successMessage}"></div>
-                <div th:if="${errorMessage}" class="alert alert-danger border-0 px-3 py-2 mb-3 profile-alert-box" th:text="${errorMessage}"></div>
+                <!-- Hiển thị thông báo thành công hoặc lỗi nếu có (cho phần profile) -->
+                <th:block th:if="${bookings == null}">
+                    <div th:if="${successMessage}" class="alert alert-success border-0 px-3 py-2 mb-3 profile-alert-box" th:text="${successMessage}"></div>
+                    <div th:if="${errorMessage}" class="alert alert-danger border-0 px-3 py-2 mb-3 profile-alert-box" th:text="${errorMessage}"></div>
+                </th:block>
 
-                <!-- --- CHẾ ĐỘ ĐỔI MẬT KHẨU (PASSWORD MODE) --- -->
-                <div th:if="${session.profileVerifiedForEdit == true && session.editField == 'password'}" class="card border-0 shadow-sm mb-4 profile-card">
-                    <!-- Phần header của card đổi mật khẩu -->
-                    <div class="card-header text-white text-center py-4 profile-card-header">
-                        <h3 class="mb-1 fw-bold">Change Password</h3>
-                        <p class="mb-0 text-white-50">Update your account password</p>
-                    </div>
-                    <div class="card-body p-4">
-                        <form th:action="@{/profile/change-password}" method="POST">
-                            <!-- Nhập Mật khẩu hiện tại -->
-                            <div class="mb-3">
-                                <label for="currentPassword" class="form-label text-muted fw-semibold profile-label-sm">CURRENT PASSWORD</label>
-                                <input type="password" class="form-control profile-input-editable" id="currentPassword" name="currentPassword" required placeholder="Enter current password"/>
+                <!-- --- CHẾ ĐỘ XEM LỊCH SỬ ĐẶT PHÒNG (BOOKINGS TAB) --- -->
+                <div th:if="${bookings != null}">
+                    <div class="card border-0 shadow-sm mb-4 profile-card">
+                        <!-- Phần header của card có màu nền Primary Navy (#0f4c81) -->
+                        <div class="card-header text-white text-center py-4 profile-card-header">
+                            <div class="mx-auto mb-3 d-flex align-items-center justify-content-center profile-avatar-lg" style="background-color: rgba(255,255,255,0.2); color: #ffffff;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-history"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
                             </div>
-                            <!-- Nhập Mật khẩu mới -->
-                            <div class="mb-3">
-                                <label for="newPassword" class="form-label text-muted fw-semibold profile-label-sm">NEW PASSWORD</label>
-                                <input type="password" class="form-control profile-input-editable" id="newPassword" name="newPassword" required placeholder="Enter new password"/>
+                            <h3 class="mb-1 fw-bold">Booking History</h3>
+                            <p class="mb-0 text-white-50">All rooms you have booked</p>
+                        </div>
+
+                        <div class="card-body p-4">
+                            <!-- Thanh thống kê tổng số booking và số trang hiện tại -->
+                            <div th:if="${totalItems > 0}" class="d-flex gap-3 mb-4 flex-wrap">
+                                <!-- Chip tổng số booking -->
+                                <div class="badge px-3 py-2 text-dark bg-light border d-flex align-items-center gap-2" style="font-size: 13.5px; border-radius: 20px; font-weight: 500;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layers" style="color: #0f4c81;"><path d="m12 3-10 9 10 9 10-9-10-9Z"/><path d="m2 17 10 9 10-9"/></svg>
+                                    Total bookings:&nbsp;<span style="color: #0f4c81;" th:text="${totalItems}">0</span>
+                                </div>
+                                <!-- Chip số trang hiện tại / tổng trang -->
+                                <div class="badge px-3 py-2 text-dark bg-light border d-flex align-items-center gap-2" style="font-size: 13.5px; border-radius: 20px; font-weight: 500;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open" style="color: #0f4c81;"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                                    Page:&nbsp;<span style="color: #0f4c81;" th:text="${currentPage + 1}">1</span>
+                                    &nbsp;/&nbsp;<span style="color: #0f4c81;" th:text="${totalPages}">1</span>
+                                </div>
                             </div>
-                            <!-- Xác nhận Mật khẩu mới -->
-                            <div class="mb-3">
-                                <label for="confirmPassword" class="form-label text-muted fw-semibold profile-label-sm">CONFIRM NEW PASSWORD</label>
-                                <input type="password" class="form-control profile-input-editable" id="confirmPassword" name="confirmPassword" required placeholder="Confirm new password"/>
-                            </div>
-                            <!-- Các nút hành động -->
-                            <div class="d-flex gap-2 mt-4">
-                                <button type="submit" class="btn text-white w-50 profile-btn-primary">
-                                    Update Password
-                                </button>
-                                <a th:href="@{/profile/cancel-edit}" class="btn btn-outline-secondary w-50 profile-btn-secondary">
-                                    Cancel
+
+                            <!-- ====== DANH SÁCH BOOKING ====== -->
+                            <div th:if="${bookings != null and !#lists.isEmpty(bookings)}" class="bh-grid-list">
+                                <a th:each="booking : ${bookings}" th:href="@{/booking/detail/{id}(id=${booking.id})}" class="bh-grid-card">
+                                    <!-- Ảnh phòng bên trên -->
+                                    <div class="bh-grid-card-img-wrap">
+                                        <img th:if="${booking.room.imgUrl != null and !#strings.isEmpty(booking.room.imgUrl)}"
+                                             th:src="@{${booking.room.imgUrl}}"
+                                             th:alt="${booking.room.type}"
+                                             class="bh-grid-card-img"/>
+                                        <div th:unless="${booking.room.imgUrl != null and !#strings.isEmpty(booking.room.imgUrl)}"
+                                             class="bh-grid-card-img-placeholder">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-door-closed"><path d="M18 20V6a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14"/><path d="M2 20h20"/><path d="M14 12v.01"/></svg>
+                                        </div>
+                                    </div>
+
+                                    <!-- Thông tin phòng bên dưới -->
+                                    <div class="bh-grid-card-body">
+                                        <div class="bh-grid-card-info">
+                                            <!-- Tên loại phòng -->
+                                            <h3 class="bh-grid-card-title" th:text="${booking.room.type}">Room Type</h3>
+                                            <!-- Ngày checkin-checkout -->
+                                            <p class="bh-grid-card-meta">
+                                                <span th:text="${#temporals.format(booking.checkInDate, 'MMM dd')} + ' – ' + ${#temporals.format(booking.checkOutDate, 'MMM dd')}">Apr 15 – Apr 17</span>
+                                                &nbsp;·&nbsp;
+                                                <span th:text="${booking.status}" class="badge text-white" th:style="'background-color: ' + (${booking.status == 'DONE'} ? '#10b981' : (${booking.status == 'CANCELLED'} ? '#ef4444' : (${booking.status == 'CONFIRMED'} ? '#0f4c81' : '#f59e0b')))">Status</span>
+                                            </p>
+                                        </div>
+                                        <div class="bh-grid-card-arrow">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right"><path d="m9 18 6-6-6-6"/></svg>
+                                        </div>
+                                    </div>
                                 </a>
                             </div>
-                        </form>
+
+                            <!-- ====== TRẠNG THÁI RỖNG ====== -->
+                            <div th:if="${bookings == null or #lists.isEmpty(bookings)}" class="text-center py-5">
+                                <div class="mb-3 text-muted">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-x"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m14 14-4 4"/><path d="m10 14 4 4"/></svg>
+                                </div>
+                                <h4 class="fw-bold mb-2">No bookings yet</h4>
+                                <p class="text-muted mb-4">Explore our hotels and make your first reservation!</p>
+                                <a th:href="@{/hotels}" class="btn text-white px-4 py-2 profile-btn-primary" style="background-color: #0f4c81; border-radius: 8px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search me-2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                                    Explore Hotels
+                                </a>
+                            </div>
+
+                            <!-- ====== PHÂN TRANG ====== -->
+                            <div th:if="${totalPages > 1}" class="bh-pagination mt-4">
+                                <a th:href="@{/booking/history(page=${currentPage - 1}, status=${selectedStatus}, roomType=${selectedRoomType}, checkIn=${selectedCheckIn}, checkOut=${selectedCheckOut})}"
+                                   th:classappend="${currentPage == 0} ? 'bh-page-disabled' : ''"
+                                   class="bh-page-btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left"><path d="m15 18-6-6 6-6"/></svg>
+                                </a>
+                                <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                                    <a th:href="@{/booking/history(page=${i}, status=${selectedStatus}, roomType=${selectedRoomType}, checkIn=${selectedCheckIn}, checkOut=${selectedCheckOut})}"
+                                       th:text="${i + 1}"
+                                       th:classappend="${i == currentPage} ? 'bh-page-active' : ''"
+                                       class="bh-page-btn">1</a>
+                                </th:block>
+                                <a th:href="@{/booking/history(page=${currentPage + 1}, status=${selectedStatus}, roomType=${selectedRoomType}, checkIn=${selectedCheckIn}, checkOut=${selectedCheckOut})}"
+                                   th:classappend="${currentPage == totalPages - 1} ? 'bh-page-disabled' : ''"
+                                   class="bh-page-btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right"><path d="m9 18 6-6-6-6"/></svg>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- --- CHẾ ĐỘ XEM / SỬA PROFILE THÔNG THƯỜNG --- -->
-                <div th:if="${session.profileVerifiedForEdit != true || session.editField != 'password'}" class="card border-0 shadow-sm mb-4 profile-card">
-                    <!-- Phần header của card có màu nền Primary Navy (#0f4c81) -->
-                    <div class="card-header text-white text-center py-4 profile-card-header">
-                        <!-- Avatar lớn ở trang Profile -->
-                        <div class="mx-auto mb-3 d-flex align-items-center justify-content-center profile-avatar-lg">
-                            <span th:text="${#strings.substring(user.fullName, 0, 1).toUpperCase()}">U</span>
+                <!-- --- CHẾ ĐỘ THÔNG TIN PROFILE CHI TIẾT --- -->
+                <div th:if="${bookings == null}">
+                    <!-- --- CHẾ ĐỘ ĐỔI MẬT KHẨU (PASSWORD MODE) --- -->
+                    <div th:if="${session.profileVerifiedForEdit == true && session.editField == 'password'}" class="card border-0 shadow-sm mb-4 profile-card">
+                        <!-- Phần header của card đổi mật khẩu -->
+                        <div class="card-header text-white text-center py-4 profile-card-header">
+                            <h3 class="mb-1 fw-bold">Change Password</h3>
+                            <p class="mb-0 text-white-50">Update your account password</p>
                         </div>
-                        <h3 class="mb-0 fw-bold" th:text="${user.fullName}">Full Name</h3>
+                        <div class="card-body p-4">
+                            <form th:action="@{/profile/change-password}" method="POST">
+                                <!-- Nhập Mật khẩu hiện tại -->
+                                <div class="mb-3">
+                                    <label for="currentPassword" class="form-label text-muted fw-semibold profile-label-sm">CURRENT PASSWORD</label>
+                                    <input type="password" class="form-control profile-input-editable" id="currentPassword" name="currentPassword" required placeholder="Enter current password"/>
+                                </div>
+                                <!-- Nhập Mật khẩu mới -->
+                                <div class="mb-3">
+                                    <label for="newPassword" class="form-label text-muted fw-semibold profile-label-sm">NEW PASSWORD</label>
+                                    <input type="password" class="form-control profile-input-editable" id="newPassword" name="newPassword" required placeholder="Enter new password"/>
+                                </div>
+                                <!-- Xác nhận Mật khẩu mới -->
+                                <div class="mb-3">
+                                    <label for="confirmPassword" class="form-label text-muted fw-semibold profile-label-sm">CONFIRM NEW PASSWORD</label>
+                                    <input type="password" class="form-control profile-input-editable" id="confirmPassword" name="confirmPassword" required placeholder="Confirm new password"/>
+                                </div>
+                                <!-- Các nút hành động -->
+                                <div class="d-flex gap-2 mt-4">
+                                    <button type="submit" class="btn text-white w-50 profile-btn-primary">
+                                        Update Password
+                                    </button>
+                                    <a th:href="@{/profile/cancel-edit}" class="btn btn-outline-secondary w-50 profile-btn-secondary">
+                                        Cancel
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
                     </div>
 
-                    <div class="card-body p-4">
-                        <!-- 1. USERNAME: Luôn là chỉ đọc -->
-                        <div class="mb-4">
-                            <label class="form-label text-muted fw-semibold profile-label-sm">USERNAME</label>
-                            <input type="text" class="form-control profile-input-readonly" th:value="${user.username}" readonly/>
+                    <!-- --- CHẾ ĐỘ XEM / SỬA PROFILE THÔNG THƯỜNG --- -->
+                    <div th:if="${session.profileVerifiedForEdit != true || session.editField != 'password'}" class="card border-0 shadow-sm mb-4 profile-card">
+                        <!-- Phần header của card có màu nền Primary Navy (#0f4c81) -->
+                        <div class="card-header text-white text-center py-4 profile-card-header">
+                            <!-- Avatar lớn ở trang Profile -->
+                            <div class="mx-auto mb-3 d-flex align-items-center justify-content-center profile-avatar-lg">
+                                <span th:text="${#strings.substring(user.fullName, 0, 1).toUpperCase()}">U</span>
+                            </div>
+                            <h3 class="mb-0 fw-bold" th:text="${user.fullName}">Full Name</h3>
                         </div>
 
-                        <!-- 2. FULL NAME -->
-                        <div class="mb-4">
-                            <label class="form-label text-muted fw-semibold profile-label-sm">FULL NAME</label>
-                            
-                            <!-- Chế độ xem Full Name (Không ở trạng thái sửa Full Name) -->
-                            <div th:if="${session.profileVerifiedForEdit != true || session.editField != 'fullName'}" class="input-group">
-                                <input type="text" class="form-control profile-input-readonly" th:value="${user.fullName}" readonly style="border-right: none;"/>
-                                <a th:href="@{/profile/edit-request(field='fullName')}" class="btn d-flex align-items-center justify-content-center" title="Edit Full Name" style="border: 1px solid #eff4ff; border-left: none; background-color: #f8f9ff; color: #0f4c81; padding-left: 12px; padding-right: 12px;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                        <div class="card-body p-4">
+                            <!-- 1. USERNAME: Luôn là chỉ đọc -->
+                            <div class="mb-4">
+                                <label class="form-label text-muted fw-semibold profile-label-sm">USERNAME</label>
+                                <input type="text" class="form-control profile-input-readonly" th:value="${user.username}" readonly/>
+                            </div>
+
+                            <!-- 2. FULL NAME -->
+                            <div class="mb-4">
+                                <label class="form-label text-muted fw-semibold profile-label-sm">FULL NAME</label>
+                                
+                                <!-- Chế độ xem Full Name (Không ở trạng thái sửa Full Name) -->
+                                <div th:if="${session.profileVerifiedForEdit != true || session.editField != 'fullName'}" class="input-group">
+                                    <input type="text" class="form-control profile-input-readonly" th:value="${user.fullName}" readonly style="border-right: none;"/>
+                                    <a th:href="@{/profile/edit-request(field='fullName')}" class="btn d-flex align-items-center justify-content-center" title="Edit Full Name" style="border: 1px solid #eff4ff; border-left: none; background-color: #f8f9ff; color: #0f4c81; padding-left: 12px; padding-right: 12px;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                                    </a>
+                                </div>
+
+                                <!-- Chế độ sửa Full Name (Đang mở khóa sửa Full Name) -->
+                                <div th:if="${session.profileVerifiedForEdit == true && session.editField == 'fullName'}">
+                                    <form th:action="@{/profile/save-fullname}" method="POST">
+                                        <input type="text" class="form-control profile-input-editable mb-2" id="fullName" name="fullName" th:value="${user.fullName}" required/>
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-sm text-white profile-btn-primary" style="width: 100px;">
+                                                Save
+                                            </button>
+                                            <a th:href="@{/profile/cancel-edit}" class="btn btn-sm btn-outline-secondary profile-btn-secondary" style="width: 100px;">
+                                                Cancel
+                                            </a>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- 3. EMAIL ADDRESS -->
+                            <div class="mb-4">
+                                <label class="form-label text-muted fw-semibold profile-label-sm">EMAIL ADDRESS</label>
+                                
+                                <!-- Chế độ xem Email (Không ở trạng thái sửa Email) -->
+                                <div th:if="${session.profileVerifiedForEdit != true || session.editField != 'email'}" class="input-group">
+                                    <input type="text" class="form-control profile-input-readonly" th:value="${user.email}" readonly style="border-right: none;"/>
+                                    <a th:href="@{/profile/edit-request(field='email')}" class="btn d-flex align-items-center justify-content-center" title="Edit Email" style="border: 1px solid #eff4ff; border-left: none; background-color: #f8f9ff; color: #0f4c81; padding-left: 12px; padding-right: 12px;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                                    </a>
+                                </div>
+
+                                <!-- Chế độ nhập Email mới (Đang mở khóa sửa Email) -->
+                                <div th:if="${session.profileVerifiedForEdit == true && session.editField == 'email'}">
+                                    <form th:action="@{/profile/request-new-email}" method="POST">
+                                        <input type="email" class="form-control profile-input-editable mb-2" id="email" name="email" th:value="${user.email}" required placeholder="Enter new email address"/>
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-sm text-white profile-btn-primary" style="width: 150px;">
+                                                Verify New Email
+                                            </button>
+                                            <a th:href="@{/profile/cancel-edit}" class="btn btn-sm btn-outline-secondary profile-btn-secondary" style="width: 100px;">
+                                                Cancel
+                                            </a>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Nút Change Password ở dưới cùng (chỉ hiển thị khi đang ở chế độ xem thông tin bình thường) -->
+                            <div th:if="${session.profileVerifiedForEdit != true}" class="mt-4">
+                                <a th:href="@{/profile/edit-request(field='password')}" class="btn text-white w-100 profile-btn-primary" style="background-color: #0f4c81; padding: 10px; border-radius: 8px;">
+                                    Change Password
                                 </a>
                             </div>
-
-                            <!-- Chế độ sửa Full Name (Đang mở khóa sửa Full Name) -->
-                            <div th:if="${session.profileVerifiedForEdit == true && session.editField == 'fullName'}">
-                                <form th:action="@{/profile/save-fullname}" method="POST">
-                                    <input type="text" class="form-control profile-input-editable mb-2" id="fullName" name="fullName" th:value="${user.fullName}" required/>
-                                    <div class="d-flex gap-2">
-                                        <button type="submit" class="btn btn-sm text-white profile-btn-primary" style="width: 100px;">
-                                            Save
-                                        </button>
-                                        <a th:href="@{/profile/cancel-edit}" class="btn btn-sm btn-outline-secondary profile-btn-secondary" style="width: 100px;">
-                                            Cancel
-                                        </a>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-
-                        <!-- 3. EMAIL ADDRESS -->
-                        <div class="mb-4">
-                            <label class="form-label text-muted fw-semibold profile-label-sm">EMAIL ADDRESS</label>
-                            
-                            <!-- Chế độ xem Email (Không ở trạng thái sửa Email) -->
-                            <div th:if="${session.profileVerifiedForEdit != true || session.editField != 'email'}" class="input-group">
-                                <input type="text" class="form-control profile-input-readonly" th:value="${user.email}" readonly style="border-right: none;"/>
-                                <a th:href="@{/profile/edit-request(field='email')}" class="btn d-flex align-items-center justify-content-center" title="Edit Email" style="border: 1px solid #eff4ff; border-left: none; background-color: #f8f9ff; color: #0f4c81; padding-left: 12px; padding-right: 12px;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                                </a>
-                            </div>
-
-                            <!-- Chế độ nhập Email mới (Đang mở khóa sửa Email) -->
-                            <div th:if="${session.profileVerifiedForEdit == true && session.editField == 'email'}">
-                                <form th:action="@{/profile/request-new-email}" method="POST">
-                                    <input type="email" class="form-control profile-input-editable mb-2" id="email" name="email" th:value="${user.email}" required placeholder="Enter new email address"/>
-                                    <div class="d-flex gap-2">
-                                        <button type="submit" class="btn btn-sm text-white profile-btn-primary" style="width: 150px;">
-                                            Verify New Email
-                                        </button>
-                                        <a th:href="@{/profile/cancel-edit}" class="btn btn-sm btn-outline-secondary profile-btn-secondary" style="width: 100px;">
-                                            Cancel
-                                        </a>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-
-                        <!-- Nút Change Password ở dưới cùng (chỉ hiển thị khi đang ở chế độ xem thông tin bình thường) -->
-                        <div th:if="${session.profileVerifiedForEdit != true}" class="mt-4">
-                            <a th:href="@{/profile/edit-request(field='password')}" class="btn text-white w-100 profile-btn-primary" style="background-color: #0f4c81; padding: 10px; border-radius: 8px;">
-                                Change Password
-                            </a>
                         </div>
                     </div>
                 </div>
@@ -163,7 +324,177 @@
     <!-- Nhúng footer chân trang -->
     <footer th:replace="~{fragment/frag :: footer}"></footer>
 
+    <!-- Modal Thông báo thành công hiển thị ở chính giữa màn hình -->
+    <div th:if="${successMessage != null && bookings != null}" class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow border-0" style="border-radius: 14px;">
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3" style="color: #10b981;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                    </div>
+                    <h4 class="modal-title fw-bold mb-2" id="successModalLabel" style="color: #0f172a;">Success!</h4>
+                    <p class="text-muted mb-4" th:text="${successMessage}">Action completed successfully.</p>
+                    <button type="button" class="btn text-white w-100" data-bs-dismiss="modal" 
+                            style="background-color: #0f4c81; border-radius: 8px; font-weight: 600; padding: 10px;">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Xác nhận Hủy đơn hàng -->
+    <div th:if="${bookings != null}" class="modal fade" id="cancelConfirmModal" tabindex="-1" aria-labelledby="cancelConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow border-0" style="border-radius: 14px;">
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3" id="cancelModalIcon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+                    </div>
+                    <h4 class="modal-title fw-bold mb-2" id="cancelConfirmModalLabel" style="color: #0f172a;">Cancel Booking?</h4>
+                    <p class="mb-1" id="cancelModalMessage" style="color: #64748b;"></p>
+                    <div id="cancelRefundBadge" class="mb-4" style="display:inline-block; margin-top:8px; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 700;"></div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-light w-50" data-bs-dismiss="modal" style="border-radius: 8px; font-weight: 600; padding: 10px;">
+                            No, keep it
+                        </button>
+                        <button type="button" id="confirmCancelBtn" class="btn text-white w-50" style="background-color: #b91c1c; border-radius: 8px; font-weight: 600; padding: 10px;">
+                            Yes, cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Thông báo lỗi (như hết hạn thanh toán) hiển thị ở chính giữa màn hình -->
+    <div th:if="${errorMessage != null && bookings != null}" class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow border-0" style="border-radius: 14px;">
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3" style="color: #ef4444;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-circle"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                    </div>
+                    <h4 class="modal-title fw-bold mb-2" id="errorModalLabel" style="color: #0f172a;">Error</h4>
+                    <p class="text-muted mb-4" th:text="${errorMessage}">An error occurred.</p>
+                    <button type="button" class="btn text-white w-100" data-bs-dismiss="modal" 
+                            style="background-color: #ef4444; border-radius: 8px; font-weight: 600; padding: 10px;">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Nhúng thư viện scripts JS (bao gồm cả main.js của Dropdown Avatar) -->
     <div th:replace="~{fragment/frag :: scripts}"></div>
+
+    <script type="text/javascript" th:if="${bookings != null}">
+        document.addEventListener("DOMContentLoaded", function () {
+            // 1. Tự động hiển thị modal thành công nếu có successMessage
+            var successModalEl = document.getElementById('successModal');
+            if (successModalEl) {
+                var mySuccessModal = new bootstrap.Modal(successModalEl);
+                mySuccessModal.show();
+            }
+
+            // 1b. Tự động hiển thị modal lỗi nếu có errorMessage
+            var errorModalEl = document.getElementById('errorModal');
+            if (errorModalEl) {
+                var myErrorModal = new bootstrap.Modal(errorModalEl);
+                myErrorModal.show();
+            }
+
+            // Lưu trữ bookingId chuẩn bị thực hiện action
+            var activeBookingId = null;
+
+            // 2. Xử lý hiển thị modal hủy đặt phòng
+            var cancelModalEl = document.getElementById('cancelConfirmModal');
+            if (cancelModalEl) {
+                var cancelModal = new bootstrap.Modal(cancelModalEl);
+                document.querySelectorAll('.trigger-cancel-btn').forEach(function(button) {
+                    button.addEventListener('click', function(e) {
+                        activeBookingId = this.getAttribute('data-booking-id');
+
+                        // Đọc chính sách hoàn tiền từ data attribute
+                        var policy = this.getAttribute('data-refund-policy');
+                        var msgEl   = document.getElementById('cancelModalMessage');
+                        var iconEl  = document.getElementById('cancelModalIcon');
+                        var badgeEl = document.getElementById('cancelRefundBadge');
+
+                        if (policy === 'full') {
+                            iconEl.style.color  = '#d97706';
+                            msgEl.textContent   = 'Are you sure you want to cancel this booking?';
+                            badgeEl.textContent = 'Full refund (100%) will be processed';
+                            badgeEl.style.background = '#ecfdf5';
+                            badgeEl.style.color = '#047857';
+                            badgeEl.style.border = '1px solid #a7f3d0';
+                        } else {
+                            iconEl.style.color  = '#ef4444';
+                            msgEl.textContent   = 'This booking is within 3 days of check-in. Cancellations in this period are non-refundable.';
+                            badgeEl.textContent = 'No refund will be issued (0%)';
+                            badgeEl.style.background = '#fef2f2';
+                            badgeEl.style.color = '#b91c1c';
+                            badgeEl.style.border = '1px solid #fecaca';
+                        }
+
+                        cancelModal.show();
+                    });
+                });
+            }
+
+            var confirmCancelBtnEl = document.getElementById('confirmCancelBtn');
+            if (confirmCancelBtnEl) {
+                confirmCancelBtnEl.addEventListener('click', function() {
+                    if (activeBookingId) {
+                        window.location.href = '/booking/cancel-policy?bookingId=' + activeBookingId;
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- Flatpickr cho bộ lọc ngày Check-in / Check-out -->
+    <script th:inline="javascript" th:if="${bookings != null}">
+        document.addEventListener("DOMContentLoaded", function() {
+            const checkinVal = /*[[${selectedCheckIn}]]*/ '';
+            const checkoutVal = /*[[${selectedCheckOut}]]*/ '';
+
+            // Khởi tạo flatpickr cho Check-in Date
+            const checkinPicker = flatpickr("#filterCheckIn", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                altInputClass: "form-control profile-input-editable",
+                allowInput: false,
+                defaultDate: checkinVal ? checkinVal : null,
+                onChange: function(selectedDates, dateStr) {
+                    if (selectedDates[0]) {
+                        // Đặt minDate cho checkout = ngày sau check-in
+                        const nextDay = new Date(selectedDates[0]);
+                        nextDay.setDate(nextDay.getDate() + 1);
+                        checkoutPicker.set("minDate", nextDay);
+
+                        // Nếu checkout hiện tại <= check-in mới → tự động đặt lại
+                        const currentCheckout = checkoutPicker.selectedDates[0];
+                        if (currentCheckout && currentCheckout <= selectedDates[0]) {
+                            checkoutPicker.setDate(nextDay);
+                        }
+                    }
+                }
+            });
+
+            // Khởi tạo flatpickr cho Check-out Date
+            const checkoutPicker = flatpickr("#filterCheckOut", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                altInputClass: "form-control profile-input-editable",
+                allowInput: false,
+                minDate: checkinVal ? new Date(new Date(checkinVal).getTime() + 86400000) : null,
+                defaultDate: checkoutVal ? checkoutVal : null
+            });
+        });
+    </script>
 </body>
 </html>

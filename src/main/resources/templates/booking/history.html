@@ -105,7 +105,6 @@
                     <!-- Tiêu đề khu vực nội dung -->
                     <div class="bh-content-header">
                         <div class="bh-content-title">Booking History</div>
-                        <div class="bh-content-subtitle">All rooms you have booked</div>
                     </div>
 
                     <!-- Thông báo Flash từ Backend -->
@@ -126,178 +125,40 @@
                     </div>
 
                     <!-- ====== DANH SÁCH BOOKING ====== -->
-                    <div th:if="${bookings != null and !#lists.isEmpty(bookings)}" class="bh-card-list">
-                        <!-- Lặp qua từng booking của người dùng -->
-                        <div th:each="booking : ${bookings}" class="bh-card">
-                            <div class="bh-card-inner">
-
-                                <!-- Ảnh phòng bên trái -->
-                                <div class="bh-card-img-wrap">
-                                    <!-- Hiển thị ảnh nếu có imgUrl -->
-                                    <img th:if="${booking.room.imgUrl != null and !#strings.isEmpty(booking.room.imgUrl)}"
-                                         th:src="@{${booking.room.imgUrl}}"
-                                         th:alt="${booking.room.type}"
-                                         class="bh-card-img"/>
-                                    <!-- Placeholder nếu không có ảnh -->
-                                    <div th:unless="${booking.room.imgUrl != null and !#strings.isEmpty(booking.room.imgUrl)}"
-                                         class="bh-card-img-placeholder">
-                                        <i class="bi bi-door-closed" style="font-size: 48px;"></i>
-                                    </div>
-                                </div>
-
-                                <!-- Nội dung thông tin booking bên phải -->
-                                <div class="bh-card-body">
-                                    <div>
-                                        <!-- Hàng trên: tên loại phòng + badge trạng thái -->
-                                        <div class="bh-card-top">
-                                            <div>
-                                                <!-- Tên loại phòng -->
-                                                <div class="bh-card-room-type" th:text="${booking.room.type}">Room Type</div>
-                                                <!-- Tên khách sạn -->
-                                                <div class="bh-card-hotel-name">
-                                                    <i class="bi bi-geo-alt"></i>
-                                                    <span th:text="${hotelMap[booking.room.hotelId] ?: 'Unknown Hotel'}">Hotel Name</span>
-                                                </div>
-                                            </div>
-
-                                            <!-- Badge trạng thái booking theo luồng thực tế -->
-                                            <!-- CONFIRMED = đã thanh toán, đang chờ check-in → hiển thị Pending (vàng) -->
-                                            <!-- DONE = đã check-in và check-out đúng ngày → hiển thị Done (xanh) -->
-                                            <!-- CANCELLED = đã hủy → hiển thị Cancelled (đỏ) -->
-                                            <!-- PENDING thuần = chưa hoàn tất thanh toán → hiển thị Unpaid (xám) -->
-                                            <span th:switch="${booking.status}">
-                                                <!-- Đã thanh toán, đang chờ check-in (vàng) -->
-                                                <span th:case="'CONFIRMED'" class="bh-badge bh-badge-pending">
-                                                    <i class="bi bi-clock"></i>
-                                                    Pending
-                                                </span>
-                                                <!-- Đã hoàn thành (checkin và checkout đúng ngày) (xanh lá) -->
-                                                <span th:case="'DONE'" class="bh-badge bh-badge-done">
-                                                    <i class="bi bi-check-circle"></i>
-                                                    Done
-                                                </span>
-                                                 <!-- Đã hủy bởi người dùng -->
-                                                 <span th:case="'CANCELLED'">
-                                                      <span th:if="${refundEligibleMap != null and refundEligibleMap[booking.id]}" class="bh-badge bh-badge-pending">
-                                                          <i class="bi bi-clock"></i>
-                                                          Pending
-                                                      </span>
-                                                     <span th:if="${refundEligibleMap == null or !refundEligibleMap[booking.id]}" class="bh-badge bh-badge-cancelled">
-                                                         <i class="bi bi-x-circle"></i>
-                                                         Cancelled
-                                                     </span>
-                                                 </span>
-                                                 <!-- Chưa hoàn tất thanh toán (trả về màu vàng nhạt/cam đất) -->
-                                                 <span th:case="'PENDING'" class="bh-badge" style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a;">
-                                                     <i class="bi bi-clock"></i>
-                                                     Unpaid
-                                                 </span>
-                                                <!-- Trạng thái không xác định -->
-                                                <span th:case="*" class="bh-badge bh-badge-default"
-                                                      th:text="${booking.status ?: 'Unknown'}">Unknown</span>
-                                            </span>
-                                        </div>
-
-                                        <!-- Các thông tin chi tiết: ngày check-in, check-out, số đêm, tổng tiền -->
-                                        <div class="bh-card-meta">
-                                            <div class="bh-meta-item">
-                                                <span class="bh-meta-label">Check-in</span>
-                                                <span class="bh-meta-value"
-                                                      th:text="${#temporals.format(booking.checkInDate, 'dd/MM/yyyy')}">01/01/2025</span>
-                                            </div>
-                                            <div class="bh-meta-item">
-                                                <span class="bh-meta-label">Check-out</span>
-                                                <span class="bh-meta-value"
-                                                      th:text="${#temporals.format(booking.checkOutDate, 'dd/MM/yyyy')}">05/01/2025</span>
-                                            </div>
-                                            <!-- Tính số đêm = checkOutDate - checkInDate -->
-                                            <div class="bh-meta-item">
-                                                <span class="bh-meta-label">Nights</span>
-                                                <span class="bh-meta-value"
-                                                      th:text="${booking.checkInDate != null and booking.checkOutDate != null ?
-                                                                 T(java.time.temporal.ChronoUnit).DAYS.between(booking.checkInDate, booking.checkOutDate) : '-'} + ' nights'">3 nights</span>
-                                            </div>
-                                            <!-- Tổng tiền thanh toán -->
-                                            <div class="bh-meta-item">
-                                                <span class="bh-meta-label">Total</span>
-                                                <span class="bh-meta-value bh-meta-value-price"
-                                                      th:text="${#numbers.formatInteger(booking.totalPrice, 3, 'COMMA') + ' ₫'}">0 ₫</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                    <div th:if="${bookings != null and !#lists.isEmpty(bookings)}" class="bh-grid-list">
+                        <!-- Lặp qua từng booking của người dùng dưới dạng grid card giống hình 1 -->
+                        <a th:each="booking : ${bookings}" th:href="@{/booking/detail/{id}(id=${booking.id})}" class="bh-grid-card">
+                            <!-- Ảnh phòng bên trên -->
+                            <div class="bh-grid-card-img-wrap">
+                                <!-- Hiển thị ảnh nếu có imgUrl -->
+                                <img th:if="${booking.room.imgUrl != null and !#strings.isEmpty(booking.room.imgUrl)}"
+                                     th:src="@{${booking.room.imgUrl}}"
+                                     th:alt="${booking.room.type}"
+                                     class="bh-grid-card-img"/>
+                                <!-- Placeholder nếu không có ảnh -->
+                                <div th:unless="${booking.room.imgUrl != null and !#strings.isEmpty(booking.room.imgUrl)}"
+                                     class="bh-grid-card-img-placeholder">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-door-closed"><path d="M18 20V6a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14"/><path d="M2 20h20"/><path d="M14 12v.01"/></svg>
                                 </div>
                             </div>
 
-                            <!-- Footer của card: Booking ID, thời gian đặt, nút hành động theo trạng thái -->
-                            <div class="bh-card-footer">
-                                <div class="bh-booking-id">
-                                    Booking ID: <span th:text="'#' + ${booking.id}">#001</span>
-                                    &nbsp;·&nbsp;
-                                    <!-- Hiển thị thời gian tạo booking nếu có -->
-                                    <span th:if="${booking.createdAt != null}"
-                                          th:text="${'Booked at ' + #temporals.format(booking.createdAt, 'HH:mm, dd/MM/yyyy')}">Booked at 10:00, 01/01/2025</span>
+                            <!-- Thông tin phòng bên dưới -->
+                            <div class="bh-grid-card-body">
+                                <div class="bh-grid-card-info">
+                                    <!-- Tên loại phòng -->
+                                    <h3 class="bh-grid-card-title" th:text="${booking.room.type}">Room Type</h3>
+                                    <!-- Ngày checkin-checkout -->
+                                    <p class="bh-grid-card-meta">
+                                        <span th:text="${#temporals.format(booking.checkInDate, 'MMM dd')} + ' – ' + ${#temporals.format(booking.checkOutDate, 'MMM dd')}">Apr 15 – Apr 17</span>
+                                        &nbsp;·&nbsp;1 booking
+                                    </p>
                                 </div>
-
-                                <!-- Nút hành động theo từng trạng thái + nút xóa luôn hiển thị -->
-                                <div class="bh-card-actions">
-                                    <!-- CONFIRMED: hiển thị nút Cancel khi chưa đến ngày check-in -->
-                                    <form th:if="${booking.status == 'CONFIRMED' and cancelableMap.get(booking.id)}"
-                                          th:action="@{/booking/cancel/{id}(id=${booking.id})}"
-                                          method="post"
-                                          class="cancel-booking-form d-inline">
-                                         <!-- Thông báo chính sách hoàn tiền theo deadline -->
-                                         <button type="button" class="bh-btn-cancel trigger-cancel-btn"
-                                                 th:data-booking-id="${booking.id}"
-                                                 th:data-refund-policy="${refundPolicyMap.get(booking.id)}">
-                                             <i class="bi bi-x-circle"></i>
-                                             Cancel
-                                         </button>
-                                    </form>
-
-                                    <!-- Booking đã tới ngày check-in: không còn hủy được -->
-                                    <span th:if="${booking.status == 'CONFIRMED' and !cancelableMap.get(booking.id)}" class="bh-status-note bh-note-expired">
-                                         <i class="bi bi-lock"></i>
-                                         Non-cancellable
-                                    </span>
-
-                                    <!-- DONE: không có nút, chỉ hiện ghi chú hoàn thành -->
-                                    <span th:if="${booking.status == 'DONE'}" class="bh-status-note bh-note-done">
-                                        <i class="bi bi-patch-check"></i>
-                                        Completed
-                                    </span>
-
-                                    <!-- CANCELLED: hiển thị trạng thái hoàn tiền tương ứng -->
-                                    <th:block th:if="${booking.status == 'CANCELLED'}">
-                                         <!-- Hiện nút Refund nếu payment có status REFUNDED và chưa gửi request -->
-                                          <a th:if="${refundEligibleMap != null and refundEligibleMap[booking.id]}"
-                                             th:href="@{/booking/cancel-policy(bookingId=${booking.id})}"
-                                             class="bh-btn-cancel" style="text-decoration: none;">
-                                              <i class="bi bi-arrow-return-left"></i>
-                                              Request Refund
-                                          </a>
-                                        <!-- Đã gửi yêu cầu hoàn tiền rồi -->
-                                        <span th:if="${refundSubmittedMap != null and refundSubmittedMap[booking.id]}" class="bh-status-note bh-note-refund-submitted">
-                                            <i class="bi bi-hourglass-split"></i>
-                                            Refund Requested
-                                        </span>
-                                        <!-- Booking hủy nhưng chưa thanh toán (không eligible) -->
-                                        <span th:if="${(refundEligibleMap == null or !refundEligibleMap[booking.id]) and (refundSubmittedMap == null or !refundSubmittedMap[booking.id])}" class="bh-status-note bh-note-cancelled">
-                                            <i class="bi bi-slash-circle"></i>
-                                            Booking Cancelled
-                                        </span>
-                                    </th:block>
-
-                                    <!-- PENDING (chưa hoàn tất thanh toán): nút quay lại trang thanh toán -->
-                                    <a th:if="${booking.status == 'PENDING'}"
-                                       th:href="@{/booking/qr-payment-status(bookingId=${booking.id},from='history')}"
-                                       class="bh-btn-pay">
-                                        <i class="bi bi-qr-code"></i>
-                                        Go to Payment
-                                    </a>
-
+                                <!-- Nút mũi tên chevron right bên phải -->
+                                <div class="bh-grid-card-arrow">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right"><path d="m9 18 6-6-6-6"/></svg>
                                 </div>
                             </div>
-                        </div>
+                        </a>
                     </div>
 
                     <!-- ====== TRẠNG THÁI RỖNG: Khi người dùng chưa có booking nào ====== -->
