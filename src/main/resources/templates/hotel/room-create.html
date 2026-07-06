@@ -10,9 +10,9 @@
 <section class="create-hero">
     <div class="container">
         <nav aria-label="breadcrumb" class="mb-3">
-            <a href="/hotels" class="bc-link">Hotels</a>
+            <a th:href="@{/owner/dashboard(tab='hotels')}" class="bc-link">My Hotels</a>
             <span class="bc-sep">/</span>
-            <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}"
+            <a th:href="@{/owner/hotels/{id}(id=${hotel.id})}"
                class="bc-link" th:text="${hotel.name}">Hotel</a>
             <span class="bc-sep">/</span>
             <span class="bc-active">Add Room</span>
@@ -27,7 +27,7 @@
 <main class="flex-grow-1 py-4" style="background:var(--cream);">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-12 col-lg-8">
+            <div class="col-12 col-lg-10">
 
                 <!-- Flash messages -->
                 <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
@@ -39,26 +39,26 @@
                     <span th:text="${errorMessage}"></span>
                 </div>
 
-                <!-- Form Card -->
-                <div class="form-card">
-                    <div class="form-card-header">
-                        <i class="bi bi-door-open text-gold"></i>
-                        <h5>Room Information</h5>
-                    </div>
+                <form th:action="@{/hotels/{id}/rooms/new(id=${hotel.id})}"
+                      method="post" enctype="multipart/form-data" id="roomForm">
 
-                    <div class="form-card-body">
-                        <form th:action="@{/hotels/{id}/rooms/new(id=${hotel.id})}"
-                              method="post" enctype="multipart/form-data" id="roomForm">
+                    <!-- ===== SECTION 1: Room Information ===== -->
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <i class="bi bi-door-open text-gold"></i>
+                            <h5>Room Information</h5>
+                        </div>
 
-                            <!-- Loại phòng -->
+                        <div class="form-card-body">
+                            <!-- Room Type -->
                             <div class="mb-4">
                                 <label class="lbl" for="roomType">Room Type <span class="text-danger">*</span></label>
                                 <input type="text" name="type" id="roomType" class="fc"
                                        placeholder="e.g. Standard, Deluxe, Suite, Family"
-                                       required maxlength="100" />
+                                       required maxlength="255" />
                             </div>
 
-                            <!-- Giá + Diện tích -->
+                            <!-- Price + Area -->
                             <div class="row g-4 mb-4">
                                 <div class="col-12 col-sm-6">
                                     <label class="lbl" for="roomPrice">Price / Night (VND) <span class="text-danger">*</span></label>
@@ -72,7 +72,33 @@
                                 </div>
                             </div>
 
-                            <!-- Số người / Giường / Cửa sổ -->
+                            <!-- Number of Rooms + Room Status -->
+                            <div class="row g-4 mb-4">
+                                <div class="col-12 col-sm-6">
+                                    <label class="lbl" for="numberRooms">Number of Rooms</label>
+                                    <input type="number" name="numberRooms" id="numberRooms" class="fc"
+                                           value="1" min="0" />
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <label class="lbl">Room Status</label>
+                                    <div class="room-status-toggle">
+                                        <label class="status-option">
+                                            <input type="radio" name="roomStatus" value="true" checked />
+                                            <span class="status-label status-active">
+                                                <i class="bi bi-check-circle-fill"></i> Active
+                                            </span>
+                                        </label>
+                                        <label class="status-option">
+                                            <input type="radio" name="roomStatus" value="false" />
+                                            <span class="status-label status-inactive">
+                                                <i class="bi bi-x-circle-fill"></i> Inactive
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Max Guests / Beds / Windows -->
                             <div class="row g-4 mb-4">
                                 <div class="col-12 col-sm-4">
                                     <label class="lbl" for="personInput">Max Guests <span class="text-danger">*</span></label>
@@ -91,7 +117,7 @@
                                 </div>
                             </div>
 
-                            <!-- Mô tả -->
+                            <!-- Description -->
                             <div class="mb-4">
                                 <label class="lbl" for="roomDesc">Description</label>
                                 <textarea name="description" id="roomDesc" class="fc" rows="4"
@@ -99,37 +125,167 @@
                                           style="resize:vertical;"></textarea>
                             </div>
 
-                            <!-- Room Facilities -->
-                            <div class="mb-4">
-                                <label class="lbl" for="roomFacilities">Room Facilities</label>
-                                <textarea name="facilities" id="roomFacilities" class="fc" rows="2"
-                                          placeholder="e.g. Air conditioning, Safety deposit box, Flat-screen TV, Desk, Wardrobe (comma-separated)"></textarea>
-                                <div class="form-text text-muted mt-1">Enter facilities separated by commas.</div>
-                            </div>
-
-                            <!-- Bathroom Amenities -->
-                            <div class="mb-4">
-                                <label class="lbl" for="bathroomAmenities">Bathroom Amenities</label>
-                                <textarea name="bathroomAmenities" id="bathroomAmenities" class="fc" rows="2"
-                                          placeholder="e.g. Free toiletries, Towels, Shower, Slippers, Hairdryer (comma-separated)"></textarea>
-                                <div class="form-text text-muted mt-1">Enter bathroom amenities separated by commas.</div>
-                            </div>
-
                             <div class="fdivider"></div>
 
-                            <!-- Upload ảnh -->
-                            <div class="mb-4">
+                            <!-- Upload Image -->
+                            <div class="mb-3">
                                 <label class="lbl" for="imageFile">Room Image</label>
                                 <input type="file" name="imageFile" id="imageFile" class="form-control"
                                        accept="image/jpeg,image/png,image/webp,image/jpg" />
                                 <div class="form-text text-muted mt-1">JPG, PNG, WEBP · Max 10MB</div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== SECTION 2: Room Facilities ===== -->
+                    <div class="form-card mt-4">
+                        <div class="form-card-header">
+                            <i class="bi bi-grid-1x2 text-gold"></i>
+                            <h5>Room Facilities</h5>
+                        </div>
+
+                        <div class="form-card-body">
+                            <!-- Bathroom Amenities -->
+                            <div class="facility-section">
+                                <div class="facility-section-title">
+                                    <i class="bi bi-droplet"></i>
+                                    Bathroom Amenities
+                                </div>
+                                <div class="facility-grid">
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="freeToiletries" value="true" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Free Toiletries</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="shower" value="true" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Shower</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="bathrobe" value="true" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Bathrobe</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="toilet" value="true" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Toilet</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="towels" value="true" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Towels</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="slippers" value="true" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Slippers</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="hairdryer" value="true" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Hairdryer</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="toiletPaper" value="true" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Toilet Paper</span>
+                                    </label>
+                                </div>
+                            </div>
 
                             <div class="fdivider"></div>
 
-                            <!-- Buttons -->
+                            <!-- Room Amenities -->
+                            <div class="facility-section">
+                                <div class="facility-section-title">
+                                    <i class="bi bi-house-door"></i>
+                                    Room Amenities
+                                </div>
+                                <div class="facility-grid">
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="airConditioning" value="true" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Air Conditioning</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="safetyDepositBox" value="true" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Safety Deposit Box</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="desk" value="true" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Desk</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="television" value="true" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Television</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="telephone" value="true" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Telephone</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="iron" value="true" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Iron</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="electricKettle" value="true" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Electric Kettle</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="cableChannels" value="true" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Cable Channels</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="wakeUpService" value="true" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Wake-up Service</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="wardrobeCloset" value="true" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Wardrobe / Closet</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="clothesRack" value="true" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Clothes Rack</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="fdivider"></div>
+
+                            <!-- Extras -->
+                            <div class="facility-section">
+                                <div class="facility-section-title">
+                                    <i class="bi bi-cup-straw"></i>
+                                    Extras
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-12 col-sm-6">
+                                        <label class="lbl" for="freeBottledWater">Free Bottled Water (quantity)</label>
+                                        <input type="number" name="freeBottledWater" id="freeBottledWater" class="fc"
+                                               value="0" min="0" max="20" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== BUTTONS ===== -->
+                    <div class="form-card mt-4">
+                        <div class="form-card-body">
                             <div class="d-flex gap-3 justify-content-end flex-wrap">
-                                <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}" class="btn-cancel">
+                                <a th:href="@{/owner/hotels/{id}(id=${hotel.id})}" class="btn-cancel">
                                     <i class="bi bi-arrow-left"></i>
                                     Cancel
                                 </a>
@@ -138,10 +294,10 @@
                                     Save Room
                                 </button>
                             </div>
-
-                        </form>
+                        </div>
                     </div>
-                </div>
+
+                </form>
 
             </div>
         </div>

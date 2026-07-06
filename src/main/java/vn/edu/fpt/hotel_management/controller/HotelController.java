@@ -83,22 +83,27 @@ public class HotelController {
                     isFiltered = true;
                 }
                 for (Hotel h : hotels) {
-                    BigDecimal basePrice = roomRepository.findMinPriceByHotelId(h.getId());
-                    if (basePrice == null) basePrice = BigDecimal.ZERO;
+                    BigDecimal basePrice = roomRepository.findFirstByHotelIdOrderByPriceAsc(h.getId())
+                                            .map(vn.edu.fpt.hotel_management.entity.Room::getPrice)
+                                            .orElse(BigDecimal.ZERO);
                     BigDecimal actualPrice = calculateHotelSubtotal(basePrice, d1, d2);
                     hotelPricesMap.put(h.getId(), actualPrice);
                 }
             } catch (Exception e) {
                 isFiltered = false;
                 for (Hotel h : hotels) {
-                    BigDecimal basePrice = roomRepository.findMinPriceByHotelId(h.getId());
-                    hotelPricesMap.put(h.getId(), basePrice != null ? basePrice : BigDecimal.ZERO);
+                    BigDecimal basePrice = roomRepository.findFirstByHotelIdOrderByPriceAsc(h.getId())
+                                            .map(vn.edu.fpt.hotel_management.entity.Room::getPrice)
+                                            .orElse(BigDecimal.ZERO);
+                    hotelPricesMap.put(h.getId(), basePrice);
                 }
             }
         } else {
             for (Hotel h : hotels) {
-                BigDecimal basePrice = roomRepository.findMinPriceByHotelId(h.getId());
-                hotelPricesMap.put(h.getId(), basePrice != null ? basePrice : BigDecimal.ZERO);
+                BigDecimal basePrice = roomRepository.findFirstByHotelIdOrderByPriceAsc(h.getId())
+                                            .map(vn.edu.fpt.hotel_management.entity.Room::getPrice)
+                                            .orElse(BigDecimal.ZERO);
+                hotelPricesMap.put(h.getId(), basePrice);
             }
         }
 
