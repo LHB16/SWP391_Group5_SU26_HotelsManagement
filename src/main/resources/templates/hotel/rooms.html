@@ -114,15 +114,8 @@
                     </a>
                 </div>
 
-                <!-- Flash messages -->
-                <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
-                    <i class="bi bi-check-circle-fill"></i>
-                    <span th:text="${successMessage}"></span>
-                </div>
-                <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                    <span th:text="${errorMessage}"></span>
-                </div>
+                <!-- Global Popups -->
+                <th:block th:replace="~{fragment/frag :: alerts}"></th:block>
 
                 <!-- Empty state -->
                 <div th:if="${rooms == null or rooms.isEmpty()}" class="empty-state">
@@ -241,40 +234,62 @@
                                 <div class="rating-summary-count" th:text="${totalReviews + ' reviews in total'}">0 reviews</div>
                             </div>
 
-                            <!-- Form viết review (chỉ CUSTOMER chưa review) -->
-                            <div th:if="${user != null and user.role == 'CUSTOMER' and !hasReviewed}"
+                            <!-- Form viết review (chỉ CUSTOMER đã đặt phòng và chưa review) -->
+                            <div th:if="${user != null and user.role == 'CUSTOMER' and hasBooked and !hasReviewed}"
                                  class="card border-0 shadow-sm p-4 bg-light">
                                 <h5 class="fw-bold mb-3 text-navy">Write a Review</h5>
                                 <form th:action="@{/hotels/{id}/reviews(id=${hotel.id})}" method="post">
+                                    <input type="hidden" name="bookingId" th:value="${resolvedBookingId}" />
                                     <div class="mb-3">
                                         <label class="form-label small fw-semibold text-uppercase text-muted">Your Rating</label>
                                         <div class="star-radio-group">
                                             <th:block th:each="star : ${#numbers.sequence(5, 1, -1)}">
                                                 <input type="radio" name="rating"
                                                        th:id="${'star-review-' + star}"
-                                                       th:value="${star}" th:checked="${star == 5}" />
+                                                       th:value="${star}" th:checked="${star == 5}" class="create-rating-input" />
                                                 <label th:for="${'star-review-' + star}" title="star">★</label>
                                             </th:block>
                                         </div>
                                     </div>
                                     <div class="mb-3">
-                                        <label for="commentInput" class="form-label small fw-semibold text-uppercase text-muted">Your Comment</label>
+                                        <label class="form-label small fw-semibold text-uppercase text-muted">Room Type Booked</label>
+                                        <div class="form-control-plaintext fw-bold text-navy" th:text="${latestBookedRoom.roomType}">Deluxe Room</div>
+                                        <input type="hidden" name="roomId" th:value="${latestBookedRoom.id}" />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="titleSelect" class="form-label small fw-semibold text-uppercase text-muted">Review Title</label>
+                                        <select class="form-select" id="titleSelect" name="title" required>
+                                            <option value="Exceptional" selected>Exceptional</option>
+                                            <option value="Very Good">Very Good</option>
+                                            <option value="Good">Good</option>
+                                            <option value="Disappointing">Disappointing</option>
+                                            <option value="Very Poor">Very Poor</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="commentInput" class="form-label small fw-semibold text-uppercase text-muted">Your Review (Optional)</label>
                                         <textarea class="form-control" id="commentInput" name="comment"
-                                                  rows="4" placeholder="Share details of your experience..." required></textarea>
+                                                  rows="4" placeholder="Tell us about your experience..."></textarea>
                                     </div>
                                     <button type="submit" class="btn btn-gold w-100">Submit Review</button>
                                 </form>
                             </div>
 
-                            <div th:if="${user != null and user.role == 'CUSTOMER' and hasReviewed}"
+                            <div th:if="${user != null and user.role == 'CUSTOMER' and !hasBooked}"
+                                 class="card border-0 shadow-sm p-4 bg-light text-center">
+                                <h5 class="fw-bold mb-2 text-navy">Write a Review</h5>
+                                <i class="bi bi-info-circle fs-3 text-muted mb-2"></i>
+                                <p class="text-muted small">You can only submit a review after booking a room at this hotel.</p>
+                            </div>
+
+                            <div th:if="${user != null and user.role == 'CUSTOMER' and hasBooked and hasReviewed}"
                                  class="card border-0 shadow-sm p-4 bg-light text-center">
                                 <h5 class="fw-bold mb-2 text-navy">Write a Review</h5>
                                 <p class="text-muted small">You have already reviewed this hotel.</p>
                             </div>
                             <div th:if="${user == null}" class="card border-0 shadow-sm p-4 bg-light text-center">
                                 <h5 class="fw-bold mb-2 text-navy">Write a Review</h5>
-                                <p class="text-muted small">Please log in to share your experience.</p>
-                                <a href="/login" class="btn btn-outline-secondary btn-sm mt-2">Log In Now</a>
+                                <p class="text-muted small mb-0">Please log in to share your experience.</p>
                             </div>
                             <div th:if="${user != null and user.role != 'CUSTOMER'}"
                                  class="card border-0 shadow-sm p-4 bg-light text-center">
@@ -293,33 +308,105 @@
                             </div>
 
                             <div th:if="${reviews != null and !reviews.isEmpty()}">
-                                <div th:each="review : ${reviews}" class="review-item-card">
-                                    <div class="d-flex align-items-start gap-3">
-                                        <div class="review-user-avatar"
-                                            th:text="${#strings.substring(review.userFullName,0,1)}">U</div>
-                                        <div class="flex-grow-1">
-                                            <div class="d-flex align-items-center justify-content-between">
-                                                <div class="review-user-name" th:text="${review.userFullName}">User Name</div>
-                                                <div class="review-date"
-                                                    th:text="${#temporals.format(review.createdAt, 'dd-MM-yyyy HH:mm')}">Date</div>
+                                <div th:each="review : ${reviews}" class="review-item-card mb-4 pb-4 border-bottom">
+                                    <div class="row">
+                                        <!-- Cột trái: Tên khách hàng + Loại phòng đã đặt -->
+                                        <div class="col-12 col-md-4 mb-3 mb-md-0 border-end-md" th:with="booking=${reviewBookings != null ? reviewBookings.get(review.id) : null}">
+                                            <div class="d-flex align-items-center gap-2 mb-3">
+                                                <div class="review-user-avatar"
+                                                     th:text="${#strings.substring(review.userFullName,0,1)}">U</div>
+                                                <div>
+                                                    <div class="fw-bold text-navy" th:text="${review.userFullName}">User Name</div>
+                                                    <small class="text-muted"><i class="bi bi-globe me-1"></i>Vietnam</small>
+                                                </div>
                                             </div>
-                                            <div class="review-stars my-1">
-                                                <span th:each="i : ${#numbers.sequence(1, 5)}"
-                                                    th:text="${i <= review.rating ? '★' : '☆'}"></span>
+                                            <div class="review-stay-details small text-muted">
+                                                <!-- 1. Room Type -->
+                                                <div class="mb-2" th:if="${review.roomType != null}">
+                                                    <i class="bi bi-door-closed me-2 text-navy"></i>
+                                                    <span class="fw-semibold text-dark" th:text="${review.roomType}">Room Type</span>
+                                                </div>
+                                                
+                                                <!-- 2. Acreage -->
+                                                <div class="mb-2" th:if="${review.room != null}">
+                                                    <i class="bi bi-arrows-fullscreen me-2 text-navy"></i>
+                                                    <span th:text="${review.room.acreage + ' m²'}">36.0 m²</span>
+                                                </div>
+                                                
+                                                <!-- 3. Guest count -->
+                                                <div class="mb-2" th:if="${review.room != null}">
+                                                    <i class="bi bi-people me-2 text-navy"></i>
+                                                    <span th:text="${review.room.person + ' guest(s)'}">2 guest(s)</span>
+                                                </div>
+                                                
+                                                <!-- 4. Bed count -->
+                                                <div class="mb-2" th:if="${review.room != null}">
+                                                    <i class="bi bi-door-closed me-2 text-navy"></i>
+                                                    <span th:text="${review.room.bed + ' bed(s)'}">1 bed(s)</span>
+                                                </div>
+                                                
+                                                <!-- 5. Window count -->
+                                                <div class="mb-2" th:if="${review.room != null and review.room.window != null}">
+                                                    <i class="bi bi-grid-3x3-gap me-2 text-navy"></i>
+                                                    <span th:text="${review.room.window + ' window(s)'}">0 window(s)</span>
+                                                </div>
+                                                
+                                                <!-- 6. Stay nights & Stay date -->
+                                                <div class="mb-2" th:if="${booking != null}">
+                                                    <i class="bi bi-calendar3 me-2 text-navy"></i>
+                                                    <span th:text="${booking.numNights + ' night' + (booking.numNights > 1 ? 's' : '') + ' • ' + #temporals.format(booking.checkInDate, 'MMMM yyyy')}">Stay date</span>
+                                                </div>
+                                                <div class="mb-2" th:if="${booking == null}">
+                                                    <i class="bi bi-calendar3 me-2 text-navy"></i>
+                                                    <span th:text="${#temporals.format(review.createdAt, 'dd MMMM yyyy')}">Date</span>
+                                                </div>
+                                                
+                                                <!-- 7. Guest type (Solo, Couple, Family) -->
+                                                <div class="mb-2" th:if="${booking != null}">
+                                                    <i class="bi bi-people me-2 text-navy"></i>
+                                                    <span th:text="${booking.room.person >= 3 ? 'Family' : (booking.room.person == 2 ? 'Couple' : 'Solo')}">Guest Type</span>
+                                                </div>
                                             </div>
-                                            <p class="review-comment" th:text="${review.comment}">Comment</p>
+                                        </div>
+
+                                        <!-- Cột phải: Điểm số + Nội dung comment + Actions -->
+                                        <div class="col-12 col-md-8" th:with="hasDelimiter=${#strings.contains(review.comment, '|||')}, 
+                                                                              parts=${#strings.arraySplit(review.comment, '|||')}">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <div class="review-date text-muted small">
+                                                    Reviewed: <span th:text="${#temporals.format(review.createdAt, 'MMMM dd, yyyy')}">February 8, 2024</span>
+                                                </div>
+                                                <!-- Điểm số dạng badge xanh đen sang trọng theo mẫu (1 decimal place) -->
+                                                <span class="badge bg-navy text-white px-2 py-1 fs-6 fw-bold" style="background-color: #0b3c5d !important; border-radius: 4px;" 
+                                                      th:text="${#numbers.formatDecimal(review.rating * 2.0, 1, 1)}">7.0</span>
+                                            </div>
+
+                                            <div class="my-3">
+                                                <!-- Title -->
+                                                <h6 class="fw-bold text-dark mb-2" style="font-size: 1.25rem;" 
+                                                    th:text="${hasDelimiter ? parts[0] : (review.rating == 5 ? 'Exceptional' : (review.rating == 4 ? 'Very Good' : (review.rating == 3 ? 'Good' : (review.rating == 2 ? 'Disappointing' : 'Very Poor'))))}">Title</h6>
+                                                
+                                                <!-- Comment text -->
+                                                <p class="review-comment text-dark mb-0" style="line-height: 1.6; font-size: 0.95rem;">
+                                                    <span th:if="${hasDelimiter and parts.length > 1 and !#strings.isEmpty(parts[1])}" th:text="${parts[1]}">Comment text</span>
+                                                    <span th:if="${!hasDelimiter and !#strings.isEmpty(review.comment)}" th:text="${review.comment}">Comment text</span>
+                                                    <!-- Show no comment message if empty -->
+                                                    <span th:if="${(hasDelimiter and (parts.length <= 1 or #strings.isEmpty(parts[1]))) or (!hasDelimiter and #strings.isEmpty(review.comment))}" 
+                                                          class="text-muted" style="font-style: italic;">There are no comments available for this review</span>
+                                                </p>
+                                            </div>
 
                                             <!-- Edit/Delete (chủ review) -->
                                             <div th:if="${currentCustomerId != null and review.customer != null and currentCustomerId == review.customer.id}" class="mt-2">
                                                 <div class="d-flex justify-content-end gap-2">
-                                                    <button type="button" class="btn-review-edit"
+                                                    <button type="button" class="btn btn-sm btn-outline-primary"
                                                             data-bs-toggle="collapse"
                                                             th:data-bs-target="${'#editForm-' + review.id}"
-                                                            aria-expanded="false">Edit</button>
+                                                            aria-expanded="false"><i class="bi bi-pencil-square me-1"></i>Edit</button>
                                                     <form th:action="@{/hotels/{id}/reviews/{rid}/delete(id=${hotel.id}, rid=${review.id})}"
                                                           method="post" style="display:inline;"
                                                           onsubmit="return confirm('Delete this review?');">
-                                                        <button type="submit" class="btn-review-delete">Delete</button>
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Delete</button>
                                                     </form>
                                                 </div>
 
@@ -335,21 +422,33 @@
                                                                         <input type="radio" name="rating"
                                                                                th:id="${'edit-star-' + review.id + '-' + star}"
                                                                                th:value="${star}"
-                                                                               th:checked="${star == review.rating}" />
+                                                                               th:checked="${star == review.rating}"
+                                                                               th:data-review-id="${review.id}"
+                                                                               class="edit-rating-input" />
                                                                         <label th:for="${'edit-star-' + review.id + '-' + star}" title="star">★</label>
                                                                     </th:block>
                                                                 </div>
                                                             </div>
-                                                            <div class="mb-3">
-                                                                <label class="form-label small fw-semibold text-uppercase text-muted">Comment</label>
-                                                                <textarea name="comment" rows="3" class="form-control"
-                                                                          th:text="${review.comment}" required></textarea>
+                                                            <div class="mb-3" th:with="currTitle=${hasDelimiter ? parts[0] : (review.rating == 5 ? 'Exceptional' : (review.rating == 4 ? 'Very Good' : (review.rating == 3 ? 'Good' : (review.rating == 2 ? 'Disappointing' : 'Very Poor'))))}">
+                                                                <label class="form-label small fw-semibold text-uppercase text-muted">Review Title</label>
+                                                                <select name="title" th:id="${'edit-title-' + review.id}" class="form-select" required>
+                                                                    <option value="Exceptional" th:selected="${currTitle == 'Exceptional'}">Exceptional</option>
+                                                                    <option value="Very Good" th:selected="${currTitle == 'Very Good'}">Very Good</option>
+                                                                    <option value="Good" th:selected="${currTitle == 'Good'}">Good</option>
+                                                                    <option value="Disappointing" th:selected="${currTitle == 'Disappointing'}">Disappointing</option>
+                                                                    <option value="Very Poor" th:selected="${currTitle == 'Very Poor'}">Very Poor</option>
+                                                                </select>
                                                             </div>
-                                                            <div class="d-flex gap-2">
+                                                            <div class="mb-3">
+                                                                <label class="form-label small fw-semibold text-uppercase text-muted">Your Review (Optional)</label>
+                                                                <textarea name="comment" rows="3" class="form-control" 
+                                                                          th:text="${hasDelimiter and parts.length > 1 ? parts[1] : (!hasDelimiter ? review.comment : '')}"></textarea>
+                                                            </div>
+                                                            <div class="d-flex gap-2 justify-content-end">
                                                                 <button type="button" class="btn btn-outline-secondary btn-sm"
                                                                         data-bs-toggle="collapse"
                                                                         th:data-bs-target="${'#editForm-' + review.id}">Cancel</button>
-                                                                <button type="submit" class="btn btn-gold btn-sm flex-grow-1">Save Changes</button>
+                                                                <button type="submit" class="btn btn-gold btn-sm" style="padding-left: 20px; padding-right: 20px;">Save Changes</button>
                                                             </div>
                                                         </form>
                                                     </div>
@@ -362,7 +461,7 @@
                                                 <form th:action="@{/hotels/{id}/reviews/{rid}/delete(id=${hotel.id}, rid=${review.id})}"
                                                       method="post" style="display:inline;"
                                                       onsubmit="return confirm('Delete this review?');">
-                                                    <button type="submit" class="btn-review-delete">Delete</button>
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Delete</button>
                                                 </form>
                                             </div>
                                         </div>
@@ -526,6 +625,42 @@
             minDate: checkinVal ? new Date(new Date(checkinVal).getTime() + 86400000) : new Date().setDate(new Date().getDate() + 1),
             allowInput: false,
             defaultDate: checkoutVal ? checkoutVal : null
+        });
+
+        // Auto update Review Title select based on selected rating star
+        const titleMapping = {
+            5: "Exceptional",
+            4: "Very Good",
+            3: "Good",
+            2: "Disappointing",
+            1: "Very Poor"
+        };
+
+        // For Create Form
+        document.querySelectorAll(".create-rating-input").forEach(input => {
+            input.addEventListener("change", function() {
+                if (this.checked) {
+                    const val = this.value;
+                    const select = document.getElementById("titleSelect");
+                    if (select && titleMapping[val]) {
+                        select.value = titleMapping[val];
+                    }
+                }
+            });
+        });
+
+        // For Edit Forms
+        document.querySelectorAll(".edit-rating-input").forEach(input => {
+            input.addEventListener("change", function() {
+                if (this.checked) {
+                    const val = this.value;
+                    const reviewId = this.getAttribute("data-review-id");
+                    const select = document.getElementById("edit-title-" + reviewId);
+                    if (select && titleMapping[val]) {
+                        select.value = titleMapping[val];
+                    }
+                }
+            });
         });
     });
 </script>

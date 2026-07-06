@@ -33,9 +33,8 @@
 
             <!-- Cột bên phải: Giao diện hiển thị chi tiết thông tin và sửa đổi trực tiếp từng trường -->
             <div class="col-md-9">
-                <!-- Hiển thị thông báo thành công hoặc lỗi nếu có -->
-                <div th:if="${successMessage}" class="alert alert-success border-0 px-3 py-2 mb-3 profile-alert-box" th:text="${successMessage}"></div>
-                <div th:if="${errorMessage}" class="alert alert-danger border-0 px-3 py-2 mb-3 profile-alert-box" th:text="${errorMessage}"></div>
+                <!-- Global Popups -->
+                <th:block th:replace="~{fragment/frag :: alerts}"></th:block>
 
                 <!-- --- CHẾ ĐỘ ĐỔI MẬT KHẨU (PASSWORD MODE) --- -->
                 <div th:if="${session.profileVerifiedForEdit == true && session.editField == 'password'}" class="card border-0 shadow-sm mb-4 profile-card">

@@ -7,9 +7,13 @@ import vn.edu.fpt.hotel_management.entity.Review;
 import vn.edu.fpt.hotel_management.entity.User;
 import vn.edu.fpt.hotel_management.entity.Customer;
 import vn.edu.fpt.hotel_management.entity.Hotel;
+import vn.edu.fpt.hotel_management.entity.Room;
+import vn.edu.fpt.hotel_management.entity.Booking;
 import vn.edu.fpt.hotel_management.repository.ReviewRepository;
 import vn.edu.fpt.hotel_management.repository.CustomerRepository;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
+import vn.edu.fpt.hotel_management.repository.RoomRepository;
+import vn.edu.fpt.hotel_management.repository.BookingRepository;
 
 @Controller
 public class ReviewController {
@@ -17,20 +21,29 @@ public class ReviewController {
     private final ReviewRepository reviewRepository;
     private final CustomerRepository customerRepository;
     private final HotelRepository hotelRepository;
+    private final RoomRepository roomRepository;
+    private final BookingRepository bookingRepository;
 
     public ReviewController(ReviewRepository reviewRepository,
                             CustomerRepository customerRepository,
-                            HotelRepository hotelRepository) {
+                            HotelRepository hotelRepository,
+                            RoomRepository roomRepository,
+                            BookingRepository bookingRepository) {
         this.reviewRepository = reviewRepository;
         this.customerRepository = customerRepository;
         this.hotelRepository = hotelRepository;
+        this.roomRepository = roomRepository;
+        this.bookingRepository = bookingRepository;
     }
 
     @PostMapping("/hotels/{id}/reviews")
     public String createReview(
             @PathVariable("id") int hotelId,
             @RequestParam("rating") int rating,
-            @RequestParam("comment") String comment,
+            @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "comment", required = false) String comment,
+            @RequestParam("roomId") int roomId,
+            @RequestParam(value = "bookingId", required = false) Integer bookingId,
             HttpSession session) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
@@ -46,11 +59,6 @@ public class ReviewController {
         Customer customer = customerRepository.findByUserAccount(loggedInUser)
                 .orElseThrow(() -> new RuntimeException("Customer profile not found!"));
 
-        if (reviewRepository.existsByHotelIdAndCustomerId(hotelId, customer.getId())) {
-            session.setAttribute("errorMessage", "You have already reviewed this hotel. You can only review once.");
-            return "redirect:/hotels/" + hotelId + "/rooms";
-        }
-
         if (rating < 1 || rating > 5) {
             session.setAttribute("errorMessage", "Rating must be between 1 and 5 stars.");
             return "redirect:/hotels/" + hotelId + "/rooms";
@@ -59,12 +67,56 @@ public class ReviewController {
         Hotel hotel = hotelRepository.findById(hotelId)
                 .orElseThrow(() -> new RuntimeException("Hotel not found!"));
 
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("Room not found!"));
+
+        // Find completed bookings for this specific room
+        java.util.List<Booking> completedBookingsForRoom = bookingRepository.findBookingsByCustomerAndHotel(
+                customer.getId(),
+                hotelId,
+                java.util.List.of("COMPLETED")
+        ).stream().filter(b -> b.getRoom().getId() == roomId).collect(java.util.stream.Collectors.toList());
+
+        // Find reviews for this specific room
+        java.util.List<Review> roomReviews = reviewRepository.findByHotelIdAndCustomerId(hotelId, customer.getId())
+                .stream().filter(r -> r.getRoom() != null && r.getRoom().getId() == roomId).collect(java.util.stream.Collectors.toList());
+
+        if (completedBookingsForRoom.isEmpty()) {
+            session.setAttribute("errorMessage", "You must have a completed booking for this room type to submit a review.");
+            return "redirect:/hotels/" + hotelId + "/rooms";
+        }
+
+        if (roomReviews.size() >= completedBookingsForRoom.size()) {
+            session.setAttribute("errorMessage", "You have already reviewed all your bookings for this room type.");
+            return "redirect:/hotels/" + hotelId + "/rooms";
+        }
+
+        String combinedComment = (title != null ? title.trim() : "") + "|||"
+                + (comment != null ? comment.trim() : "");
+
         Review review = new Review();
         review.setHotel(hotel);
         review.setCustomer(customer);
         review.setUserFullName(customer.getFullName());
         review.setRating(rating);
-        review.setComment(comment != null ? comment.trim() : "");
+        review.setComment(combinedComment);
+        review.setRoom(room);
+        review.setRoomType(room.getType());
+
+        if (bookingId != null) {
+            Booking booking = bookingRepository.findById(bookingId).orElse(null);
+            if (booking != null && booking.getCustomer().getId() == customer.getId()) {
+                review.setBooking(booking);
+            }
+        } else {
+            Booking fallbackBooking = completedBookingsForRoom.stream()
+                    .filter(b -> roomReviews.stream().noneMatch(r -> r.getBooking() != null && r.getBooking().getId() == b.getId()))
+                    .findFirst()
+                    .orElse(null);
+            if (fallbackBooking != null) {
+                review.setBooking(fallbackBooking);
+            }
+        }
 
         reviewRepository.save(review);
 
@@ -77,7 +129,8 @@ public class ReviewController {
             @PathVariable("id") int hotelId,
             @PathVariable("reviewId") int reviewId,
             @RequestParam("rating") int rating,
-            @RequestParam("comment") String comment,
+            @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "comment", required = false) String comment,
             HttpSession session) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
@@ -104,8 +157,11 @@ public class ReviewController {
             return "redirect:/hotels/" + hotelId + "/rooms";
         }
 
+        String combinedComment = (title != null ? title.trim() : "") + "|||"
+                + (comment != null ? comment.trim() : "");
+
         review.setRating(rating);
-        review.setComment(comment != null ? comment.trim() : "");
+        review.setComment(combinedComment);
         reviewRepository.save(review);
 
         session.setAttribute("successMessage", "Review updated successfully!");
