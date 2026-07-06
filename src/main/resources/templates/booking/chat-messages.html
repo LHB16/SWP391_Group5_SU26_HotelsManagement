@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <!-- Tự động làm mới khung tin nhắn sau mỗi 3 giây và cuộn xuống dưới cùng -->
+    <meta http-equiv="refresh" th:content="'3;url=' + ${refreshUrl}" />
+    <link th:href="@{/assets/css/style.css}" rel="stylesheet" />
+</head>
+<body class="bg-white p-3">
+    <div class="d-flex flex-column chat-messages-container">
+        <!-- Vòng lặp tin nhắn -->
+        <div th:each="msg : ${chatHistory}">
+
+            <!-- Tin nhắn được gửi bởi người dùng hiện tại (Căn lề PHẢI) -->
+            <div th:if="${msg.sender.id == currentUser.id}" class="d-flex flex-column align-items-end mb-4 message-item">
+                <div class="msg-wrapper-right">
+
+                    <!-- Thanh công cụ phản hồi cảm xúc nhanh (Quick Reaction Bar) -->
+                    <div class="reaction-bar reaction-bar-right position-absolute bg-white rounded-pill border px-2 py-1 d-flex gap-2">
+                        <a th:href="@{/chat/react(messageId=${msg.id}, emoji='👍', redirectUrl=${refreshUrl})}" class="text-decoration-none">👍</a>
+                        <a th:href="@{/chat/react(messageId=${msg.id}, emoji='❤️', redirectUrl=${refreshUrl})}" class="text-decoration-none">❤️</a>
+                        <a th:href="@{/chat/react(messageId=${msg.id}, emoji='😂', redirectUrl=${refreshUrl})}" class="text-decoration-none">😂</a>
+                        <a th:href="@{/chat/react(messageId=${msg.id}, emoji='😮', redirectUrl=${refreshUrl})}" class="text-decoration-none">😮</a>
+                        <a th:href="@{/chat/react(messageId=${msg.id}, emoji='😢', redirectUrl=${refreshUrl})}" class="text-decoration-none">😢</a>
+                        <a th:href="@{/chat/react(messageId=${msg.id}, emoji='😡', redirectUrl=${refreshUrl})}" class="text-decoration-none">😡</a>
+                    </div>
+
+                    <!-- Bong bóng chat -->
+                    <div class="p-2 rounded text-white shadow-sm position-relative chat-bubble-right">
+                        <div th:if="${msg.content != null && !msg.content.isEmpty()}" th:text="${msg.content}" class="chat-msg-text">Message content</div>
+                        <!-- Hiển thị hình ảnh từ thư mục chat con dưới dạng Link bấm mở sang tab mới -->
+                        <a th:if="${msg.imageUrl != null}" th:href="@{/assets/images/chat/{img}(img=${msg.imageUrl})}" target="_blank" class="d-block">
+                            <img th:src="@{/assets/images/chat/{img}(img=${msg.imageUrl})}" class="chat-msg-image img-fluid" alt="Uploaded image" />
+                        </a>
+                        
+                        <small class="d-block text-end mt-1 text-muted-light chat-msg-time-right" th:text="${#temporals.format(msg.sentAt, 'HH:mm')}">12:00</small>
+
+                        <!-- Huy hiệu Reaction hiển thị nổi ở dưới -->
+                        <div th:if="${msg.reaction != null}" class="position-absolute d-flex align-items-center justify-content-center bg-white rounded-circle shadow-sm border chat-reaction-badge-right">
+                            <span th:text="${msg.reaction}">👍</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Tin nhắn được gửi bởi đối phương (Căn lề TRÁI) -->
+            <div th:if="${msg.sender.id != currentUser.id}" class="d-flex flex-column align-items-start mb-4 message-item">
+                <div class="msg-wrapper-left">
+
+                    <!-- Thanh công cụ phản hồi cảm xúc nhanh (Quick Reaction Bar) -->
+                    <div class="reaction-bar reaction-bar-left position-absolute bg-white rounded-pill border px-2 py-1 d-flex gap-2">
+                        <a th:href="@{/chat/react(messageId=${msg.id}, emoji='👍', redirectUrl=${refreshUrl})}" class="text-decoration-none">👍</a>
+                        <a th:href="@{/chat/react(messageId=${msg.id}, emoji='❤️', redirectUrl=${refreshUrl})}" class="text-decoration-none">❤️</a>
+                        <a th:href="@{/chat/react(messageId=${msg.id}, emoji='😂', redirectUrl=${refreshUrl})}" class="text-decoration-none">😂</a>
+                        <a th:href="@{/chat/react(messageId=${msg.id}, emoji='😮', redirectUrl=${refreshUrl})}" class="text-decoration-none">😮</a>
+                        <a th:href="@{/chat/react(messageId=${msg.id}, emoji='😢', redirectUrl=${refreshUrl})}" class="text-decoration-none">😢</a>
+                        <a th:href="@{/chat/react(messageId=${msg.id}, emoji='😡', redirectUrl=${refreshUrl})}" class="text-decoration-none">😡</a>
+                    </div>
+
+                    <!-- Bong bóng chat -->
+                    <div class="p-2 rounded text-dark bg-light border shadow-sm position-relative chat-bubble-left">
+                        <strong class="d-block small text-muted mb-1 chat-sender-label" th:text="${msg.sender.username}">Sender</strong>
+                        <div th:if="${msg.content != null && !msg.content.isEmpty()}" th:text="${msg.content}" class="chat-msg-text">Message content</div>
+                        <!-- Hiển thị hình ảnh từ thư mục chat con dưới dạng Link bấm mở sang tab mới -->
+                        <a th:if="${msg.imageUrl != null}" th:href="@{/assets/images/chat/{img}(img=${msg.imageUrl})}" target="_blank" class="d-block">
+                            <img th:src="@{/assets/images/chat/{img}(img=${msg.imageUrl})}" class="chat-msg-image img-fluid" alt="Uploaded image" />
+                        </a>
+                        
+                        <small class="d-block text-muted mt-1 chat-msg-time-left" th:text="${#temporals.format(msg.sentAt, 'HH:mm')}">12:00</small>
+
+                        <!-- Huy hiệu Reaction hiển thị nổi ở dưới -->
+                        <div th:if="${msg.reaction != null}" class="position-absolute d-flex align-items-center justify-content-center bg-white rounded-circle shadow-sm border chat-reaction-badge-left">
+                            <span th:text="${msg.reaction}">👍</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Màn hình chờ khi chưa có tin nhắn -->
+        <div th:if="${#lists.isEmpty(chatHistory)}" class="text-center text-muted py-5 chat-empty-placeholder">
+            <i class="bi bi-chat-dots fs-1 d-block mb-2 chat-empty-icon"></i>
+            <p class="m-0 small">No messages yet. Send a message to start the conversation!</p>
+        </div>
+    </div>
+
+    <!-- Điểm neo ở cuối để tự động cuộn xuống khi tải lại trang -->
+    <div id="bottom"></div>
+</body>
+</html>

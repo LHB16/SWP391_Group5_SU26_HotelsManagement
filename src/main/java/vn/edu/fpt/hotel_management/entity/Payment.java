@@ -30,6 +30,15 @@ public class Payment {
     @Column(name = "transaction_id")
     private String transactionId;
 
+    @Column(name = "sender_account_number")
+    private String senderAccountNumber;
+
+    @Column(name = "sender_bank_name")
+    private String senderBankName;
+
+    @Column(name = "sender_account_name")
+    private String senderAccountName;
+
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
 
@@ -61,6 +70,12 @@ public class Payment {
     public void setQrCodeUrl(String qrCodeUrl) { this.qrCodeUrl = qrCodeUrl; }
     public String getTransactionId() { return transactionId; }
     public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
+    public String getSenderAccountNumber() { return senderAccountNumber; }
+    public void setSenderAccountNumber(String senderAccountNumber) { this.senderAccountNumber = senderAccountNumber; }
+    public String getSenderBankName() { return senderBankName; }
+    public void setSenderBankName(String senderBankName) { this.senderBankName = senderBankName; }
+    public String getSenderAccountName() { return senderAccountName; }
+    public void setSenderAccountName(String senderAccountName) { this.senderAccountName = senderAccountName; }
     public LocalDateTime getPaidAt() { return paidAt; }
     public void setPaidAt(LocalDateTime paidAt) { this.paidAt = paidAt; }
     public LocalDateTime getCreatedAt() { return createdAt; }

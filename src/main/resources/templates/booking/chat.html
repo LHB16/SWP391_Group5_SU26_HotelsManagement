@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <th:block th:replace="~{fragment/frag :: head}"></th:block>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <nav th:replace="~{fragment/frag :: navBar}"></nav>
+
+    <main class="flex-grow-1 py-5 bg-cream">
+        <div class="container chat-main-container">
+            <div class="card shadow-sm border-0 chat-main-card">
+                <div class="card-header text-white py-3 chat-main-card-header">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h5 class="m-0 fw-bold">
+                            <span th:text="${hotel.name}">Hotel Name</span>
+                        </h5>
+                        <span class="badge chat-owner-badge">
+                            Owner: <span th:text="${hotel.owner.fullName}">Owner</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body p-0 bg-white">
+                    <!-- Khung hiển thị nội dung tin nhắn dạng Iframe -->
+                    <iframe th:src="@{/customer/chat/messages(hotelId=${hotel.id})}" 
+                            name="chat-frame" 
+                            class="chat-iframe-window"></iframe>
+                </div>
+                <div class="card-footer bg-white border-top p-3">
+                    <!-- Khung xem trước hình ảnh trước khi gửi -->
+                    <div id="imagePreviewContainer" class="chat-preview-container d-none">
+                        <img id="imagePreview" class="chat-preview-image img-thumbnail" src="" alt="Preview">
+                        <button type="button" id="clearImageBtn" class="chat-preview-clear">&times;</button>
+                    </div>
+
+                    <!-- Form gửi tin nhắn (F5 trang chính để xóa ô nhập và cập nhật) -->
+                    <form th:action="@{/customer/chat/send}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="hotelId" th:value="${hotel.id}">
+                        <div class="input-group">
+                            <input type="text" class="form-control chat-input-text" name="content" autocomplete="off" placeholder="Type a message...">
+                            <!-- Nút chọn hình ảnh tải lên -->
+                            <label class="btn btn-outline-secondary chat-upload-label">
+                                <i class="bi bi-image chat-upload-icon"></i>
+                                <input type="file" name="imageFile" id="imageFileInput" accept="image/*" class="chat-upload-input">
+                            </label>
+                            <button class="btn chat-send-btn" type="submit">Send</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="text-center mt-3">
+                <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}" class="btn btn-sm btn-outline-secondary chat-back-btn">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Hotel
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragment/frag :: footer}"></footer>
+    <div th:replace="~{fragment/frag :: scripts}"></div>
+
+    <!-- Script xử lý xem trước hình ảnh chọn tải lên -->
+    <script>
+        document.getElementById('imageFileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('imagePreviewContainer').classList.remove('d-none');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        document.getElementById('clearImageBtn').addEventListener('click', function() {
+            document.getElementById('imageFileInput').value = '';
+            document.getElementById('imagePreviewContainer').classList.add('d-none');
+            document.getElementById('imagePreview').src = '';
+        });
+    </script>
+</body>
+</html>
