@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head th:replace="~{fragment/frag :: head}"></head>
+
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragment/frag :: navBar}"></nav>
+
+<!-- ==================== HERO BANNER ==================== -->
+<section class="room-hero">
+    <div class="container">
+        <h1 class="room-hero-title" th:text="${hotel.name}">Hotel Name</h1>
+        <p class="room-hero-subtitle">
+            <i class="bi bi-geo-alt me-1"></i>
+            <span th:text="${hotel.address}">Hotel Address</span>
+        </p>
+        <div class="room-hero-divider"></div>
+
+        <div class="d-flex align-items-center gap-3 flex-wrap mt-3">
+            <span class="room-hero-badge">
+                <i class="bi bi-star-fill text-gold me-1"></i>
+                <span th:text="${hotel.rating} + ' ★'">5 ★</span>
+            </span>
+            <span class="room-hero-badge">
+                <i class="bi bi-door-open me-1"></i>
+                <strong th:text="${rooms != null ? rooms.size() : 0}">0</strong>&nbsp;rooms
+            </span>
+            <span class="room-hero-badge" th:if="${hotel.active}">
+                <i class="bi bi-check-circle-fill text-success me-1"></i>
+                Active
+            </span>
+            <span class="room-hero-badge" th:unless="${hotel.active}">
+                <i class="bi bi-x-circle-fill text-danger me-1"></i>
+                Inactive
+            </span>
+            <span class="room-hero-badge">
+                <span class="badge"
+                      th:classappend="${hotel.approvalStatus == 'APPROVED'} ? 'bg-success' :
+                                     (${hotel.approvalStatus == 'REJECTED'} ? 'bg-danger' : 'bg-warning text-dark')"
+                      th:text="${hotel.approvalStatus ?: 'PENDING'}">
+                    PENDING
+                </span>
+            </span>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== MAIN CONTENT ==================== -->
+<main class="flex-grow-1 py-4 bg-cream">
+    <div class="container-fluid px-3 px-md-4">
+        <div class="row g-4">
+
+            <!-- Back Button -->
+            <div class="col-12">
+                <a th:href="@{/owner/dashboard(tab='hotels')}" class="back-btn">
+                    <i class="bi bi-arrow-left me-2"></i>
+                    Back to My Hotels
+                </a>
+            </div>
+
+            <!-- ===== HOTEL INFORMATION ===== -->
+            <div class="col-12">
+                <div class="card border-0 shadow-sm" style="border-radius:16px; overflow:hidden;">
+                    <div class="row g-0">
+                        <!-- Hotel Image -->
+                        <div class="col-12 col-md-4" style="min-height: 250px;">
+                            <img th:if="${hotel.imageUrl != null and !hotel.imageUrl.isEmpty()}"
+                                 th:src="@{${hotel.imageUrl}}" th:alt="${hotel.name}"
+                                 class="w-100 h-100 object-fit-cover" style="min-height: 250px;" />
+                            <div th:if="${hotel.imageUrl == null or hotel.imageUrl.isEmpty()}"
+                                 class="w-100 h-100 d-flex align-items-center justify-content-center bg-light" style="min-height: 250px;">
+                                <i class="bi bi-image text-muted fs-1"></i>
+                            </div>
+                        </div>
+
+                        <!-- Hotel Details -->
+                        <div class="col-12 col-md-8">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                    <div>
+                                        <h2 class="fw-bold text-dark mb-1" th:text="${hotel.name}">Hotel Name</h2>
+                                        <p class="text-muted mb-2">
+                                            <i class="bi bi-geo-alt me-1"></i>
+                                            <span th:text="${hotel.address}">Address</span>
+                                        </p>
+                                        <p class="text-muted small" th:if="${hotel.city != null}">
+                                            <i class="bi bi-building me-1"></i>
+                                            <span th:text="${hotel.city} + (${hotel.district != null} ? ', ' + ${hotel.district} : '')">City</span>
+                                        </p>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fs-4 fw-bold text-gold" th:text="${hotel.rating} + ' ★'">5 ★</div>
+                                        <small class="text-muted" th:text="${hotel.totalReviews} + ' reviews'">0 reviews</small>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3">
+                                    <h6 class="fw-semibold text-dark mb-2">Description</h6>
+                                    <p class="text-muted" th:text="${hotel.description != null ? hotel.description : 'No description available.'}">
+                                        Description
+                                    </p>
+                                </div>
+
+                                <div class="mt-3 d-flex gap-3 flex-wrap">
+                                    <span class="badge bg-light text-dark px-3 py-2">
+                                        <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                        <span th:text="${hotel.active} ? 'Active' : 'Inactive'">Active</span>
+                                    </span>
+                                    <span class="badge bg-light text-dark px-3 py-2">
+                                        <i class="bi bi-tag me-1"></i>
+                                        <span th:text="${hotel.approvalStatus ?: 'PENDING'}">PENDING</span>
+                                    </span>
+                                    <span class="badge bg-light text-dark px-3 py-2" th:if="${hotel.approvedAt != null}">
+                                        <i class="bi bi-calendar-check me-1"></i>
+                                        Approved: <span th:text="${#temporals.format(hotel.approvedAt, 'dd/MM/yyyy')}">Date</span>
+                                    </span>
+                                </div>
+
+                                <div class="mt-3 d-flex gap-2">
+                                    <a th:href="@{/owner/hotels/{id}/edit(id=${hotel.id})}" class="btn btn-gold btn-sm">
+                                        <i class="bi bi-pencil me-1"></i>
+                                        Edit Hotel
+                                    </a>
+                                    <a th:href="@{/owner/hotels/{id}/rooms(id=${hotel.id})}" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-door-open me-1"></i>
+                                        Manage Rooms
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== ROOM LIST ===== -->
+            <div class="col-12 mt-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-door-open me-2" style="color: var(--gold);"></i>
+                        Rooms in this Hotel
+                        <span class="ms-2 badge rounded-pill" style="background-color: #ede9fe; color: #4f46e5; font-size: 0.78rem; font-weight: 600;"
+                              th:text="${rooms != null ? rooms.size() : 0}">0</span>
+                    </h4>
+                    <a th:href="@{/hotels/{id}/rooms/new(id=${hotel.id})}" class="btn btn-gold btn-sm">
+                        <i class="bi bi-plus-lg me-1"></i>
+                        Add Room
+                    </a>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${rooms == null or rooms.isEmpty()}" class="text-center py-5 bg-white shadow-sm rounded-3 border">
+                    <i class="bi bi-door-open fs-1 text-muted mb-3 opacity-50 d-block"></i>
+                    <h5 class="text-muted">No Rooms Available</h5>
+                    <p class="text-muted small">This hotel doesn't have any rooms yet.</p>
+                    <a th:href="@{/hotels/{id}/rooms/new(id=${hotel.id})}" class="btn btn-gold btn-sm mt-2">
+                        <i class="bi bi-plus-lg me-1"></i>
+                        Add First Room
+                    </a>
+                </div>
+
+                <!-- Room List (View-only) -->
+                <div th:if="${rooms != null and !rooms.isEmpty()}" class="row g-4">
+                    <div th:each="room : ${rooms}" class="col-12 col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm border-0" style="border-radius:14px; overflow:hidden;">
+
+                            <!-- Room Image -->
+                            <div class="position-relative overflow-hidden" style="height: 200px; background: #f1f5f9;">
+                                <img th:if="${room.imgUrl != null and !room.imgUrl.isEmpty()}"
+                                     th:src="@{${room.imgUrl}}" th:alt="${room.type}"
+                                     class="w-100 h-100 object-fit-cover" />
+                                <div th:if="${room.imgUrl == null or room.imgUrl.isEmpty()}"
+                                     class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
+                                    <i class="bi bi-image text-muted fs-3"></i>
+                                </div>
+                            </div>
+
+                            <!-- Room Body -->
+                            <div class="card-body">
+                                <h6 class="fw-bold text-dark mb-1" th:text="${room.type}">Room Type</h6>
+                                <p class="text-muted small mb-2" th:text="${room.description != null ? room.description : 'No description available.'}">
+                                    Description
+                                </p>
+
+                                <div class="d-flex flex-wrap gap-2 mb-2">
+                                    <span class="badge bg-light text-dark">
+                                        <i class="bi bi-arrows-fullscreen me-1"></i>
+                                        <span th:text="${room.acreage + ' m²'}">25 m²</span>
+                                    </span>
+                                    <span class="badge bg-light text-dark">
+                                        <i class="bi bi-people me-1"></i>
+                                        <span th:text="${room.person + ' guest(s)'}">2 guests</span>
+                                    </span>
+                                    <span class="badge bg-light text-dark">
+                                        <i class="bi bi-door-closed me-1"></i>
+                                        <span th:text="${room.bed + ' bed(s)'}">1 bed</span>
+                                    </span>
+                                    <span class="badge bg-light text-dark">
+                                        <i class="bi bi-grid-3x3-gap me-1"></i>
+                                        <span th:text="${room.window + ' window(s)'}">0 windows</span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Room Footer (View-only, no Book button) -->
+                            <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="fw-bold text-gold fs-5" th:text="${#numbers.formatInteger(room.price, 0, 'COMMA')}">500,000</span>
+                                    <small class="text-muted"> VND/night</small>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <a th:href="@{/owner/hotels/{id}/rooms/{rid}/edit(id=${hotel.id}, rid=${room.id})}"
+                                       class="btn btn-sm btn-outline-secondary" th:if="${room.id != null}">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form th:action="@{/owner/hotels/{id}/rooms/{rid}/delete(id=${hotel.id}, rid=${room.id})}"
+                                          method="post"
+                                          onsubmit="return confirm('Delete this room?');" th:if="${room.id != null}">
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragment/frag :: footer}"></footer>
+<div th:replace="~{fragment/frag :: scripts}"></div>
+
+</body>
+</html>

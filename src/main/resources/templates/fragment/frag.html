@@ -20,8 +20,14 @@
         <div class="collapse navbar-collapse" id="navMenu">
             <ul class="navbar-nav me-auto">
                 <th:block th:if="${session.loggedInUser == null || session.loggedInUser.role != 'ADMIN'}">
+                    <!-- Home / Dashboard cho Owner -->
                     <li class="nav-item">
-                        <a class="nav-link" th:href="@{/}">Home</a>
+                        <a class="nav-link"
+                           th:if="${session.loggedInUser != null && session.loggedInUser.role == 'HOTEL_OWNER'}"
+                           th:href="@{/owner/dashboard}">Hotel Owner Dashboard</a>
+                        <a class="nav-link"
+                           th:if="${session.loggedInUser == null || session.loggedInUser.role != 'HOTEL_OWNER'}"
+                           th:href="@{/}">Home</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" th:href="@{/hotels}">Hotels</a>
@@ -51,9 +57,9 @@
                     <!-- Dropdown chứa Avatar và Menu thả xuống -->
                     <li class="nav-item avatar-dropdown">
                         <!-- Nút Avatar tròn, hiển thị chữ cái đầu tiên của người dùng -->
-                        <div class="avatar-btn" id="avatarBtn" 
+                        <div class="avatar-btn" id="avatarBtn"
                              th:text="${#strings.substring(session.loggedInUser.fullName, 0, 1).toUpperCase()}">U</div>
-                        
+
                         <!-- Menu thả xuống chứa các lựa chọn -->
                         <div class="avatar-menu" id="avatarMenu">
                             <div class="px-3 py-2 text-muted border-bottom" style="font-size: 13px;">
@@ -87,6 +93,7 @@
     <!-- Flatpickr JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </th:block>
+
 <!-- Thêm vào phần nav của Hotel Owner trong frag.html -->
 <th:block th:if="${session.loggedInUser != null && session.loggedInUser.role == 'HOTEL_OWNER'}">
     <li class="nav-item">
