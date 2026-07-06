@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.hotel_management.entity.Customer;
 import vn.edu.fpt.hotel_management.entity.HotelOwner;
 import vn.edu.fpt.hotel_management.entity.User;
+import vn.edu.fpt.hotel_management.repository.AdminRepository;
 import vn.edu.fpt.hotel_management.repository.CustomerRepository;
 import vn.edu.fpt.hotel_management.repository.HotelOwnerRepository;
 import vn.edu.fpt.hotel_management.repository.UserRepository;
@@ -18,31 +19,43 @@ public class UserService {
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
     private final HotelOwnerRepository hotelOwnerRepository;
+    private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
 
     public UserService(UserRepository userRepository,
                        CustomerRepository customerRepository,
                        HotelOwnerRepository hotelOwnerRepository,
+                       AdminRepository adminRepository,
                        PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.customerRepository = customerRepository;
         this.hotelOwnerRepository = hotelOwnerRepository;
+        this.adminRepository = adminRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
+    public void deleteUserCascaded(User user) {
+        customerRepository.findByUserAccount(user).ifPresent(customerRepository::delete);
+        hotelOwnerRepository.findByUserAccount(user).ifPresent(hotelOwnerRepository::delete);
+        adminRepository.findByUserAccount(user).ifPresent(adminRepository::delete);
+        userRepository.delete(user);
+    }
+
+    @Transactional
     public void validateRegister(String username, String email) {
         userRepository.findByUsername(username).ifPresent(existing -> {
             if (existing.isEnabled()) {
                 throw new RuntimeException("Username already exists!");
             } else {
-                userRepository.delete(existing);
+                deleteUserCascaded(existing);
             }
         });
         userRepository.findByEmail(email).ifPresent(existing -> {
             if (existing.isEnabled()) {
                 throw new RuntimeException("Email already in use!");
             } else {
-                userRepository.delete(existing);
+                deleteUserCascaded(existing);
             }
         });
     }
