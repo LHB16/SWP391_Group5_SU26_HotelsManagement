@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head th:replace="~{fragment/frag :: head}"></head>
+
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragment/frag :: navBar}"></nav>
+
+<!-- ==================== HERO BANNER ==================== -->
+<section class="room-hero">
+    <div class="container">
+        <h1 class="room-hero-title" th:text="${hotel.name}">Hotel Name</h1>
+        <p class="room-hero-subtitle">
+            <i class="bi bi-geo-alt me-1"></i>
+            <span th:text="${hotel.address}">Hotel Address</span>
+        </p>
+        <div class="room-hero-divider"></div>
+
+        <div class="d-flex align-items-center gap-3 flex-wrap mt-3">
+            <span class="room-hero-badge">
+                <i class="bi bi-star-fill text-gold me-1"></i>
+                <span th:text="${avgRating > 0 ? avgRating + ' / 5 (' + totalReviews + ' reviews)' : hotel.rating + ' Stars'}">5 Stars</span>
+            </span>
+            <span class="room-hero-badge">
+                <i class="bi bi-door-open me-1"></i>
+                <strong th:text="${totalResults}">0</strong>&nbsp;rooms found
+            </span>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== MAIN CONTENT ==================== -->
+<main class="flex-grow-1 py-4 bg-cream">
+    <div class="container-fluid px-3 px-md-4">
+        <div class="row g-4">
+
+            <!-- ===== FILTER SIDEBAR ===== -->
+            <div class="col-12 col-lg-3">
+                <div class="card filter-card border-0 shadow-sm" style="border-radius:16px; overflow:hidden; position:sticky; top:80px;">
+                    <div class="card-header filter-card-header text-gold border-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-funnel text-gold"></i>
+                        Filter Rooms
+                    </div>
+                    <div class="card-body filter-card-body">
+                        <form th:action="@{/hotels/{id}/rooms(id=${hotel.id})}" method="get" id="roomFilterForm">
+
+                            <!-- Loại phòng -->
+                            <div class="mb-3">
+                                <label class="filter-section-label" for="roomTypeSelect">Room Type</label>
+                                <select name="types" id="roomTypeSelect" class="form-select form-select-sm">
+                                    <option value="" th:selected="${selectedTypes == null or selectedTypes.isEmpty()}">All Types</option>
+                                    <option th:each="t : ${allTypes}" th:value="${t}" th:text="${t}"
+                                        th:selected="${#lists.contains(selectedTypes, t)}"></option>
+                                </select>
+                            </div>
+
+                            <!-- Check-in / Check-out -->
+                            <div class="mb-3">
+                                <label class="filter-section-label" for="filterCheckin">Check-in Date</label>
+                                <input type="text" name="checkin" id="filterCheckin"
+                                       class="form-control form-control-sm filter-input" th:value="${checkin}" placeholder="Select Check-in" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="filter-section-label" for="filterCheckout">Check-out Date</label>
+                                <input type="text" name="checkout" id="filterCheckout"
+                                       class="form-control form-control-sm filter-input" th:value="${checkout}" placeholder="Select Check-out" />
+                            </div>
+
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-gold btn-sm" id="roomFilterSubmit">
+                                    <i class="bi bi-search me-1"></i>
+                                    Search Rooms
+                                </button>
+                                <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}" class="btn btn-outline-secondary btn-sm">
+                                    Clear Filters
+                                </a>
+                            </div>
+                        </form>
+
+                        <!-- Customer Support inside the same sticky filter card to prevent overlap on scroll -->
+                        <hr style="border-color: rgba(0, 0, 0, 0.08); margin: 20px 0;">
+                        <div class="text-center">
+                            <h6 class="fw-bold mb-2" style="font-size: 0.95rem; color: #0a1628;">Customer Support</h6>
+                            <p class="text-muted mb-3" style="font-size: 0.8rem; line-height: 1.4;">Have questions about rooms or services? Chat directly with the hotel owner!</p>
+                            <a th:href="@{/customer/chat(hotelId=${hotel.id})}" class="btn w-100 btn-sm" style="background-color: #0a1628; color: #c9a96e; font-weight: 600; border-radius: 8px;">
+                                <i class="bi bi-chat-left-dots-fill me-1"></i>
+                                Chat with Owner
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== DANH SÁCH PHÒNG ===== -->
+            <div class="col-12 col-lg-9">
+
+                <!-- Results header -->
+                <div class="results-header">
+                    <div>
+                        <div class="results-title">Room Listings</div>
+                        <div class="results-count">
+                            Found <strong th:text="${totalResults}">0</strong> room(s)
+                            <span th:if="${!selectedTypes.isEmpty()}">
+                                &nbsp;· <span th:each="t, i : ${selectedTypes}">
+                                    <span th:text="${t}"></span><span th:if="${!i.last}">, </span>
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                    <a th:if="${session.loggedInUser != null && (session.loggedInUser.role == 'ADMIN' || session.loggedInUser.role == 'HOTEL_OWNER')}"
+                       th:href="@{/hotels/{id}/rooms/new(id=${hotel.id})}" class="btn btn-gold">
+                        <i class="bi bi-plus-lg me-1"></i>
+                        Add Room
+                    </a>
+                </div>
+
+                <!-- Global Popups -->
+                <th:block th:replace="~{fragment/frag :: alerts}"></th:block>
+
+                <!-- Empty state -->
+                <div th:if="${rooms == null or rooms.isEmpty()}" class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-door-open fs-1 text-gold mb-3 opacity-50 d-block"></i>
+                    </div>
+                    <div class="empty-state-title">No Rooms Found</div>
+                    <p class="empty-state-desc">
+                        <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}" class="text-gold fw-semibold">Clear all filters</a>
+                        to see all available rooms.
+                    </p>
+                </div>
+
+                <!-- Room list -->
+                <div th:if="${rooms != null and !rooms.isEmpty()}">
+                    <div th:each="room : ${rooms}" class="room-card">
+
+                        <!-- Ảnh -->
+                        <div class="room-card-img-wrap" style="position: relative;">
+                            <img th:if="${room.imgUrl != null and !room.imgUrl.isEmpty()}"
+                                th:src="${room.imgUrl}" th:alt="${room.roomType}" class="room-card-img" />
+                            <div th:if="${room.imgUrl == null or room.imgUrl.isEmpty()}" class="room-card-img-placeholder">
+                                <i class="bi bi-image text-muted fs-3"></i>
+                            </div>
+                            <!-- Wishlist Heart Button (chỉ cho account đã đăng nhập) -->
+                            <a th:if="${user != null}" 
+                               th:href="@{/wishlist/toggle(roomId=${room.id}, checkin=${checkin != null ? checkin : ''}, checkout=${checkout != null ? checkout : ''}, types=${selectedTypes != null and !selectedTypes.isEmpty() ? selectedTypes[0] : ''})}"
+                               class="wishlist-heart-btn" 
+                               title="Wishlist">
+                                <i th:class="${wishlistRoomIds != null and wishlistRoomIds.contains(room.id)} ? 'bi bi-heart-fill pink-heart' : 'bi bi-heart pink-heart'"></i>
+                            </a>
+                        </div>
+
+                        <!-- Thông tin -->
+                        <div class="room-card-body">
+                            <div class="room-type-title" th:text="${room.roomType}">ROOM TYPE</div>
+
+                            <p class="room-card-desc"
+                                th:text="${room.description != null and !room.description.isEmpty()
+                                         ? room.description
+                                         : 'A luxurious room equipped with modern amenities for the finest hospitality experience.'}">
+                            </p>
+
+                            <div class="room-gold-divider"></div>
+
+                            <!-- Amenities -->
+                            <div class="room-amenities">
+                                <span class="amenity-badge">
+                                    <i class="bi bi-arrows-fullscreen me-1"></i>
+                                    <span th:text="${room.acreage + ' m²'}">25 m²</span>
+                                </span>
+                                <span class="amenity-badge">
+                                    <i class="bi bi-people me-1"></i>
+                                    <span th:text="${room.person + ' guest(s)'}">2 guest(s)</span>
+                                </span>
+                                <span class="amenity-badge">
+                                    <i class="bi bi-door-closed me-1"></i>
+                                    <span th:text="${room.bed + ' bed(s)'}">2 bed(s)</span>
+                                </span>
+                                <span class="amenity-badge">
+                                    <i class="bi bi-grid-3x3-gap me-1"></i>
+                                    <span th:text="${room.numWindow + ' window(s)'}">2 window(s)</span>
+                                </span>
+                            </div>
+
+                            <!-- Footer: giá + nút -->
+                            <div class="room-card-footer">
+                                <div>
+                                    <div class="room-price-label" th:text="${isFiltered} ? 'Total Price' : 'Price per Night'">Price per Night</div>
+                                    <div>
+                                        <span class="room-price-amount"
+                                            th:text="${#numbers.formatInteger(roomPricesMap != null ? roomPricesMap.get(room.id) : room.price, 0, 'COMMA')}">500,000</span>
+                                        <span class="room-price-unit" th:text="${isFiltered ? 'VND / ' + nights + ' night' + (nights > 1 ? 's' : '') : 'VND'}">VND</span>
+                                    </div>
+                                </div>
+                                <div class="room-action-btns">
+                                    <!-- View Detail – Bootstrap modal -->
+                                    <button type="button" class="btn btn-outline-secondary btn-sm btn-view-detail"
+                                            data-bs-toggle="modal"
+                                            th:data-bs-target="${'#roomModal-' + room.id}"
+                                            th:id="${'detail-btn-' + room.id}">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Detail
+                                    </button>
+                                    <!-- Book Now -->
+                                    <a th:href="@{/booking(hotelId=${hotel.id}, roomId=${room.id}, checkin=${checkin}, checkout=${checkout})}"
+                                       class="btn btn-gold btn-sm btn-book-room"
+                                       th:id="${'book-btn-' + room.id}">
+                                        Book Now
+                                        <i class="bi bi-arrow-right ms-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ==================== REVIEWS SECTION ==================== -->
+        <div class="row g-4 mt-5">
+            <div class="col-12">
+                <div class="reviews-card">
+                    <h3 class="reviews-title">Hotel Reviews</h3>
+
+                    <div class="row g-4">
+                        <!-- Left: Rating Summary + Form -->
+                        <div class="col-12 col-md-4">
+                            <div class="rating-summary-card">
+                                <div class="rating-summary-number" th:text="${avgRating > 0 ? avgRating : '0.0'}">0.0</div>
+                                <div class="rating-summary-stars">
+                                    <span th:each="i : ${#numbers.sequence(1, 5)}"
+                                        th:text="${i <= avgRating ? '★' : '☆'}"></span>
+                                </div>
+                                <div class="rating-summary-count" th:text="${totalReviews + ' reviews in total'}">0 reviews</div>
+                            </div>
+
+                            <!-- Form viết review (chỉ CUSTOMER đã đặt phòng và chưa review) -->
+                            <div th:if="${user != null and user.role == 'CUSTOMER' and hasBooked and !hasReviewed}"
+                                 class="card border-0 shadow-sm p-4 bg-light">
+                                <h5 class="fw-bold mb-3 text-navy">Write a Review</h5>
+                                <form th:action="@{/hotels/{id}/reviews(id=${hotel.id})}" method="post">
+                                    <input type="hidden" name="bookingId" th:value="${resolvedBookingId}" />
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-uppercase text-muted">Your Rating</label>
+                                        <div class="star-radio-group">
+                                            <th:block th:each="star : ${#numbers.sequence(5, 1, -1)}">
+                                                <input type="radio" name="rating"
+                                                       th:id="${'star-review-' + star}"
+                                                       th:value="${star}" th:checked="${star == 5}" class="create-rating-input" />
+                                                <label th:for="${'star-review-' + star}" title="star">★</label>
+                                            </th:block>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-uppercase text-muted">Room Type Booked</label>
+                                        <div class="form-control-plaintext fw-bold text-navy" th:text="${latestBookedRoom.roomType}">Deluxe Room</div>
+                                        <input type="hidden" name="roomId" th:value="${latestBookedRoom.id}" />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="titleSelect" class="form-label small fw-semibold text-uppercase text-muted">Review Title</label>
+                                        <select class="form-select" id="titleSelect" name="title" required>
+                                            <option value="Exceptional" selected>Exceptional</option>
+                                            <option value="Very Good">Very Good</option>
+                                            <option value="Good">Good</option>
+                                            <option value="Disappointing">Disappointing</option>
+                                            <option value="Very Poor">Very Poor</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="commentInput" class="form-label small fw-semibold text-uppercase text-muted">Your Review (Optional)</label>
+                                        <textarea class="form-control" id="commentInput" name="comment"
+                                                  rows="4" placeholder="Tell us about your experience..."></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-gold w-100">Submit Review</button>
+                                </form>
+                            </div>
+
+                            <div th:if="${user != null and user.role == 'CUSTOMER' and !hasBooked}"
+                                 class="card border-0 shadow-sm p-4 bg-light text-center">
+                                <h5 class="fw-bold mb-2 text-navy">Write a Review</h5>
+                                <i class="bi bi-info-circle fs-3 text-muted mb-2"></i>
+                                <p class="text-muted small">You can only submit a review after booking a room at this hotel.</p>
+                            </div>
+
+                            <div th:if="${user != null and user.role == 'CUSTOMER' and hasBooked and hasReviewed}"
+                                 class="card border-0 shadow-sm p-4 bg-light text-center">
+                                <h5 class="fw-bold mb-2 text-navy">Write a Review</h5>
+                                <p class="text-muted small">You have already reviewed this hotel.</p>
+                            </div>
+                            <div th:if="${user == null}" class="card border-0 shadow-sm p-4 bg-light text-center">
+                                <h5 class="fw-bold mb-2 text-navy">Write a Review</h5>
+                                <p class="text-muted small mb-0">Please log in to share your experience.</p>
+                            </div>
+                            <div th:if="${user != null and user.role != 'CUSTOMER'}"
+                                 class="card border-0 shadow-sm p-4 bg-light text-center">
+                                <h5 class="fw-bold mb-2 text-navy">Write a Review</h5>
+                                <p class="text-muted small">Only customers can submit reviews.</p>
+                            </div>
+                        </div>
+
+                        <!-- Right: Reviews Feed -->
+                        <div class="col-12 col-md-8">
+                            <h5 class="fw-bold mb-3 text-navy">Guest Feedback</h5>
+
+                            <div th:if="${reviews == null or reviews.isEmpty()}" class="text-center py-5 bg-light rounded">
+                                <i class="bi bi-chat-left-dots fs-1 text-muted opacity-50 mb-2 d-block"></i>
+                                <p class="text-muted mb-0">No reviews yet. Be the first to share your experience!</p>
+                            </div>
+
+                            <div th:if="${reviews != null and !reviews.isEmpty()}">
+                                <div th:each="review : ${reviews}" class="review-item-card mb-4 pb-4 border-bottom">
+                                    <div class="row">
+                                        <!-- Cột trái: Tên khách hàng + Loại phòng đã đặt -->
+                                        <div class="col-12 col-md-4 mb-3 mb-md-0 border-end-md" th:with="booking=${reviewBookings != null ? reviewBookings.get(review.id) : null}">
+                                            <div class="d-flex align-items-center gap-2 mb-3">
+                                                <div class="review-user-avatar"
+                                                     th:text="${#strings.substring(review.userFullName,0,1)}">U</div>
+                                                <div>
+                                                    <div class="fw-bold text-navy" th:text="${review.userFullName}">User Name</div>
+                                                    <small class="text-muted"><i class="bi bi-globe me-1"></i>Vietnam</small>
+                                                </div>
+                                            </div>
+                                            <div class="review-stay-details small text-muted">
+                                                <!-- 1. Room Type -->
+                                                <div class="mb-2" th:if="${review.roomType != null}">
+                                                    <i class="bi bi-door-closed me-2 text-navy"></i>
+                                                    <span class="fw-semibold text-dark" th:text="${review.roomType}">Room Type</span>
+                                                </div>
+                                                
+                                                <!-- 2. Acreage -->
+                                                <div class="mb-2" th:if="${review.room != null}">
+                                                    <i class="bi bi-arrows-fullscreen me-2 text-navy"></i>
+                                                    <span th:text="${review.room.acreage + ' m²'}">36.0 m²</span>
+                                                </div>
+                                                
+                                                <!-- 3. Guest count -->
+                                                <div class="mb-2" th:if="${review.room != null}">
+                                                    <i class="bi bi-people me-2 text-navy"></i>
+                                                    <span th:text="${review.room.person + ' guest(s)'}">2 guest(s)</span>
+                                                </div>
+                                                
+                                                <!-- 4. Bed count -->
+                                                <div class="mb-2" th:if="${review.room != null}">
+                                                    <i class="bi bi-door-closed me-2 text-navy"></i>
+                                                    <span th:text="${review.room.bed + ' bed(s)'}">1 bed(s)</span>
+                                                </div>
+                                                
+                                                <!-- 5. Window count -->
+                                                <div class="mb-2" th:if="${review.room != null and review.room.window != null}">
+                                                    <i class="bi bi-grid-3x3-gap me-2 text-navy"></i>
+                                                    <span th:text="${review.room.window + ' window(s)'}">0 window(s)</span>
+                                                </div>
+                                                
+                                                <!-- 6. Stay nights & Stay date -->
+                                                <div class="mb-2" th:if="${booking != null}">
+                                                    <i class="bi bi-calendar3 me-2 text-navy"></i>
+                                                    <span th:text="${booking.numNights + ' night' + (booking.numNights > 1 ? 's' : '') + ' • ' + #temporals.format(booking.checkInDate, 'MMMM yyyy')}">Stay date</span>
+                                                </div>
+                                                <div class="mb-2" th:if="${booking == null}">
+                                                    <i class="bi bi-calendar3 me-2 text-navy"></i>
+                                                    <span th:text="${#temporals.format(review.createdAt, 'dd MMMM yyyy')}">Date</span>
+                                                </div>
+                                                
+                                                <!-- 7. Guest type (Solo, Couple, Family) -->
+                                                <div class="mb-2" th:if="${booking != null}">
+                                                    <i class="bi bi-people me-2 text-navy"></i>
+                                                    <span th:text="${booking.room.person >= 3 ? 'Family' : (booking.room.person == 2 ? 'Couple' : 'Solo')}">Guest Type</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Cột phải: Điểm số + Nội dung comment + Actions -->
+                                        <div class="col-12 col-md-8" th:with="hasDelimiter=${#strings.contains(review.comment, '|||')}, 
+                                                                              parts=${#strings.arraySplit(review.comment, '|||')}">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <div class="review-date text-muted small">
+                                                    Reviewed: <span th:text="${#temporals.format(review.createdAt, 'MMMM dd, yyyy')}">February 8, 2024</span>
+                                                </div>
+                                                <!-- Điểm số dạng badge xanh đen sang trọng theo mẫu (1 decimal place) -->
+                                                <span class="badge bg-navy text-white px-2 py-1 fs-6 fw-bold" style="background-color: #0b3c5d !important; border-radius: 4px;" 
+                                                      th:text="${#numbers.formatDecimal(review.rating * 2.0, 1, 1)}">7.0</span>
+                                            </div>
+
+                                            <div class="my-3">
+                                                <!-- Title -->
+                                                <h6 class="fw-bold text-dark mb-2" style="font-size: 1.25rem;" 
+                                                    th:text="${hasDelimiter ? parts[0] : (review.rating == 5 ? 'Exceptional' : (review.rating == 4 ? 'Very Good' : (review.rating == 3 ? 'Good' : (review.rating == 2 ? 'Disappointing' : 'Very Poor'))))}">Title</h6>
+                                                
+                                                <!-- Comment text -->
+                                                <p class="review-comment text-dark mb-0" style="line-height: 1.6; font-size: 0.95rem;">
+                                                    <span th:if="${hasDelimiter and parts.length > 1 and !#strings.isEmpty(parts[1])}" th:text="${parts[1]}">Comment text</span>
+                                                    <span th:if="${!hasDelimiter and !#strings.isEmpty(review.comment)}" th:text="${review.comment}">Comment text</span>
+                                                    <!-- Show no comment message if empty -->
+                                                    <span th:if="${(hasDelimiter and (parts.length <= 1 or #strings.isEmpty(parts[1]))) or (!hasDelimiter and #strings.isEmpty(review.comment))}" 
+                                                          class="text-muted" style="font-style: italic;">There are no comments available for this review</span>
+                                                </p>
+                                            </div>
+
+                                            <!-- Edit/Delete (chủ review) -->
+                                            <div th:if="${currentCustomerId != null and review.customer != null and currentCustomerId == review.customer.id}" class="mt-2">
+                                                <div class="d-flex justify-content-end gap-2">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                                            data-bs-toggle="collapse"
+                                                            th:data-bs-target="${'#editForm-' + review.id}"
+                                                            aria-expanded="false"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                                                    <form th:action="@{/hotels/{id}/reviews/{rid}/delete(id=${hotel.id}, rid=${review.id})}"
+                                                          method="post" style="display:inline;"
+                                                          onsubmit="return confirm('Delete this review?');">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+                                                    </form>
+                                                </div>
+
+                                                <!-- Inline edit form – Bootstrap collapse -->
+                                                <div class="collapse mt-3" th:id="${'editForm-' + review.id}">
+                                                    <div class="card card-body bg-light border-0">
+                                                        <form th:action="@{/hotels/{id}/reviews/{rid}/edit(id=${hotel.id}, rid=${review.id})}"
+                                                              method="post">
+                                                            <div class="mb-3">
+                                                                <label class="form-label small fw-semibold text-uppercase text-muted">Rating</label>
+                                                                <div class="star-radio-group">
+                                                                    <th:block th:each="star : ${#numbers.sequence(5, 1, -1)}">
+                                                                        <input type="radio" name="rating"
+                                                                               th:id="${'edit-star-' + review.id + '-' + star}"
+                                                                               th:value="${star}"
+                                                                               th:checked="${star == review.rating}"
+                                                                               th:data-review-id="${review.id}"
+                                                                               class="edit-rating-input" />
+                                                                        <label th:for="${'edit-star-' + review.id + '-' + star}" title="star">★</label>
+                                                                    </th:block>
+                                                                </div>
+                                                            </div>
+                                                            <div class="mb-3" th:with="currTitle=${hasDelimiter ? parts[0] : (review.rating == 5 ? 'Exceptional' : (review.rating == 4 ? 'Very Good' : (review.rating == 3 ? 'Good' : (review.rating == 2 ? 'Disappointing' : 'Very Poor'))))}">
+                                                                <label class="form-label small fw-semibold text-uppercase text-muted">Review Title</label>
+                                                                <select name="title" th:id="${'edit-title-' + review.id}" class="form-select" required>
+                                                                    <option value="Exceptional" th:selected="${currTitle == 'Exceptional'}">Exceptional</option>
+                                                                    <option value="Very Good" th:selected="${currTitle == 'Very Good'}">Very Good</option>
+                                                                    <option value="Good" th:selected="${currTitle == 'Good'}">Good</option>
+                                                                    <option value="Disappointing" th:selected="${currTitle == 'Disappointing'}">Disappointing</option>
+                                                                    <option value="Very Poor" th:selected="${currTitle == 'Very Poor'}">Very Poor</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label small fw-semibold text-uppercase text-muted">Your Review (Optional)</label>
+                                                                <textarea name="comment" rows="3" class="form-control" 
+                                                                          th:text="${hasDelimiter and parts.length > 1 ? parts[1] : (!hasDelimiter ? review.comment : '')}"></textarea>
+                                                            </div>
+                                                            <div class="d-flex gap-2 justify-content-end">
+                                                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                                        data-bs-toggle="collapse"
+                                                                        th:data-bs-target="${'#editForm-' + review.id}">Cancel</button>
+                                                                <button type="submit" class="btn btn-gold btn-sm" style="padding-left: 20px; padding-right: 20px;">Save Changes</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Delete only (ADMIN) -->
+                                            <div th:if="${user != null and user.role == 'ADMIN' and (currentCustomerId == null or review.customer == null or currentCustomerId != review.customer.id)}"
+                                                 class="mt-2 text-end">
+                                                <form th:action="@{/hotels/{id}/reviews/{rid}/delete(id=${hotel.id}, rid=${review.id})}"
+                                                      method="post" style="display:inline;"
+                                                      onsubmit="return confirm('Delete this review?');">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- ==================== ROOM DETAIL MODALS (Bootstrap modal per room) ==================== -->
+<th:block th:if="${rooms != null and !rooms.isEmpty()}">
+    <div th:each="room : ${rooms}" class="modal fade"
+         th:id="${'roomModal-' + room.id}" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content" style="border-radius:18px; overflow:hidden; border:none;">
+
+                <!-- Ảnh -->
+                <div th:if="${room.imgUrl != null and !room.imgUrl.isEmpty()}"
+                     style="height:260px; overflow:hidden; position:relative;">
+                    <img th:src="${room.imgUrl}" th:alt="${room.roomType}"
+                         class="w-100 h-100 object-fit-cover" />
+                    <span class="room-detail-type-badge" style="position:absolute; bottom:16px; left:20px;"
+                          th:text="${room.roomType}"></span>
+                </div>
+                <div th:if="${room.imgUrl == null or room.imgUrl.isEmpty()}"
+                     class="d-flex align-items-center justify-content-center bg-light"
+                     style="height:180px;">
+                    <i class="bi bi-image text-muted fs-1 mb-2 d-block"></i>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body p-4 position-relative">
+                    <button type="button" class="btn-close position-absolute top-0 end-0 m-3"
+                            data-bs-dismiss="modal" aria-label="Close"></button>
+
+                    <div class="room-detail-header">
+                        <div>
+                            <h2 class="room-detail-title" th:text="${room.roomType}">Room Name</h2>
+                            <p class="room-detail-hotel" th:text="${hotel.name}">Hotel Name</p>
+                        </div>
+                        <div class="room-detail-price-box">
+                            <div class="room-detail-price-label">Price per Night</div>
+                            <div>
+                                <span class="room-detail-price-amount"
+                                      th:text="${#numbers.formatInteger(room.price, 0, 'COMMA')}">0</span>
+                                <span class="room-detail-price-unit">VND</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="room-gold-divider my-3"></div>
+
+                    <!-- Specs -->
+                    <div class="room-detail-specs-row">
+                        <div class="room-detail-spec-item">
+                            <i class="bi bi-arrows-fullscreen"></i>
+                            <span th:text="${room.acreage + ' m²'}">25 m²</span>
+                        </div>
+                        <div class="room-detail-spec-item">
+                            <i class="bi bi-door-closed"></i>
+                            <span th:text="${room.bed + ' bed(s)'}">1 bed</span>
+                        </div>
+                        <div class="room-detail-spec-item">
+                            <i class="bi bi-people"></i>
+                            <span th:text="${room.person + ' guest(s)'}">2 guest(s)</span>
+                        </div>
+                        <div class="room-detail-spec-item">
+                            <i class="bi bi-grid-3x3-gap"></i>
+                            <span th:text="${room.numWindow + ' window(s)'}">2 window(s)</span>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <p class="room-detail-desc mt-3"
+                       th:text="${room.description != null and !room.description.isEmpty()
+                                ? room.description
+                                : 'A luxurious room equipped with modern amenities for the finest hospitality experience.'}">
+                    </p>
+
+
+
+                    <div class="room-detail-smoking">
+                        <i class="bi bi-ban text-danger me-1"></i> No smoking
+                    </div>
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                    <a th:href="@{/booking(hotelId=${hotel.id}, roomId=${room.id}, checkin=${checkin}, checkout=${checkout})}"
+                       class="btn btn-gold btn-sm">
+                        Book Now
+                        <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<footer th:replace="~{fragment/frag :: footer}"></footer>
+<div th:replace="~{fragment/frag :: scripts}"></div>
+
+<script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll('.btn-view-detail[data-bs-target]').forEach(function(button) {
+            button.addEventListener('click', function(event) {
+                const targetSelector = button.getAttribute('data-bs-target');
+                const modalEl = targetSelector ? document.querySelector(targetSelector) : null;
+                if (!modalEl || !window.bootstrap || !window.bootstrap.Modal) {
+                    return;
+                }
+                event.preventDefault();
+                event.stopPropagation();
+                window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            });
+        });
+
+        if (typeof flatpickr !== 'function') {
+            return;
+        }
+
+        const checkinVal = /*[[${checkin}]]*/ '';
+        const checkoutVal = /*[[${checkout}]]*/ '';
+        const todayVal = /*[[${today}]]*/ '';
+
+        const checkinPicker = flatpickr("#filterCheckin", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            altInputClass: "form-control form-control-sm filter-input w-100",
+            minDate: todayVal ? todayVal : "today",
+            allowInput: false,
+            defaultDate: checkinVal ? checkinVal : null,
+            onChange: function(selectedDates, dateStr) {
+                if (selectedDates[0]) {
+                    const nextDay = new Date(selectedDates[0]);
+                    nextDay.setDate(nextDay.getDate() + 1);
+                    checkoutPicker.set("minDate", nextDay);
+
+                    const currentCheckout = checkoutPicker.selectedDates[0];
+                    if (currentCheckout && currentCheckout <= selectedDates[0]) {
+                        checkoutPicker.setDate(nextDay);
+                    }
+                }
+            }
+        });
+
+        const checkoutPicker = flatpickr("#filterCheckout", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            altInputClass: "form-control form-control-sm filter-input w-100",
+            minDate: checkinVal ? new Date(new Date(checkinVal).getTime() + 86400000) : new Date().setDate(new Date().getDate() + 1),
+            allowInput: false,
+            defaultDate: checkoutVal ? checkoutVal : null
+        });
+
+        // Auto update Review Title select based on selected rating star
+        const titleMapping = {
+            5: "Exceptional",
+            4: "Very Good",
+            3: "Good",
+            2: "Disappointing",
+            1: "Very Poor"
+        };
+
+        // For Create Form
+        document.querySelectorAll(".create-rating-input").forEach(input => {
+            input.addEventListener("change", function() {
+                if (this.checked) {
+                    const val = this.value;
+                    const select = document.getElementById("titleSelect");
+                    if (select && titleMapping[val]) {
+                        select.value = titleMapping[val];
+                    }
+                }
+            });
+        });
+
+        // For Edit Forms
+        document.querySelectorAll(".edit-rating-input").forEach(input => {
+            input.addEventListener("change", function() {
+                if (this.checked) {
+                    const val = this.value;
+                    const reviewId = this.getAttribute("data-review-id");
+                    const select = document.getElementById("edit-title-" + reviewId);
+                    if (select && titleMapping[val]) {
+                        select.value = titleMapping[val];
+                    }
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

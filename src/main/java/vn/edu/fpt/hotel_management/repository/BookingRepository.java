@@ -26,4 +26,18 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
             java.time.LocalDate checkOutDate,
             String status
     );
+
+    @Query("SELECT DISTINCT b.room FROM Booking b WHERE b.customer.id = :customerId AND b.hotel.id = :hotelId AND b.status IN :statuses")
+    List<vn.edu.fpt.hotel_management.entity.Room> findDistinctRoomsBookedByCustomer(
+            @Param("customerId") int customerId,
+            @Param("hotelId") int hotelId,
+            @Param("statuses") List<String> statuses
+    );
+
+    @Query("SELECT b FROM Booking b WHERE b.customer.id = :customerId AND b.hotel.id = :hotelId AND b.status IN :statuses ORDER BY b.createdAt DESC")
+    List<Booking> findBookingsByCustomerAndHotel(
+            @Param("customerId") int customerId,
+            @Param("hotelId") int hotelId,
+            @Param("statuses") List<String> statuses
+    );
 }

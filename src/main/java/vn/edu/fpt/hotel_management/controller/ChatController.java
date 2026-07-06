@@ -353,5 +353,6 @@ public class ChatController {
             e.printStackTrace();
             return null;
         }
+
     }
 }
