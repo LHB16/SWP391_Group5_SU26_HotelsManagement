@@ -181,6 +181,10 @@
                                     <i class="bi bi-grid-3x3-gap me-1"></i>
                                     <span th:text="${room.numWindow + ' window(s)'}">2 window(s)</span>
                                 </span>
+                                <span class="amenity-badge">
+                                    <i class="bi bi-door-open me-1"></i>
+                                    <span th:text="${room.numberRooms != null ? room.numberRooms + ' room(s)' : '0 room(s)'}">5 room(s)</span>
+                                </span>
                             </div>
 
                             <!-- Footer: giá + nút -->

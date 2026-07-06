@@ -196,6 +196,10 @@
                                 <strong class="text-navy" th:text="${room.numWindow + ' window(s)'}">2 windows</strong>
                             </div>
                             <div class="d-flex align-items-center justify-content-between p-2 rounded bg-light" style="font-size:0.86rem;">
+                                <span class="text-muted"><i class="bi bi-door-open me-2 text-gold"></i>Total Rooms</span>
+                                <strong class="text-navy" th:text="${room.numberRooms != null ? room.numberRooms + ' room(s)' : '0 room(s)'}">5 rooms</strong>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between p-2 rounded bg-light" style="font-size:0.86rem;">
                                 <span class="text-muted"><i class="bi bi-ban me-2 text-danger"></i>Policy</span>
                                 <strong class="text-danger">No Smoking</strong>
                             </div>
