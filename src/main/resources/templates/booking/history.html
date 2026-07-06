@@ -111,9 +111,9 @@
                                                     Pending
                                                 </span>
                                                 <!-- Đã hoàn thành (checkin và checkout đúng ngày) (xanh lá) -->
-                                                <span th:case="'DONE'" class="bh-badge bh-badge-done">
+                                                <span th:case="'COMPLETED'" class="bh-badge bh-badge-done">
                                                     <i class="bi bi-check-circle"></i>
-                                                    Done
+                                                    Completed
                                                 </span>
                                                  <!-- Đã hủy bởi người dùng -->
                                                  <span th:case="'CANCELLED'">
@@ -199,11 +199,24 @@
                                          Non-cancellable
                                     </span>
 
-                                    <!-- DONE: không có nút, chỉ hiện ghi chú hoàn thành -->
-                                    <span th:if="${booking.status == 'DONE'}" class="bh-status-note bh-note-done">
-                                        <i class="bi bi-patch-check"></i>
-                                        Completed
-                                    </span>
+                                     <!-- COMPLETED: hiện ghi chú hoàn thành + nút review dẫn tới trang khách sạn -->
+                                     <span th:if="${booking.status == 'COMPLETED'}" class="d-inline-flex align-items-center gap-2">
+                                         <span class="bh-status-note bh-note-done m-0">
+                                             <i class="bi bi-patch-check"></i>
+                                             Completed
+                                         </span>
+                                         <!-- Nếu đã đánh giá rồi -->
+                                         <span th:if="${reviewedBookingIds != null and reviewedBookingIds.contains(booking.id)}" class="badge bg-success text-white px-2 py-1 fs-7 fw-bold" style="border-radius: 4px; font-size: 12px;">
+                                             <i class="bi bi-patch-check-fill me-1"></i> Reviewed
+                                         </span>
+                                         <!-- Nếu chưa đánh giá -->
+                                         <a th:if="${reviewedBookingIds == null or !reviewedBookingIds.contains(booking.id)}"
+                                            th:href="@{/hotels/{hotelId}/rooms(hotelId=${booking.room.hotelId}, bookingId=${booking.id})}"
+                                            class="btn btn-sm btn-gold text-white"
+                                            style="padding: 4px 12px; font-size: 13px; font-weight: 600; border-radius: 6px; background-color: var(--hotel-gold, #c5a880); border-color: var(--hotel-gold, #c5a880); text-decoration: none;">
+                                             <i class="bi bi-star-fill me-1"></i> Review
+                                         </a>
+                                     </span>
 
                                     <!-- CANCELLED: hiển thị trạng thái hoàn tiền tương ứng -->
                                     <th:block th:if="${booking.status == 'CANCELLED'}">
@@ -299,24 +312,8 @@
     <!-- Nhúng thư viện JS (bootstrap bundle + main.js + flatpickr) -->
     <div th:replace="~{fragment/frag :: scripts}"></div>
 
-    <!-- Modal Thông báo thành công hiển thị ở chính giữa màn hình -->
-    <div th:if="${successMessage}" class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content shadow border-0" style="border-radius: 14px;">
-                <div class="modal-body text-center p-4">
-                    <div class="mb-3" style="color: #10b981; font-size: 54px;">
-                        <i class="bi bi-check-circle"></i>
-                    </div>
-                    <h4 class="modal-title fw-bold mb-2" id="successModalLabel" style="color: #0f172a;">Success!</h4>
-                    <p class="text-muted mb-4" th:text="${successMessage}">Action completed successfully.</p>
-                    <button type="button" class="btn text-white w-100" data-bs-dismiss="modal" 
-                            style="background-color: var(--hotel-navy); border-radius: 8px; font-weight: 600; padding: 10px;">
-                        OK
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Global Popups -->
+    <th:block th:replace="~{fragment/frag :: alerts}"></th:block>
 
     <!-- Modal Xác nhận Hủy đơn hàng -->
     <div class="modal fade" id="cancelConfirmModal" tabindex="-1" aria-labelledby="cancelConfirmModalLabel" aria-hidden="true">
@@ -365,40 +362,11 @@
         </div>
     </div>
 
-    <!-- Modal Thông báo lỗi (như hết hạn thanh toán) hiển thị ở chính giữa màn hình -->
-    <div th:if="${errorMessage}" class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content shadow border-0" style="border-radius: 14px;">
-                <div class="modal-body text-center p-4">
-                    <div class="mb-3" style="color: #ef4444; font-size: 54px;">
-                        <i class="bi bi-exclamation-circle"></i>
-                    </div>
-                    <h4 class="modal-title fw-bold mb-2" id="errorModalLabel" style="color: #0f172a;">Error</h4>
-                    <p class="text-muted mb-4" th:text="${errorMessage}">An error occurred.</p>
-                    <button type="button" class="btn text-white w-100" data-bs-dismiss="modal" 
-                            style="background-color: #ef4444; border-radius: 8px; font-weight: 600; padding: 10px;">
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Global error modal handled by frag::alerts -->
 
     <script type="text/javascript">
         document.addEventListener("DOMContentLoaded", function () {
-            // 1. Tự động hiển thị modal thành công nếu có successMessage
-            var successModalEl = document.getElementById('successModal');
-            if (successModalEl) {
-                var mySuccessModal = new bootstrap.Modal(successModalEl);
-                mySuccessModal.show();
-            }
-
-            // 1b. Tự động hiển thị modal lỗi nếu có errorMessage
-            var errorModalEl = document.getElementById('errorModal');
-            if (errorModalEl) {
-                var myErrorModal = new bootstrap.Modal(errorModalEl);
-                myErrorModal.show();
-            }
+            // Global modals are automatically initialized and shown by frag :: alerts
 
             // Lưu trữ bookingId chuẩn bị thực hiện action
             var activeBookingId = null;

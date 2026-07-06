@@ -18101,3 +18101,15 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
         flex-direction: column;
     }
 }
+
+@media (min-width: 768px) {
+  .border-end-md {
+    border-right: 1px solid #cbd5e1 !important;
+  }
+}
+.bg-navy {
+  background-color: #0d233a !important;
+}
+.text-navy {
+  color: #0d233a !important;
+}

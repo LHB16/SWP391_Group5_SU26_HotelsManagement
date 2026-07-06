@@ -17,6 +17,7 @@ import vn.edu.fpt.hotel_management.repository.RoomRepository;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 import vn.edu.fpt.hotel_management.repository.RefundRepository;
 import vn.edu.fpt.hotel_management.repository.CustomerRepository;
+import vn.edu.fpt.hotel_management.repository.ReviewRepository;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -45,6 +46,9 @@ public class BookingController {
 
     @Autowired
     private CustomerRepository customerRepository;
+
+    @Autowired
+    private ReviewRepository reviewRepository;
 
     @org.springframework.beans.factory.annotation.Value("${payment.payos.client-id:}")
     private String payosClientId;
@@ -133,6 +137,17 @@ public class BookingController {
 
         // Truyền dữ liệu vào model để render template
         model.addAttribute("user", loggedInUser);
+        java.util.Set<Integer> reviewedBookingIds = new java.util.HashSet<>();
+        if (customerId > 0) {
+            List<Review> customerReviews = reviewRepository.findByCustomerId(customerId);
+            for (Review r : customerReviews) {
+                if (r.getBooking() != null) {
+                    reviewedBookingIds.add(r.getBooking().getId());
+                }
+            }
+        }
+        model.addAttribute("reviewedBookingIds", reviewedBookingIds);
+
         model.addAttribute("bookings", bookingPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", bookingPage.getTotalPages());
