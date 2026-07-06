@@ -17495,3 +17495,8 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(168, 130, 78, 0.45);
 }
+
+.login-header {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
