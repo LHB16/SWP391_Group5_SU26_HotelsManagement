@@ -138,11 +138,11 @@
                                     </strong>
                                 </td>
                                 <td>
-                                            <span class="badge-status"
-                                                  th:classappend="${b.bookingStatus == 'CONFIRMED'} ? 'badge-status-success' :
-                                                               (${b.bookingStatus == 'PENDING'} ? 'badge-status-warning' :
-                                                               (${b.bookingStatus == 'CANCELLED'} ? 'badge-status-danger' : 'badge-status-neutral'))"
-                                                  th:text="${b.bookingStatus}">STATUS</span>
+                                    <span class="badge-status"
+                                          th:classappend="${b.bookingStatus == 'CONFIRMED'} ? 'badge-status-success' :
+                                                         (${b.bookingStatus == 'PENDING'} ? 'badge-status-warning' :
+                                                         (${b.bookingStatus == 'CANCELLED'} ? 'badge-status-danger' : 'badge-status-neutral'))"
+                                          th:text="${b.bookingStatus}">STATUS</span>
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(recentBookings)}">
@@ -205,17 +205,17 @@
                                     </strong>
                                 </td>
                                 <td>
-                                            <span class="badge-status"
-                                                  th:classappend="${b.bookingStatus == 'CONFIRMED'} ? 'badge-status-success' :
-                                                               (${b.bookingStatus == 'PENDING'} ? 'badge-status-warning' :
-                                                               (${b.bookingStatus == 'CANCELLED'} ? 'badge-status-danger' : 'badge-status-neutral'))"
-                                                  th:text="${b.bookingStatus}">STATUS</span>
+                                    <span class="badge-status"
+                                          th:classappend="${b.bookingStatus == 'CONFIRMED'} ? 'badge-status-success' :
+                                                         (${b.bookingStatus == 'PENDING'} ? 'badge-status-warning' :
+                                                         (${b.bookingStatus == 'CANCELLED'} ? 'badge-status-danger' : 'badge-status-neutral'))"
+                                          th:text="${b.bookingStatus}">STATUS</span>
                                 </td>
                                 <td>
-                                            <span class="badge-status"
-                                                  th:classappend="${b.paymentStatus == 'PAID'} ? 'badge-status-success' :
-                                                               (${b.paymentStatus == 'PENDING'} ? 'badge-status-warning' : 'badge-status-danger')"
-                                                  th:text="${b.paymentStatus}">PAYMENT</span>
+                                    <span class="badge-status"
+                                          th:classappend="${b.paymentStatus == 'PAID'} ? 'badge-status-success' :
+                                                         (${b.paymentStatus == 'PENDING'} ? 'badge-status-warning' : 'badge-status-danger')"
+                                          th:text="${b.paymentStatus}">PAYMENT</span>
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(recentBookings)}">
@@ -242,10 +242,10 @@
                         <p class="text-muted m-0 mt-1">Manage your hotel properties</p>
                     </div>
                     <div class="d-flex align-items-center gap-3">
-                            <span class="text-muted small">
-                                <i data-lucide="hotel" style="width: 16px; height: 16px;"></i>
-                                <strong th:text="${totalHotels}">0</strong> hotels
-                            </span>
+                        <span class="text-muted small">
+                            <i data-lucide="hotel" style="width: 16px; height: 16px;"></i>
+                            <strong th:text="${totalHotels}">0</strong> hotels
+                        </span>
                         <button class="btn-gold" onclick="openAddHotelModal()">
                             <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
                             Add New Hotel
@@ -279,13 +279,13 @@
                                 </div>
                                 <span class="badge position-absolute top-0 end-0 m-2"
                                       th:classappend="${hotel.approvalStatus == 'APPROVED'} ? 'bg-success' :
-                                                         (${hotel.approvalStatus == 'REJECTED'} ? 'bg-danger' : 'bg-warning text-dark')"
+                                                     (${hotel.approvalStatus == 'REJECTED'} ? 'bg-danger' : 'bg-warning text-dark')"
                                       th:text="${hotel.approvalStatus ?: 'PENDING'}">PENDING</span>
                                 <span class="badge position-absolute bottom-0 start-0 m-2"
                                       style="background: rgba(0,0,0,0.6); color: #f59e0b; backdrop-filter: blur(4px);">
-                                        <i data-lucide="star" style="width: 12px; height: 12px; fill: #f59e0b;"></i>
-                                        <span th:text="${hotel.rating}">0.0</span>
-                                    </span>
+                                    <i data-lucide="star" style="width: 12px; height: 12px; fill: #f59e0b;"></i>
+                                    <span th:text="${hotel.rating}">0.0</span>
+                                </span>
                             </div>
 
                             <!-- Body -->
@@ -296,37 +296,48 @@
                                     <span th:text="${hotel.address}">Address</span>
                                 </p>
                                 <div class="mt-2 d-flex gap-2 flex-wrap">
-                                        <span class="badge bg-light text-dark">
-                                            <i data-lucide="star" style="width: 12px; height: 12px; color: #f59e0b;"></i>
-                                            <span th:text="${hotel.rating}">0.0</span>
-                                        </span>
                                     <span class="badge bg-light text-dark">
-                                            <i data-lucide="door-open" style="width: 12px; height: 12px;"></i>
-                                            <span th:text="${roomCountMap.get(hotel.id)}">0</span> rooms
-                                        </span>
+                                        <i data-lucide="star" style="width: 12px; height: 12px; color: #f59e0b;"></i>
+                                        <span th:text="${hotel.rating}">0.0</span>
+                                    </span>
+                                    <span class="badge bg-light text-dark">
+                                        <i data-lucide="door-open" style="width: 12px; height: 12px;"></i>
+                                        <span th:text="${roomCountMap.get(hotel.id)}">0</span> rooms
+                                    </span>
                                     <span class="badge bg-light text-dark" th:if="${hotel.active}">
-                                            <i data-lucide="check-circle" style="width: 12px; height: 12px; color: #22c55e;"></i>
-                                            Active
-                                        </span>
+                                        <i data-lucide="check-circle" style="width: 12px; height: 12px; color: #22c55e;"></i>
+                                        Active
+                                    </span>
                                     <span class="badge bg-light text-dark" th:unless="${hotel.active}">
-                                            <i data-lucide="x-circle" style="width: 12px; height: 12px; color: #ef4444;"></i>
-                                            Inactive
-                                        </span>
+                                        <i data-lucide="x-circle" style="width: 12px; height: 12px; color: #ef4444;"></i>
+                                        Inactive
+                                    </span>
                                 </div>
                             </div>
 
                             <!-- Footer -->
-                            <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center">
-                                <a th:href="@{/owner/hotels/{id}/rooms(id=${hotel.id})}"
-                                   class="btn btn-sm btn-outline-primary">
-                                    <i data-lucide="door-open" style="width: 14px; height: 14px;"></i>
-                                    Rooms
-                                </a>
+                            <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
                                 <div class="d-flex gap-2">
+                                    <!-- View Hotel Button -->
+                                    <a th:href="@{/owner/hotels/{id}(id=${hotel.id})}"
+                                       class="btn btn-sm btn-outline-info">
+                                        <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                                        View
+                                    </a>
+                                    <!-- Rooms Button -->
+                                    <a th:href="@{/owner/hotels/{id}/rooms(id=${hotel.id})}"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i data-lucide="door-open" style="width: 14px; height: 14px;"></i>
+                                        Rooms
+                                    </a>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <!-- Edit Button -->
                                     <a th:href="@{/owner/hotels/{id}/edit(id=${hotel.id})}"
                                        class="btn btn-sm btn-outline-secondary">
                                         <i data-lucide="pencil" style="width: 14px; height: 14px;"></i>
                                     </a>
+                                    <!-- Delete Button -->
                                     <form th:action="@{/owner/dashboard/delete-hotel}"
                                           method="post"
                                           onsubmit="return confirm('Delete this hotel? This action cannot be undone!');">
