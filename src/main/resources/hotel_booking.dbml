@@ -206,6 +206,9 @@ Table payments {
   status NVARCHAR(50)
   qr_code_url NVARCHAR(500)
   transaction_id NVARCHAR(255)
+  sender_account_number NVARCHAR(50)
+  sender_bank_name NVARCHAR(255)
+  sender_account_name NVARCHAR(255)
   paid_at DATETIME2
   created_at DATETIME2
   qr_expires_at DATETIME2
@@ -226,8 +229,11 @@ Table messages {
   id INT [pk, note: 'Mã định danh duy nhất của tin nhắn.']
   sender_id INT [note: 'Khóa ngoại liên kết đến tài khoản người gửi.']
   receiver_id INT [note: 'Khóa ngoại liên kết đến tài khoản người nhận.']
+  hotel_id INT [note: 'Khóa ngoại liên kết đến bảng hotel.']
   booking_id INT [note: 'Khóa ngoại liên kết đến bảng bookings.']
   content NVARCHAR(MAX)
+  reaction NVARCHAR(50)
+  image_url NVARCHAR(255)
   is_read BIT
   sent_at DATETIME2
 }
