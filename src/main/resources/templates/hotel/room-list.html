@@ -44,7 +44,6 @@
                     <div class="card-body filter-card-body">
                         <form th:action="@{/hotels/{id}/rooms(id=${hotel.id})}" method="get" id="roomFilterForm">
 
-                            <!-- Loại phòng -->
                             <div class="mb-3">
                                 <label class="filter-section-label" for="roomTypeSelect">Room Type</label>
                                 <select name="types" id="roomTypeSelect" class="form-select form-select-sm">
@@ -91,7 +90,6 @@
                 </div>
             </div>
 
-            <!-- ===== DANH SÁCH PHÒNG ===== -->
             <div class="col-12 col-lg-9">
 
                 <!-- Results header -->
@@ -101,7 +99,6 @@
                         <div class="results-count">
                             Found <strong th:text="${totalResults}">0</strong> room(s)
                             <span th:if="${!selectedTypes.isEmpty()}">
-                                &nbsp;· <span th:each="t, i : ${selectedTypes}">
                                     <span th:text="${t}"></span><span th:if="${!i.last}">, </span>
                                 </span>
                             </span>
@@ -133,14 +130,12 @@
                 <div th:if="${rooms != null and !rooms.isEmpty()}">
                     <div th:each="room : ${rooms}" class="room-card">
 
-                        <!-- Ảnh -->
                         <div class="room-card-img-wrap" style="position: relative;">
                             <img th:if="${room.imgUrl != null and !room.imgUrl.isEmpty()}"
                                 th:src="${room.imgUrl}" th:alt="${room.roomType}" class="room-card-img" />
                             <div th:if="${room.imgUrl == null or room.imgUrl.isEmpty()}" class="room-card-img-placeholder">
                                 <i class="bi bi-image text-muted fs-3"></i>
                             </div>
-                            <!-- Wishlist Heart Button (chỉ cho account đã đăng nhập) -->
                             <a th:if="${user != null}" 
                                th:href="@{/wishlist/toggle(roomId=${room.id}, checkin=${checkin != null ? checkin : ''}, checkout=${checkout != null ? checkout : ''}, types=${selectedTypes != null and !selectedTypes.isEmpty() ? selectedTypes[0] : ''})}"
                                class="wishlist-heart-btn" 
@@ -149,7 +144,6 @@
                             </a>
                         </div>
 
-                        <!-- Thông tin -->
                         <div class="room-card-body">
                             <div class="room-type-title" th:text="${room.roomType}">ROOM TYPE</div>
 
@@ -165,7 +159,6 @@
                             <div class="room-amenities">
                                 <span class="amenity-badge">
                                     <i class="bi bi-arrows-fullscreen me-1"></i>
-                                    <span th:text="${room.acreage + ' m²'}">25 m²</span>
                                 </span>
                                 <span class="amenity-badge">
                                     <i class="bi bi-people me-1"></i>
@@ -181,7 +174,6 @@
                                 </span>
                             </div>
 
-                            <!-- Footer: giá + nút -->
                             <div class="room-card-footer">
                                 <div>
                                     <div class="room-price-label" th:text="${isFiltered} ? 'Total Price' : 'Price per Night'">Price per Night</div>
@@ -192,7 +184,6 @@
                                     </div>
                                 </div>
                                 <div class="room-action-btns">
-                                    <!-- View Detail – Bootstrap modal -->
                                     <button type="button" class="btn btn-outline-secondary btn-sm btn-view-detail"
                                             data-bs-toggle="modal"
                                             th:data-bs-target="${'#roomModal-' + room.id}"
@@ -229,12 +220,10 @@
                                 <div class="rating-summary-number" th:text="${avgRating > 0 ? avgRating : '0.0'}">0.0</div>
                                 <div class="rating-summary-stars">
                                     <span th:each="i : ${#numbers.sequence(1, 5)}"
-                                        th:text="${i <= avgRating ? '★' : '☆'}"></span>
                                 </div>
                                 <div class="rating-summary-count" th:text="${totalReviews + ' reviews in total'}">0 reviews</div>
                             </div>
 
-                            <!-- Form viết review (chỉ CUSTOMER đã đặt phòng và chưa review) -->
                             <div th:if="${user != null and user.role == 'CUSTOMER' and hasBooked and !hasReviewed}"
                                  class="card border-0 shadow-sm p-4 bg-light">
                                 <h5 class="fw-bold mb-3 text-navy">Write a Review</h5>
@@ -247,7 +236,6 @@
                                                 <input type="radio" name="rating"
                                                        th:id="${'star-review-' + star}"
                                                        th:value="${star}" th:checked="${star == 5}" class="create-rating-input" />
-                                                <label th:for="${'star-review-' + star}" title="star">★</label>
                                             </th:block>
                                         </div>
                                     </div>
@@ -310,7 +298,6 @@
                             <div th:if="${reviews != null and !reviews.isEmpty()}">
                                 <div th:each="review : ${reviews}" class="review-item-card mb-4 pb-4 border-bottom">
                                     <div class="row">
-                                        <!-- Cột trái: Tên khách hàng + Loại phòng đã đặt -->
                                         <div class="col-12 col-md-4 mb-3 mb-md-0 border-end-md" th:with="booking=${reviewBookings != null ? reviewBookings.get(review.id) : null}">
                                             <div class="d-flex align-items-center gap-2 mb-3">
                                                 <div class="review-user-avatar"
@@ -330,7 +317,6 @@
                                                 <!-- 2. Acreage -->
                                                 <div class="mb-2" th:if="${review.room != null}">
                                                     <i class="bi bi-arrows-fullscreen me-2 text-navy"></i>
-                                                    <span th:text="${review.room.acreage + ' m²'}">36.0 m²</span>
                                                 </div>
                                                 
                                                 <!-- 3. Guest count -->
@@ -354,7 +340,6 @@
                                                 <!-- 6. Stay nights & Stay date -->
                                                 <div class="mb-2" th:if="${booking != null}">
                                                     <i class="bi bi-calendar3 me-2 text-navy"></i>
-                                                    <span th:text="${booking.numNights + ' night' + (booking.numNights > 1 ? 's' : '') + ' • ' + #temporals.format(booking.checkInDate, 'MMMM yyyy')}">Stay date</span>
                                                 </div>
                                                 <div class="mb-2" th:if="${booking == null}">
                                                     <i class="bi bi-calendar3 me-2 text-navy"></i>
@@ -369,14 +354,12 @@
                                             </div>
                                         </div>
 
-                                        <!-- Cột phải: Điểm số + Nội dung comment + Actions -->
                                         <div class="col-12 col-md-8" th:with="hasDelimiter=${#strings.contains(review.comment, '|||')}, 
                                                                               parts=${#strings.arraySplit(review.comment, '|||')}">
                                             <div class="d-flex justify-content-between align-items-start mb-2">
                                                 <div class="review-date text-muted small">
                                                     Reviewed: <span th:text="${#temporals.format(review.createdAt, 'MMMM dd, yyyy')}">February 8, 2024</span>
                                                 </div>
-                                                <!-- Điểm số dạng badge xanh đen sang trọng theo mẫu (1 decimal place) -->
                                                 <span class="badge bg-navy text-white px-2 py-1 fs-6 fw-bold" style="background-color: #0b3c5d !important; border-radius: 4px;" 
                                                       th:text="${#numbers.formatDecimal(review.rating * 2.0, 1, 1)}">7.0</span>
                                             </div>
@@ -396,7 +379,6 @@
                                                 </p>
                                             </div>
 
-                                            <!-- Edit/Delete (chủ review) -->
                                             <div th:if="${currentCustomerId != null and review.customer != null and currentCustomerId == review.customer.id}" class="mt-2">
                                                 <div class="d-flex justify-content-end gap-2">
                                                     <button type="button" class="btn btn-sm btn-outline-primary"
@@ -410,7 +392,6 @@
                                                     </form>
                                                 </div>
 
-                                                <!-- Inline edit form – Bootstrap collapse -->
                                                 <div class="collapse mt-3" th:id="${'editForm-' + review.id}">
                                                     <div class="card card-body bg-light border-0">
                                                         <form th:action="@{/hotels/{id}/reviews/{rid}/edit(id=${hotel.id}, rid=${review.id})}"
@@ -425,7 +406,6 @@
                                                                                th:checked="${star == review.rating}"
                                                                                th:data-review-id="${review.id}"
                                                                                class="edit-rating-input" />
-                                                                        <label th:for="${'edit-star-' + review.id + '-' + star}" title="star">★</label>
                                                                     </th:block>
                                                                 </div>
                                                             </div>
@@ -484,7 +464,6 @@
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content" style="border-radius:18px; overflow:hidden; border:none;">
 
-                <!-- Ảnh -->
                 <div th:if="${room.imgUrl != null and !room.imgUrl.isEmpty()}"
                      style="height:260px; overflow:hidden; position:relative;">
                     <img th:src="${room.imgUrl}" th:alt="${room.roomType}"
@@ -524,7 +503,6 @@
                     <div class="room-detail-specs-row">
                         <div class="room-detail-spec-item">
                             <i class="bi bi-arrows-fullscreen"></i>
-                            <span th:text="${room.acreage + ' m²'}">25 m²</span>
                         </div>
                         <div class="room-detail-spec-item">
                             <i class="bi bi-door-closed"></i>
