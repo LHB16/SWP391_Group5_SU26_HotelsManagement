@@ -13644,6 +13644,7 @@ input[type="date"]::-webkit-datetime-edit {
    Room Card – Layout ảnh trái / info phải (Lion Hotel style)
    ──────────────────────────────────────────────────────────── */
 .room-card {
+    position: relative;
     background: var(--white);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
@@ -18974,8 +18975,9 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 /* --- room-qty-badge --- */
 .room-qty-badge {
     position: absolute;
-    top: 12px;
-    left: 12px;
+    top: 16px;
+    right: 16px;
+    left: auto;
     background: rgba(10, 22, 40, 0.85);
     color: #ffffff;
     padding: 6px 12px;
