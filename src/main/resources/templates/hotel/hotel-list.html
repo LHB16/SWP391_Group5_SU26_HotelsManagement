@@ -248,14 +248,14 @@
                                 </div>
                             </div>
 
-                            <!-- Action buttons -->
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-gold">
-                                    <i class="bi bi-search me-1"></i>
-                                    Search
-                                </button>
-                                <a th:href="@{/hotels}" class="btn btn-outline-secondary">Clear Filters</a>
-                            </div>
+                             <!-- Action buttons -->
+                             <div class="d-flex flex-column align-items-center gap-2 mt-4">
+                                 <button type="submit" class="btn btn-gold px-4" style="min-width: 160px; display: inline-flex; align-items: center; justify-content: center;">
+                                     <i class="bi bi-search me-2"></i>
+                                     Search
+                                 </button>
+                                 <a th:href="@{/hotels}" class="btn btn-outline-secondary px-4" style="min-width: 160px; display: inline-flex; align-items: center; justify-content: center;">Clear Filters</a>
+                             </div>
 
                         </form>
                     </div>
@@ -352,6 +352,10 @@
         minPriceInput.value = sliderOne.value;
         displayValOne.textContent = formatCurrency(sliderOne.value);
         fillColor();
+        
+        // Đưa slider 1 lên trên để tránh trùng lấn sự kiện kéo
+        sliderOne.style.zIndex = "10";
+        sliderTwo.style.zIndex = "0";
     }
 
     function slideTwo() {
@@ -363,6 +367,10 @@
         maxPriceInput.value = sliderTwo.value;
         displayValTwo.textContent = formatCurrency(sliderTwo.value);
         fillColor();
+        
+        // Đưa slider 2 lên trên khi đang tương tác kéo max
+        sliderTwo.style.zIndex = "10";
+        sliderOne.style.zIndex = "0";
     }
 
     function fillColor() {
