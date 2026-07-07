@@ -723,9 +723,9 @@ public class AdminDashboardController {
         hotel.setActive(active);
         hotelRepository.save(hotel);
 
-        String action = active ? "activated" : "deactivated";
+        String action = active ? "active" : "inactive";
         redirectAttributes.addFlashAttribute("successMessage",
-                "Hotel \"" + hotel.getName() + "\" has been " + action + " successfully.");
+                "Hotel \"" + hotel.getName() + "\" has been set to " + action + " successfully.");
 
         return "redirect:/admin/owner-detail?id=" + ownerId;
     }

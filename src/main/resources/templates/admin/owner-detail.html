@@ -460,7 +460,7 @@
                                      style="width: 44px; height: 44px; background: rgba(22,163,74,0.1); color: #16a34a;">
                                     <i data-lucide="shield-alert" style="width: 22px; height: 22px; stroke-width: 1.5;"></i>
                                 </div>
-                                <h5 class="modal-title fw-bold mb-0 text-dark" style="font-size: 1.05rem;">Confirm Activate Hotel</h5>
+                                <h5 class="modal-title fw-bold mb-0 text-dark" style="font-size: 1.05rem;">Confirm Active Hotel</h5>
                             </div>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
@@ -468,7 +468,7 @@
                         <div class="modal-body" style="padding: 12px 24px 20px;">
                             <div class="rounded-3 p-3 mb-3" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
                                 <p class="mb-1 fw-semibold" style="color: #15803d; font-size: 0.9rem;">
-                                    This action will ACTIVATE the hotel:
+                                    This action will set the hotel status to ACTIVE:
                                 </p>
                                 <p class="mb-0 fw-bold text-dark" style="font-size: 1rem;" th:text="${hotel.name}"></p>
                             </div>
@@ -490,7 +490,7 @@
                                         class="btn btn-success fw-semibold d-flex align-items-center gap-2 text-white border-0"
                                         style="border-radius: 8px; padding: 8px 20px;">
                                     <i data-lucide="check-circle" style="width: 18px; height: 18px; stroke-width: 1.5;"></i>
-                                    <span>Confirm Activate</span>
+                                    <span>Confirm Active</span>
                                 </button>
                             </form>
                         </div>
@@ -509,7 +509,7 @@
                                      style="width: 44px; height: 44px; background: rgba(220,38,38,0.1); color: #dc2626;">
                                     <i data-lucide="shield-alert" style="width: 22px; height: 22px; stroke-width: 1.5;"></i>
                                 </div>
-                                <h5 class="modal-title fw-bold mb-0 text-dark" style="font-size: 1.05rem;">Confirm Deactivate Hotel</h5>
+                                <h5 class="modal-title fw-bold mb-0 text-dark" style="font-size: 1.05rem;">Confirm Inactive Hotel</h5>
                             </div>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
@@ -517,7 +517,7 @@
                         <div class="modal-body" style="padding: 12px 24px 20px;">
                             <div class="rounded-3 p-3 mb-3" style="background: #fff7ed; border: 1px solid #fed7aa;">
                                 <p class="mb-1 fw-semibold" style="color: #c2410c; font-size: 0.9rem;">
-                                    This action will DEACTIVATE the hotel:
+                                    This action will set the hotel status to INACTIVE:
                                 </p>
                                 <p class="mb-0 fw-bold text-dark" style="font-size: 1rem;" th:text="${hotel.name}"></p>
                             </div>
@@ -539,7 +539,7 @@
                                         class="btn btn-danger fw-semibold d-flex align-items-center gap-2 text-white border-0"
                                         style="border-radius: 8px; padding: 8px 20px;">
                                     <i data-lucide="x-circle" style="width: 18px; height: 18px; stroke-width: 1.5;"></i>
-                                    <span>Confirm Inactivate</span>
+                                    <span>Confirm Inactive</span>
                                 </button>
                             </form>
                         </div>
