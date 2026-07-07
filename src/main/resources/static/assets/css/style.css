@@ -13236,7 +13236,7 @@ input[type="date"]::-webkit-datetime-edit {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .07em;
-    color: #6b7280;
+    color: var(--navy);
     margin-bottom: 8px;
     display: flex;
     align-items: center;
@@ -13454,10 +13454,10 @@ input[type="date"]::-webkit-datetime-edit {
 
 .filter-section-label {
     font-size: 0.72rem;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--text-muted);
+    color: var(--navy);
     margin-bottom: 10px;
 }
 
