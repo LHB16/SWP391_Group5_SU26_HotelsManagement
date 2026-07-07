@@ -163,13 +163,13 @@
                 <!-- Price & Booking Card -->
                 <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius:16px; position:sticky; top:100px; background:#fff; border: 1px solid #e8ecf1;">
                     
-                    <div class="room-detail-price-box mb-4">
-                        <span class="text-muted d-block small mb-1" th:text="${isFiltered} ? 'Total Subtotal' : 'Price per Night'">Price per Night</span>
-                        <div class="d-flex align-items-baseline gap-2">
+                    <div class="room-detail-price-box mb-4 text-center">
+                        <span class="text-muted d-block small mb-1">Room Price</span>
+                        <div class="d-flex align-items-baseline justify-content-center gap-2">
                             <span class="room-detail-price-amount fs-2 fw-bold text-navy" style="color:var(--navy);"
                                   th:text="${#numbers.formatInteger(roomPrice, 0, 'COMMA')}">500,000</span>
                             <span class="room-detail-price-unit fw-semibold text-gold-dark" style="color:var(--gold-dark);"
-                                  th:text="${isFiltered ? 'VND / ' + nights + ' night' + (nights > 1 ? 's' : '') : 'VND'}">VND</span>
+                                  th:text="${isFiltered ? 'VND / ' + nights + ' night' + (nights > 1 ? 's' : '') : 'VND / 1 night'}">VND / 1 night</span>
                         </div>
                     </div>
 
@@ -194,10 +194,6 @@
                             <div class="d-flex align-items-center justify-content-between p-2 rounded bg-light" style="font-size:0.86rem;">
                                 <span class="text-muted"><i class="bi bi-grid-3x3-gap me-2 text-gold"></i>Windows</span>
                                 <strong class="text-navy" th:text="${room.numWindow + ' window(s)'}">2 windows</strong>
-                            </div>
-                            <div class="d-flex align-items-center justify-content-between p-2 rounded bg-light" style="font-size:0.86rem;">
-                                <span class="text-muted"><i class="bi bi-door-open me-2 text-gold"></i>Total Rooms</span>
-                                <strong class="text-navy" th:text="${room.numberRooms != null ? room.numberRooms + ' room(s)' : '0 room(s)'}">5 rooms</strong>
                             </div>
                             <div class="d-flex align-items-center justify-content-between p-2 rounded bg-light" style="font-size:0.86rem;">
                                 <span class="text-muted"><i class="bi bi-ban me-2 text-danger"></i>Policy</span>
