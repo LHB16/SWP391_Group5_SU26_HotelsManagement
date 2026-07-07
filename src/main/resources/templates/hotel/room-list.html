@@ -137,6 +137,11 @@
 
                         <!-- Ảnh -->
                         <div class="room-card-img-wrap" style="position: relative;">
+                            <!-- Room Quantity Badge -->
+                            <div class="room-qty-badge">
+                                <i class="bi bi-door-open me-1"></i>
+                                <span th:text="${room.numberRooms != null ? room.numberRooms + ' room(s)' : '0 room(s)'}">5 room(s)</span>
+                            </div>
                             <img th:if="${room.imgUrl != null and !room.imgUrl.isEmpty()}"
                                 th:src="${room.imgUrl}" th:alt="${room.roomType}" class="room-card-img" />
                             <div th:if="${room.imgUrl == null or room.imgUrl.isEmpty()}" class="room-card-img-placeholder">
@@ -180,10 +185,6 @@
                                 <span class="amenity-badge">
                                     <i class="bi bi-grid-3x3-gap me-1"></i>
                                     <span th:text="${room.numWindow + ' window(s)'}">2 window(s)</span>
-                                </span>
-                                <span class="amenity-badge">
-                                    <i class="bi bi-door-open me-1"></i>
-                                    <span th:text="${room.numberRooms != null ? room.numberRooms + ' room(s)' : '0 room(s)'}">5 room(s)</span>
                                 </span>
                             </div>
 

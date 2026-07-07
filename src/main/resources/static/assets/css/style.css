@@ -18971,6 +18971,28 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     box-shadow: 0 2px 10px rgba(201,169,110,0.25);
 }
 
+/* --- room-qty-badge --- */
+.room-qty-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(10, 22, 40, 0.85);
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(201, 169, 110, 0.3);
+    z-index: 10;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+}
+.room-qty-badge i {
+    color: var(--gold);
+}
+
 /* --- Responsive --- */
 @media (max-width: 576px) {
     .create-hero {
