@@ -197,13 +197,18 @@
                                         <span class="room-price-unit" th:text="${isFiltered ? 'VND / ' + nights + ' night' + (nights > 1 ? 's' : '') : 'VND'}">VND</span>
                                     </div>
                                 </div>
-                                <div class="room-action-btns">
-                                    <!-- View Room Link -->
+                                <div class="room-action-btns d-flex gap-2">
+                                    <!-- Room Detail Link -->
                                     <a th:href="@{/hotels/{hotelId}/rooms/{roomId}(hotelId=${hotel.id}, roomId=${room.id}, checkin=${checkin}, checkout=${checkout})}"
-                                       class="btn btn-gold btn-sm"
+                                       class="btn btn-outline-secondary btn-sm"
                                        th:id="${'detail-btn-' + room.id}">
-                                        View Room
-                                        <i class="bi bi-arrow-right ms-1"></i>
+                                        Room detail
+                                    </a>
+                                    <!-- Booking Link -->
+                                    <a th:href="@{/booking(hotelId=${hotel.id}, roomId=${room.id}, checkin=${checkin}, checkout=${checkout})}"
+                                       class="btn btn-gold btn-sm"
+                                       th:id="${'booking-btn-' + room.id}">
+                                        Booking
                                     </a>
                                 </div>
                             </div>
