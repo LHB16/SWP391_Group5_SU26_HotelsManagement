@@ -8,7 +8,7 @@
 <main class="flex-grow-1 d-flex align-items-center py-5">
     <div class="container d-flex justify-content-center">
         <div class="card shadow" style="width: 480px; max-width: 100%;">
-            <div class="card-header bg-primary text-white text-center">
+            <div class="card-header login-header text-center">
                 <h4 class="mb-0">Create Hotel Owner Account</h4>
             </div>
             <div class="card-body p-4">
@@ -19,7 +19,7 @@
 
                     <!-- Full Name -->
                     <div class="mb-3">
-                        <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                        <label class="form-label">Full Name <span class="text-danger"></span></label>
                         <input type="text" name="fullName" class="form-control"
                                placeholder="Enter your full name..."
                                th:value="${fullName}"
@@ -28,7 +28,7 @@
 
                     <!-- Username -->
                     <div class="mb-3">
-                        <label class="form-label">Username <span class="text-danger">*</span></label>
+                        <label class="form-label">Username <span class="text-danger"></span></label>
                         <input type="text" name="username" class="form-control"
                                placeholder="Enter your username..."
                                th:value="${username}"
@@ -37,7 +37,7 @@
 
                     <!-- Email -->
                     <div class="mb-3">
-                        <label class="form-label">Email <span class="text-danger">*</span></label>
+                        <label class="form-label">Email <span class="text-danger"></span></label>
                         <input type="email" name="email" class="form-control"
                                placeholder="Enter your email..."
                                th:value="${email}"
@@ -46,7 +46,7 @@
 
                     <!-- Password -->
                     <div class="mb-3">
-                        <label class="form-label">Password <span class="text-danger">*</span></label>
+                        <label class="form-label">Password <span class="text-danger"></span></label>
                         <input type="password" name="password" class="form-control"
                                placeholder="Enter your password..."
                                required minlength="6"/>
@@ -57,7 +57,7 @@
 
                     <!-- Phone -->
                     <div class="mb-3">
-                        <label class="form-label">Phone Number <span class="text-danger">*</span></label>
+                        <label class="form-label">Phone Number <span class="text-danger"></span></label>
                         <input type="tel" name="phone" class="form-control"
                                placeholder="Enter your phone number..."
                                th:value="${phone}"
@@ -66,7 +66,7 @@
 
                     <!-- Address -->
                     <div class="mb-3">
-                        <label class="form-label">Address <span class="text-danger">*</span></label>
+                        <label class="form-label">Address <span class="text-danger"></span></label>
                         <input type="text" name="address" class="form-control"
                                placeholder="Enter your address..."
                                th:value="${address}"
@@ -75,7 +75,7 @@
 
                     <!-- ID Card -->
                     <div class="mb-3">
-                        <label class="form-label">ID Card / CCCD <span class="text-danger">*</span></label>
+                        <label class="form-label">ID Card / CCCD <span class="text-danger"></span></label>
                         <input type="text" name="idCard" class="form-control"
                                placeholder="Enter your ID card number..."
                                th:value="${idCard}"
@@ -84,7 +84,7 @@
 
                     <!-- Tax ID -->
                     <div class="mb-3">
-                        <label class="form-label">Tax ID <span class="text-danger">*</span></label>
+                        <label class="form-label">Tax ID <span class="text-danger"></span></label>
                         <input type="text" name="taxId" class="form-control"
                                placeholder="Enter your tax ID..."
                                th:value="${taxId}"
