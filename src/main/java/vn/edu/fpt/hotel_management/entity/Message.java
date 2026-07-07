@@ -30,9 +30,6 @@ public class Message {
     @Column(name = "content", columnDefinition = "NVARCHAR(MAX)")
     private String content;
 
-    @Column(name = "reaction", length = 50)
-    private String reaction;
-
     @Column(name = "image_url", length = 255)
     private String imageUrl;
 
@@ -57,8 +54,6 @@ public class Message {
     public void setHotel(Hotel hotel) { this.hotel = hotel; }
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
-    public String getReaction() { return reaction; }
-    public void setReaction(String reaction) { this.reaction = reaction; }
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public boolean isRead() { return isRead; }
