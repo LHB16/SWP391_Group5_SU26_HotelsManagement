@@ -63,7 +63,7 @@
                                 <div class="col-12 col-sm-6">
                                     <label class="lbl" for="roomPrice">Price / Night (VND) <span class="text-danger">*</span></label>
                                     <input type="number" name="price" id="roomPrice" class="fc"
-                                           placeholder="e.g. 500000" min="0" step="1" required />
+                                           placeholder="e.g. 500000" min="100000" step="1" required />
                                 </div>
                                 <div class="col-12 col-sm-6">
                                     <label class="lbl" for="roomAcreage">Area (m²) <span class="text-danger">*</span></label>
@@ -75,9 +75,9 @@
                             <!-- Number of Rooms + Room Status -->
                             <div class="row g-4 mb-4">
                                 <div class="col-12 col-sm-6">
-                                    <label class="lbl" for="numberRooms">Number of Rooms</label>
+                                    <label class="lbl" for="numberRooms">Number of Rooms <span class="text-danger">*</span></label>
                                     <input type="number" name="numberRooms" id="numberRooms" class="fc"
-                                           value="1" min="0" />
+                                           value="1" min="1" required />
                                 </div>
                                 <div class="col-12 col-sm-6">
                                     <label class="lbl">Room Status</label>
@@ -106,32 +106,32 @@
                                            value="2" min="1" max="20" required />
                                 </div>
                                 <div class="col-12 col-sm-4">
-                                    <label class="lbl" for="bedInput">Beds</label>
+                                    <label class="lbl" for="bedInput">Beds <span class="text-danger">*</span></label>
                                     <input type="number" name="bed" id="bedInput" class="fc"
-                                           value="1" min="0" max="10" />
+                                           value="1" min="1" max="10" required />
                                 </div>
                                 <div class="col-12 col-sm-4">
-                                    <label class="lbl" for="windowInput">Windows</label>
+                                    <label class="lbl" for="windowInput">Windows <span class="text-danger">*</span></label>
                                     <input type="number" name="window" id="windowInput" class="fc"
-                                           value="0" min="0" max="10" />
+                                           value="0" min="0" max="10" required />
                                 </div>
                             </div>
 
                             <!-- Description -->
                             <div class="mb-4">
-                                <label class="lbl" for="roomDesc">Description</label>
+                                <label class="lbl" for="roomDesc">Description <span class="text-danger">*</span></label>
                                 <textarea name="description" id="roomDesc" class="fc" rows="4"
                                           placeholder="Describe the room's features, view, amenities..."
-                                          style="resize:vertical;"></textarea>
+                                          style="resize:vertical;" required></textarea>
                             </div>
 
                             <div class="fdivider"></div>
 
                             <!-- Upload Image -->
                             <div class="mb-3">
-                                <label class="lbl" for="imageFile">Room Image</label>
+                                <label class="lbl" for="imageFile">Room Image <span class="text-danger">*</span></label>
                                 <input type="file" name="imageFile" id="imageFile" class="form-control"
-                                       accept="image/jpeg,image/png,image/webp,image/jpg" />
+                                       accept="image/jpeg,image/png,image/webp,image/jpg" required />
                                 <div class="form-text text-muted mt-1">JPG, PNG, WEBP · Max 10MB</div>
                             </div>
                         </div>
@@ -146,10 +146,10 @@
 
                         <div class="form-card-body">
                             <!-- Bathroom Amenities -->
-                            <div class="facility-section">
+                            <div class="facility-section" id="bathroomAmenitiesSection">
                                 <div class="facility-section-title">
                                     <i class="bi bi-droplet"></i>
-                                    Bathroom Amenities
+                                    Bathroom Amenities <span class="text-danger">*</span>
                                 </div>
                                 <div class="facility-grid">
                                     <label class="facility-item">
@@ -198,10 +198,10 @@
                             <div class="fdivider"></div>
 
                             <!-- Room Amenities -->
-                            <div class="facility-section">
+                            <div class="facility-section" id="roomAmenitiesSection">
                                 <div class="facility-section-title">
                                     <i class="bi bi-house-door"></i>
-                                    Room Amenities
+                                    Room Amenities <span class="text-danger">*</span>
                                 </div>
                                 <div class="facility-grid">
                                     <label class="facility-item">
@@ -306,5 +306,99 @@
 
 <footer th:replace="~{fragment/frag :: footer}"></footer>
 <div th:replace="~{fragment/frag :: scripts}"></div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById("roomForm");
+    
+    form.addEventListener("submit", function(event) {
+        let isValid = true;
+        let firstErrorElement = null;
+
+        // 1. Kiểm tra HTML5 validation mặc định
+        const inputs = form.querySelectorAll("input[required], textarea[required]");
+        inputs.forEach(input => {
+            input.classList.remove("is-invalid");
+            if (!input.checkValidity()) {
+                isValid = false;
+                input.classList.add("is-invalid");
+                if (!firstErrorElement) {
+                    firstErrorElement = input;
+                }
+            }
+        });
+
+        // 2. Kiểm tra ít nhất 1 Bathroom Amenity được chọn
+        const bathroomCheckboxes = document.querySelectorAll('#bathroomAmenitiesSection input[type="checkbox"]');
+        const isBathroomSelected = Array.from(bathroomCheckboxes).some(cb => cb.checked);
+        const bathroomTitle = document.querySelector('#bathroomAmenitiesSection .facility-section-title');
+        
+        bathroomTitle.style.color = "";
+        bathroomTitle.style.borderBottom = "";
+        const oldBathErr = document.getElementById("bath-err-msg");
+        if (oldBathErr) oldBathErr.remove();
+
+        if (!isBathroomSelected) {
+            isValid = false;
+            bathroomTitle.style.color = "var(--danger, #dc3545)";
+            bathroomTitle.style.borderBottom = "2px solid var(--danger, #dc3545)";
+            
+            const errMsg = document.createElement("div");
+            errMsg.id = "bath-err-msg";
+            errMsg.className = "text-danger small mt-2 fw-semibold";
+            errMsg.innerText = "Please select at least 1 bathroom amenity.";
+            bathroomTitle.parentNode.appendChild(errMsg);
+
+            if (!firstErrorElement) {
+                firstErrorElement = bathroomTitle;
+            }
+        }
+
+        // 3. Kiểm tra ít nhất 1 Room Amenity được chọn
+        const roomCheckboxes = document.querySelectorAll('#roomAmenitiesSection input[type="checkbox"]');
+        const isRoomSelected = Array.from(roomCheckboxes).some(cb => cb.checked);
+        const roomTitle = document.querySelector('#roomAmenitiesSection .facility-section-title');
+        
+        roomTitle.style.color = "";
+        roomTitle.style.borderBottom = "";
+        const oldRoomErr = document.getElementById("room-err-msg");
+        if (oldRoomErr) oldRoomErr.remove();
+
+        if (!isRoomSelected) {
+            isValid = false;
+            roomTitle.style.color = "var(--danger, #dc3545)";
+            roomTitle.style.borderBottom = "2px solid var(--danger, #dc3545)";
+            
+            const errMsg = document.createElement("div");
+            errMsg.id = "room-err-msg";
+            errMsg.className = "text-danger small mt-2 fw-semibold";
+            errMsg.innerText = "Please select at least 1 room amenity.";
+            roomTitle.parentNode.appendChild(errMsg);
+
+            if (!firstErrorElement) {
+                firstErrorElement = roomTitle;
+            }
+        }
+
+        // Nếu form không hợp lệ, chặn submit, tự động scroll đến phần tử lỗi đầu tiên và hiển thị thông báo
+        if (!isValid) {
+            event.preventDefault();
+            if (firstErrorElement) {
+                firstErrorElement.scrollIntoView({ behavior: "smooth", block: "center" });
+                
+                setTimeout(() => {
+                    if (typeof firstErrorElement.focus === "function") {
+                        firstErrorElement.focus();
+                    }
+                    if (typeof firstErrorElement.reportValidity === "function") {
+                        firstErrorElement.reportValidity();
+                    } else {
+                        alert("Please fill in all required fields and select at least 1 Bathroom Amenity and 1 Room Amenity.");
+                    }
+                }, 400); // Đợi scroll chạy xong rồi hiển thị tooltip lỗi
+            }
+        }
+    });
+});
+</script>
 </body>
 </html>
