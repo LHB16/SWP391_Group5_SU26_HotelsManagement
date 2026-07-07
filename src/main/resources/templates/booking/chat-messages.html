@@ -33,7 +33,6 @@
 
                     <!-- Bong bóng chat -->
                     <div class="p-2 rounded text-dark bg-light border shadow-sm position-relative chat-bubble-left">
-                        <strong class="d-block small text-muted mb-1 chat-sender-label" th:text="${msg.sender.fullName}">Sender</strong>
                         <div th:if="${msg.content != null && !msg.content.isEmpty()}" th:text="${msg.content}" class="chat-msg-text">Message content</div>
                         <!-- Hiển thị hình ảnh từ thư mục chat con dưới dạng Link bấm mở sang tab mới -->
                         <a th:if="${msg.imageUrl != null}" th:href="@{/assets/images/chat/{img}(img=${msg.imageUrl})}" target="_blank" class="d-block">
