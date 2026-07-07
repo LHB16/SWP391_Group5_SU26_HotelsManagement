@@ -229,7 +229,7 @@
                                 <div class="rating-summary-number" th:text="${avgRating > 0 ? avgRating : '0.0'}">0.0</div>
                                 <div class="rating-summary-stars">
                                     <span th:each="i : ${#numbers.sequence(1, 5)}"
-                                        th:text="${i <= avgRating ? 'Γÿà' : 'Γÿå'}"></span>
+                                        th:utext="${i <= avgRating ? '&#9733;' : '&#9734;'}"></span>
                                 </div>
                                 <div class="rating-summary-count" th:text="${totalReviews + ' reviews in total'}">0 reviews</div>
                             </div>
@@ -247,7 +247,7 @@
                                                 <input type="radio" name="rating"
                                                        th:id="${'star-review-' + star}"
                                                        th:value="${star}" th:checked="${star == 5}" class="create-rating-input" />
-                                                <label th:for="${'star-review-' + star}" title="star">Γÿà</label>
+                                                <label th:for="${'star-review-' + star}" title="star">&#9733;</label>
                                             </th:block>
                                         </div>
                                     </div>
@@ -425,7 +425,7 @@
                                                                                th:checked="${star == review.rating}"
                                                                                th:data-review-id="${review.id}"
                                                                                class="edit-rating-input" />
-                                                                        <label th:for="${'edit-star-' + review.id + '-' + star}" title="star">Γÿà</label>
+                                                                        <label th:for="${'edit-star-' + review.id + '-' + star}" title="star">&#9733;</label>
                                                                     </th:block>
                                                                 </div>
                                                             </div>
