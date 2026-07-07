@@ -60,24 +60,24 @@
                         <!-- Form Filter nằm trên đầu card phòng -->
                         <form th:action="@{/wishlist/update-filter}" method="get" class="wishlist-card-filter-form px-4 py-3 border-bottom bg-light w-100">
                             <input type="hidden" name="id" th:value="${wl.id}" />
-                            <div class="row align-items-center w-100 g-3">
-                                <div class="col-12 col-md-5 d-flex align-items-center gap-2">
+                            <div class="d-flex flex-wrap align-items-center gap-3 w-100">
+                                <div class="d-flex align-items-center gap-2">
                                     <label class="small fw-semibold text-secondary mb-0 text-nowrap">Check-in:</label>
                                     <input type="text" name="checkin"
-                                           class="form-control form-control-sm wl-date-picker flex-grow-1"
+                                           class="form-control form-control-sm wl-date-picker"
+                                           style="width: 150px;"
                                            th:value="${wl.checkInDate}" placeholder="Select Date" />
                                 </div>
-                                <div class="col-12 col-md-5 d-flex align-items-center gap-2">
+                                <div class="d-flex align-items-center gap-2">
                                     <label class="small fw-semibold text-secondary mb-0 text-nowrap">Check-out:</label>
                                     <input type="text" name="checkout"
-                                           class="form-control form-control-sm wl-date-picker flex-grow-1"
+                                           class="form-control form-control-sm wl-date-picker"
+                                           style="width: 150px;"
                                            th:value="${wl.checkOutDate}" placeholder="Select Date" />
                                 </div>
-                                <div class="col-12 col-md-2 d-flex align-items-center justify-content-md-end justify-content-center">
-                                    <button type="submit" class="btn btn-gold btn-sm py-2 px-3 fw-semibold text-nowrap d-flex align-items-center justify-content-center" style="width: auto;">
-                                        Change Filter
-                                    </button>
-                                </div>
+                                <button type="submit" class="btn btn-gold btn-sm py-2 px-3 fw-semibold text-nowrap d-flex align-items-center justify-content-center" style="width: auto;">
+                                    Change Filter
+                                </button>
                             </div>
                         </form>
 
