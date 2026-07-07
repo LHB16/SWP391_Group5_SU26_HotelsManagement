@@ -24,15 +24,18 @@ public class ChatController {
     private final HotelRepository hotelRepository;
     private final UserRepository userRepository;
     private final HotelOwnerRepository hotelOwnerRepository;
+    private final CustomerRepository customerRepository;
 
     public ChatController(MessageRepository messageRepository,
                           HotelRepository hotelRepository,
                           UserRepository userRepository,
-                          HotelOwnerRepository hotelOwnerRepository) {
+                          HotelOwnerRepository hotelOwnerRepository,
+                          CustomerRepository customerRepository) {
         this.messageRepository = messageRepository;
         this.hotelRepository = hotelRepository;
         this.userRepository = userRepository;
         this.hotelOwnerRepository = hotelOwnerRepository;
+        this.customerRepository = customerRepository;
     }
 
     // ===================== KHÁCH HÀNG (CUSTOMER) =====================
@@ -89,6 +92,8 @@ public class ChatController {
                 hotelId, customerUserId, ownerUserId,
                 hotelId, ownerUserId, customerUserId
         );
+
+        populateUserFullNames(chatHistory);
 
         model.addAttribute("chatHistory", chatHistory);
         model.addAttribute("currentUser", loggedInUser);
@@ -195,8 +200,13 @@ public class ChatController {
             // Đối tác phải có vai trò CUSTOMER
             if ("CUSTOMER".equals(partner.getRole()) && !addedUserIds.contains(partner.getId())) {
                 addedUserIds.add(partner.getId());
-                // Thiết lập fullName tạm thời từ email hoặc thông tin cơ bản nếu cần
-                partner.setFullName(partner.getUsername()); // Fallback sang username
+                // Nạp tên đầy đủ thực tế của khách hàng từ CustomerRepository
+                customerRepository.findByUserAccountId(partner.getId()).ifPresent(c -> {
+                    partner.setFullName(c.getFullName());
+                });
+                if (partner.getFullName() == null || partner.getFullName().isBlank()) {
+                    partner.setFullName(partner.getUsername());
+                }
                 customers.add(partner);
             }
         }
@@ -206,6 +216,12 @@ public class ChatController {
         User activeCustomer = null;
         if (customerId != null) {
             activeCustomer = userRepository.findById(customerId).orElse(null);
+            if (activeCustomer != null) {
+                final User finalCust = activeCustomer;
+                customerRepository.findByUserAccountId(activeCustomer.getId()).ifPresent(c -> {
+                    finalCust.setFullName(c.getFullName());
+                });
+            }
         }
         if (activeCustomer == null && !customers.isEmpty()) {
             activeCustomer = customers.get(0);
@@ -248,6 +264,8 @@ public class ChatController {
                 hotelId, customerId, ownerUserId,
                 hotelId, ownerUserId, customerId
         );
+
+        populateUserFullNames(chatHistory);
 
         model.addAttribute("chatHistory", chatHistory);
         model.addAttribute("currentUser", loggedInUser);
@@ -297,29 +315,37 @@ public class ChatController {
         return "redirect:/chat/inbox?hotelId=" + hotelId + "&customerId=" + customerId;
     }
 
-    // API xử lý thả reaction của tin nhắn
-    @GetMapping("/chat/react")
-    public String reactToMessage(@RequestParam("messageId") int messageId,
-                                 @RequestParam("emoji") String emoji,
-                                 @RequestParam("redirectUrl") String redirectUrl,
-                                 HttpSession session) {
-        User loggedInUser = (User) session.getAttribute("loggedInUser");
-        if (loggedInUser == null) {
-            return "redirect:/login";
-        }
 
-        Message message = messageRepository.findById(messageId).orElse(null);
-        if (message != null) {
-            // Nếu đã thả emoji trùng thì gỡ bỏ (set null), ngược lại cập nhật emoji mới
-            if (emoji.equals(message.getReaction())) {
-                message.setReaction(null);
-            } else {
-                message.setReaction(emoji);
+
+    // Hàm đối chiếu lấy FullName cho người gửi/nhận trong lịch sử chat
+    private void populateUserFullNames(List<Message> chatHistory) {
+        if (chatHistory == null) return;
+        for (Message msg : chatHistory) {
+            User sender = msg.getSender();
+            if (sender != null && (sender.getFullName() == null || sender.getFullName().equals(sender.getUsername()))) {
+                if ("CUSTOMER".equals(sender.getRole())) {
+                    customerRepository.findByUserAccountId(sender.getId()).ifPresent(c -> {
+                        sender.setFullName(c.getFullName());
+                    });
+                } else if ("HOTEL_OWNER".equals(sender.getRole())) {
+                    hotelOwnerRepository.findByUserAccountId(sender.getId()).ifPresent(o -> {
+                        sender.setFullName(o.getFullName());
+                    });
+                }
             }
-            messageRepository.save(message);
+            User receiver = msg.getReceiver();
+            if (receiver != null && (receiver.getFullName() == null || receiver.getFullName().equals(receiver.getUsername()))) {
+                if ("CUSTOMER".equals(receiver.getRole())) {
+                    customerRepository.findByUserAccountId(receiver.getId()).ifPresent(c -> {
+                        receiver.setFullName(c.getFullName());
+                    });
+                } else if ("HOTEL_OWNER".equals(receiver.getRole())) {
+                    hotelOwnerRepository.findByUserAccountId(receiver.getId()).ifPresent(o -> {
+                        receiver.setFullName(o.getFullName());
+                    });
+                }
+            }
         }
-
-        return "redirect:" + redirectUrl;
     }
 
     // Hàm helper lưu trữ hình ảnh tải lên vào thư mục tĩnh của dự án
