@@ -136,6 +136,21 @@ public class AdminDashboardController {
         model.addAttribute("ownerCurrentPage", "verificationPanel".equals(tab) ? page : 0);
         model.addAttribute("ownerTotalPages", ownerPage.getTotalPages());
 
+        // --- Xử lý Hotel Approval ---
+        Pageable defaultHotelPageable = PageRequest.of(page, 5, Sort.by("id").descending());
+        Page<Hotel> pendingHotelPage = Page.empty(defaultHotelPageable);
+
+        if ("hotelApprovalPanel".equals(tab) && searchQuery != null && !searchQuery.trim().isEmpty()) {
+            String query = searchQuery.trim();
+            pendingHotelPage = hotelRepository.findByApprovalStatusAndNameContainingIgnoreCase("PENDING", query, searchPageable);
+        } else {
+            Pageable hotelPageable = "hotelApprovalPanel".equals(tab) ? defaultHotelPageable : PageRequest.of(0, 5, Sort.by("id").descending());
+            pendingHotelPage = hotelRepository.findByApprovalStatus("PENDING", hotelPageable);
+        }
+        model.addAttribute("pendingHotels", pendingHotelPage.getContent());
+        model.addAttribute("hotelCurrentPage", "hotelApprovalPanel".equals(tab) ? page : 0);
+        model.addAttribute("hotelTotalPages", pendingHotelPage.getTotalPages());
+
         // --- Lưu lại thông tin search nếu có ---
         if (searchQuery != null && !searchQuery.trim().isEmpty()) {
             model.addAttribute("searchQuery", searchQuery);
@@ -513,5 +528,110 @@ public class AdminDashboardController {
 
         redirectAttributes.addFlashAttribute("successMessage", "Hotel verification documents rejected.");
         return ownerId > 0 ? "redirect:/admin/owner-detail?id=" + ownerId : "redirect:/admin/dashboard?tab=verificationPanel";
+    }
+
+    @PostMapping("/admin/toggle-owner-status")
+    public String toggleOwnerStatus(
+            @RequestParam("ownerId") int ownerId,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+
+        // Kiểm tra phân quyền admin
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"ADMIN".equals(loggedInUser.getRole())) {
+            return "redirect:/login";
+        }
+
+        HotelOwner targetOwner = hotelOwnerRepository.findById(ownerId).orElse(null);
+        if (targetOwner == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Owner account not found.");
+            return "redirect:/admin/dashboard?tab=verificationPanel";
+        }
+        User targetUser = targetOwner.getUserAccount();
+
+        // Đảo ngược trạng thái enabled
+        boolean newStatus = !targetUser.isEnabled();
+        targetUser.setEnabled(newStatus);
+        userRepository.save(targetUser);
+
+        String action = newStatus ? "enabled" : "disabled";
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Owner account \"" + targetOwner.getFullName() + "\" has been " + action + " successfully.");
+
+        return "redirect:/admin/owner-detail?id=" + ownerId;
+    }
+
+    @PostMapping("/admin/hotel/approve")
+    public String approveHotelDirect(
+            @RequestParam("hotelId") int hotelId,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+
+        // Kiểm tra phân quyền admin
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"ADMIN".equals(loggedInUser.getRole())) {
+            return "redirect:/login";
+        }
+
+        Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
+        if (hotel == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Hotel not found.");
+            return "redirect:/admin/dashboard?tab=hotelApprovalPanel";
+        }
+
+        hotel.setApprovalStatus("APPROVED");
+        hotel.setActive(true);
+        hotel.setApprovedAt(LocalDateTime.now());
+        hotel.setRejectionReason(null);
+        hotelRepository.save(hotel);
+
+        // Nếu có tài liệu xác minh liên quan, cũng tự động approve luôn
+        List<HotelVerificationDocument> docs = hotelVerificationDocumentRepository.findByHotelId(hotelId);
+        for (HotelVerificationDocument doc : docs) {
+            doc.setUploadStatus("APPROVED");
+            doc.setVerifiedAt(LocalDateTime.now());
+            doc.setRejectionReason(null);
+            hotelVerificationDocumentRepository.save(doc);
+        }
+
+        redirectAttributes.addFlashAttribute("successMessage", "Hotel \"" + hotel.getName() + "\" approved successfully.");
+        return "redirect:/admin/dashboard?tab=hotelApprovalPanel";
+    }
+
+    @PostMapping("/admin/hotel/reject")
+    public String rejectHotelDirect(
+            @RequestParam("hotelId") int hotelId,
+            @RequestParam("rejectionReason") String rejectionReason,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+
+        // Kiểm tra phân quyền admin
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"ADMIN".equals(loggedInUser.getRole())) {
+            return "redirect:/login";
+        }
+
+        Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
+        if (hotel == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Hotel not found.");
+            return "redirect:/admin/dashboard?tab=hotelApprovalPanel";
+        }
+
+        hotel.setApprovalStatus("REJECTED");
+        hotel.setActive(false);
+        hotel.setRejectionReason(rejectionReason);
+        hotelRepository.save(hotel);
+
+        // Nếu có tài liệu xác minh liên quan, cũng reject luôn
+        List<HotelVerificationDocument> docs = hotelVerificationDocumentRepository.findByHotelId(hotelId);
+        for (HotelVerificationDocument doc : docs) {
+            doc.setUploadStatus("REJECTED");
+            doc.setVerifiedAt(LocalDateTime.now());
+            doc.setRejectionReason(rejectionReason);
+            hotelVerificationDocumentRepository.save(doc);
+        }
+
+        redirectAttributes.addFlashAttribute("successMessage", "Hotel \"" + hotel.getName() + "\" rejected.");
+        return "redirect:/admin/dashboard?tab=hotelApprovalPanel";
     }
 }

@@ -1,5 +1,7 @@
 package vn.edu.fpt.hotel_management.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -38,4 +40,8 @@ public interface HotelRepository extends JpaRepository<Hotel, Integer> {
     List<Hotel> findByOwnerId(int ownerId);
 
     Optional<Hotel> findByIdAndOwnerId(int id, int ownerId);
+
+    Page<Hotel> findByApprovalStatus(String approvalStatus, Pageable pageable);
+
+    Page<Hotel> findByApprovalStatusAndNameContainingIgnoreCase(String approvalStatus, String name, Pageable pageable);
 }

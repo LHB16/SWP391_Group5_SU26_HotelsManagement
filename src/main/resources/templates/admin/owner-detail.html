@@ -56,8 +56,8 @@
                             Hotel Owner Profile &amp; Verification Details
                         </p>
                     </div>
-                    <!-- Verification status badge in header -->
-                    <div class="ms-auto">
+                    <!-- Verification status badge & Toggle Account Status Button in header -->
+                    <div class="ms-auto d-flex align-items-center gap-3 flex-wrap">
                         <span class="badge-status badge-status-warning"
                               th:if="${selectedOwner.verificationStatus == 'PENDING'}"
                               style="font-size: 0.85rem; padding: 0.4rem 1rem;">Pending Verification</span>
@@ -67,6 +67,18 @@
                         <span class="badge-status badge-status-danger"
                               th:if="${selectedOwner.verificationStatus == 'REJECTED'}"
                               style="font-size: 0.85rem; padding: 0.4rem 1rem;">Rejected</span>
+
+                        <!-- Toggle Status Button -->
+                        <button type="button"
+                                class="btn fw-semibold d-flex align-items-center gap-2 text-white border-0"
+                                data-bs-toggle="modal"
+                                data-bs-target="#toggleOwnerStatusModal"
+                                th:classappend="${selectedOwner.userAccount.enabled} ? 'btn-danger' : 'btn-success'"
+                                style="border-radius: 10px; padding: 9px 20px; font-size: 0.88rem;">
+                            <i th:if="${selectedOwner.userAccount.enabled}" data-lucide="user-x" style="width: 18px; height: 18px; stroke-width: 1.5;"></i>
+                            <i th:if="${!selectedOwner.userAccount.enabled}" data-lucide="user-check" style="width: 18px; height: 18px; stroke-width: 1.5;"></i>
+                            <span th:text="${selectedOwner.userAccount.enabled} ? 'Disable Account' : 'Enable Account'">Toggle Status</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -80,12 +92,12 @@
                                style="font-size: 0.75rem; letter-spacing: 0.05em;">Owner ID</small>
                         <span class="fw-bold text-dark" th:text="'#' + ${selectedOwner.id}">#0</span>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <small class="text-uppercase text-muted d-block fw-bold mb-1"
                                style="font-size: 0.75rem; letter-spacing: 0.05em;">Username</small>
                         <span class="text-dark fw-medium" th:text="${selectedOwner.userAccount.username}">-</span>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <small class="text-uppercase text-muted d-block fw-bold mb-1"
                                style="font-size: 0.75rem; letter-spacing: 0.05em;">Email Address</small>
                         <span class="text-dark fw-medium" th:text="${selectedOwner.userAccount.email}">-</span>
@@ -94,6 +106,13 @@
                         <small class="text-uppercase text-muted d-block fw-bold mb-1"
                                style="font-size: 0.75rem; letter-spacing: 0.05em;">Phone Number</small>
                         <span class="text-dark fw-medium" th:text="${selectedOwner.phone}">-</span>
+                    </div>
+                    <div class="col-md-2">
+                        <small class="text-uppercase text-muted d-block fw-bold mb-1"
+                               style="font-size: 0.75rem; letter-spacing: 0.05em;">Status</small>
+                        <span class="badge-status"
+                              th:classappend="${selectedOwner.userAccount.enabled} ? 'badge-status-success' : 'badge-status-danger'"
+                              th:text="${selectedOwner.userAccount.enabled} ? 'Active' : 'Inactive'">Active</span>
                     </div>
                 </div>
 
@@ -335,6 +354,72 @@
                         </div>
 
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toggle Status Confirmation Modal -->
+        <div class="modal fade" id="toggleOwnerStatusModal" tabindex="-1" aria-labelledby="toggleOwnerStatusModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
+
+                    <!-- Modal Header -->
+                    <div class="modal-header border-0 pb-0" style="padding: 24px 24px 12px;">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                 th:style="${selectedOwner.userAccount.enabled}
+                                     ? 'width: 44px; height: 44px; background: rgba(220,38,38,0.1); color: #dc2626;'
+                                     : 'width: 44px; height: 44px; background: rgba(22,163,74,0.1); color: #16a34a;'">
+                                <i data-lucide="shield-alert" style="width: 22px; height: 22px; stroke-width: 1.5;"></i>
+                            </div>
+                            <h5 class="modal-title fw-bold mb-0 text-dark" id="toggleOwnerStatusModalLabel"
+                                th:text="${selectedOwner.userAccount.enabled} ? 'Confirm Disable Account' : 'Confirm Enable Account'"
+                                style="font-size: 1.05rem;">Confirm Status Change</h5>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <!-- Modal Body -->
+                    <div class="modal-body" style="padding: 12px 24px 20px;">
+                        <div class="rounded-3 p-3 mb-3"
+                             th:style="${selectedOwner.userAccount.enabled}
+                                 ? 'background: #fff7ed; border: 1px solid #fed7aa;'
+                                 : 'background: #f0fdf4; border: 1px solid #bbf7d0;'">
+                            <p class="mb-1 fw-semibold"
+                               th:style="${selectedOwner.userAccount.enabled} ? 'color: #c2410c; font-size: 0.9rem;' : 'color: #15803d; font-size: 0.9rem;'"
+                               th:text="${selectedOwner.userAccount.enabled}
+                                   ? 'This action will DISABLE the owner account:'
+                                   : 'This action will ENABLE the owner account:'">
+                            </p>
+                            <p class="mb-0 fw-bold text-dark" style="font-size: 1rem;"
+                               th:text="${selectedOwner.fullName} + ' (@' + ${selectedOwner.userAccount.username} + ')'"></p>
+                        </div>
+                        <p class="text-muted mb-0" style="font-size: 0.875rem;"
+                           th:text="${selectedOwner.userAccount.enabled}
+                               ? 'The owner will not be able to log in or manage their hotels until re-activated. Are you sure?'
+                               : 'The owner will be able to log in and manage their hotels normally. Are you sure?'">
+                        </p>
+                    </div>
+
+                    <!-- Modal Footer -->
+                    <div class="modal-footer border-0" style="padding: 0 24px 24px; gap: 10px;">
+                        <button type="button" class="btn btn-light fw-medium border-0" data-bs-dismiss="modal"
+                                style="border-radius: 8px; padding: 8px 20px; background-color: #f1f5f9; color: #334155;">
+                            Cancel
+                        </button>
+                        <form th:action="@{/admin/toggle-owner-status}" method="post" style="display: inline;">
+                            <input type="hidden" name="ownerId" th:value="${selectedOwner.id}" />
+                            <button type="submit"
+                                    class="btn fw-semibold d-flex align-items-center gap-2 text-white border-0"
+                                    style="border-radius: 8px; padding: 8px 20px;"
+                                    th:classappend="${selectedOwner.userAccount.enabled} ? 'btn-danger' : 'btn-success'">
+                                <i th:if="${selectedOwner.userAccount.enabled}" data-lucide="user-x" style="width: 18px; height: 18px; stroke-width: 1.5;"></i>
+                                <i th:if="${!selectedOwner.userAccount.enabled}" data-lucide="user-check" style="width: 18px; height: 18px; stroke-width: 1.5;"></i>
+                                <span th:text="${selectedOwner.userAccount.enabled} ? 'Confirm Disable' : 'Confirm Enable'">Confirm</span>
+                            </button>
+                        </form>
+                    </div>
+
                 </div>
             </div>
         </div>

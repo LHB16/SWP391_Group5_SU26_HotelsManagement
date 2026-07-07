@@ -170,10 +170,20 @@ public class HotelController {
                 String safeFilename = System.currentTimeMillis() + "_"
                         + (originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_") : "hotel.jpg");
                 Path uploadPath = resolveStaticDir(HOTEL_IMAGE_SUBDIR);
+                Path targetFile = uploadPath.resolve(safeFilename);
                 Files.copy(imageFile.getInputStream(),
-                        uploadPath.resolve(safeFilename),
+                        targetFile,
                         StandardCopyOption.REPLACE_EXISTING);
                 imageUrl = HOTEL_IMAGE_URL_PREFIX + safeFilename;
+
+                // Sync to target/classes for instant hot reload
+                Path classesPath = Paths.get(System.getProperty("user.dir"), "target", "classes", "static", HOTEL_IMAGE_SUBDIR).toAbsolutePath().normalize();
+                if (Files.exists(Paths.get(System.getProperty("user.dir"), "target", "classes", "static"))) {
+                    if (!Files.exists(classesPath)) {
+                        Files.createDirectories(classesPath);
+                    }
+                    Files.copy(targetFile, classesPath.resolve(safeFilename), StandardCopyOption.REPLACE_EXISTING);
+                }
             } catch (IOException e) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Image upload failed: " + e.getMessage());
                 return "redirect:/hotels/new";
@@ -354,10 +364,20 @@ public class HotelController {
                 String safeFilename = System.currentTimeMillis() + "_"
                         + (originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_") : "hotel.jpg");
                 Path uploadPath = resolveStaticDir(HOTEL_IMAGE_SUBDIR);
+                Path targetFile = uploadPath.resolve(safeFilename);
                 Files.copy(imageFile.getInputStream(),
-                        uploadPath.resolve(safeFilename),
+                        targetFile,
                         StandardCopyOption.REPLACE_EXISTING);
                 hotel.setImageUrl(HOTEL_IMAGE_URL_PREFIX + safeFilename);
+
+                // Sync to target/classes for instant hot reload
+                Path classesPath = Paths.get(System.getProperty("user.dir"), "target", "classes", "static", HOTEL_IMAGE_SUBDIR).toAbsolutePath().normalize();
+                if (Files.exists(Paths.get(System.getProperty("user.dir"), "target", "classes", "static"))) {
+                    if (!Files.exists(classesPath)) {
+                        Files.createDirectories(classesPath);
+                    }
+                    Files.copy(targetFile, classesPath.resolve(safeFilename), StandardCopyOption.REPLACE_EXISTING);
+                }
             } catch (IOException e) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Image upload failed: " + e.getMessage());
                 return "redirect:/owner/hotels/" + hotelId + "/edit";

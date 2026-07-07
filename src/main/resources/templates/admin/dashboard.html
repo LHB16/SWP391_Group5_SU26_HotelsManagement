@@ -38,6 +38,10 @@
                             <i data-lucide="file-check" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
                             <span>Verification Requests</span>
                         </button>
+                        <button class="sidebar-link" th:classappend="${tab == 'hotelApprovalPanel'} ? 'active' : ''" data-tab="hotelApprovalPanel">
+                            <i data-lucide="hotel" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
+                            <span>Hotel Approvals</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -357,6 +361,126 @@
                                     
                                     <a th:href="@{/admin/dashboard(page=${ownerCurrentPage + 1}, tab='verificationPanel', searchQuery=${searchQuery}, searchType=${searchType})}"
                                        class="page-link-custom" th:classappend="${ownerCurrentPage + 1 >= ownerTotalPages} ? 'disabled' : ''">
+                                        <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL 4: HOTEL APPROVALS -->
+                <div id="hotelApprovalPanel" class="tab-panel" th:classappend="${tab == 'hotelApprovalPanel'} ? 'active' : ''">
+                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                        <div>
+                            <h1 class="fw-bold text-dark m-0">Admin Dashboard</h1>
+                            <p class="text-muted m-0 mt-1">Review and approve or reject pending hotel registrations.</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-section">
+                        <div class="customer-layout-single">
+                            
+                            <div class="customer-list-box-full">
+                                <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                                    <i data-lucide="hotel" style="stroke-width: 1.5; width: 18px; height: 18px; color: #4f46e5;"></i>
+                                    Pending Hotels List
+                                </h5>
+
+                                <!-- Search & Filter Form (Pure Thymeleaf/HTML GET) -->
+                                <form th:action="@{/admin/dashboard}" method="get" class="mb-4">
+                                    <input type="hidden" name="tab" value="hotelApprovalPanel" />
+                                    <div class="row g-2">
+                                        <div class="col-md-10">
+                                            <input type="text" name="searchQuery" class="form-control filter-select w-100" 
+                                                   placeholder="Search pending hotels by name..." th:value="${searchQuery}" style="height: 100%; min-height: 42px;" />
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="submit" class="btn btn-primary w-100" style="min-height: 42px; border-radius: 8px; font-weight: 600; background-color: #4f46e5; border-color: #4f46e5;">
+                                                Search
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 text-end" th:if="${searchQuery != null && !searchQuery.isEmpty()}">
+                                        <a th:href="@{/admin/dashboard(tab='hotelApprovalPanel')}" class="text-muted small" style="text-decoration: underline;">Clear search filter</a>
+                                    </div>
+                                </form>
+
+                                <div class="list-group">
+                                    <!-- Loop pending hotels -->
+                                    <div class="list-group-item border-0 py-3 mb-3 rounded-3 shadow-sm bg-light" th:each="h : ${pendingHotels}">
+                                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                                            <div class="d-flex gap-3 align-items-center">
+                                                <div class="bg-secondary-subtle text-secondary rounded-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; overflow: hidden; border: 1px solid #e2e8f0;">
+                                                    <img th:if="${h.imageUrl != null}" th:src="${h.imageUrl}" alt="Hotel Image" style="width: 100%; height: 100%; object-fit: cover;" />
+                                                    <i th:if="${h.imageUrl == null}" data-lucide="image" style="width: 32px; height: 32px; stroke-width: 1.5;"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="fw-bold text-dark mb-1" th:text="${h.name}">Hotel Name</h6>
+                                                    <div class="text-muted small mb-1">
+                                                        <i data-lucide="map-pin" style="width: 14px; height: 14px; stroke-width: 1.5; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
+                                                        <span th:text="${h.address} + (h.city != null ? ', ' + h.city : '')" style="vertical-align: middle;">Address</span>
+                                                    </div>
+                                                    <div class="text-muted small">
+                                                        <i data-lucide="user" style="width: 14px; height: 14px; stroke-width: 1.5; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
+                                                        <span th:text="'Owner: ' + ${h.owner.fullName} + ' (' + ${h.owner.userAccount.email} + ')'" style="vertical-align: middle;">Owner</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex flex-column align-items-end gap-2">
+                                                <span class="badge-status badge-status-warning">Pending Approval</span>
+                                                <a th:href="@{/admin/owner-detail(id=${h.owner.id})}" class="btn btn-sm btn-outline-primary" style="font-size: 0.8rem; border-radius: 6px; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px;">
+                                                    <i data-lucide="external-link" style="width: 14px; height: 14px; stroke-width: 1.5;"></i>
+                                                    <span>View Owner &amp; Docs</span>
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-3 pt-3 border-top d-flex gap-2 align-items-center flex-wrap">
+                                            <!-- Approve Button/Form -->
+                                            <form th:action="@{/admin/hotel/approve}" method="post">
+                                                <input type="hidden" name="hotelId" th:value="${h.id}" />
+                                                <button type="submit" class="btn btn-success btn-sm fw-semibold d-flex align-items-center gap-1 border-0" style="border-radius: 6px; padding: 8px 16px; background-color: #10b981; color: #ffffff;">
+                                                    <i data-lucide="check" style="width: 16px; height: 16px; stroke-width: 2;"></i>
+                                                    <span>Approve Hotel</span>
+                                                </button>
+                                            </form>
+                                            
+                                            <!-- Reject Form -->
+                                            <form th:action="@{/admin/hotel/reject}" method="post" class="d-flex gap-2 flex-grow-1 align-items-center">
+                                                <input type="hidden" name="hotelId" th:value="${h.id}" />
+                                                <input type="text" name="rejectionReason" class="form-control form-control-sm" placeholder="Enter reason for rejection (required)..." required style="border-radius: 6px; font-size: 0.85rem; height: 35px; border: 1.5px solid #e2e8f0;" />
+                                                <button type="submit" class="btn btn-danger btn-sm fw-semibold d-flex align-items-center gap-1 border-0 flex-shrink-0" style="border-radius: 6px; padding: 8px 16px; background-color: #ef4444; color: #ffffff; height: 35px;">
+                                                    <i data-lucide="x" style="width: 16px; height: 16px; stroke-width: 2;"></i>
+                                                    <span>Reject</span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Empty State -->
+                                    <div class="text-center text-muted py-5 border border-dashed rounded-3 bg-light" th:if="${#lists.isEmpty(pendingHotels)}">
+                                        <i data-lucide="hotel" class="text-muted mb-2" style="width: 36px; height: 36px; stroke-width: 1.5;"></i>
+                                        <div>No pending hotels waiting for approval.</div>
+                                    </div>
+                                </div>
+
+                                <!-- Pagination for Hotels -->
+                                <div class="pagination-container" th:if="${hotelTotalPages > 1}">
+                                    <a th:href="@{/admin/dashboard(page=${hotelCurrentPage - 1}, tab='hotelApprovalPanel', searchQuery=${searchQuery})}"
+                                       class="page-link-custom" th:classappend="${hotelCurrentPage == 0} ? 'disabled' : ''">
+                                        <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>
+                                    </a>
+                                    
+                                    <th:block th:each="i : ${#numbers.sequence(0, hotelTotalPages - 1)}">
+                                        <a th:href="@{/admin/dashboard(page=${i}, tab='hotelApprovalPanel', searchQuery=${searchQuery})}"
+                                           class="page-link-custom" th:classappend="${hotelCurrentPage == i} ? 'active' : ''"
+                                           th:text="${i + 1}">1</a>
+                                    </th:block>
+                                    
+                                    <a th:href="@{/admin/dashboard(page=${hotelCurrentPage + 1}, tab='hotelApprovalPanel', searchQuery=${searchQuery})}"
+                                       class="page-link-custom" th:classappend="${hotelCurrentPage + 1 >= hotelTotalPages} ? 'disabled' : ''">
                                         <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
                                     </a>
                                 </div>
