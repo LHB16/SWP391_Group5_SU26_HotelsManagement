@@ -31,9 +31,9 @@
 
         <!-- Back Navigation -->
         <div class="mb-4">
-            <a th:href="@{/admin/dashboard(tab='verificationPanel')}" class="back-btn">
+            <a th:href="@{/admin/dashboard(tab='hotelOwnerAccounts')}" class="back-btn">
                 <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
-                <span>Back to Verification Requests</span>
+                <span>Back to Hotel Owner Accounts</span>
             </a>
         </div>
 
@@ -248,11 +248,38 @@
                                     <small class="text-muted ms-3" th:if="${hotel.city != null}"
                                            th:text="${hotel.city}">City</small>
                                 </div>
-                                <!-- Right: Hotel ID + rating -->
-                                <div class="text-end">
+                                <!-- Right: Hotel ID + rating & Actions -->
+                                <div class="text-end d-flex flex-column align-items-end gap-2">
                                     <div class="text-muted small" th:text="'Hotel ID: #' + ${hotel.id}">#0</div>
                                     <div class="fw-semibold text-dark mt-1"
                                          th:text="${#numbers.formatDecimal(hotel.rating, 1, 'COMMA', 1, 'POINT')} + ' ★'">0.0 ★</div>
+                                    
+                                    <!-- Active/Inactive buttons -->
+                                    <div class="d-flex gap-2 mt-2">
+                                        <!-- Active Button Trigger Modal -->
+                                        <button type="button"
+                                                class="btn btn-sm d-flex align-items-center gap-1 text-white border-0"
+                                                th:disabled="${hotel.active}"
+                                                th:classappend="${hotel.active} ? 'btn-secondary opacity-50' : 'btn-success'"
+                                                data-bs-toggle="modal"
+                                                th:data-bs-target="'#activeHotelModal-' + ${hotel.id}"
+                                                style="border-radius: 8px; padding: 5px 12px; font-size: 0.78rem; font-weight: 600;">
+                                            <i data-lucide="check-circle" style="width: 14px; height: 14px; stroke-width: 2;"></i>
+                                            <span>Active</span>
+                                        </button>
+                                        
+                                        <!-- Inactive Button Trigger Modal -->
+                                        <button type="button"
+                                                class="btn btn-sm d-flex align-items-center gap-1 text-white border-0"
+                                                th:disabled="${!hotel.active}"
+                                                th:classappend="${!hotel.active} ? 'btn-secondary opacity-50' : 'btn-danger'"
+                                                data-bs-toggle="modal"
+                                                th:data-bs-target="'#inactiveHotelModal-' + ${hotel.id}"
+                                                style="border-radius: 8px; padding: 5px 12px; font-size: 0.78rem; font-weight: 600;">
+                                            <i data-lucide="x-circle" style="width: 14px; height: 14px; stroke-width: 2;"></i>
+                                            <span>Inactive</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -353,10 +380,106 @@
                             </div>
                         </div>
 
+                        <!-- Active Hotel Confirmation Modal -->
+                        <div class="modal fade" th:id="'activeHotelModal-' + ${hotel.id}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
+                                    <!-- Modal Header -->
+                                    <div class="modal-header border-0 pb-0" style="padding: 24px 24px 12px;">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                                 style="width: 44px; height: 44px; background: rgba(22,163,74,0.1); color: #16a34a;">
+                                                <i data-lucide="shield-alert" style="width: 22px; height: 22px; stroke-width: 1.5;"></i>
+                                            </div>
+                                            <h5 class="modal-title fw-bold mb-0 text-dark" style="font-size: 1.05rem;">Confirm Activate Hotel</h5>
+                                        </div>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <!-- Modal Body -->
+                                    <div class="modal-body" style="padding: 12px 24px 20px;">
+                                        <div class="rounded-3 p-3 mb-3" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+                                            <p class="mb-1 fw-semibold" style="color: #15803d; font-size: 0.9rem;">
+                                                This action will ACTIVATE the hotel:
+                                            </p>
+                                            <p class="mb-0 fw-bold text-dark" style="font-size: 1rem;" th:text="${hotel.name}"></p>
+                                        </div>
+                                        <p class="text-muted mb-0" style="font-size: 0.875rem;">
+                                            The hotel will be visible on the website and open for customer bookings. Are you sure?
+                                        </p>
+                                    </div>
+                                    <!-- Modal Footer -->
+                                    <div class="modal-footer border-0" style="padding: 0 24px 24px; gap: 10px;">
+                                        <button type="button" class="btn btn-light fw-medium border-0" data-bs-dismiss="modal"
+                                                style="border-radius: 8px; padding: 8px 20px; background-color: #f1f5f9; color: #334155;">
+                                            Cancel
+                                        </button>
+                                        <form th:action="@{/admin/owner-hotel/set-active}" method="post" style="display: inline;">
+                                            <input type="hidden" name="hotelId" th:value="${hotel.id}" />
+                                            <input type="hidden" name="ownerId" th:value="${selectedOwner.id}" />
+                                            <input type="hidden" name="active" th:value="true" />
+                                            <button type="submit"
+                                                    class="btn btn-success fw-semibold d-flex align-items-center gap-2 text-white border-0"
+                                                    style="border-radius: 8px; padding: 8px 20px;">
+                                                <i data-lucide="check-circle" style="width: 18px; height: 18px; stroke-width: 1.5;"></i>
+                                                <span>Confirm Activate</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Inactive Hotel Confirmation Modal -->
+                        <div class="modal fade" th:id="'inactiveHotelModal-' + ${hotel.id}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
+                                    <!-- Modal Header -->
+                                    <div class="modal-header border-0 pb-0" style="padding: 24px 24px 12px;">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                                 style="width: 44px; height: 44px; background: rgba(220,38,38,0.1); color: #dc2626;">
+                                                <i data-lucide="shield-alert" style="width: 22px; height: 22px; stroke-width: 1.5;"></i>
+                                            </div>
+                                            <h5 class="modal-title fw-bold mb-0 text-dark" style="font-size: 1.05rem;">Confirm Deactivate Hotel</h5>
+                                        </div>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <!-- Modal Body -->
+                                    <div class="modal-body" style="padding: 12px 24px 20px;">
+                                        <div class="rounded-3 p-3 mb-3" style="background: #fff7ed; border: 1px solid #fed7aa;">
+                                            <p class="mb-1 fw-semibold" style="color: #c2410c; font-size: 0.9rem;">
+                                                This action will DEACTIVATE the hotel:
+                                            </p>
+                                            <p class="mb-0 fw-bold text-dark" style="font-size: 1rem;" th:text="${hotel.name}"></p>
+                                        </div>
+                                        <p class="text-muted mb-0" style="font-size: 0.875rem;">
+                                            The hotel will be hidden from website searches and bookings will be suspended. Are you sure?
+                                        </p>
+                                    </div>
+                                    <!-- Modal Footer -->
+                                    <div class="modal-footer border-0" style="padding: 0 24px 24px; gap: 10px;">
+                                        <button type="button" class="btn btn-light fw-medium border-0" data-bs-dismiss="modal"
+                                                style="border-radius: 8px; padding: 8px 20px; background-color: #f1f5f9; color: #334155;">
+                                            Cancel
+                                        </button>
+                                        <form th:action="@{/admin/owner-hotel/set-active}" method="post" style="display: inline;">
+                                            <input type="hidden" name="hotelId" th:value="${hotel.id}" />
+                                            <input type="hidden" name="ownerId" th:value="${selectedOwner.id}" />
+                                            <input type="hidden" name="active" th:value="false" />
+                                            <button type="submit"
+                                                    class="btn btn-danger fw-semibold d-flex align-items-center gap-2 text-white border-0"
+                                                    style="border-radius: 8px; padding: 8px 20px;">
+                                                <i data-lucide="x-circle" style="width: 18px; height: 18px; stroke-width: 1.5;"></i>
+                                                <span>Confirm Inactivate</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
-            </div>
-        </div>
 
         <!-- Toggle Status Confirmation Modal -->
         <div class="modal fade" id="toggleOwnerStatusModal" tabindex="-1" aria-labelledby="toggleOwnerStatusModalLabel" aria-hidden="true">

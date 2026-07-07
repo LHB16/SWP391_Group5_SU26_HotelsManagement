@@ -18,12 +18,14 @@ import vn.edu.fpt.hotel_management.entity.User;
 import vn.edu.fpt.hotel_management.entity.Customer;
 import vn.edu.fpt.hotel_management.entity.HotelOwner;
 import vn.edu.fpt.hotel_management.entity.HotelVerificationDocument;
+import vn.edu.fpt.hotel_management.entity.FeedbackReply;
 import vn.edu.fpt.hotel_management.repository.BookingRepository;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 import vn.edu.fpt.hotel_management.repository.UserRepository;
 import vn.edu.fpt.hotel_management.repository.CustomerRepository;
 import vn.edu.fpt.hotel_management.repository.HotelOwnerRepository;
 import vn.edu.fpt.hotel_management.repository.HotelVerificationDocumentRepository;
+import vn.edu.fpt.hotel_management.repository.FeedbackReplyRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -50,6 +52,9 @@ public class AdminDashboardController {
 
     @Autowired
     private HotelVerificationDocumentRepository hotelVerificationDocumentRepository;
+
+    @Autowired
+    private FeedbackReplyRepository feedbackReplyRepository;
 
     @GetMapping("/admin/dashboard")
     public String showAdminDashboard(
@@ -110,7 +115,7 @@ public class AdminDashboardController {
         model.addAttribute("customerTotalPages", customerPage.getTotalPages());
 
         // --- Xử lý Owner ---
-        if ("verificationPanel".equals(tab) && searchQuery != null && !searchQuery.trim().isEmpty()) {
+        if ("hotelOwnerAccounts".equals(tab) && searchQuery != null && !searchQuery.trim().isEmpty()) {
             String query = searchQuery.trim();
             if ("id".equals(searchType)) {
                 try {
@@ -129,11 +134,11 @@ public class AdminDashboardController {
                 ownerPage = hotelOwnerRepository.findByUserAccountUsernameContainingIgnoreCase(query, searchPageable);
             }
         } else {
-            Pageable ownerPageable = "verificationPanel".equals(tab) ? defaultOwnerPageable : PageRequest.of(0, 5, Sort.by("userAccount.username").ascending());
+            Pageable ownerPageable = "hotelOwnerAccounts".equals(tab) ? defaultOwnerPageable : PageRequest.of(0, 5, Sort.by("userAccount.username").ascending());
             ownerPage = hotelOwnerRepository.findAll(ownerPageable);
         }
         model.addAttribute("owners", ownerPage.getContent());
-        model.addAttribute("ownerCurrentPage", "verificationPanel".equals(tab) ? page : 0);
+        model.addAttribute("ownerCurrentPage", "hotelOwnerAccounts".equals(tab) ? page : 0);
         model.addAttribute("ownerTotalPages", ownerPage.getTotalPages());
 
         // --- Xử lý Hotel Approval ---
@@ -150,6 +155,36 @@ public class AdminDashboardController {
         model.addAttribute("pendingHotels", pendingHotelPage.getContent());
         model.addAttribute("hotelCurrentPage", "hotelApprovalPanel".equals(tab) ? page : 0);
         model.addAttribute("hotelTotalPages", pendingHotelPage.getTotalPages());
+
+        // --- Xử lý Hotel Management ---
+        Pageable defaultManagedHotelPageable = PageRequest.of(page, 5, Sort.by("id").descending());
+        Page<Hotel> managedHotelPage = Page.empty(defaultManagedHotelPageable);
+
+        if ("hotelManagementPanel".equals(tab) && searchQuery != null && !searchQuery.trim().isEmpty()) {
+            String query = searchQuery.trim();
+            managedHotelPage = hotelRepository.findByNameContainingIgnoreCase(query, searchPageable);
+        } else {
+            Pageable managedHotelPageable = "hotelManagementPanel".equals(tab) ? defaultManagedHotelPageable : PageRequest.of(0, 5, Sort.by("id").descending());
+            managedHotelPage = hotelRepository.findAll(managedHotelPageable);
+        }
+        model.addAttribute("managedHotels", managedHotelPage.getContent());
+        model.addAttribute("managedHotelCurrentPage", "hotelManagementPanel".equals(tab) ? page : 0);
+        model.addAttribute("managedHotelTotalPages", managedHotelPage.getTotalPages());
+
+        // --- Xử lý Owner Feedback ---
+        Pageable defaultFeedbackReplyPageable = PageRequest.of(page, 5, Sort.by("id").descending());
+        Page<FeedbackReply> feedbackReplyPage = Page.empty(defaultFeedbackReplyPageable);
+
+        if ("ownerFeedbackPanel".equals(tab) && searchQuery != null && !searchQuery.trim().isEmpty()) {
+            String query = searchQuery.trim();
+            feedbackReplyPage = feedbackReplyRepository.searchFeedbackReplies(query, searchPageable);
+        } else {
+            Pageable feedbackReplyPageable = "ownerFeedbackPanel".equals(tab) ? defaultFeedbackReplyPageable : PageRequest.of(0, 5, Sort.by("id").descending());
+            feedbackReplyPage = feedbackReplyRepository.findAllWithAssociations(feedbackReplyPageable);
+        }
+        model.addAttribute("feedbackReplies", feedbackReplyPage.getContent());
+        model.addAttribute("feedbackReplyCurrentPage", "ownerFeedbackPanel".equals(tab) ? page : 0);
+        model.addAttribute("feedbackReplyTotalPages", feedbackReplyPage.getTotalPages());
 
         // --- Lưu lại thông tin search nếu có ---
         if (searchQuery != null && !searchQuery.trim().isEmpty()) {
@@ -365,7 +400,7 @@ public class AdminDashboardController {
         // Tìm hotel owner
         HotelOwner selectedOwner = hotelOwnerRepository.findById(ownerId).orElse(null);
         if (selectedOwner == null) {
-            return "redirect:/admin/dashboard?tab=verificationPanel";
+            return "redirect:/admin/dashboard?tab=hotelOwnerAccounts";
         }
         model.addAttribute("selectedOwner", selectedOwner);
 
@@ -403,7 +438,7 @@ public class AdminDashboardController {
         HotelOwner owner = hotelOwnerRepository.findById(ownerId).orElse(null);
         if (owner == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Hotel Owner not found.");
-            return "redirect:/admin/dashboard?tab=verificationPanel";
+            return "redirect:/admin/dashboard?tab=hotelOwnerAccounts";
         }
 
         owner.setVerificationStatus("APPROVED");
@@ -438,7 +473,7 @@ public class AdminDashboardController {
         HotelOwner owner = hotelOwnerRepository.findById(ownerId).orElse(null);
         if (owner == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Hotel Owner not found.");
-            return "redirect:/admin/dashboard?tab=verificationPanel";
+            return "redirect:/admin/dashboard?tab=hotelOwnerAccounts";
         }
 
         owner.setVerificationStatus("REJECTED");
@@ -465,7 +500,7 @@ public class AdminDashboardController {
         HotelVerificationDocument doc = hotelVerificationDocumentRepository.findById(docId).orElse(null);
         if (doc == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Verification document not found.");
-            return "redirect:/admin/dashboard?tab=verificationPanel";
+            return "redirect:/admin/dashboard?tab=hotelOwnerAccounts";
         }
 
         doc.setUploadStatus("APPROVED");
@@ -487,7 +522,7 @@ public class AdminDashboardController {
         }
 
         redirectAttributes.addFlashAttribute("successMessage", "Hotel verification documents approved successfully.");
-        return ownerId > 0 ? "redirect:/admin/owner-detail?id=" + ownerId : "redirect:/admin/dashboard?tab=verificationPanel";
+        return ownerId > 0 ? "redirect:/admin/owner-detail?id=" + ownerId : "redirect:/admin/dashboard?tab=hotelOwnerAccounts";
     }
 
     @PostMapping("/admin/verify-hotel/reject")
@@ -506,7 +541,7 @@ public class AdminDashboardController {
         HotelVerificationDocument doc = hotelVerificationDocumentRepository.findById(docId).orElse(null);
         if (doc == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Verification document not found.");
-            return "redirect:/admin/dashboard?tab=verificationPanel";
+            return "redirect:/admin/dashboard?tab=hotelOwnerAccounts";
         }
 
         doc.setUploadStatus("REJECTED");
@@ -527,7 +562,7 @@ public class AdminDashboardController {
         }
 
         redirectAttributes.addFlashAttribute("successMessage", "Hotel verification documents rejected.");
-        return ownerId > 0 ? "redirect:/admin/owner-detail?id=" + ownerId : "redirect:/admin/dashboard?tab=verificationPanel";
+        return ownerId > 0 ? "redirect:/admin/owner-detail?id=" + ownerId : "redirect:/admin/dashboard?tab=hotelOwnerAccounts";
     }
 
     @PostMapping("/admin/toggle-owner-status")
@@ -545,7 +580,7 @@ public class AdminDashboardController {
         HotelOwner targetOwner = hotelOwnerRepository.findById(ownerId).orElse(null);
         if (targetOwner == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Owner account not found.");
-            return "redirect:/admin/dashboard?tab=verificationPanel";
+            return "redirect:/admin/dashboard?tab=hotelOwnerAccounts";
         }
         User targetUser = targetOwner.getUserAccount();
 
@@ -633,5 +668,89 @@ public class AdminDashboardController {
 
         redirectAttributes.addFlashAttribute("successMessage", "Hotel \"" + hotel.getName() + "\" rejected.");
         return "redirect:/admin/dashboard?tab=hotelApprovalPanel";
+    }
+
+    @PostMapping("/admin/hotel/toggle-active")
+    public String toggleHotelActive(
+            @RequestParam("hotelId") int hotelId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+
+        // Kiểm tra phân quyền admin
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"ADMIN".equals(loggedInUser.getRole())) {
+            return "redirect:/login";
+        }
+
+        Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
+        if (hotel == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Hotel not found.");
+            return "redirect:/admin/dashboard?tab=hotelManagementPanel";
+        }
+
+        boolean newStatus = !hotel.isActive();
+        hotel.setActive(newStatus);
+        hotelRepository.save(hotel);
+
+        String action = newStatus ? "activated" : "deactivated";
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Hotel \"" + hotel.getName() + "\" has been " + action + " successfully.");
+
+        return "redirect:/admin/dashboard?tab=hotelManagementPanel&page=" + page;
+    }
+
+    @PostMapping("/admin/owner-hotel/set-active")
+    public String setOwnerHotelActive(
+            @RequestParam("hotelId") int hotelId,
+            @RequestParam("ownerId") int ownerId,
+            @RequestParam("active") boolean active,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+
+        // Kiểm tra phân quyền admin
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"ADMIN".equals(loggedInUser.getRole())) {
+            return "redirect:/login";
+        }
+
+        Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
+        if (hotel == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Hotel not found.");
+            return "redirect:/admin/owner-detail?id=" + ownerId;
+        }
+
+        hotel.setActive(active);
+        hotelRepository.save(hotel);
+
+        String action = active ? "activated" : "deactivated";
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Hotel \"" + hotel.getName() + "\" has been " + action + " successfully.");
+
+        return "redirect:/admin/owner-detail?id=" + ownerId;
+    }
+
+    @PostMapping("/admin/feedback-reply/delete")
+    public String deleteFeedbackReply(
+            @RequestParam("replyId") int replyId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+
+        // Kiểm tra phân quyền admin
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"ADMIN".equals(loggedInUser.getRole())) {
+            return "redirect:/login";
+        }
+
+        FeedbackReply reply = feedbackReplyRepository.findById(replyId).orElse(null);
+        if (reply == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Owner reply not found.");
+            return "redirect:/admin/dashboard?tab=ownerFeedbackPanel";
+        }
+
+        feedbackReplyRepository.delete(reply);
+        redirectAttributes.addFlashAttribute("successMessage", "Deleted owner reply successfully.");
+        return "redirect:/admin/dashboard?tab=ownerFeedbackPanel&page=" + page;
     }
 }
