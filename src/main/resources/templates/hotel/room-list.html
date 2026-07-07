@@ -67,11 +67,11 @@
                             </div>
 
                             <div class="d-grid gap-2 mt-4">
-                                <button type="submit" class="btn btn-gold btn-sm" id="roomFilterSubmit">
-                                    <i class="bi bi-search me-1"></i>
+                                <button type="submit" class="btn btn-gold btn-sm d-flex align-items-center justify-content-center" id="roomFilterSubmit">
+                                    <i class="bi bi-search me-2"></i>
                                     Search Rooms
                                 </button>
-                                <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}" class="btn btn-outline-secondary btn-sm">
+                                <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}" class="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center">
                                     Clear Filters
                                 </a>
                             </div>
