@@ -10,27 +10,8 @@
     <!-- Khu vực hiển thị thông tin chính -->
     <main class="container mt-5 flex-grow-1">
         <div class="row">
-            <!-- Cột bên trái: Thanh bên (Sidebar) chuyển đổi nhanh -->
-            <div class="col-md-3 mb-4">
-                <div class="profile-sidebar shadow-sm">
-                    <div class="profile-sidebar-title">PROFILE MANAGEMENT</div>
-                    <ul class="profile-sidebar-menu">
-                        <li class="profile-sidebar-item">
-                            <a th:href="@{/profile}" class="profile-sidebar-link">
-                                View Profile
-                            </a>
-                        </li>
-                        <li class="profile-sidebar-item">
-                            <a th:href="@{/profile/edit}" class="profile-sidebar-link active">
-                                Modify Profile
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Cột bên phải: Giao diện nhập mã OTP -->
-            <div class="col-md-9">
+            <!-- Giao diện nhập mã OTP -->
+            <div class="col-lg-8 mx-auto">
                 <!-- Hiển thị thông báo lỗi nếu có -->
                 <div th:if="${errorMessage}" class="alert alert-danger border-0 px-3 py-2 mb-3 profile-alert-box" th:text="${errorMessage}"></div>
                 <div th:if="${successMessage}" class="alert alert-success border-0 px-3 py-2 mb-3 profile-alert-box" th:text="${successMessage}"></div>

@@ -576,7 +576,8 @@ public class PaymentController {
                     .header("x-api-key", payosApiKey)
                     .GET().build();
             String body = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
-            if (body != null && body.contains("\"PAID\"")) {
+            boolean isPaid = body != null && java.util.regex.Pattern.compile("\"status\"\\s*:\\s*\"PAID\"").matcher(body).find();
+            if (isPaid) {
                 if (payment != null) {
                     String accountNumber = extractJsonField(body, "counterAccountNumber");
                     String bankName = extractJsonField(body, "counterAccountBankName");
