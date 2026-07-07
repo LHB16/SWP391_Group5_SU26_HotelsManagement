@@ -1,134 +1,469 @@
 <!-- src/main/resources/templates/owner/dashboard.html -->
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" lang="en" class="h-100">
+
 <head>
     <th:block th:replace="~{fragment/frag :: head}"></th:block>
+    <link th:href="@{/assets/css/dashboard.css}" rel="stylesheet"/>
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
 
-<!-- Header dùng chung với các trang khác -->
+<body class="d-flex flex-column h-100">
+
 <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
-<!-- Main Content -->
-<main class="flex-shrink-0">
-    <div class="container py-4">
-        <div class="row">
+<main class="flex-shrink-0 dashboard-container container-fluid">
+    <div class="row">
 
-            <!-- Sidebar -->
-            <div class="col-lg-3 col-md-4 mb-4">
-                <div class="owner-sidebar">
-                    <div class="text-center mb-4">
-                        <div class="avatar-icon mx-auto">
-                            <span th:text="${#strings.substring(user.fullName, 0, 1).toUpperCase()}">O</span>
-                        </div>
-                        <h6 class="mt-2 fw-bold" th:text="${user.fullName}">Owner</h6>
-                        <span class="role-badge">HOTEL OWNER</span>
-                    </div>
-                    <hr>
-                    <nav class="nav flex-column">
-                        <a class="nav-link active" href="/owner/dashboard">
-                            <i data-lucide="layout-dashboard"></i> Overview
-                        </a>
-                        <a class="nav-link" href="#">
-                            <i data-lucide="hotel"></i> Hotels
-                        </a>
-                        <a class="nav-link" href="#">
-                            <i data-lucide="door-open"></i> Rooms
-                        </a>
-                        <a class="nav-link" href="#">
-                            <i data-lucide="calendar-check"></i> Bookings
-                        </a>
-                        <a class="nav-link" href="#">
-                            <i data-lucide="chart-line"></i> Revenue
-                        </a>
-                    </nav>
+        <!-- Sidebar -->
+        <div class="col-lg-3 col-md-4 mb-4">
+            <div class="sidebar-box">
+                <div class="px-3 mb-4 text-muted text-uppercase small font-weight-bold">
+                    Owner Navigation
+                </div>
+                <div class="sidebar-nav">
+                    <button class="sidebar-link" th:classappend="${tab == 'overview'} ? 'active' : ''" data-tab="overview">
+                        <i data-lucide="layout-dashboard" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
+                        <span>Dashboard</span>
+                    </button>
+                    <button class="sidebar-link" th:classappend="${tab == 'bookings'} ? 'active' : ''" data-tab="bookings">
+                        <i data-lucide="calendar-check" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
+                        <span>Bookings</span>
+                    </button>
+                    <button class="sidebar-link" th:classappend="${tab == 'hotels'} ? 'active' : ''" data-tab="hotels">
+                        <i data-lucide="hotel" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
+                        <span>My Hotels</span>
+                    </button>
+                    <a th:href="@{/chat/inbox}" class="sidebar-link text-decoration-none text-dark d-flex align-items-center gap-2">
+                        <i data-lucide="message-square" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
+                        <span>Inbox (Chat)</span>
+                    </a>
                 </div>
             </div>
+        </div>
 
-            <!-- Content -->
-            <div class="col-lg-9 col-md-8">
+        <!-- Content -->
+        <div class="col-lg-9 col-md-8">
 
-                <!-- Header -->
+            <!-- ========================================================= -->
+            <!-- PANEL 1: OVERVIEW -->
+            <!-- ========================================================= -->
+            <div id="overview" class="tab-panel" th:classappend="${tab == 'overview'} ? 'active' : ''">
+
                 <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
                     <div>
                         <h1 class="fw-bold text-dark m-0">Owner Dashboard</h1>
                         <p class="text-muted m-0 mt-1">
-                            Welcome back, <strong th:text="${user.fullName}"></strong>!
+                            Welcome back, <strong th:text="${owner.fullName}">Owner</strong>!
                         </p>
                     </div>
                     <div class="text-muted">
-                        <i data-lucide="calendar" class="me-1"></i>
+                        <i data-lucide="calendar" class="me-1" style="width: 16px; height: 16px;"></i>
                         <span id="currentDateTime"></span>
                     </div>
                 </div>
 
-                <!-- Stats -->
+                <!-- Flash Messages -->
+                <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
+                    <i data-lucide="check-circle"></i>
+                    <span th:text="${successMessage}"></span>
+                </div>
+                <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+                    <i data-lucide="alert-circle"></i>
+                    <span th:text="${errorMessage}"></span>
+                </div>
+
+                <!-- Stat Cards -->
                 <div class="row g-4 mb-4">
                     <div class="col-md-3">
-                        <div class="owner-stat-card card-hotels">
-                            <div class="stat-icon"><i data-lucide="hotel"></i></div>
-                            <div class="stat-value">0</div>
-                            <div class="stat-label">Hotels</div>
+                        <div class="stat-card card-hotels">
+                            <div class="stat-icon"><i data-lucide="hotel" style="stroke-width: 1.5;"></i></div>
+                            <div class="stat-value" th:text="${totalHotels}">0</div>
+                            <div class="stat-label">Total Hotels</div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="owner-stat-card">
-                            <div class="stat-icon"><i data-lucide="door-open"></i></div>
-                            <div class="stat-value">0</div>
-                            <div class="stat-label">Rooms</div>
+                        <div class="stat-card card-rooms">
+                            <div class="stat-icon"><i data-lucide="door-open" style="stroke-width: 1.5;"></i></div>
+                            <div class="stat-value" th:text="${totalRooms}">0</div>
+                            <div class="stat-label">Total Rooms</div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="owner-stat-card card-bookings">
-                            <div class="stat-icon"><i data-lucide="calendar-check"></i></div>
-                            <div class="stat-value">0</div>
-                            <div class="stat-label">Bookings</div>
+                        <div class="stat-card card-bookings">
+                            <div class="stat-icon"><i data-lucide="calendar-check" style="stroke-width: 1.5;"></i></div>
+                            <div class="stat-value" th:text="${totalBookings}">0</div>
+                            <div class="stat-label">Total Bookings</div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="owner-stat-card card-revenue">
-                            <div class="stat-icon"><i data-lucide="dollar-sign"></i></div>
-                            <div class="stat-value">0 VND</div>
-                            <div class="stat-label">Revenue</div>
+                        <div class="stat-card card-revenue">
+                            <div class="stat-icon"><i data-lucide="dollar-sign" style="stroke-width: 1.5;"></i></div>
+                            <div class="stat-value" th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</div>
+                            <div class="stat-label">Total Revenue</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Alert -->
-                <div class="alert alert-info d-flex align-items-center gap-3">
-                    <i data-lucide="info" style="color: #4f46e5;"></i>
-                    <div>
-                        <strong>Welcome to Owner Dashboard!</strong>
-                        <p class="mb-0 text-muted small">Manage your hotels, rooms, and bookings from here.</p>
-                    </div>
-                </div>
-
-                <!-- Empty State -->
-                <div class="owner-section">
-                    <div class="text-center py-5">
-                        <i data-lucide="construction" class="text-muted mb-3" style="width: 64px; height: 64px;"></i>
-                        <h4>Dashboard Under Construction</h4>
-                        <p class="text-muted">Features will be available soon.</p>
-                        <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
-                            <span class="badge bg-primary">Hotels</span>
-                            <span class="badge bg-success">Rooms</span>
-                            <span class="badge bg-warning text-dark">Bookings</span>
-                            <span class="badge bg-danger">Revenue</span>
-                        </div>
+                <!-- Recent Bookings -->
+                <div class="dashboard-section">
+                    <h2 class="section-title">
+                        <i data-lucide="clock" style="stroke-width: 1.5; color: #4f46e5;"></i>
+                        Recent Bookings
+                    </h2>
+                    <div class="custom-table-container">
+                        <table class="custom-table">
+                            <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>Customer</th>
+                                <th>Hotel</th>
+                                <th>Room Type</th>
+                                <th>Check-in</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="b : ${recentBookings}">
+                                <td><strong th:text="'#' + ${b.bookingId}">#1</strong></td>
+                                <td th:text="${b.customerName}">Customer</td>
+                                <td th:text="${b.hotelName}">Hotel</td>
+                                <td th:text="${b.roomType}">Room Type</td>
+                                <td th:text="${b.checkInDate}">Date</td>
+                                <td>
+                                    <strong class="text-success"
+                                            th:text="${#numbers.formatDecimal(b.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' VND'">
+                                        0 VND
+                                    </strong>
+                                </td>
+                                <td>
+                                    <span class="badge-status"
+                                          th:classappend="${b.bookingStatus == 'CONFIRMED'} ? 'badge-status-success' :
+                                                         (${b.bookingStatus == 'PENDING'} ? 'badge-status-warning' :
+                                                         (${b.bookingStatus == 'CANCELLED'} ? 'badge-status-danger' : 'badge-status-neutral'))"
+                                          th:text="${b.bookingStatus}">STATUS</span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(recentBookings)}">
+                                <td colspan="7" class="text-center text-muted py-5">
+                                    <i data-lucide="inbox" class="d-block mx-auto mb-2" style="width: 40px; height: 40px; opacity: 0.4;"></i>
+                                    No bookings found for your hotels.
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
             </div>
+
+            <!-- ========================================================= -->
+            <!-- PANEL 2: BOOKINGS -->
+            <!-- ========================================================= -->
+            <div id="bookings" class="tab-panel" th:classappend="${tab == 'bookings'} ? 'active' : ''">
+
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                    <div>
+                        <h1 class="fw-bold text-dark m-0">Bookings Management</h1>
+                        <p class="text-muted m-0 mt-1">View and manage all bookings for your hotels</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-section">
+                    <h2 class="section-title">
+                        <i data-lucide="list" style="stroke-width: 1.5; color: #4f46e5;"></i>
+                        All Bookings
+                    </h2>
+                    <div class="custom-table-container">
+                        <table class="custom-table">
+                            <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>Customer</th>
+                                <th>Hotel</th>
+                                <th>Room Type</th>
+                                <th>Check-in</th>
+                                <th>Check-out</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Payment</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="b : ${recentBookings}">
+                                <td><strong th:text="'#' + ${b.bookingId}">#1</strong></td>
+                                <td th:text="${b.customerName}">Customer</td>
+                                <td th:text="${b.hotelName}">Hotel</td>
+                                <td th:text="${b.roomType}">Room Type</td>
+                                <td th:text="${b.checkInDate}">In</td>
+                                <td th:text="${b.checkOutDate}">Out</td>
+                                <td>
+                                    <strong class="text-success"
+                                            th:text="${#numbers.formatDecimal(b.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' VND'">
+                                        0 VND
+                                    </strong>
+                                </td>
+                                <td>
+                                    <span class="badge-status"
+                                          th:classappend="${b.bookingStatus == 'CONFIRMED'} ? 'badge-status-success' :
+                                                         (${b.bookingStatus == 'PENDING'} ? 'badge-status-warning' :
+                                                         (${b.bookingStatus == 'CANCELLED'} ? 'badge-status-danger' : 'badge-status-neutral'))"
+                                          th:text="${b.bookingStatus}">STATUS</span>
+                                </td>
+                                <td>
+                                    <span class="badge-status"
+                                          th:classappend="${b.paymentStatus == 'PAID'} ? 'badge-status-success' :
+                                                         (${b.paymentStatus == 'PENDING'} ? 'badge-status-warning' : 'badge-status-danger')"
+                                          th:text="${b.paymentStatus}">PAYMENT</span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(recentBookings)}">
+                                <td colspan="9" class="text-center text-muted py-5">
+                                    <i data-lucide="inbox" class="d-block mx-auto mb-2" style="width: 40px; height: 40px; opacity: 0.4;"></i>
+                                    No bookings found.
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- PANEL 3: MY HOTELS -->
+            <!-- ========================================================= -->
+            <div id="hotels" class="tab-panel" th:classappend="${tab == 'hotels'} ? 'active' : ''">
+
+                <!-- Header với nút Add Hotel -->
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3 flex-wrap gap-2">
+                    <div>
+                        <h1 class="fw-bold text-dark m-0">My Hotels</h1>
+                        <p class="text-muted m-0 mt-1">Manage your hotel properties</p>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="text-muted small">
+                            <i data-lucide="hotel" style="width: 16px; height: 16px;"></i>
+                            <strong th:text="${totalHotels}">0</strong> hotels
+                        </span>
+                        <button class="btn-gold" onclick="openAddHotelModal()">
+                            <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+                            Add New Hotel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Flash Messages -->
+                <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
+                    <i data-lucide="check-circle"></i>
+                    <span th:text="${successMessage}"></span>
+                </div>
+                <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+                    <i data-lucide="alert-circle"></i>
+                    <span th:text="${errorMessage}"></span>
+                </div>
+
+                <!-- Hotel Grid -->
+                <div th:if="${not #lists.isEmpty(hotels)}" class="row g-4">
+                    <div th:each="hotel : ${hotels}" class="col-12 col-md-6 col-lg-4">
+                        <div class="card h-100 hotel-card" style="border-radius: 14px; border: 1px solid #f1f5f9; box-shadow: 0 4px 16px rgba(0,0,0,0.04); overflow: hidden;">
+
+                            <!-- Image -->
+                            <div class="position-relative overflow-hidden" style="height: 180px; background: #f1f5f9;">
+                                <img th:if="${hotel.imageUrl != null and !hotel.imageUrl.isEmpty()}"
+                                     th:src="@{${hotel.imageUrl}}" th:alt="${hotel.name}"
+                                     class="w-100 h-100 object-fit-cover" />
+                                <div th:if="${hotel.imageUrl == null or hotel.imageUrl.isEmpty()}"
+                                     class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
+                                    <i data-lucide="image" class="text-muted" style="width: 40px; height: 40px; opacity: 0.3;"></i>
+                                </div>
+                                <span class="badge position-absolute top-0 end-0 m-2"
+                                      th:classappend="${hotel.approvalStatus == 'APPROVED'} ? 'bg-success' :
+                                                     (${hotel.approvalStatus == 'REJECTED'} ? 'bg-danger' : 'bg-warning text-dark')"
+                                      th:text="${hotel.approvalStatus ?: 'PENDING'}">PENDING</span>
+                                <span class="badge position-absolute bottom-0 start-0 m-2"
+                                      style="background: rgba(0,0,0,0.6); color: #f59e0b; backdrop-filter: blur(4px);">
+                                    <i data-lucide="star" style="width: 12px; height: 12px; fill: #f59e0b;"></i>
+                                    <span th:text="${hotel.rating}">0.0</span>
+                                </span>
+                            </div>
+
+                            <!-- Body -->
+                            <div class="card-body">
+                                <h6 class="fw-bold text-dark mb-1" th:text="${hotel.name}">Hotel Name</h6>
+                                <p class="text-muted small mb-0">
+                                    <i data-lucide="map-pin" style="width: 12px; height: 12px;"></i>
+                                    <span th:text="${hotel.address}">Address</span>
+                                </p>
+                                <div class="mt-2 d-flex gap-2 flex-wrap">
+                                    <span class="badge bg-light text-dark">
+                                        <i data-lucide="star" style="width: 12px; height: 12px; color: #f59e0b;"></i>
+                                        <span th:text="${hotel.rating}">0.0</span>
+                                    </span>
+                                    <span class="badge bg-light text-dark">
+                                        <i data-lucide="door-open" style="width: 12px; height: 12px;"></i>
+                                        <span th:text="${roomCountMap.get(hotel.id)}">0</span> rooms
+                                    </span>
+                                    <span class="badge bg-light text-dark" th:if="${hotel.active}">
+                                        <i data-lucide="check-circle" style="width: 12px; height: 12px; color: #22c55e;"></i>
+                                        Active
+                                    </span>
+                                    <span class="badge bg-light text-dark" th:unless="${hotel.active}">
+                                        <i data-lucide="x-circle" style="width: 12px; height: 12px; color: #ef4444;"></i>
+                                        Inactive
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Footer -->
+                            <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div class="d-flex gap-2">
+                                    <!-- View Hotel Button -->
+                                    <a th:href="@{/owner/hotels/{id}(id=${hotel.id})}"
+                                       class="btn btn-sm btn-outline-info">
+                                        <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                                        View
+                                    </a>
+                                    <!-- Rooms Button -->
+                                    <a th:href="@{/owner/hotels/{id}/rooms(id=${hotel.id})}"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i data-lucide="door-open" style="width: 14px; height: 14px;"></i>
+                                        Rooms
+                                    </a>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <!-- Edit Button -->
+                                    <a th:href="@{/owner/hotels/{id}/edit(id=${hotel.id})}"
+                                       class="btn btn-sm btn-outline-secondary">
+                                        <i data-lucide="pencil" style="width: 14px; height: 14px;"></i>
+                                    </a>
+                                    <!-- Delete Button -->
+                                    <form th:action="@{/owner/dashboard/delete-hotel}"
+                                          method="post"
+                                          onsubmit="return confirm('Delete this hotel? This action cannot be undone!');">
+                                        <input type="hidden" name="hotelId" th:value="${hotel.id}" />
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${#lists.isEmpty(hotels)}" class="text-center py-5">
+                    <i data-lucide="building" class="d-block mx-auto mb-3" style="width: 60px; height: 60px; opacity: 0.3; color: #94a3b8;"></i>
+                    <h5 class="text-muted">You don't have any hotels yet</h5>
+                    <p class="text-muted">Register your first hotel to start managing</p>
+                    <button class="btn-gold mt-2" onclick="openAddHotelModal()">
+                        <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+                        Add Your First Hotel
+                    </button>
+                </div>
+            </div>
+
         </div>
     </div>
 </main>
 
-<!-- Footer -->
-<footer th:replace="~{fragment/frag :: footer}"></footer>
+<!-- ========================================================= -->
+<!-- MODAL: Add Hotel -->
+<!-- ========================================================= -->
+<div class="modal fade" id="addHotelModal" tabindex="-1" aria-labelledby="addHotelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow border-0" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0" style="padding: 24px 24px 0;">
+                <div>
+                    <h5 class="modal-title fw-bold" id="addHotelModalLabel">
+                        <i data-lucide="building" style="width: 20px; height: 20px; color: #c9a96e;"></i>
+                        Add New Hotel
+                    </h5>
+                    <p class="text-muted small mt-1">Fill in all hotel information below to register your hotel</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
 
-<!-- Scripts -->
+            <div class="modal-body" style="padding: 20px 24px 0;">
+                <form th:action="@{/owner/dashboard/add-hotel}"
+                      method="post"
+                      enctype="multipart/form-data"
+                      id="addHotelForm">
+
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Hotel Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control" placeholder="Enter hotel name" required maxlength="200" />
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Address <span class="text-danger">*</span></label>
+                            <input type="text" name="address" class="form-control" placeholder="Enter full address" required maxlength="500" />
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label fw-semibold">City <span class="text-danger">*</span></label>
+                            <input type="text" name="city" class="form-control" placeholder="Enter city" required maxlength="100" />
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label fw-semibold">District</label>
+                            <input type="text" name="district" class="form-control" placeholder="Enter district" maxlength="100" />
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Description</label>
+                            <textarea name="description" class="form-control" rows="3" placeholder="Describe your hotel, services, amenities..." style="resize: vertical;"></textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Hotel Image</label>
+                            <input type="file" name="imageFile" class="form-control" accept="image/jpeg,image/png,image/webp,image/jpg" />
+                            <small class="text-muted">JPG, PNG, WEBP · Max 10MB</small>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch"
+                                       id="activeCheckbox" name="active" value="true" checked />
+                                <label class="form-check-label fw-semibold" for="activeCheckbox">
+                                    Hotel Active
+                                </label>
+                            </div>
+                            <small class="text-muted">Enable/disable hotel visibility (admin approval required)</small>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="p-3 bg-light rounded-3" style="border-left: 4px solid #c9a96e;">
+                                <small class="text-muted">
+                                    <i data-lucide="info" style="width: 14px; height: 14px;"></i>
+                                    After registration, your hotel will be reviewed by admin before becoming visible to customers.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+
+            <div class="modal-footer border-0" style="padding: 16px 24px 24px;">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                    <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                    Cancel
+                </button>
+                <button type="button" class="btn-gold" onclick="document.getElementById('addHotelForm').submit();">
+                    <i data-lucide="floppy-disk" style="width: 16px; height: 16px;"></i>
+                    Register Hotel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragment/frag :: footer}"></footer>
 <th:block th:replace="~{fragment/frag :: scripts}"></th:block>
+
 <script th:src="@{/assets/js/owner-dashboard.js}"></script>
 </body>
 </html>

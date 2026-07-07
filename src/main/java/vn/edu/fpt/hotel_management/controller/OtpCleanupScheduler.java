@@ -4,6 +4,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import vn.edu.fpt.hotel_management.entity.User;
 import vn.edu.fpt.hotel_management.repository.UserRepository;
+import vn.edu.fpt.hotel_management.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,15 +13,19 @@ import java.util.List;
 public class OtpCleanupScheduler {
 
     private final UserRepository userRepository;
+    private final UserService userService;
 
-    public OtpCleanupScheduler(UserRepository userRepository) {
+    public OtpCleanupScheduler(UserRepository userRepository, UserService userService) {
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     @Scheduled(fixedRate = 60000)
     public void deleteExpiredUnverifiedUsers() {
         List<User> expired = userRepository
                 .findByEnabledFalseAndOtpExpiryBefore(LocalDateTime.now());
-        userRepository.deleteAll(expired);
+        for (User user : expired) {
+            userService.deleteUserCascaded(user);
+        }
     }
 }

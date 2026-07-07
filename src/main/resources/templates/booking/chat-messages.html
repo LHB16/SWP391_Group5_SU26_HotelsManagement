@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link th:href="@{/assets/css/style.css}" rel="stylesheet" />
+</head>
+<body class="bg-white p-3">
+    <div class="d-flex flex-column chat-messages-container">
+        <!-- Vòng lặp tin nhắn -->
+        <div th:each="msg : ${chatHistory}">
+
+            <!-- Tin nhắn được gửi bởi người dùng hiện tại (Căn lề PHẢI) -->
+            <div th:if="${msg.sender.id == currentUser.id}" class="d-flex flex-column align-items-end mb-4 message-item">
+                <div class="msg-wrapper-right">
+
+                    <!-- Bong bóng chat -->
+                    <div class="p-2 rounded text-white shadow-sm position-relative chat-bubble-right">
+                        <div th:if="${msg.content != null && !msg.content.isEmpty()}" th:text="${msg.content}" class="chat-msg-text">Message content</div>
+                        <!-- Hiển thị hình ảnh từ thư mục chat con dưới dạng Link bấm mở sang tab mới -->
+                        <a th:if="${msg.imageUrl != null}" th:href="@{/assets/images/chat/{img}(img=${msg.imageUrl})}" target="_blank" class="d-block">
+                            <img th:src="@{/assets/images/chat/{img}(img=${msg.imageUrl})}" class="chat-msg-image img-fluid" alt="Uploaded image" />
+                        </a>
+                        
+                        <small class="d-block text-end mt-1 text-muted-light chat-msg-time-right" th:text="${#temporals.format(msg.sentAt, 'HH:mm')}">12:00</small>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Tin nhắn được gửi bởi đối phương (Căn lề TRÁI) -->
+            <div th:if="${msg.sender.id != currentUser.id}" class="d-flex flex-column align-items-start mb-4 message-item">
+                <div class="msg-wrapper-left">
+
+                    <!-- Bong bóng chat -->
+                    <div class="p-2 rounded text-dark bg-light border shadow-sm position-relative chat-bubble-left">
+                        <strong class="d-block small text-muted mb-1 chat-sender-label" th:text="${msg.sender.username}">Sender</strong>
+                        <div th:if="${msg.content != null && !msg.content.isEmpty()}" th:text="${msg.content}" class="chat-msg-text">Message content</div>
+                        <!-- Hiển thị hình ảnh từ thư mục chat con dưới dạng Link bấm mở sang tab mới -->
+                        <a th:if="${msg.imageUrl != null}" th:href="@{/assets/images/chat/{img}(img=${msg.imageUrl})}" target="_blank" class="d-block">
+                            <img th:src="@{/assets/images/chat/{img}(img=${msg.imageUrl})}" class="chat-msg-image img-fluid" alt="Uploaded image" />
+                        </a>
+                        
+                        <small class="d-block text-muted mt-1 chat-msg-time-left" th:text="${#temporals.format(msg.sentAt, 'HH:mm')}">12:00</small>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Màn hình chờ khi chưa có tin nhắn -->
+        <div th:if="${#lists.isEmpty(chatHistory)}" class="text-center text-muted py-5 chat-empty-placeholder">
+            <i class="bi bi-chat-dots fs-1 d-block mb-2 chat-empty-icon"></i>
+            <p class="m-0 small">No messages yet. Send a message to start the conversation!</p>
+        </div>
+    </div>
+
+    <!-- Điểm neo ở cuối để tự động cuộn xuống khi tải lại trang -->
+    <div id="bottom"></div>
+
+    <!-- Script AJAX cập nhật nội dung tin nhắn không tải lại trang -->
+    <script>
+        function scrollToBottom() {
+            const bottomNeo = document.getElementById('bottom');
+            if (bottomNeo) {
+                bottomNeo.scrollIntoView({ behavior: 'auto' });
+            }
+        }
+
+        function loadMessages() {
+            fetch(window.location.href)
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newContent = doc.querySelector('.chat-messages-container').innerHTML;
+                    const container = document.querySelector('.chat-messages-container');
+                    
+                    if (container.innerHTML !== newContent) {
+                        container.innerHTML = newContent;
+                        scrollToBottom();
+                    }
+                })
+                .catch(err => console.error('Error load messages:', err));
+        }
+
+        // Cuộn xuống dưới cùng khi mới truy cập trang
+        window.addEventListener('DOMContentLoaded', scrollToBottom);
+
+        // Định kỳ lấy tin nhắn mới mỗi 3 giây thông qua AJAX (không reload iframe)
+        setInterval(loadMessages, 3000);
+    </script>
+</body>
+</html>

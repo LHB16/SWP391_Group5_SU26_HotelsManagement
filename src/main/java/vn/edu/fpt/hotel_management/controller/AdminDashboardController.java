@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,10 +16,14 @@ import vn.edu.fpt.hotel_management.entity.Booking;
 import vn.edu.fpt.hotel_management.entity.Hotel;
 import vn.edu.fpt.hotel_management.entity.User;
 import vn.edu.fpt.hotel_management.entity.Customer;
+import vn.edu.fpt.hotel_management.entity.HotelOwner;
+import vn.edu.fpt.hotel_management.entity.HotelVerificationDocument;
 import vn.edu.fpt.hotel_management.repository.BookingRepository;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 import vn.edu.fpt.hotel_management.repository.UserRepository;
 import vn.edu.fpt.hotel_management.repository.CustomerRepository;
+import vn.edu.fpt.hotel_management.repository.HotelOwnerRepository;
+import vn.edu.fpt.hotel_management.repository.HotelVerificationDocumentRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -39,6 +44,12 @@ public class AdminDashboardController {
 
     @Autowired
     private CustomerRepository customerRepository;
+
+    @Autowired
+    private HotelOwnerRepository hotelOwnerRepository;
+
+    @Autowired
+    private HotelVerificationDocumentRepository hotelVerificationDocumentRepository;
 
     @GetMapping("/admin/dashboard")
     public String showAdminDashboard(
@@ -65,33 +76,71 @@ public class AdminDashboardController {
         // Danh sách khách sạn phục vụ lọc doanh thu
         model.addAttribute("hotels", hotelRepository.findAll());
 
-        // Danh sách khách hàng kèm phân trang và tìm kiếm
-        Pageable pageable = PageRequest.of(page, 10);
-        Page<Customer> customerPage;
-        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+        // Danh sách khách hàng & chủ khách sạn kèm phân trang và tìm kiếm
+        Pageable defaultCustomerPageable = PageRequest.of(page, 5, Sort.by("userAccount.username").ascending());
+        Pageable defaultOwnerPageable = PageRequest.of(page, 5, Sort.by("userAccount.username").ascending());
+        Pageable searchPageable = PageRequest.of(page, 5); // When searching, sorting could be by relevance or default
+
+        Page<Customer> customerPage = Page.empty(defaultCustomerPageable);
+        Page<HotelOwner> ownerPage = Page.empty(defaultOwnerPageable);
+
+        // --- Xử lý Customer ---
+        if ("customerPanel".equals(tab) && searchQuery != null && !searchQuery.trim().isEmpty()) {
             String query = searchQuery.trim();
             if ("id".equals(searchType)) {
                 try {
                     int targetId = Integer.parseInt(query);
-                    customerPage = customerRepository.findById(targetId, pageable);
+                    customerPage = customerRepository.findById(targetId, searchPageable);
                 } catch (NumberFormatException e) {
-                    customerPage = Page.empty(pageable);
+                    customerPage = Page.empty(searchPageable);
                 }
             } else if ("fullName".equals(searchType)) {
-                customerPage = customerRepository.findByFullNameContainingIgnoreCase(query, pageable);
+                customerPage = customerRepository.findByFullNameContainingIgnoreCase(query, searchPageable);
             } else if ("email".equals(searchType)) {
-                customerPage = customerRepository.findByUserAccountEmailContainingIgnoreCase(query, pageable);
+                customerPage = customerRepository.findByUserAccountEmailContainingIgnoreCase(query, searchPageable);
             } else {
-                customerPage = customerRepository.findByUserAccountUsernameContainingIgnoreCase(query, pageable);
+                customerPage = customerRepository.findByUserAccountUsernameContainingIgnoreCase(query, searchPageable);
             }
-            model.addAttribute("searchQuery", searchQuery);
-            model.addAttribute("searchType", searchType);
         } else {
-            customerPage = customerRepository.findAll(pageable);
+            Pageable customerPageable = "customerPanel".equals(tab) ? defaultCustomerPageable : PageRequest.of(0, 5, Sort.by("userAccount.username").ascending());
+            customerPage = customerRepository.findAll(customerPageable);
         }
         model.addAttribute("customers", customerPage.getContent());
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", customerPage.getTotalPages());
+        model.addAttribute("customerCurrentPage", "customerPanel".equals(tab) ? page : 0);
+        model.addAttribute("customerTotalPages", customerPage.getTotalPages());
+
+        // --- Xử lý Owner ---
+        if ("verificationPanel".equals(tab) && searchQuery != null && !searchQuery.trim().isEmpty()) {
+            String query = searchQuery.trim();
+            if ("id".equals(searchType)) {
+                try {
+                    int targetId = Integer.parseInt(query);
+                    ownerPage = hotelOwnerRepository.findById(targetId, searchPageable);
+                } catch (NumberFormatException e) {
+                    ownerPage = Page.empty(searchPageable);
+                }
+            } else if ("fullName".equals(searchType)) {
+                ownerPage = hotelOwnerRepository.findByFullNameContainingIgnoreCase(query, searchPageable);
+            } else if ("email".equals(searchType)) {
+                ownerPage = hotelOwnerRepository.findByUserAccountEmailContainingIgnoreCase(query, searchPageable);
+            } else if ("phone".equals(searchType)) {
+                ownerPage = hotelOwnerRepository.findByPhoneContaining(query, searchPageable);
+            } else {
+                ownerPage = hotelOwnerRepository.findByUserAccountUsernameContainingIgnoreCase(query, searchPageable);
+            }
+        } else {
+            Pageable ownerPageable = "verificationPanel".equals(tab) ? defaultOwnerPageable : PageRequest.of(0, 5, Sort.by("userAccount.username").ascending());
+            ownerPage = hotelOwnerRepository.findAll(ownerPageable);
+        }
+        model.addAttribute("owners", ownerPage.getContent());
+        model.addAttribute("ownerCurrentPage", "verificationPanel".equals(tab) ? page : 0);
+        model.addAttribute("ownerTotalPages", ownerPage.getTotalPages());
+
+        // --- Lưu lại thông tin search nếu có ---
+        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+            model.addAttribute("searchQuery", searchQuery);
+            model.addAttribute("searchType", searchType);
+        }
 
         // Danh sách đặt phòng toàn hệ thống
         // Ánh xạ sang Map để tránh Lazy Loading Exception khi chuyển sang JSON
@@ -283,5 +332,186 @@ public class AdminDashboardController {
         });
 
         return result;
+    }
+
+    @GetMapping("/admin/owner-detail")
+    public String showOwnerDetail(
+            @RequestParam("id") int ownerId,
+            HttpSession session,
+            Model model) {
+
+        // Kiểm tra phân quyền admin
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"ADMIN".equals(loggedInUser.getRole())) {
+            return "redirect:/login";
+        }
+        model.addAttribute("user", loggedInUser);
+
+        // Tìm hotel owner
+        HotelOwner selectedOwner = hotelOwnerRepository.findById(ownerId).orElse(null);
+        if (selectedOwner == null) {
+            return "redirect:/admin/dashboard?tab=verificationPanel";
+        }
+        model.addAttribute("selectedOwner", selectedOwner);
+
+        // Lấy danh sách khách sạn thuộc sở hữu của owner này
+        List<Hotel> ownerHotels = hotelRepository.findByOwnerId(ownerId);
+        model.addAttribute("ownerHotels", ownerHotels);
+
+        // Tạo bản đồ tài liệu xác minh cho từng khách sạn
+        Map<Integer, HotelVerificationDocument> hotelDocMap = new HashMap<>();
+        for (Hotel hotel : ownerHotels) {
+            List<HotelVerificationDocument> docs = hotelVerificationDocumentRepository.findByHotelId(hotel.getId());
+            if (!docs.isEmpty()) {
+                hotelDocMap.put(hotel.getId(), docs.get(0));
+            } else {
+                hotelDocMap.put(hotel.getId(), null);
+            }
+        }
+        model.addAttribute("hotelDocMap", hotelDocMap);
+
+        return "admin/owner-detail";
+    }
+
+    @PostMapping("/admin/verify-owner/approve")
+    public String approveOwner(
+            @RequestParam("ownerId") int ownerId,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+
+        // Kiểm tra phân quyền admin
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"ADMIN".equals(loggedInUser.getRole())) {
+            return "redirect:/login";
+        }
+
+        HotelOwner owner = hotelOwnerRepository.findById(ownerId).orElse(null);
+        if (owner == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Hotel Owner not found.");
+            return "redirect:/admin/dashboard?tab=verificationPanel";
+        }
+
+        owner.setVerificationStatus("APPROVED");
+        owner.setVerifiedAt(LocalDateTime.now());
+        owner.setRejectionReason(null);
+        hotelOwnerRepository.save(owner);
+
+        // Enable user account as well to allow logging in
+        User user = owner.getUserAccount();
+        if (user != null) {
+            user.setEnabled(true);
+            userRepository.save(user);
+        }
+
+        redirectAttributes.addFlashAttribute("successMessage", "Hotel Owner \"" + owner.getFullName() + "\" has been approved successfully.");
+        return "redirect:/admin/owner-detail?id=" + ownerId;
+    }
+
+    @PostMapping("/admin/verify-owner/reject")
+    public String rejectOwner(
+            @RequestParam("ownerId") int ownerId,
+            @RequestParam("rejectionReason") String rejectionReason,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+
+        // Kiểm tra phân quyền admin
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"ADMIN".equals(loggedInUser.getRole())) {
+            return "redirect:/login";
+        }
+
+        HotelOwner owner = hotelOwnerRepository.findById(ownerId).orElse(null);
+        if (owner == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Hotel Owner not found.");
+            return "redirect:/admin/dashboard?tab=verificationPanel";
+        }
+
+        owner.setVerificationStatus("REJECTED");
+        owner.setVerifiedAt(LocalDateTime.now());
+        owner.setRejectionReason(rejectionReason);
+        hotelOwnerRepository.save(owner);
+
+        redirectAttributes.addFlashAttribute("successMessage", "Hotel Owner \"" + owner.getFullName() + "\" has been rejected.");
+        return "redirect:/admin/owner-detail?id=" + ownerId;
+    }
+
+    @PostMapping("/admin/verify-hotel/approve")
+    public String approveHotel(
+            @RequestParam("docId") int docId,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+
+        // Kiểm tra phân quyền admin
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"ADMIN".equals(loggedInUser.getRole())) {
+            return "redirect:/login";
+        }
+
+        HotelVerificationDocument doc = hotelVerificationDocumentRepository.findById(docId).orElse(null);
+        if (doc == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Verification document not found.");
+            return "redirect:/admin/dashboard?tab=verificationPanel";
+        }
+
+        doc.setUploadStatus("APPROVED");
+        doc.setVerifiedAt(LocalDateTime.now());
+        doc.setRejectionReason(null);
+        hotelVerificationDocumentRepository.save(doc);
+
+        Hotel hotel = doc.getHotel();
+        int ownerId = 0;
+        if (hotel != null) {
+            hotel.setApprovalStatus("APPROVED");
+            hotel.setActive(true);
+            hotel.setApprovedAt(LocalDateTime.now());
+            hotel.setRejectionReason(null);
+            hotelRepository.save(hotel);
+            if (hotel.getOwner() != null) {
+                ownerId = hotel.getOwner().getId();
+            }
+        }
+
+        redirectAttributes.addFlashAttribute("successMessage", "Hotel verification documents approved successfully.");
+        return ownerId > 0 ? "redirect:/admin/owner-detail?id=" + ownerId : "redirect:/admin/dashboard?tab=verificationPanel";
+    }
+
+    @PostMapping("/admin/verify-hotel/reject")
+    public String rejectHotel(
+            @RequestParam("docId") int docId,
+            @RequestParam("rejectionReason") String rejectionReason,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+
+        // Kiểm tra phân quyền admin
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"ADMIN".equals(loggedInUser.getRole())) {
+            return "redirect:/login";
+        }
+
+        HotelVerificationDocument doc = hotelVerificationDocumentRepository.findById(docId).orElse(null);
+        if (doc == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Verification document not found.");
+            return "redirect:/admin/dashboard?tab=verificationPanel";
+        }
+
+        doc.setUploadStatus("REJECTED");
+        doc.setVerifiedAt(LocalDateTime.now());
+        doc.setRejectionReason(rejectionReason);
+        hotelVerificationDocumentRepository.save(doc);
+
+        Hotel hotel = doc.getHotel();
+        int ownerId = 0;
+        if (hotel != null) {
+            hotel.setApprovalStatus("REJECTED");
+            hotel.setActive(false);
+            hotel.setRejectionReason(rejectionReason);
+            hotelRepository.save(hotel);
+            if (hotel.getOwner() != null) {
+                ownerId = hotel.getOwner().getId();
+            }
+        }
+
+        redirectAttributes.addFlashAttribute("successMessage", "Hotel verification documents rejected.");
+        return ownerId > 0 ? "redirect:/admin/owner-detail?id=" + ownerId : "redirect:/admin/dashboard?tab=verificationPanel";
     }
 }

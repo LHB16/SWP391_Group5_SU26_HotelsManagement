@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en" class="h-100">
+<head>
+    <th:block th:replace="~{fragment/frag :: head}"></th:block>
+</head>
+<body class="d-flex flex-column h-100 bg-cream">
+    <nav th:replace="~{fragment/frag :: navBar}"></nav>
+
+    <main class="flex-shrink-0 container-fluid my-4">
+        <div class="row g-4">
+            
+            <!-- CỘT 1: DANH SÁCH KHÁCH SẠN CỦA CHỦ NHÀ & KHÁCH HÀNG CHAT -->
+            <div class="col-lg-3 col-md-4 mb-4">
+                
+                <!-- Khối hiển thị danh sách các khách sạn -->
+                <div class="card shadow-sm border-0 mb-3 inbox-card-general">
+                    <div class="card-header text-white fw-bold py-3 chat-main-card-header">Your Hotels</div>
+                    <div class="list-group list-group-flush">
+                        <a th:each="h : ${hotels}" 
+                           th:href="@{/chat/inbox(hotelId=${h.id})}" 
+                           th:classappend="${h.id == activeHotel.id} ? 'bg-light text-dark fw-bold border-start border-3 border-gold' : ''" 
+                           class="list-group-item list-group-item-action d-flex align-items-center justify-content-between py-3">
+                            <span th:text="${h.name}">Hotel Name</span>
+                            <span class="badge chat-owner-badge" th:text="${h.city}">City</span>
+                        </a>
+                        <div th:if="${#lists.isEmpty(hotels)}" class="p-3 text-center text-muted">
+                            You have no hotels registered.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Khối hiển thị danh sách khách hàng đang chat với khách sạn được chọn -->
+                <div th:if="${activeHotel != null}" class="card shadow-sm border-0 inbox-card-general">
+                    <div class="card-header text-white fw-bold py-3 chat-main-card-header">Inbox Users</div>
+                    <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                        <a th:each="c : ${customers}" 
+                           th:href="@{/chat/inbox(hotelId=${activeHotel.id}, customerId=${c.id})}" 
+                           th:classappend="${activeCustomer != null and c.id == activeCustomer.id} ? 'bg-light text-dark fw-bold border-start border-3 border-gold' : ''" 
+                           class="list-group-item list-group-item-action py-3">
+                            <div class="text-truncate" th:text="${c.username}">Customer Name</div>
+                            <small class="text-muted text-truncate d-block" th:text="${c.email}">Email</small>
+                        </a>
+                        <div th:if="${#lists.isEmpty(customers)}" class="p-4 text-center text-muted">
+                            No chats found for this hotel.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CỘT 2: KHUNG CHAT CHI TIẾT VỚI KHÁCH HÀNG -->
+            <div class="col-lg-9 col-md-8">
+                <div class="card shadow-sm border-0 h-100 d-flex flex-column inbox-card-chat">
+                    
+                    <!-- Tiêu đề cuộc hội thoại -->
+                    <div class="card-header bg-white border-bottom py-3 inbox-chat-header">
+                        <div th:if="${activeCustomer != null}">
+                            <h6 class="m-0 fw-bold text-dark">
+                                Chatting with: <span th:text="${activeCustomer.username}" class="text-navy">Customer</span>
+                            </h6>
+                            <small class="text-muted">Hotel: <strong th:text="${activeHotel.name}">Hotel Name</strong></small>
+                        </div>
+                        <div th:if="${activeCustomer == null}">
+                            <h6 class="m-0 text-muted fw-bold">Inbox Overview</h6>
+                        </div>
+                    </div>
+
+                    <!-- Khung hiển thị nội dung tin nhắn Iframe -->
+                    <div class="card-body p-0 flex-grow-1 bg-white">
+                        <iframe th:if="${activeCustomer != null}" 
+                                th:src="@{/owner/chat/messages(hotelId=${activeHotel.id}, customerId=${activeCustomer.id})}" 
+                                name="chat-frame" 
+                                class="chat-iframe-inbox"></iframe>
+                        <div th:if="${activeCustomer == null}" class="d-flex flex-column align-items-center justify-content-center h-100 text-muted py-5">
+                            <i class="bi bi-chat-left-dots fs-1 mb-2 chat-empty-icon"></i>
+                            <p class="mt-2 small">Select a customer thread to view and reply.</p>
+                        </div>
+                    </div>
+
+                    <!-- Khung nhập và gửi phản hồi -->
+                    <div th:if="${activeCustomer != null}" class="card-footer bg-white border-top p-3">
+                        <!-- Khung xem trước hình ảnh trước khi gửi -->
+                        <div id="imagePreviewContainer" class="chat-preview-container d-none">
+                            <img id="imagePreview" class="chat-preview-image img-thumbnail" src="" alt="Preview">
+                            <button type="button" id="clearImageBtn" class="chat-preview-clear">&times;</button>
+                        </div>
+
+                        <!-- Form gửi phản hồi bằng AJAX -->
+                        <form th:action="@{/owner/chat/send}" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="hotelId" th:value="${activeHotel.id}">
+                            <input type="hidden" name="customerId" th:value="${activeCustomer.id}">
+                            <div class="input-group">
+                                <input type="text" class="form-control chat-input-text" name="content" autocomplete="off" placeholder="Type a reply...">
+                                <!-- Nút chọn hình ảnh tải lên -->
+                                <label class="btn btn-outline-secondary chat-upload-label">
+                                    <i class="bi bi-image chat-upload-icon"></i>
+                                    <input type="file" name="imageFile" id="imageFileInput" accept="image/*" class="chat-upload-input">
+                                </label>
+                                <button class="btn chat-send-btn" type="submit">Reply</button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer th:replace="~{fragment/frag :: footer}"></footer>
+    <div th:replace="~{fragment/frag :: scripts}"></div>
+
+    <!-- Script xử lý xem trước hình ảnh chọn tải lên và gửi tin nhắn không tải lại trang -->
+    <script th:if="${activeCustomer != null}">
+        document.getElementById('imageFileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('imagePreviewContainer').classList.remove('d-none');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        document.getElementById('clearImageBtn').addEventListener('click', function() {
+            document.getElementById('imageFileInput').value = '';
+            document.getElementById('imagePreviewContainer').classList.add('d-none');
+            document.getElementById('imagePreview').src = '';
+        });
+
+        // Xử lý gửi tin nhắn của Chủ nhà bằng AJAX
+        const chatForm = document.querySelector('form');
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const contentInput = chatForm.querySelector('.chat-input-text');
+            const fileInput = document.getElementById('imageFileInput');
+            
+            if (!contentInput.value.trim() && (!fileInput.files || fileInput.files.length === 0)) {
+                return;
+            }
+
+            const formData = new FormData(chatForm);
+            fetch(chatForm.action, {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    // Reset input
+                    contentInput.value = '';
+                    fileInput.value = '';
+                    
+                    // Reset xem trước ảnh
+                    document.getElementById('imagePreviewContainer').classList.add('d-none');
+                    document.getElementById('imagePreview').src = '';
+                    
+                    // Kích hoạt cập nhật danh sách tin nhắn của Iframe ngay lập tức
+                    const iframe = document.querySelector('iframe');
+                    if (iframe && iframe.contentWindow && typeof iframe.contentWindow.loadMessages === 'function') {
+                        iframe.contentWindow.loadMessages();
+                    }
+                }
+            }).catch(err => console.error('Error sending reply:', err));
+        });
+    </script>
+</body>
+</html>

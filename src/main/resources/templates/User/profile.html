@@ -12,9 +12,8 @@
         <div class="row">
             <!-- Giao diện hiển thị chi tiết thông tin và sửa đổi trực tiếp từng trường -->
             <div class="col-lg-8 mx-auto">
-                <!-- Hiển thị thông báo thành công hoặc lỗi nếu có (cho phần profile) -->
-                <div th:if="${successMessage}" class="alert alert-success border-0 px-3 py-2 mb-3 profile-alert-box" th:text="${successMessage}"></div>
-                <div th:if="${errorMessage}" class="alert alert-danger border-0 px-3 py-2 mb-3 profile-alert-box" th:text="${errorMessage}"></div>
+                <!-- Global Popups -->
+                <th:block th:replace="~{fragment/frag :: alerts}"></th:block>
 
                 <!-- --- CHẾ ĐỘ THÔNG TIN PROFILE CHI TIẾT --- -->
                 <div>

@@ -105,40 +105,188 @@
                     </div>
 
                     <!-- ====== DANH SÁCH BOOKING ====== -->
-                    <div th:if="${bookings != null and !#lists.isEmpty(bookings)}" class="bh-grid-list">
-                        <!-- Lặp qua từng booking của người dùng dưới dạng grid card giống hình 1 -->
-                        <a th:each="booking : ${bookings}" th:href="@{/booking/detail/{id}(id=${booking.id})}" class="bh-grid-card">
-                            <!-- Ảnh phòng bên trên -->
-                            <div class="bh-grid-card-img-wrap">
-                                <!-- Hiển thị ảnh nếu có imgUrl -->
-                                <img th:if="${booking.room.imgUrl != null and !#strings.isEmpty(booking.room.imgUrl)}"
-                                     th:src="@{${booking.room.imgUrl}}"
-                                     th:alt="${booking.room.type}"
-                                     class="bh-grid-card-img"/>
-                                <!-- Placeholder nếu không có ảnh -->
-                                <div th:unless="${booking.room.imgUrl != null and !#strings.isEmpty(booking.room.imgUrl)}"
-                                     class="bh-grid-card-img-placeholder">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-door-closed"><path d="M18 20V6a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14"/><path d="M2 20h20"/><path d="M14 12v.01"/></svg>
-                                </div>
-                            </div>
+                    <div th:if="${bookings != null and !#lists.isEmpty(bookings)}" class="bh-card-list">
+                        <!-- Lặp qua từng booking của người dùng -->
+                        <div th:each="booking : ${bookings}" class="bh-card">
+                            <div class="bh-card-inner">
 
-                            <!-- Thông tin phòng bên dưới -->
-                            <div class="bh-grid-card-body">
-                                <div class="bh-grid-card-info">
-                                    <!-- Tên loại phòng -->
-                                    <h3 class="bh-grid-card-title" th:text="${booking.room.type}">Room Type</h3>
-                                    <!-- Ngày checkin-checkout -->
-                                    <p class="bh-grid-card-meta">
-                                        <span th:text="${#temporals.format(booking.checkInDate, 'MMM dd')} + ' – ' + ${#temporals.format(booking.checkOutDate, 'MMM dd')}">Apr 15 – Apr 17</span>
-                                        &nbsp;·&nbsp;1 booking
-                                    </p>
+                                <!-- Ảnh phòng bên trái -->
+                                <div class="bh-card-img-wrap">
+                                    <!-- Hiển thị ảnh nếu có imgUrl -->
+                                    <img th:if="${booking.room.imgUrl != null and !#strings.isEmpty(booking.room.imgUrl)}"
+                                         th:src="@{${booking.room.imgUrl}}"
+                                         th:alt="${booking.room.type}"
+                                         class="bh-card-img"/>
+                                    <!-- Placeholder nếu không có ảnh -->
+                                    <div th:unless="${booking.room.imgUrl != null and !#strings.isEmpty(booking.room.imgUrl)}"
+                                         class="bh-card-img-placeholder">
+                                        <i class="bi bi-door-closed" style="font-size: 48px;"></i>
+                                    </div>
                                 </div>
-                                <!-- Nút mũi tên chevron right bên phải -->
-                                <div class="bh-grid-card-arrow">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right"><path d="m9 18 6-6-6-6"/></svg>
+
+                                <!-- Nội dung thông tin booking bên phải -->
+                                <div class="bh-card-body">
+                                    <div>
+                                        <!-- Hàng trên: tên loại phòng + badge trạng thái -->
+                                        <div class="bh-card-top">
+                                            <div>
+                                                <!-- Tên loại phòng -->
+                                                <div class="bh-card-room-type" th:text="${booking.room.type}">Room Type</div>
+                                                <!-- Tên khách sạn -->
+                                                <div class="bh-card-hotel-name">
+                                                    <i class="bi bi-geo-alt"></i>
+                                                    <span th:text="${hotelMap[booking.room.hotelId] ?: 'Unknown Hotel'}">Hotel Name</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Badge trạng thái booking theo luồng thực tế -->
+                                            <!-- CONFIRMED = đã thanh toán, đang chờ check-in → hiển thị Pending (vàng) -->
+                                            <!-- DONE = đã check-in và check-out đúng ngày → hiển thị Done (xanh) -->
+                                            <!-- CANCELLED = đã hủy → hiển thị Cancelled (đỏ) -->
+                                            <!-- PENDING thuần = chưa hoàn tất thanh toán → hiển thị Unpaid (xám) -->
+                                            <span th:switch="${booking.status}">
+                                                <!-- Đã thanh toán, đang chờ check-in (vàng) -->
+                                                <span th:case="'CONFIRMED'" class="bh-badge bh-badge-pending">
+                                                    <i class="bi bi-clock"></i>
+                                                    Pending
+                                                </span>
+                                                <!-- Đã hoàn thành (checkin và checkout đúng ngày) (xanh lá) -->
+                                                <span th:case="'COMPLETED'" class="bh-badge bh-badge-done">
+                                                    <i class="bi bi-check-circle"></i>
+                                                    Completed
+                                                </span>
+                                                 <!-- Đã hủy bởi người dùng -->
+                                                 <span th:case="'CANCELLED'">
+                                                      <span th:if="${refundEligibleMap != null and refundEligibleMap[booking.id]}" class="bh-badge bh-badge-pending">
+                                                          <i class="bi bi-clock"></i>
+                                                          Pending
+                                                      </span>
+                                                     <span th:if="${refundEligibleMap == null or !refundEligibleMap[booking.id]}" class="bh-badge bh-badge-cancelled">
+                                                         <i class="bi bi-x-circle"></i>
+                                                         Cancelled
+                                                     </span>
+                                                 </span>
+                                                 <!-- Chưa hoàn tất thanh toán (trả về màu vàng nhạt/cam đất) -->
+                                                 <span th:case="'PENDING'" class="bh-badge" style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a;">
+                                                     <i class="bi bi-clock"></i>
+                                                     Unpaid
+                                                 </span>
+                                                <!-- Trạng thái không xác định -->
+                                                <span th:case="*" class="bh-badge bh-badge-default"
+                                                      th:text="${booking.status ?: 'Unknown'}">Unknown</span>
+                                            </span>
+                                        </div>
+
+                                        <!-- Các thông tin chi tiết: ngày check-in, check-out, số đêm, tổng tiền -->
+                                        <div class="bh-card-meta">
+                                            <div class="bh-meta-item">
+                                                <span class="bh-meta-label">Check-in</span>
+                                                <span class="bh-meta-value"
+                                                      th:text="${#temporals.format(booking.checkInDate, 'dd/MM/yyyy')}">01/01/2025</span>
+                                            </div>
+                                            <div class="bh-meta-item">
+                                                <span class="bh-meta-label">Check-out</span>
+                                                <span class="bh-meta-value"
+                                                      th:text="${#temporals.format(booking.checkOutDate, 'dd/MM/yyyy')}">05/01/2025</span>
+                                            </div>
+                                            <!-- Tính số đêm = checkOutDate - checkInDate -->
+                                            <div class="bh-meta-item">
+                                                <span class="bh-meta-label">Nights</span>
+                                                <span class="bh-meta-value"
+                                                      th:text="${booking.checkInDate != null and booking.checkOutDate != null ?
+                                                                 T(java.time.temporal.ChronoUnit).DAYS.between(booking.checkInDate, booking.checkOutDate) : '-'} + ' nights'">3 nights</span>
+                                            </div>
+                                            <!-- Tổng tiền thanh toán -->
+                                            <div class="bh-meta-item">
+                                                <span class="bh-meta-label">Total</span>
+                                                <span class="bh-meta-value bh-meta-value-price"
+                                                      th:text="${#numbers.formatInteger(booking.totalPrice, 3, 'COMMA') + ' ₫'}">0 ₫</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Nút hành động theo từng trạng thái + nút xóa luôn hiển thị -->
+                                    <div class="bh-card-actions">
+                                        <!-- CONFIRMED: hiển thị nút Cancel khi chưa đến ngày check-in -->
+                                        <form th:if="${booking.status == 'CONFIRMED' and cancelableMap.get(booking.id)}"
+                                              th:action="@{/booking/cancel/{id}(id=${booking.id})}"
+                                              method="post"
+                                              class="cancel-booking-form d-inline">
+                                             <!-- Thông báo chính sách hoàn tiền theo deadline -->
+                                             <button type="button" class="bh-btn-cancel trigger-cancel-btn"
+                                                     th:data-booking-id="${booking.id}"
+                                                     th:data-refund-policy="${refundPolicyMap.get(booking.id)}">
+                                                 <i class="bi bi-x-circle"></i>
+                                                 Cancel
+                                             </button>
+                                        </form>
+
+                                        <!-- Booking đã tới ngày check-in: không còn hủy được -->
+                                        <span th:if="${booking.status == 'CONFIRMED' and !cancelableMap.get(booking.id)}" class="bh-status-note bh-note-expired">
+                                             <i class="bi bi-lock"></i>
+                                             Non-cancellable
+                                        </span>
+
+                                         <!-- COMPLETED: hiện ghi chú hoàn thành + nút review dẫn tới trang khách sạn -->
+                                         <span th:if="${booking.status == 'COMPLETED'}" class="d-inline-flex align-items-center gap-2">
+                                             <span class="bh-status-note bh-note-done m-0">
+                                                 <i class="bi bi-patch-check"></i>
+                                                 Completed
+                                             </span>
+                                             <!-- Nếu đã đánh giá rồi -->
+                                             <span th:if="${reviewedBookingIds != null and reviewedBookingIds.contains(booking.id)}" class="badge bg-success text-white px-2 py-1 fs-7 fw-bold" style="border-radius: 4px; font-size: 12px;">
+                                                 <i class="bi bi-patch-check-fill me-1"></i> Reviewed
+                                             </span>
+                                             <!-- Nếu chưa đánh giá -->
+                                             <a th:if="${reviewedBookingIds == null or !reviewedBookingIds.contains(booking.id)}"
+                                                th:href="@{/hotels/{hotelId}/rooms(hotelId=${booking.room.hotelId}, bookingId=${booking.id})}"
+                                                class="btn btn-sm btn-gold text-white"
+                                                style="padding: 4px 12px; font-size: 13px; font-weight: 600; border-radius: 6px; background-color: var(--hotel-gold, #c5a880); border-color: var(--hotel-gold, #c5a880); text-decoration: none;">
+                                                 <i class="bi bi-star-fill me-1"></i> Review
+                                             </a>
+                                         </span>
+
+                                        <!-- CANCELLED: hiển thị trạng thái hoàn tiền tương ứng -->
+                                        <th:block th:if="${booking.status == 'CANCELLED'}">
+                                             <!-- Hiện nút Refund nếu payment có status REFUNDED và chưa gửi request -->
+                                             <a th:if="${refundEligibleMap != null and refundEligibleMap[booking.id]}"
+                                                th:href="@{/booking/cancel-policy(bookingId=${booking.id})}"
+                                                class="bh-btn-cancel" style="text-decoration: none;">
+                                                 <i class="bi bi-x-circle"></i>
+                                                 Cancel
+                                             </a>
+                                            <!-- Đã gửi yêu cầu hoàn tiền rồi -->
+                                            <span th:if="${refundSubmittedMap != null and refundSubmittedMap[booking.id]}" class="bh-status-note bh-note-refund-submitted">
+                                                <i class="bi bi-hourglass-split"></i>
+                                                Refund Requested
+                                            </span>
+                                            <!-- Booking hủy nhưng chưa thanh toán (không eligible) -->
+                                            <span th:if="${(refundEligibleMap == null or !refundEligibleMap[booking.id]) and (refundSubmittedMap == null or !refundSubmittedMap[booking.id])}" class="bh-status-note bh-note-cancelled">
+                                                <i class="bi bi-slash-circle"></i>
+                                                Booking Cancelled
+                                            </span>
+                                        </th:block>
+
+                                        <!-- PENDING (chưa hoàn tất thanh toán): nút quay lại trang thanh toán -->
+                                        <a th:if="${booking.status == 'PENDING'}"
+                                           th:href="@{/booking/qr-payment-status(bookingId=${booking.id},from='history')}"
+                                           class="bh-btn-pay">
+                                            <i class="bi bi-qr-code"></i>
+                                            Go to Payment
+                                        </a>
+
+                                        <!-- Nút xóa booking khỏi lịch sử: luôn hiển thị bất kể trạng thái -->
+                                        <form th:action="@{/booking/delete/{id}(id=${booking.id})}"
+                                              method="post"
+                                              class="delete-booking-form d-inline">
+                                            <button type="button" class="bh-btn-delete trigger-delete-btn" title="Remove from history">
+                                                <i class="bi bi-trash3"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
-                        </a>
+                        </div>
                     </div>
 
                     <!-- ====== TRẠNG THÁI RỖNG: Khi người dùng chưa có booking nào ====== -->
@@ -193,24 +341,8 @@
     <!-- Nhúng thư viện JS (bootstrap bundle + main.js + flatpickr) -->
     <div th:replace="~{fragment/frag :: scripts}"></div>
 
-    <!-- Modal Thông báo thành công hiển thị ở chính giữa màn hình -->
-    <div th:if="${successMessage}" class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content shadow border-0" style="border-radius: 14px;">
-                <div class="modal-body text-center p-4">
-                    <div class="mb-3" style="color: #10b981; font-size: 54px;">
-                        <i class="bi bi-check-circle"></i>
-                    </div>
-                    <h4 class="modal-title fw-bold mb-2" id="successModalLabel" style="color: #0f172a;">Success!</h4>
-                    <p class="text-muted mb-4" th:text="${successMessage}">Action completed successfully.</p>
-                    <button type="button" class="btn text-white w-100" data-bs-dismiss="modal" 
-                            style="background-color: var(--hotel-navy); border-radius: 8px; font-weight: 600; padding: 10px;">
-                        OK
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Global Popups -->
+    <th:block th:replace="~{fragment/frag :: alerts}"></th:block>
 
     <!-- Modal Xác nhận Hủy đơn hàng -->
     <div class="modal fade" id="cancelConfirmModal" tabindex="-1" aria-labelledby="cancelConfirmModalLabel" aria-hidden="true">
@@ -238,40 +370,11 @@
 
 
 
-    <!-- Modal Thông báo lỗi (như hết hạn thanh toán) hiển thị ở chính giữa màn hình -->
-    <div th:if="${errorMessage}" class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content shadow border-0" style="border-radius: 14px;">
-                <div class="modal-body text-center p-4">
-                    <div class="mb-3" style="color: #ef4444; font-size: 54px;">
-                        <i class="bi bi-exclamation-circle"></i>
-                    </div>
-                    <h4 class="modal-title fw-bold mb-2" id="errorModalLabel" style="color: #0f172a;">Error</h4>
-                    <p class="text-muted mb-4" th:text="${errorMessage}">An error occurred.</p>
-                    <button type="button" class="btn text-white w-100" data-bs-dismiss="modal" 
-                            style="background-color: #ef4444; border-radius: 8px; font-weight: 600; padding: 10px;">
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Global error modal handled by frag::alerts -->
 
     <script type="text/javascript">
         document.addEventListener("DOMContentLoaded", function () {
-            // 1. Tự động hiển thị modal thành công nếu có successMessage
-            var successModalEl = document.getElementById('successModal');
-            if (successModalEl) {
-                var mySuccessModal = new bootstrap.Modal(successModalEl);
-                mySuccessModal.show();
-            }
-
-            // 1b. Tự động hiển thị modal lỗi nếu có errorMessage
-            var errorModalEl = document.getElementById('errorModal');
-            if (errorModalEl) {
-                var myErrorModal = new bootstrap.Modal(errorModalEl);
-                myErrorModal.show();
-            }
+            // Global modals are automatically initialized and shown by frag :: alerts
 
             // Lưu trữ bookingId chuẩn bị thực hiện action
             var activeBookingId = null;

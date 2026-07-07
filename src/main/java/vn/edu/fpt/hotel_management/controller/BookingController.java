@@ -17,6 +17,7 @@ import vn.edu.fpt.hotel_management.repository.RoomRepository;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 import vn.edu.fpt.hotel_management.repository.RefundRepository;
 import vn.edu.fpt.hotel_management.repository.CustomerRepository;
+import vn.edu.fpt.hotel_management.repository.ReviewRepository;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -45,6 +46,9 @@ public class BookingController {
 
     @Autowired
     private CustomerRepository customerRepository;
+
+    @Autowired
+    private ReviewRepository reviewRepository;
 
     @org.springframework.beans.factory.annotation.Value("${payment.payos.client-id:}")
     private String payosClientId;
@@ -206,10 +210,20 @@ public class BookingController {
                 refundSubmittedMap.put(b.getId(), alreadySubmitted);
             }
         }
-
         // Truyền dữ liệu vào model để render template
         model.addAttribute("user", loggedInUser);
+        java.util.Set<Integer> reviewedBookingIds = new java.util.HashSet<>();
+        if (customerId > 0) {
+            List<Review> customerReviews = reviewRepository.findByCustomerId(customerId);
+            for (Review r : customerReviews) {
+                if (r.getBooking() != null) {
+                    reviewedBookingIds.add(r.getBooking().getId());
+                }
+            }
+        }
+        model.addAttribute("reviewedBookingIds", reviewedBookingIds);
         model.addAttribute("bookings", pagedBookings);
+
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("totalItems", totalItems);
@@ -871,9 +885,15 @@ public class BookingController {
                 return false;
             }
 
+            String orderCodeStr = String.valueOf(bookingId);
+            Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
+            if (payment != null && payment.getTransactionId() != null && !payment.getTransactionId().isBlank()) {
+                orderCodeStr = payment.getTransactionId();
+            }
+
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("https://api-merchant.payos.vn/v2/payment-requests/" + bookingId))
+                    .uri(java.net.URI.create("https://api-merchant.payos.vn/v2/payment-requests/" + orderCodeStr))
                     .header("x-client-id", payosClientId)
                     .header("x-api-key", payosApiKey)
                     .header("Content-Type", "application/json")

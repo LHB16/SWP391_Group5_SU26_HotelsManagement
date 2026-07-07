@@ -18257,3 +18257,681 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 }
 
 
+.hotel-mini-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.hotel-mini-card:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.hotel-mini-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: rgba(79, 70, 229, 0.08);
+  color: #4f46e5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hotel-mini-card .btn-outline-primary {
+  border-radius: 8px;
+  padding: 4px 10px;
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+
+.hotel-mini-card .btn-outline-primary:hover {
+  background: #4f46e5;
+  border-color: #4f46e5;
+  color: #fff;
+}
+
+/* Stat Card - Room (thêm màu tím) */
+.stat-card.card-rooms::before {
+  background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+}
+
+.card-rooms .stat-icon {
+  background: rgba(139, 92, 246, 0.08);
+  color: #8b5cf6;
+}
+
+/* Gold Button - dùng cho Owner */
+.btn-gold {
+  background: linear-gradient(135deg, #a8824e, #c9a96e);
+  color: #fff !important;
+  border: none;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(168, 130, 78, 0.3);
+  transition: all 0.3s;
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-gold:hover {
+  color: #fff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(168, 130, 78, 0.45);
+}
+
+/* ==========================================================================
+   Chat Message Hover & Reactions
+   ========================================================================== */
+.message-item {
+  position: relative;
+  padding-top: 5px;
+}
+.reaction-bar {
+  display: none !important;
+  z-index: 20;
+  white-space: nowrap;
+  animation: chatMsgFadeIn 0.15s ease-in-out;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+  border-color: #e2e8f0 !important;
+}
+.message-item:hover .reaction-bar {
+  display: flex !important;
+}
+.reaction-bar a {
+  transition: transform 0.1s ease;
+  display: inline-block;
+  font-size: 1.05rem;
+}
+.reaction-bar a:hover {
+  transform: scale(1.35);
+}
+@keyframes chatMsgFadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   Chat & Inbox Style classes
+   ========================================================================== */
+.chat-messages-container {
+  padding-top: 15px;
+}
+.msg-wrapper-right {
+  max-width: 75%;
+  position: relative;
+}
+.msg-wrapper-left {
+  max-width: 75%;
+  position: relative;
+}
+.reaction-bar-right {
+  top: -32px;
+  right: 10px;
+}
+.reaction-bar-left {
+  top: -32px;
+  left: 10px;
+}
+.chat-bubble-right {
+  background-color: #0a1628;
+  border-radius: 12px 12px 0 12px !important;
+}
+.chat-bubble-left {
+  border-radius: 12px 12px 12px 0 !important;
+  border-color: #cbd5e1 !important;
+}
+.chat-msg-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  word-break: break-word;
+}
+.chat-msg-time-right {
+  font-size: 0.7rem;
+  color: #a8b2c1;
+}
+.chat-msg-time-left {
+  font-size: 0.7rem;
+}
+.chat-reaction-badge-right {
+  bottom: -13px;
+  left: 10px;
+  width: 24px;
+  height: 24px;
+  font-size: 0.85rem;
+  z-index: 10;
+  border-color: #cbd5e1 !important;
+}
+.chat-reaction-badge-left {
+  bottom: -13px;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  font-size: 0.85rem;
+  z-index: 10;
+  border-color: #cbd5e1 !important;
+}
+.chat-sender-label {
+  font-size: 0.75rem;
+  color: #475569;
+}
+.chat-empty-placeholder {
+  font-family: 'Inter', sans-serif;
+}
+.chat-empty-icon {
+  color: #cbd5e1;
+}
+
+/* Chat Main Layout Classes */
+.chat-main-container {
+  max-width: 800px;
+}
+.chat-main-card {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+.chat-main-card-header {
+  background-color: #0a1628;
+  border-bottom: 2px solid #c9a96e;
+}
+.chat-owner-badge {
+  background-color: #c9a96e;
+  color: #0a1628;
+  font-weight: 600;
+}
+.chat-iframe-window {
+  width: 100%;
+  height: 480px;
+  border: none;
+  display: block;
+}
+.chat-iframe-inbox {
+  width: 100%;
+  height: 460px;
+  border: none;
+  display: block;
+}
+.chat-input-text {
+  border-radius: 8px 0 0 8px;
+  border-color: #cbd5e1;
+}
+.chat-send-btn {
+  background-color: #0a1628;
+  color: #c9a96e;
+  font-weight: 600;
+  border-radius: 0 8px 8px 0;
+}
+.chat-back-btn {
+  border-radius: 20px;
+}
+.inbox-card-general {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+.inbox-card-chat {
+  min-height: 550px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+.inbox-chat-header {
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+.chat-msg-image {
+  max-width: 200px;
+  max-height: 200px;
+  margin-top: 8px;
+  display: block;
+  border-radius: 8px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  cursor: pointer;
+}
+.chat-msg-image:hover {
+  transform: scale(1.02);
+  opacity: 0.9;
+}
+.chat-upload-label {
+  border-color: #cbd5e1 !important;
+  cursor: pointer;
+  background-color: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}
+.chat-upload-icon {
+  font-size: 1.1rem;
+  color: #475569;
+}
+.chat-upload-input {
+  display: none;
+}
+.chat-preview-container {
+  position: relative;
+  display: inline-flex;
+  margin-bottom: 10px;
+  padding: 6px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  border: 1px dashed #cbd5e1;
+  align-items: center;
+  gap: 8px;
+}
+.chat-preview-image {
+  max-width: 80px;
+  max-height: 80px;
+  border-radius: 6px;
+}
+.chat-preview-clear {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background-color: #ef4444;
+  color: white !important;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ROOM CREATE PAGE — Hero, Form Cards, Facilities Grid
+   ════════════════════════════════════════════════════════════════ */
+
+/* --- Create Hero Banner --- */
+.create-hero {
+    background: linear-gradient(135deg, var(--hotel-navy) 0%, #142038 60%, #1a2d4a 100%);
+    padding: 48px 0 36px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+}
+.create-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(201,169,110,0.08) 0%, transparent 70%);
+    pointer-events: none;
+}
+.create-hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #fff;
+}
+.create-hero p {
+    font-size: 0.92rem;
+    color: rgba(255,255,255,0.65);
+    margin-bottom: 0;
+}
+.hero-divider {
+    width: 60px;
+    height: 3px;
+    background: var(--gold);
+    border-radius: 3px;
+    margin-top: 16px;
+}
+
+/* --- Breadcrumb --- */
+.bc-link {
+    color: var(--gold-light);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+.bc-link:hover {
+    color: var(--gold);
+    text-decoration: underline;
+}
+.bc-sep {
+    color: rgba(255,255,255,0.35);
+    margin: 0 8px;
+    font-size: 0.85rem;
+}
+.bc-active {
+    color: rgba(255,255,255,0.55);
+    font-size: 0.85rem;
+}
+
+/* --- Form Card --- */
+.form-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(10,22,40,0.06);
+    border: 1px solid #e8ecf1;
+    overflow: hidden;
+    transition: box-shadow 0.25s ease;
+}
+.form-card:hover {
+    box-shadow: 0 4px 20px rgba(10,22,40,0.09);
+}
+.form-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 20px 28px;
+    border-bottom: 1px solid #f0f2f5;
+    background: #fafbfc;
+}
+.form-card-header i {
+    font-size: 1.3rem;
+}
+.form-card-header h5 {
+    margin: 0;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--hotel-navy);
+}
+.form-card-body {
+    padding: 28px;
+}
+.text-gold {
+    color: var(--gold) !important;
+}
+
+/* --- Form Labels --- */
+.lbl {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--hotel-navy);
+    margin-bottom: 6px;
+    letter-spacing: 0.01em;
+}
+
+/* --- Form Controls --- */
+.fc {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    font-weight: 400;
+    color: #1a1a2e;
+    background: #fff;
+    border: 1.5px solid #d5dbe3;
+    border-radius: 10px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    outline: none;
+}
+.fc:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201,169,110,0.12);
+}
+.fc::placeholder {
+    color: #a0aab4;
+    font-weight: 400;
+}
+
+/* --- Form Divider --- */
+.fdivider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #e0e4ea 30%, #e0e4ea 70%, transparent);
+    margin: 20px 0;
+}
+
+/* --- Room Status Toggle --- */
+.room-status-toggle {
+    display: flex;
+    gap: 10px;
+    margin-top: 2px;
+}
+.status-option {
+    cursor: pointer;
+    margin: 0;
+}
+.status-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+.status-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border: 1.5px solid #d5dbe3;
+    border-radius: 10px;
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: #6b7280;
+    background: #fff;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.status-label i {
+    font-size: 0.9rem;
+}
+.status-option input[type="radio"]:checked + .status-active {
+    border-color: #16a34a;
+    background: #f0fdf4;
+    color: #15803d;
+}
+.status-option input[type="radio"]:checked + .status-inactive {
+    border-color: #dc2626;
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+/* --- Facility Section --- */
+.facility-section {
+    margin-bottom: 4px;
+}
+.facility-section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--hotel-navy);
+    margin-bottom: 16px;
+}
+.facility-section-title i {
+    color: var(--gold-dark);
+    font-size: 1.05rem;
+}
+
+/* --- Facility Grid --- */
+.facility-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+/* --- Facility Item (Checkbox) --- */
+.facility-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1.5px solid #e8ecf1;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fff;
+    margin: 0;
+}
+.facility-item:hover {
+    border-color: var(--gold-light);
+    background: #fefdfb;
+}
+.facility-item input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+.facility-check {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #cbd5e1;
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    position: relative;
+}
+.facility-check::after {
+    content: '';
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    background: transparent;
+    transition: background 0.2s ease;
+}
+.facility-item input[type="checkbox"]:checked ~ .facility-check {
+    border-color: var(--gold);
+    background: var(--gold);
+}
+.facility-item input[type="checkbox"]:checked ~ .facility-check::after {
+    background: #fff;
+}
+.facility-item input[type="checkbox"]:checked ~ .facility-text {
+    color: var(--hotel-navy);
+    font-weight: 600;
+}
+.facility-text {
+    font-size: 0.84rem;
+    color: #4b5563;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+/* --- Buttons --- */
+.btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 22px;
+    border: 1.5px solid #d5dbe3;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #6b7280;
+    background: #fff;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.btn-cancel:hover {
+    border-color: #9ca3af;
+    color: #374151;
+    background: #f9fafb;
+    text-decoration: none;
+}
+.btn-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 28px;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px rgba(201,169,110,0.3);
+}
+.btn-submit:hover {
+    background: linear-gradient(135deg, var(--gold-dark) 0%, #96713e 100%);
+    box-shadow: 0 4px 14px rgba(201,169,110,0.4);
+    transform: translateY(-1px);
+}
+
+/* --- Back Button (used in hotel-detail) --- */
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--gold-dark);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.back-btn:hover {
+    color: var(--gold);
+    text-decoration: underline;
+}
+
+/* --- bg-cream utility --- */
+.bg-cream {
+    background-color: var(--cream) !important;
+}
+
+/* --- btn-gold --- */
+.btn-gold {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.btn-gold:hover {
+    background: linear-gradient(135deg, var(--gold-dark) 0%, #96713e 100%);
+    color: #fff;
+    text-decoration: none;
+    box-shadow: 0 2px 10px rgba(201,169,110,0.35);
+}
+
+/* --- Responsive --- */
+@media (max-width: 576px) {
+    .create-hero {
+        padding: 32px 0 24px;
+    }
+    .create-hero h1 {
+        font-size: 1.5rem;
+    }
+    .form-card-body {
+        padding: 20px 16px;
+    }
+    .form-card-header {
+        padding: 16px 16px;
+    }
+    .facility-grid {
+        grid-template-columns: 1fr;
+    }
+    .room-status-toggle {
+        flex-direction: column;
+    }
+}
