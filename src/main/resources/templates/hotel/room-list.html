@@ -165,7 +165,7 @@
                             <div class="room-amenities">
                                 <span class="amenity-badge">
                                     <i class="bi bi-arrows-fullscreen me-1"></i>
-                                    <span th:text="${room.acreage + ' m┬▓'}">25 m┬▓</span>
+                                    <span><span th:text="${room.acreage}">25</span> m²</span>
                                 </span>
                                 <span class="amenity-badge">
                                     <i class="bi bi-people me-1"></i>
@@ -330,7 +330,7 @@
                                                 <!-- 2. Acreage -->
                                                 <div class="mb-2" th:if="${review.room != null}">
                                                     <i class="bi bi-arrows-fullscreen me-2 text-navy"></i>
-                                                    <span th:text="${review.room.acreage + ' m┬▓'}">36.0 m┬▓</span>
+                                                    <span><span th:text="${review.room.acreage}">36.0</span> m²</span>
                                                 </div>
                                                 
                                                 <!-- 3. Guest count -->
@@ -524,7 +524,7 @@
                     <div class="room-detail-specs-row">
                         <div class="room-detail-spec-item">
                             <i class="bi bi-arrows-fullscreen"></i>
-                            <span th:text="${room.acreage + ' m┬▓'}">25 m┬▓</span>
+                            <span><span th:text="${room.acreage}">25</span> m²</span>
                         </div>
                         <div class="room-detail-spec-item">
                             <i class="bi bi-door-closed"></i>
