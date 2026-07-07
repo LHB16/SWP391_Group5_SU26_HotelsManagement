@@ -84,6 +84,7 @@
                             <button type="button" id="clearImageBtn" class="chat-preview-clear">&times;</button>
                         </div>
 
+                        <!-- Form gửi phản hồi bằng AJAX -->
                         <form th:action="@{/owner/chat/send}" method="post" enctype="multipart/form-data">
                             <input type="hidden" name="hotelId" th:value="${activeHotel.id}">
                             <input type="hidden" name="customerId" th:value="${activeCustomer.id}">
@@ -108,7 +109,7 @@
     <footer th:replace="~{fragment/frag :: footer}"></footer>
     <div th:replace="~{fragment/frag :: scripts}"></div>
 
-    <!-- Script xử lý xem trước hình ảnh chọn tải lên -->
+    <!-- Script xử lý xem trước hình ảnh chọn tải lên và gửi tin nhắn không tải lại trang -->
     <script th:if="${activeCustomer != null}">
         document.getElementById('imageFileInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
@@ -125,6 +126,41 @@
             document.getElementById('imageFileInput').value = '';
             document.getElementById('imagePreviewContainer').classList.add('d-none');
             document.getElementById('imagePreview').src = '';
+        });
+
+        // Xử lý gửi tin nhắn của Chủ nhà bằng AJAX
+        const chatForm = document.querySelector('form');
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const contentInput = chatForm.querySelector('.chat-input-text');
+            const fileInput = document.getElementById('imageFileInput');
+            
+            if (!contentInput.value.trim() && (!fileInput.files || fileInput.files.length === 0)) {
+                return;
+            }
+
+            const formData = new FormData(chatForm);
+            fetch(chatForm.action, {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    // Reset input
+                    contentInput.value = '';
+                    fileInput.value = '';
+                    
+                    // Reset xem trước ảnh
+                    document.getElementById('imagePreviewContainer').classList.add('d-none');
+                    document.getElementById('imagePreview').src = '';
+                    
+                    // Kích hoạt cập nhật danh sách tin nhắn của Iframe ngay lập tức
+                    const iframe = document.querySelector('iframe');
+                    if (iframe && iframe.contentWindow && typeof iframe.contentWindow.loadMessages === 'function') {
+                        iframe.contentWindow.loadMessages();
+                    }
+                }
+            }).catch(err => console.error('Error sending reply:', err));
         });
     </script>
 </body>

@@ -32,7 +32,7 @@
                         <button type="button" id="clearImageBtn" class="chat-preview-clear">&times;</button>
                     </div>
 
-                    <!-- Form gửi tin nhắn (F5 trang chính để xóa ô nhập và cập nhật) -->
+                    <!-- Form gửi tin nhắn (Gửi bằng AJAX để tránh tải lại trang) -->
                     <form th:action="@{/customer/chat/send}" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="hotelId" th:value="${hotel.id}">
                         <div class="input-group">
@@ -47,18 +47,13 @@
                     </form>
                 </div>
             </div>
-            <div class="text-center mt-3">
-                <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}" class="btn btn-sm btn-outline-secondary chat-back-btn">
-                    <i class="bi bi-arrow-left me-1"></i> Back to Hotel
-                </a>
-            </div>
         </div>
     </main>
 
     <footer th:replace="~{fragment/frag :: footer}"></footer>
     <div th:replace="~{fragment/frag :: scripts}"></div>
 
-    <!-- Script xử lý xem trước hình ảnh chọn tải lên -->
+    <!-- Script xử lý xem trước hình ảnh chọn tải lên và gửi tin nhắn không tải lại trang -->
     <script>
         document.getElementById('imageFileInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
@@ -75,6 +70,42 @@
             document.getElementById('imageFileInput').value = '';
             document.getElementById('imagePreviewContainer').classList.add('d-none');
             document.getElementById('imagePreview').src = '';
+        });
+
+        // Xử lý gửi tin nhắn qua AJAX (Fetch API) để tránh tải lại trang
+        const chatForm = document.querySelector('form');
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const contentInput = chatForm.querySelector('.chat-input-text');
+            const fileInput = document.getElementById('imageFileInput');
+            
+            // Không gửi nếu không có chữ và không chọn ảnh
+            if (!contentInput.value.trim() && (!fileInput.files || fileInput.files.length === 0)) {
+                return;
+            }
+
+            const formData = new FormData(chatForm);
+            fetch(chatForm.action, {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    // Reset input
+                    contentInput.value = '';
+                    fileInput.value = '';
+                    
+                    // Reset xem trước ảnh
+                    document.getElementById('imagePreviewContainer').classList.add('d-none');
+                    document.getElementById('imagePreview').src = '';
+                    
+                    // Kích hoạt load tin nhắn mới trong iframe ngay lập tức
+                    const iframe = document.querySelector('iframe');
+                    if (iframe && iframe.contentWindow && typeof iframe.contentWindow.loadMessages === 'function') {
+                        iframe.contentWindow.loadMessages();
+                    }
+                }
+            }).catch(err => console.error('Error sending message:', err));
         });
     </script>
 </body>

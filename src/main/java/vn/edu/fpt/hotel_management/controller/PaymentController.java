@@ -392,7 +392,7 @@ public class PaymentController {
 
         // Tạo QR qua PayOS
         if (payosApiKey != null && !payosApiKey.isBlank()) {
-            String[] res = createPayOSPaymentRequest(bookingId, totalPrice.longValue(), transferInfo);
+            String[] res = createPayOSPaymentRequest(bookingId, totalPrice.longValue(), transferInfo, payment);
             if (res != null) {
                 if (payment != null) {
                     payment.setQrCodeUrl(res[0]);
@@ -563,9 +563,15 @@ public class PaymentController {
         try {
             if (payosClientId == null || payosClientId.isBlank())
                 return false;
+
+            String orderCodeStr = String.valueOf(bookingId);
+            if (payment != null && payment.getTransactionId() != null && !payment.getTransactionId().isBlank()) {
+                orderCodeStr = payment.getTransactionId();
+            }
+
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://api-merchant.payos.vn/v2/payment-requests/" + bookingId))
+                    .uri(URI.create("https://api-merchant.payos.vn/v2/payment-requests/" + orderCodeStr))
                     .header("x-client-id", payosClientId)
                     .header("x-api-key", payosApiKey)
                     .GET().build();
@@ -605,8 +611,15 @@ public class PaymentController {
     }
 
     // Tạo link thanh toán PayOS và lấy URL mã QR
-    private String[] createPayOSPaymentRequest(int bookingId, long amount, String description) {
+    private String[] createPayOSPaymentRequest(int bookingId, long amount, String description, Payment payment) {
         try {
+            // Sinh mã orderCode độc nhất sử dụng Unix timestamp ở đơn vị giây (khớp kiểu số 32-bit của PayOS)
+            long orderCode = System.currentTimeMillis() / 1000L;
+            if (payment != null) {
+                payment.setTransactionId(String.valueOf(orderCode));
+                paymentRepository.save(payment);
+            }
+
             // Làm sạch mô tả (PayOS chỉ chấp nhận tối đa 25 ký tự không dấu)
             description = description.replaceAll("[^a-zA-Z0-9 ]", "").trim();
             if (description.length() > 25)
@@ -617,11 +630,11 @@ public class PaymentController {
 
             // Tạo chữ ký bảo mật theo chuẩn PayOS (sắp xếp A-Z)
             String signatureData = "amount=" + amount + "&cancelUrl=" + cancelUrl
-                    + "&description=" + description + "&orderCode=" + bookingId + "&returnUrl=" + returnUrl;
+                    + "&description=" + description + "&orderCode=" + orderCode + "&returnUrl=" + returnUrl;
             String signature = computeHmacSha256(signatureData, payosChecksumKey);
 
             // Tạo JSON gửi lên PayOS
-            String jsonBody = "{\"orderCode\":" + bookingId + ",\"amount\":" + amount
+            String jsonBody = "{\"orderCode\":" + orderCode + ",\"amount\":" + amount
                     + ",\"description\":\"" + description + "\",\"cancelUrl\":\"" + cancelUrl
                     + "\",\"returnUrl\":\"" + returnUrl + "\",\"signature\":\"" + signature + "\"}";
 
@@ -736,5 +749,37 @@ public class PaymentController {
             // Bỏ qua lỗi regex
         }
         return "";
+    }
+
+    // Endpoint dành cho môi trường phát triển để bỏ qua/xác nhận thanh toán thủ công
+    @GetMapping("/booking/payment-bypass")
+    public String bypassPayment(@RequestParam("bookingId") int bookingId,
+                                HttpSession session,
+                                RedirectAttributes redirectAttributes) {
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+        
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking != null && "PENDING".equals(booking.getStatus())) {
+            Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
+            
+            // Cập nhật thông tin giao dịch giả lập thành công
+            if (payment != null) {
+                payment.setStatus("PAID");
+                payment.setPaidAt(LocalDateTime.now());
+                payment.setSenderAccountName(loggedInUser.getFullName() != null ? loggedInUser.getFullName() : loggedInUser.getUsername());
+                payment.setSenderAccountNumber("TEST-ACC-12345");
+                payment.setSenderBankName("Demo Bank");
+                paymentRepository.save(payment);
+            }
+            
+            confirmBooking(booking, payment);
+            
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Payment confirmed via bypass! Your booking is now confirmed.");
+        }
+        return "redirect:/booking/history";
     }
 }

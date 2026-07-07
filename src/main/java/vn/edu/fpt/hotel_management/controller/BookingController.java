@@ -657,9 +657,15 @@ public class BookingController {
                 return false;
             }
 
+            String orderCodeStr = String.valueOf(bookingId);
+            Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
+            if (payment != null && payment.getTransactionId() != null && !payment.getTransactionId().isBlank()) {
+                orderCodeStr = payment.getTransactionId();
+            }
+
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("https://api-merchant.payos.vn/v2/payment-requests/" + bookingId))
+                    .uri(java.net.URI.create("https://api-merchant.payos.vn/v2/payment-requests/" + orderCodeStr))
                     .header("x-client-id", payosClientId)
                     .header("x-api-key", payosApiKey)
                     .header("Content-Type", "application/json")
