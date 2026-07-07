@@ -10,7 +10,7 @@ Table user_accounts {
   enabled BIT [note: 'Trạng thái kích hoạt tài khoản.']
   otp NVARCHAR(255) [note: 'Mã OTP dùng để xác thực.']
   otp_expiry DATETIME2 [note: 'Thời gian hết hạn của OTP.']
-  otp_type NVARCHAR(50) [note: 'Loại OTP: REGISTER, FORGOT_PASSWORD, LOGIN hoặc UPDATE_PROFILE.']
+  otp_type NVARCHAR(50) [note: 'Loại OTP: đăng ký, quên mật khẩu, đổi mật khẩu hoặc cập nhật hồ sơ.']
   created_at DATETIME2 [note: 'Thời gian tạo tài khoản.']
   updated_at DATETIME2 [note: 'Thời gian cập nhật tài khoản gần nhất.']
 }
@@ -206,9 +206,6 @@ Table payments {
   status NVARCHAR(50)
   qr_code_url NVARCHAR(500)
   transaction_id NVARCHAR(255)
-  sender_account_number NVARCHAR(50)
-  sender_bank_name NVARCHAR(255)
-  sender_account_name NVARCHAR(255)
   paid_at DATETIME2
   created_at DATETIME2
   qr_expires_at DATETIME2
@@ -229,10 +226,8 @@ Table messages {
   id INT [pk, note: 'Mã định danh duy nhất của tin nhắn.']
   sender_id INT [note: 'Khóa ngoại liên kết đến tài khoản người gửi.']
   receiver_id INT [note: 'Khóa ngoại liên kết đến tài khoản người nhận.']
-  hotel_id INT [note: 'Khóa ngoại liên kết đến bảng hotel.']
   booking_id INT [note: 'Khóa ngoại liên kết đến bảng bookings.']
   content NVARCHAR(MAX)
-  image_url NVARCHAR(255)
   is_read BIT
   sent_at DATETIME2
 }
@@ -245,7 +240,7 @@ Table feedback {
   room_id INT [note: 'Khóa ngoại liên kết đến bảng room.']
   user_full_name NVARCHAR(255)
   room_type NVARCHAR(255)
-  comment NVARCHAR(MAX)
+  comment NVARCHAR(1000)
   rating INT
   upvote INT [default: 0]
   downvote INT [default: 0]

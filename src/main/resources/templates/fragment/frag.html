@@ -21,13 +21,9 @@
             <ul class="navbar-nav me-auto">
                 <th:block th:if="${session.loggedInUser == null || session.loggedInUser.role != 'ADMIN'}">
                     <!-- Home / Dashboard cho Owner -->
-                    <li class="nav-item">
+                    <li class="nav-item" th:if="${session.loggedInUser != null && session.loggedInUser.role == 'HOTEL_OWNER'}">
                         <a class="nav-link"
-                           th:if="${session.loggedInUser != null && session.loggedInUser.role == 'HOTEL_OWNER'}"
-                           th:href="@{/owner/dashboard}">Hotel Owner Dashboard</a>
-                        <a class="nav-link"
-                           th:if="${session.loggedInUser == null || session.loggedInUser.role != 'HOTEL_OWNER'}"
-                           th:href="@{/}">Home</a>
+                           th:href="@{/owner/dashboard}">Dashboard</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" th:href="@{/hotels}">Hotels</a>
@@ -56,21 +52,21 @@
                 <th:block th:if="${session.loggedInUser != null}">
                     <!-- Dropdown chứa Avatar và Menu thả xuống -->
                     <li class="nav-item avatar-dropdown">
-                        <!-- Nút Avatar tròn, hiển thị chữ cái đầu tiên của người dùng -->
+                        <!-- Nút Avatar hiển thị tên đầy đủ của người dùng -->
                         <div class="avatar-btn" id="avatarBtn"
-                             th:text="${#strings.substring(session.loggedInUser.fullName, 0, 1).toUpperCase()}">U</div>
+                             th:text="${session.loggedInUser.fullName}">User</div>
 
                         <!-- Menu thả xuống chứa các lựa chọn -->
                         <div class="avatar-menu" id="avatarMenu">
                             <div class="px-3 py-2 text-muted border-bottom" style="font-size: 13px;">
                                 Hi, <span th:text="${session.loggedInUser.fullName}">User</span>
                             </div>
-                            <!-- Nút View Profile như yêu cầu -->
-                            <a class="avatar-menu-item" th:href="@{/profile}">View Profile</a>
+                            <!-- Nút Profile như yêu cầu -->
+                            <a class="avatar-menu-item" th:href="@{/profile}">Profile</a>
                             <!-- Nút Wishlist -->
-                            <a class="avatar-menu-item" th:href="@{/wishlist}">Wishlist</a>
+                            <a class="avatar-menu-item" th:if="${session.loggedInUser.role != 'ADMIN' && session.loggedInUser.role != 'HOTEL_OWNER'}" th:href="@{/wishlist}">Wishlist</a>
                             <!-- Nút Booking History -->
-                            <a class="avatar-menu-item" th:href="@{/booking/history}">Booking History</a>
+                            <a class="avatar-menu-item" th:if="${session.loggedInUser.role != 'ADMIN' && session.loggedInUser.role != 'HOTEL_OWNER'}" th:href="@{/booking/history}">Booking History</a>
                             <div class="avatar-menu-divider"></div>
                             <!-- Nút Logout -->
                             <a class="avatar-menu-item" th:href="@{/logout}" style="color: #ef4444;">Logout</a>
@@ -106,5 +102,60 @@
             <i class="bi bi-speedometer2 me-1"></i> Dashboard
         </a>
     </li>
+</th:block>
+
+<th:block th:fragment="alerts">
+    <!-- Success Modal -->
+    <div th:if="${successMessage}" class="modal fade" id="globalSuccessModal" tabindex="-1" aria-labelledby="globalSuccessModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow border-0" style="border-radius: 14px;">
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3" style="color: #10b981; font-size: 54px;">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <h4 class="modal-title fw-bold mb-2" id="globalSuccessModalLabel" style="color: #0f172a;">Success!</h4>
+                    <p class="text-muted mb-4" th:text="${successMessage}">Action completed successfully.</p>
+                    <button type="button" class="btn text-white w-100" data-bs-dismiss="modal" 
+                            style="background-color: #0d233a; border-radius: 8px; font-weight: 600; padding: 10px;">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div th:if="${errorMessage}" class="modal fade" id="globalErrorModal" tabindex="-1" aria-labelledby="globalErrorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow border-0" style="border-radius: 14px;">
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3" style="color: #ef4444; font-size: 54px;">
+                        <i class="bi bi-exclamation-circle"></i>
+                    </div>
+                    <h4 class="modal-title fw-bold mb-2" id="globalErrorModalLabel" style="color: #0f172a;">Error</h4>
+                    <p class="text-muted mb-4" th:text="${errorMessage}">An error occurred.</p>
+                    <button type="button" class="btn text-white w-100" data-bs-dismiss="modal" 
+                            style="background-color: #ef4444; border-radius: 8px; font-weight: 600; padding: 10px;">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            var successModalEl = document.getElementById('globalSuccessModal');
+            if (successModalEl) {
+                var mySuccessModal = new bootstrap.Modal(successModalEl);
+                mySuccessModal.show();
+            }
+            var errorModalEl = document.getElementById('globalErrorModal');
+            if (errorModalEl) {
+                var myErrorModal = new bootstrap.Modal(errorModalEl);
+                myErrorModal.show();
+            }
+        });
+    </script>
 </th:block>
 </html>

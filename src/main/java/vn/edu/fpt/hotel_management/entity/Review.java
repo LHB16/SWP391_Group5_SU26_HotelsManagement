@@ -50,6 +50,10 @@ public class Review {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "booking_id")
+    private Booking booking;
+
     public Review() {
     }
 
@@ -167,5 +171,13 @@ public class Review {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Booking getBooking() {
+        return booking;
+    }
+
+    public void setBooking(Booking booking) {
+        this.booking = booking;
     }
 }
