@@ -8,8 +8,14 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import vn.edu.fpt.hotel_management.entity.FeedbackReply;
 
+import java.util.List;
+import java.util.Optional;
+
 @Repository
 public interface FeedbackReplyRepository extends JpaRepository<FeedbackReply, Integer> {
+
+    List<FeedbackReply> findByHotelId(int hotelId);
+    Optional<FeedbackReply> findByFeedbackId(int feedbackId);
 
     @Query(value = "SELECT fr FROM FeedbackReply fr " +
             "JOIN FETCH fr.feedback " +
