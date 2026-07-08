@@ -81,6 +81,13 @@ public class RoomController {
             RedirectAttributes redirectAttributes
     ) {
         Hotel hotel = hotelRepository.findById(id).orElse(null);
+        if (checkin == null || checkin.trim().isEmpty()) {
+            checkin = java.time.LocalDate.now().toString();
+        }
+        if (checkout == null || checkout.trim().isEmpty()) {
+            checkout = java.time.LocalDate.now().plusDays(1).toString();
+        }
+        String minCheckout = java.time.LocalDate.parse(checkin).plusDays(1).toString();
         if (hotel == null || !hotel.isActive()) {
             redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
             return "redirect:/hotels";
@@ -156,10 +163,14 @@ public class RoomController {
         long nights = 1;
         boolean isFiltered = false;
         java.util.Map<Integer, BigDecimal> roomPricesMap = new java.util.HashMap<>();
+        java.util.Map<Integer, Integer> availableRoomsMap = new java.util.HashMap<>();
+
+        java.time.LocalDate d1 = java.time.LocalDate.now();
+        java.time.LocalDate d2 = java.time.LocalDate.now().plusDays(1);
         if (checkin != null && checkout != null && !checkin.trim().isEmpty() && !checkout.trim().isEmpty()) {
             try {
-                java.time.LocalDate d1 = java.time.LocalDate.parse(checkin.trim());
-                java.time.LocalDate d2 = java.time.LocalDate.parse(checkout.trim());
+                d1 = java.time.LocalDate.parse(checkin.trim());
+                d2 = java.time.LocalDate.parse(checkout.trim());
                 if (d2.isAfter(d1)) {
                     nights = java.time.temporal.ChronoUnit.DAYS.between(d1, d2);
                     isFiltered = true;
@@ -169,20 +180,28 @@ public class RoomController {
                     nights = 1;
                     isFiltered = true;
                 }
-                for (Room r : rooms) {
-                    BigDecimal actualPrice = calculateRoomSubtotal(r.getPrice(), d1, d2);
-                    roomPricesMap.put(r.getId(), actualPrice);
-                }
             } catch (Exception e) {
                 isFiltered = false;
-                for (Room r : rooms) {
-                    roomPricesMap.put(r.getId(), r.getPrice());
-                }
+                d1 = java.time.LocalDate.now();
+                d2 = java.time.LocalDate.now().plusDays(1);
             }
-        } else {
-            for (Room r : rooms) {
-                roomPricesMap.put(r.getId(), r.getPrice());
+        }
+
+        for (Room r : rooms) {
+            BigDecimal actualPrice = isFiltered ? calculateRoomSubtotal(r.getPrice(), d1, d2) : r.getPrice();
+            roomPricesMap.put(r.getId(), actualPrice);
+
+            long bookedCount = bookingRepository.countByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
+                    r.getId(),
+                    "CONFIRMED",
+                    d2,
+                    d1
+            );
+            int available = r.getNumberRooms() - (int) bookedCount;
+            if (available < 0) {
+                available = 0;
             }
+            availableRoomsMap.put(r.getId(), available);
         }
 
         boolean isHotelOwner = false;
@@ -204,6 +223,7 @@ public class RoomController {
         model.addAttribute("hotel", hotel);
         model.addAttribute("rooms", rooms);
         model.addAttribute("roomPricesMap", roomPricesMap);
+        model.addAttribute("availableRoomsMap", availableRoomsMap);
         model.addAttribute("wishlistRoomIds", wishlistRoomIds);
         model.addAttribute("nights", nights);
         model.addAttribute("isFiltered", isFiltered);
@@ -213,6 +233,7 @@ public class RoomController {
         model.addAttribute("maxPrice", maxPrice);
         model.addAttribute("checkin", checkin);
         model.addAttribute("checkout", checkout);
+        model.addAttribute("minCheckout", minCheckout);
         model.addAttribute("totalResults", rooms.size());
         model.addAttribute("user", loggedInUser);
         model.addAttribute("currentCustomerId", currentCustomerId);
@@ -241,6 +262,13 @@ public class RoomController {
             RedirectAttributes redirectAttributes
     ) {
         Hotel hotel = hotelRepository.findById(id).orElse(null);
+        if (checkin == null || checkin.trim().isEmpty()) {
+            checkin = java.time.LocalDate.now().toString();
+        }
+        if (checkout == null || checkout.trim().isEmpty()) {
+            checkout = java.time.LocalDate.now().plusDays(1).toString();
+        }
+        String minCheckout = java.time.LocalDate.parse(checkin).plusDays(1).toString();
         if (hotel == null || !hotel.isActive()) {
             redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
             return "redirect:/hotels";
@@ -278,6 +306,7 @@ public class RoomController {
         model.addAttribute("isFiltered", isFiltered);
         model.addAttribute("checkin", checkin);
         model.addAttribute("checkout", checkout);
+        model.addAttribute("minCheckout", minCheckout);
         model.addAttribute("user", loggedInUser);
 
         return "hotel/room-detail";
@@ -379,6 +408,32 @@ public class RoomController {
         if (owner == null || hotel.getOwner().getId() != owner.getId()) {
             redirectAttributes.addFlashAttribute("errorMessage", "You don't have permission to add rooms to this hotel.");
             return "redirect:/home";
+        }
+
+        boolean hasBathroom = (freeToiletries != null && freeToiletries)
+                || (shower != null && shower)
+                || (bathrobe != null && bathrobe)
+                || (toilet != null && toilet)
+                || (towels != null && towels)
+                || (slippers != null && slippers)
+                || (hairdryer != null && hairdryer)
+                || (toiletPaper != null && toiletPaper);
+
+        boolean hasRoom = (airConditioning != null && airConditioning)
+                || (safetyDepositBox != null && safetyDepositBox)
+                || (desk != null && desk)
+                || (television != null && television)
+                || (telephone != null && telephone)
+                || (iron != null && iron)
+                || (electricKettle != null && electricKettle)
+                || (cableChannels != null && cableChannels)
+                || (wakeUpService != null && wakeUpService)
+                || (wardrobeCloset != null && wardrobeCloset)
+                || (clothesRack != null && clothesRack);
+
+        if (!hasBathroom || !hasRoom) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Please select at least 1 Bathroom Amenity and 1 Room Amenity.");
+            return "redirect:/hotels/" + id + "/rooms/new";
         }
 
         String imgUrl = null;

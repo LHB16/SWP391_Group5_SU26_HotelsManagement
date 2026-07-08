@@ -1,223 +1,235 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
 
 <head th:replace="~{fragment/frag :: head}"></head>
 
-<body class="d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100" style="padding-bottom: 80px;">
 <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
 <!-- ==================== HERO BANNER ==================== -->
-<section class="room-hero" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
-    <div class="container text-center py-5">
-        <h1 class="room-hero-title text-white fw-bold mb-2">My Wishlist</h1>
-        <p class="room-hero-subtitle text-muted-custom">
-            <i class="bi bi-heart-fill text-danger me-1"></i>
-            Your favorite rooms and stays saved for booking
-        </p>
-        <div class="room-hero-divider mx-auto my-3" style="width: 80px; height: 3px; background-color: var(--gold);"></div>
+<section class="bg-hero border-bottom-gold py-5">
+    <div class="container-fluid px-4">
+        <h1 class="text-white fw-bold mb-1"
+            style="font-family:'Playfair Display',serif; font-size:clamp(1.6rem,3vw,2.1rem);">
+            My Wishlist
+        </h1>
+        <p class="text-gold-light mb-0">Your saved rooms, ready for booking whenever you are.</p>
     </div>
 </section>
 
 <!-- ==================== MAIN CONTENT ==================== -->
-<main class="flex-grow-1 py-5 bg-cream" style="background-color: #fafaf9;">
-    <div class="container">
-        <div class="row justify-content-center">
-            
-            <div class="col-12 col-lg-10">
+<main class="flex-grow-1 py-4 bg-cream">
+    <div class="container-fluid px-3 px-md-4">
 
-                <!-- Results header -->
-                <div class="results-header d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-                    <div>
-                        <div class="results-title fs-4 fw-bold text-navy">Saved Stays</div>
-                        <div class="results-count text-muted small">
-                            You have <strong th:text="${wishlists != null ? wishlists.size() : 0}">0</strong> room(s) in your wishlist
-                        </div>
+        <!-- Results header -->
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+            <div>
+                <span class="fs-5 fw-bold text-navy">My Wishlist</span>
+                <span class="text-muted small ms-2">
+                    — <span th:text="${wishlists != null ? wishlists.size() : 0}">0</span> room(s) saved
+                </span>
+            </div>
+            <a th:href="@{/hotels}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Continue Exploring
+            </a>
+        </div>
+
+        <!-- Empty state -->
+        <div th:if="${wishlists == null or wishlists.isEmpty()}"
+             class="empty-state text-center py-5 bg-white shadow-sm border wishlist-empty-state">
+            <i class="bi bi-heart fs-1 text-muted mb-3 opacity-50 d-block"></i>
+            <div class="fw-bold text-dark fs-5 mb-2">Your Wishlist is Empty</div>
+            <p class="text-muted mb-4">Browse our hotels and rooms to save your favorite stays here.</p>
+            <a th:href="@{/hotels}" class="btn btn-gold btn-sm px-4">Find Hotels Now</a>
+        </div>
+
+        <!-- ============================================================
+             WISHLIST CARDS
+             ============================================================ -->
+        <div th:if="${wishlists != null and !wishlists.isEmpty()}"
+             class="d-flex flex-column gap-3" id="wishlistContainer">
+
+            <div th:each="wl : ${wishlists}"
+                 class="room-card bg-white shadow-sm border overflow-hidden wishlist-room-card"
+                 th:id="'wishlist-card-' + ${wl.id}">
+
+                <!-- ══════════════════════════════════════════════════════
+                     HÀNG TRÊN (1 hàng duy nhất, full-width):
+                     [✓ Button] | [Tên KS] | [Check-in] | [Check-out] | [Filter btn]
+                     ══════════════════════════════════════════════════════ -->
+                <form th:action="@{/wishlist/update-filter}" method="get"
+                      class="wishlist-top-bar wishlist-card-filter-form d-flex align-items-center gap-3 px-3 py-2 border-bottom bg-light w-100">
+                    <input type="hidden" name="id" th:value="${wl.id}" />
+
+                    <!-- Nút dấu tích Bootstrap toggle -->
+                    <button type="button"
+                            class="btn wl-add-btn d-flex align-items-center justify-content-center flex-shrink-0"
+                            data-bs-toggle="button"
+                            th:attr="data-price=${wishlistPricesMap.get(wl.id)},
+                                     data-wlid=${wl.id},
+                                     data-checkin=${wl.checkInDate != null ? wl.checkInDate : ''},
+                                     data-checkout=${wl.checkOutDate != null ? wl.checkOutDate : ''},
+                                     data-hotelid=${wl.room.hotelId},
+                                     data-roomid=${wl.room.id}"
+                            title="Add to booking total">
+                        <i class="bi bi-check-lg"></i>
+                    </button>
+
+                    <!-- Tên khách sạn -->
+                    <span class="fw-bold text-navy text-nowrap wl-hotel-name"
+                          th:text="${wishlistHotelNamesMap != null and wishlistHotelNamesMap.containsKey(wl.id)
+                                     ? wishlistHotelNamesMap.get(wl.id) : 'Hotel'}">
+                        Hotel Name
+                    </span>
+
+                    <!-- Divider -->
+                    <span class="text-muted opacity-50">|</span>
+
+                    <!-- Check-in -->
+                    <div class="d-flex align-items-center gap-1 flex-grow-1">
+                        <label class="small fw-semibold text-muted mb-0 text-nowrap">Check-in:</label>
+                        <input type="text" name="checkin"
+                               class="form-control form-control-sm wl-checkin-picker w-100"
+                               th:value="${wl.checkInDate != null ? wl.checkInDate : todayDate}"
+                               placeholder="dd/mm/yyyy" />
                     </div>
-                    <a th:href="@{/hotels}" class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-arrow-left me-1"></i> Continue Exploring
-                    </a>
-                </div>
 
-                <!-- Empty state -->
-                <div th:if="${wishlists == null or wishlists.isEmpty()}" class="empty-state text-center py-5 bg-white shadow-sm border" style="border-radius:16px;">
-                    <div class="empty-state-icon">
-                        <i class="bi bi-heart fs-1 text-muted mb-3 opacity-50 d-block"></i>
+                    <!-- Check-out -->
+                    <div class="d-flex align-items-center gap-1 flex-grow-1">
+                        <label class="small fw-semibold text-muted mb-0 text-nowrap">Check-out:</label>
+                        <input type="text" name="checkout"
+                               class="form-control form-control-sm wl-checkout-picker w-100"
+                               th:value="${wl.checkOutDate != null ? wl.checkOutDate : (wl.checkInDate != null ? wl.checkInDate.plusDays(1) : tomorrowDate)}"
+                               placeholder="dd/mm/yyyy" />
                     </div>
-                    <div class="empty-state-title fw-bold text-dark fs-5 mb-2">Your Wishlist is Empty</div>
-                    <p class="empty-state-desc text-muted mb-4">
-                        Browse our hotels and rooms to save your favorite stays here.
-                    </p>
-                    <a th:href="@{/hotels}" class="btn btn-gold btn-sm px-4">
-                        Find Hotels Now
-                    </a>
-                </div>
 
-                <!-- Wishlist cards -->
-                <div th:if="${wishlists != null and !wishlists.isEmpty()}" class="d-flex flex-column gap-4">
-                    <div th:each="wl : ${wishlists}" class="room-card d-flex flex-column bg-white shadow-sm border overflow-hidden" 
-                         style="border-radius:16px;" th:id="'wishlist-card-' + ${wl.id}">
+                    <!-- Filter button -->
+                    <button type="submit" class="btn btn-gold btn-sm px-3 fw-semibold text-nowrap flex-shrink-0">
+                        <i class="bi bi-funnel-fill me-1"></i>Filter
+                    </button>
+                </form>
 
-                        <!-- Form Filter nằm trên đầu card phòng -->
-                        <form th:action="@{/wishlist/update-filter}" method="get" class="wishlist-card-filter-form px-4 py-3 border-bottom bg-light w-100">
-                            <input type="hidden" name="id" th:value="${wl.id}" />
-                            <div class="d-flex flex-wrap align-items-center gap-3 w-100">
-                                <div class="d-flex align-items-center gap-2">
-                                    <label class="small fw-semibold text-secondary mb-0 text-nowrap">Check-in:</label>
-                                    <input type="text" name="checkin"
-                                           class="form-control form-control-sm wl-date-picker"
-                                           style="width: 150px;"
-                                           th:value="${wl.checkInDate}" placeholder="Select Date" />
-                                </div>
-                                <div class="d-flex align-items-center gap-2">
-                                    <label class="small fw-semibold text-secondary mb-0 text-nowrap">Check-out:</label>
-                                    <input type="text" name="checkout"
-                                           class="form-control form-control-sm wl-date-picker"
-                                           style="width: 150px;"
-                                           th:value="${wl.checkOutDate}" placeholder="Select Date" />
-                                </div>
-                                <button type="submit" class="btn btn-gold btn-sm py-2 px-3 fw-semibold text-nowrap d-flex align-items-center justify-content-center" style="width: auto;">
-                                    Change Filter
-                                </button>
-                            </div>
-                        </form>
+                <!-- ══════════════════════════════════════════════════════
+                     HÀNG DƯỚI: Ảnh + Thông tin phòng
+                     ══════════════════════════════════════════════════════ -->
+                <div class="d-flex flex-column flex-md-row position-relative wishlist-card-content">
 
-                        <div class="d-flex flex-column flex-md-row position-relative" style="align-items: stretch;">
-                            <!-- Room Quantity Badge (Đặt ở góc trên bên phải của khung nội dung phòng) -->
-                            <div class="room-qty-badge" style="top: 16px; right: 16px; left: auto; z-index: 10;">
-                                <i class="bi bi-door-open me-1"></i>
-                                <span th:text="${wl.room.numberRooms != null ? wl.room.numberRooms + ' room' + (wl.room.numberRooms > 1 ? 's' : '') + ' available' : '0 rooms available'}">5 rooms available</span>
-                            </div>
+                    <!-- Rooms Available Badge -->
+                    <div class="room-qty-badge wishlist-qty-badge">
+                        <i class="bi bi-door-open me-1"></i>
+                        <span th:text="${wishlistAvailableRoomsMap != null and wishlistAvailableRoomsMap.containsKey(wl.id)
+                            ? (wishlistAvailableRoomsMap.get(wl.id) + ' room' + (wishlistAvailableRoomsMap.get(wl.id) > 1 ? 's' : '') + ' available')
+                            : (wl.room.numberRooms != null ? wl.room.numberRooms + ' room' + (wl.room.numberRooms > 1 ? 's' : '') + ' available' : '0 rooms available')}">
+                            5 rooms available
+                        </span>
+                    </div>
 
-                            <!-- Ảnh -->
-                            <div class="room-card-img-wrap position-relative" style="min-width: 280px; width: 280px; align-self: stretch; min-height: 210px;">
-                                <img th:if="${wl.room.imgUrl != null and !wl.room.imgUrl.isEmpty()}"
-                                     th:src="${wl.room.imgUrl}" th:alt="${wl.room.roomType}" 
-                                     class="object-fit-cover" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" />
-                                <div th:if="${wl.room.imgUrl == null or wl.room.imgUrl.isEmpty()}" 
-                                     class="d-flex align-items-center justify-content-center bg-light" 
-                                     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
-                                    <i class="bi bi-image text-muted fs-3"></i>
-                                </div>
-                                
-                                <!-- Wishlist Heart Button (Click to remove) -->
-                                <a th:href="@{/wishlist/remove(id=${wl.id})}" 
-                                   class="wishlist-heart-btn" 
-                                   title="Remove from Wishlist">
-                                    <i class="bi bi-heart-fill pink-heart"></i>
-                                </a>
-                            </div>
-
-                            <!-- Thông tin -->
-                            <div class="room-card-body p-4 flex-grow-1 d-flex flex-column justify-content-between">
-                                <div>
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <div class="room-type-title fs-5 fw-bold text-navy" th:text="${wl.room.roomType}">ROOM TYPE</div>
-                                    </div>
-
-                                    <p class="room-card-desc text-muted small mb-3"
-                                        th:text="${wl.room.description != null and !wl.room.description.isEmpty()
-                                                 ? wl.room.description
-                                                 : 'A luxurious room equipped with modern amenities for the finest hospitality experience.'}">
-                                    </p>
-
-                                    <div class="room-gold-divider my-2" style="height:1px; background-color:#e2e8f0;"></div>
-
-                                    <!-- Amenities -->
-                                    <div class="room-amenities d-flex flex-wrap gap-2 mb-3">
-                                        <span class="badge bg-light text-secondary border px-2 py-1 small">
-                                            <i class="bi bi-arrows-fullscreen me-1"></i>
-                                            <span th:text="${wl.room.acreage + ' m²'}">25 m²</span>
-                                        </span>
-                                        <span class="badge bg-light text-secondary border px-2 py-1 small">
-                                            <i class="bi bi-people me-1"></i>
-                                            <span th:text="${wl.room.person + ' guest(s)'}">2 guest(s)</span>
-                                        </span>
-                                        <span class="badge bg-light text-secondary border px-2 py-1 small">
-                                            <i class="bi bi-door-closed me-1"></i>
-                                            <span th:text="${wl.room.bed + ' bed(s)'}">2 bed(s)</span>
-                                        </span>
-                                        <span class="badge bg-light text-secondary border px-2 py-1 small">
-                                            <i class="bi bi-grid-3x3-gap me-1"></i>
-                                            <span th:text="${wl.room.window + ' window(s)'}">2 window(s)</span>
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <!-- Footer: giá + nút -->
-                                <div class="room-card-footer d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
-                                    <div>
-                                        <div class="room-price-label text-muted small fw-semibold" 
-                                             th:text="${wishlistFilteredMap.get(wl.id)} ? 'Total Price' : 'Price per Night'">Price per Night</div>
-                                        <div class="d-flex align-items-baseline gap-1">
-                                            <span class="room-price-amount fs-4 fw-bold text-gold" style="color: #b45309;"
-                                                th:text="${#numbers.formatInteger(wishlistPricesMap.get(wl.id), 0, 'COMMA')}">500,000</span>
-                                            <span class="room-price-unit text-muted small"
-                                                  th:text="${wishlistFilteredMap.get(wl.id) ? 'VND / ' + wishlistNightsMap.get(wl.id) + ' night' + (wishlistNightsMap.get(wl.id) > 1 ? 's' : '') : 'VND / night'}">VND</span>
-                                        </div>
-                                    </div>
-                                    <div class="room-action-btns">
-                                        <a th:href="@{/booking(hotelId=${wl.room.hotelId}, roomId=${wl.room.id}, checkin=${wl.checkInDate != null ? wl.checkInDate : ''}, checkout=${wl.checkOutDate != null ? wl.checkOutDate : ''})}"
-                                           class="btn btn-gold btn-sm px-3 py-2 fw-semibold btn-book-room" style="background-color: var(--gold); border:none; color: white;">
-                                            Book Now
-                                            <i class="bi bi-arrow-right ms-1"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+                    <!-- Ảnh phòng -->
+                    <div class="room-card-img-wrap position-relative wishlist-img-wrap">
+                        <img th:if="${wl.room.imgUrl != null and !wl.room.imgUrl.isEmpty()}"
+                             th:src="${wl.room.imgUrl}" th:alt="${wl.room.roomType}"
+                             class="object-fit-cover wishlist-card-img" />
+                        <div th:if="${wl.room.imgUrl == null or wl.room.imgUrl.isEmpty()}"
+                             class="d-flex align-items-center justify-content-center bg-light wishlist-card-img">
+                            <i class="bi bi-image text-muted fs-3"></i>
                         </div>
 
+                        <!-- Heart button (remove from wishlist) -->
+                        <a th:href="@{/wishlist/remove(id=${wl.id})}"
+                           class="wishlist-heart-btn"
+                           title="Remove from Wishlist">
+                            <i class="bi bi-heart-fill pink-heart"></i>
+                        </a>
+                    </div>
+
+                    <!-- Thông tin phòng -->
+                    <div class="room-card-body p-4 flex-grow-1 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="room-type-title fs-5 fw-bold text-navy" th:text="${wl.room.roomType}">ROOM TYPE</div>
+                            <p class="room-card-desc text-muted small mb-3"
+                               th:text="${wl.room.description != null and !wl.room.description.isEmpty()
+                                        ? wl.room.description
+                                        : 'A luxurious room equipped with modern amenities for the finest hospitality experience.'}">
+                            </p>
+                            <div class="room-gold-divider my-2 wishlist-divider"></div>
+
+                            <!-- Amenities -->
+                            <div class="room-amenities d-flex flex-wrap gap-2 mb-3">
+                                <span class="badge bg-light text-secondary border px-2 py-1 small">
+                                    <i class="bi bi-arrows-fullscreen me-1"></i>
+                                    <span th:text="${wl.room.acreage + ' m²'}">25 m²</span>
+                                </span>
+                                <span class="badge bg-light text-secondary border px-2 py-1 small">
+                                    <i class="bi bi-people me-1"></i>
+                                    <span th:text="${wl.room.person + ' guest(s)'}">2 guest(s)</span>
+                                </span>
+                                <span class="badge bg-light text-secondary border px-2 py-1 small">
+                                    <i class="bi bi-door-closed me-1"></i>
+                                    <span th:text="${wl.room.bed + ' bed(s)'}">2 bed(s)</span>
+                                </span>
+                                <span class="badge bg-light text-secondary border px-2 py-1 small">
+                                    <i class="bi bi-grid-3x3-gap me-1"></i>
+                                    <span th:text="${wl.room.window + ' window(s)'}">2 window(s)</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Footer: Giá + badge trạng thái -->
+                        <div class="room-card-footer d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                            <div>
+                                <div class="room-price-label text-muted small fw-semibold"
+                                     th:text="${wishlistFilteredMap.get(wl.id)} ? 'Total Price' : 'Price per Night'">
+                                    Price per Night
+                                </div>
+                                <div class="d-flex align-items-baseline gap-1">
+                                    <span class="room-price-amount fs-4 fw-bold text-gold wishlist-price-amount"
+                                          th:text="${#numbers.formatInteger(wishlistPricesMap.get(wl.id), 0, 'COMMA')}">
+                                        500,000
+                                    </span>
+                                    <span class="room-price-unit text-muted small"
+                                          th:text="${wishlistFilteredMap.get(wl.id)
+                                              ? 'VND / ' + wishlistNightsMap.get(wl.id) + ' night' + (wishlistNightsMap.get(wl.id) > 1 ? 's' : '')
+                                              : 'VND / night'}">
+                                        VND
+                                    </span>
+                                </div>
+                            </div>
+                            <!-- Badge hiển thị khi đã được chọn vào tổng -->
+                            <span class="badge bg-success-subtle text-success border border-success wl-added-badge"
+                                  th:id="'wl-badge-' + ${wl.id}" style="display:none;">
+                                <i class="bi bi-check-circle me-1"></i>Added
+                            </span>
+                        </div>
                     </div>
                 </div>
 
             </div>
+        </div><!-- end wishlistContainer -->
 
-        </div>
     </div>
 </main>
 
-
-
-<script th:inline="javascript">
-    document.addEventListener("DOMContentLoaded", function() {
-        const forms = document.querySelectorAll('.wishlist-card-filter-form');
-        forms.forEach(form => {
-            const checkinInput = form.querySelector('input[name="checkin"]');
-            const checkoutInput = form.querySelector('input[name="checkout"]');
-
-            const checkinPicker = flatpickr(checkinInput, {
-                dateFormat: "Y-m-d",
-                altInput: true,
-                altFormat: "d/m/Y",
-                altInputClass: "form-control form-control-sm w-100",
-                minDate: "today",
-                allowInput: false,
-                onChange: function(selectedDates, dateStr) {
-                    if (selectedDates[0]) {
-                        const nextDay = new Date(selectedDates[0]);
-                        nextDay.setDate(nextDay.getDate() + 1);
-                        checkoutPicker.set("minDate", nextDay);
-
-                        const currentCheckout = checkoutPicker.selectedDates[0];
-                        if (currentCheckout && currentCheckout <= selectedDates[0]) {
-                            checkoutPicker.setDate(nextDay);
-                        }
-                    }
-                }
-            });
-
-            const checkoutPicker = flatpickr(checkoutInput, {
-                dateFormat: "Y-m-d",
-                altInput: true,
-                altFormat: "d/m/Y",
-                altInputClass: "form-control form-control-sm w-100",
-                minDate: checkinInput.value ? new Date(new Date(checkinInput.value).getTime() + 86400000) : new Date().setDate(new Date().getDate() + 1),
-                allowInput: false
-            });
-        });
-    });
-</script>
+<!-- ==================== BOTTOM BOOKING NAVBAR ==================== -->
+<div id="wishlistBottomBar"
+     th:if="${wishlists != null and !wishlists.isEmpty()}"
+     class="wishlist-bottom-bar d-flex align-items-center justify-content-between px-4">
+    <div class="d-flex align-items-center gap-3">
+        <span class="text-muted small fw-semibold text-nowrap">Estimated Total</span>
+        <div class="d-flex align-items-baseline gap-1">
+            <span class="fs-5 fw-bold text-gold" id="wlTotalAmount">0</span>
+            <span class="text-muted small">VND</span>
+        </div>
+        <span class="text-muted small" id="wlSelectedCount">(0 room selected)</span>
+    </div>
+    <a href="#" id="wlBookNowBtn"
+       class="btn btn-gold px-4 py-2 fw-semibold wl-book-disabled">
+        <i class="bi bi-calendar-check me-1"></i> Book Now
+    </a>
+</div>
 
 <footer th:replace="~{fragment/frag :: footer}"></footer>
 <div th:replace="~{fragment/frag :: scripts}"></div>
+<script th:src="@{/assets/js/filter.js}"></script>
+
 </body>
 </html>
