@@ -50,9 +50,17 @@ public class RegisterController {
             userService.validateRegister(username, email);
 
             String otp = otpService.generateOtp();
-            emailService.sendOtp(email, otp);
-
             userService.savePendingUser(fullName, username, password, email, otp, role, null, null, null, null, null);
+
+            final String targetEmail = email;
+            final String targetOtp = otp;
+            java.util.concurrent.CompletableFuture.runAsync(() -> {
+                try {
+                    emailService.sendOtp(targetEmail, targetOtp);
+                } catch (Exception e) {
+                    System.err.println("[Email] Error sending registration OTP in background: " + e.getMessage());
+                }
+            });
 
             session.setAttribute("pendingEmail", email);
             session.setAttribute("pendingFullName", fullName);
@@ -98,9 +106,6 @@ public class RegisterController {
 
             userService.validateRegister(username, email);
 
-            String otp = otpService.generateOtp();
-            emailService.sendOtp(email, otp);
-
             // ===== XỬ LÝ UPLOAD ẢNH CCCD =====
             String idCardDocumentPath = null;
             if (idCardDocument != null && !idCardDocument.isEmpty()) {
@@ -119,9 +124,21 @@ public class RegisterController {
                 }
             }
 
+            String otp = otpService.generateOtp();
+
             // Owner có đầy đủ thông tin kèm đường dẫn ảnh CCCD
             userService.savePendingUser(fullName, username, password, email, otp, "HOTEL_OWNER",
                     phone, address, idCard, taxId, idCardDocumentPath);
+
+            final String targetEmail = email;
+            final String targetOtp = otp;
+            java.util.concurrent.CompletableFuture.runAsync(() -> {
+                try {
+                    emailService.sendOtp(targetEmail, targetOtp);
+                } catch (Exception e) {
+                    System.err.println("[Email] Error sending registration OTP in background: " + e.getMessage());
+                }
+            });
 
             session.setAttribute("pendingEmail", email);
             session.setAttribute("pendingFullName", fullName);

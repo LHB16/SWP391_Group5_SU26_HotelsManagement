@@ -164,6 +164,8 @@
                         <input type="radio" id="tab-vietqr" name="payment-tab-select" style="display:none;">
                         <input type="radio" id="tab-paypal" name="payment-tab-select" style="display:none;">
 
+                        <div id="payment-data" th:data-booking-id="${bookingId}" th:data-remaining-seconds="${remainingSeconds}" style="display:none;"></div>
+
                         <!-- Selector Pills -->
                         <div class="d-flex justify-content-center gap-2 mb-3 mt-3 pt-3 border-bottom pb-3">
                             <label for="tab-vietqr" class="tab-btn btn-vietqr-label">
@@ -360,83 +362,8 @@
     <footer th:replace="~{fragment/frag :: footer}"></footer>
     <div th:replace="~{fragment/frag :: scripts}"></div>
 
-    <!-- Countdown timer script (UI only – no payment logic) -->
-    <script th:inline="javascript">
-        (function () {
-            var secs = /*[[${remainingSeconds}]]*/ 0;
-            var el   = document.getElementById('qr-countdown');
-            if (!el || secs <= 0) { if (el) el.textContent = '00:00'; return; }
-            function fmt(s) {
-                var m = Math.floor(s / 60);
-                var ss = s % 60;
-                return (m < 10 ? '0' : '') + m + ':' + (ss < 10 ? '0' : '') + ss;
-            }
-            el.textContent = fmt(secs);
-            
-            var timerInterval = null;
-            
-            function startTimer() {
-                if (timerInterval) return;
-                timerInterval = setInterval(function () {
-                    secs--;
-                    if (secs <= 0) { 
-                        el.textContent = '00:00'; 
-                        clearInterval(timerInterval); 
-                        timerInterval = null;
-                        return; 
-                    }
-                    el.textContent = fmt(secs);
-                }, 1000);
-            }
-            
-            function pauseTimer() {
-                if (timerInterval) {
-                    clearInterval(timerInterval);
-                    timerInterval = null;
-                }
-            }
-            
-            // Khởi chạy timer nếu VietQR đang được chọn
-            var tabVietQR = document.getElementById('tab-vietqr');
-            var tabPaypal = document.getElementById('tab-paypal');
-            
-            if (tabVietQR && tabVietQR.checked) {
-                startTimer();
-            }
-            
-            if (tabVietQR && tabPaypal) {
-                tabVietQR.addEventListener('change', function() {
-                    if (this.checked) startTimer();
-                });
-                tabPaypal.addEventListener('change', function() {
-                    if (this.checked) pauseTimer();
-                });
-            }
-        })();
-
-        // Tự động kiểm tra trạng thái thanh toán chạy ngầm qua AJAX (không reload trang)
-        (function () {
-            var bookingId = /*[[${bookingId}]]*/ 0;
-            if (bookingId <= 0) return;
-            
-            var checkTimer = setInterval(function () {
-                fetch('/booking/check-status?bookingId=' + bookingId)
-                    .then(function (response) {
-                        return response.text();
-                    })
-                    .then(function (status) {
-                        if (status === 'CONFIRMED') {
-                            clearInterval(checkTimer);
-                            // Chuyển hướng qua trang status để lưu flash attribute thông báo thành công, rồi mới sang history
-                            window.location.href = '/booking/qr-payment-status?bookingId=' + bookingId;
-                        }
-                    })
-                    .catch(function (err) {
-                        console.error('Error checking payment status:', err);
-                    });
-            }, 3000); // Kiểm tra mỗi 3 giây
-        })();
-    </script>
+    <!-- Script to manage the VietQR countdown timer and automatic checkout check -->
+    <script src="/assets/js/payment.js"></script>
 
 </body>
 
