@@ -44,4 +44,6 @@ public interface HotelRepository extends JpaRepository<Hotel, Integer> {
     Page<Hotel> findByApprovalStatus(String approvalStatus, Pageable pageable);
 
     Page<Hotel> findByApprovalStatusAndNameContainingIgnoreCase(String approvalStatus, String name, Pageable pageable);
+
+    Page<Hotel> findByNameContainingIgnoreCase(String name, Pageable pageable);
 }
