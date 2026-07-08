@@ -9,6 +9,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.hotel_management.entity.*;
 import vn.edu.fpt.hotel_management.repository.*;
 import vn.edu.fpt.hotel_management.service.OwnerService;
+import vn.edu.fpt.hotel_management.service.PromotionService;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -30,6 +31,7 @@ public class OwnerController {
     private final PaymentRepository paymentRepository;
     private final HotelVerificationDocumentRepository hotelVerificationDocumentRepository;
     private final OwnerService ownerService;
+    private final PromotionService promotionService;
 
     private static final String HOTEL_IMAGE_SUBDIR = "assets/images/hotel";
     private static final String HOTEL_IMAGE_URL_PREFIX = "/assets/images/hotel/";
@@ -41,7 +43,8 @@ public class OwnerController {
                            BookingRepository bookingRepository,
                            PaymentRepository paymentRepository,
                            HotelVerificationDocumentRepository hotelVerificationDocumentRepository,
-                           OwnerService ownerService) {
+                           OwnerService ownerService,
+                           PromotionService promotionService) {
         this.hotelOwnerRepository = hotelOwnerRepository;
         this.hotelRepository = hotelRepository;
         this.roomRepository = roomRepository;
@@ -49,9 +52,9 @@ public class OwnerController {
         this.paymentRepository = paymentRepository;
         this.hotelVerificationDocumentRepository = hotelVerificationDocumentRepository;
         this.ownerService = ownerService;
+        this.promotionService = promotionService;
     }
 
-    // ===== HELPER: LƯU FILE UPLOAD =====
     private String saveUploadedFile(MultipartFile file, String subDir) throws IOException {
         if (file == null || file.isEmpty()) {
             return null;
@@ -78,7 +81,6 @@ public class OwnerController {
         return path;
     }
 
-    // ===== DASHBOARD =====
     @GetMapping("/dashboard")
     public String dashboard(
             @RequestParam(value = "tab", defaultValue = "overview") String tab,
@@ -112,11 +114,19 @@ public class OwnerController {
             model.addAttribute("recentBookings", Collections.emptyList());
             model.addAttribute("hotels", Collections.emptyList());
             model.addAttribute("roomCountMap", Collections.emptyMap());
+            model.addAttribute("promotionsByHotel", Collections.emptyMap());
+            model.addAttribute("totalPromotions", 0);
+            model.addAttribute("approvedHotels", Collections.emptyList());
             return "owner/dashboard";
         }
 
-        List<Hotel> hotels = hotelRepository.findByOwnerId(owner.getId());
-        List<Integer> hotelIds = hotels.stream().map(Hotel::getId).collect(Collectors.toList());
+        List<Hotel> allHotels = hotelRepository.findByOwnerId(owner.getId());
+
+        List<Hotel> approvedHotels = allHotels.stream()
+                .filter(h -> "APPROVED".equals(h.getApprovalStatus()))
+                .collect(Collectors.toList());
+
+        List<Integer> hotelIds = approvedHotels.stream().map(Hotel::getId).collect(Collectors.toList());
 
         Map<Integer, Integer> roomCountMap = new HashMap<>();
         for (Integer hotelId : hotelIds) {
@@ -124,7 +134,7 @@ public class OwnerController {
             roomCountMap.put(hotelId, rooms.size());
         }
 
-        long totalHotels = hotels.size();
+        long totalHotels = allHotels.size();
         long totalRooms = roomCountMap.values().stream().mapToInt(Integer::intValue).sum();
         long totalBookings = 0;
         BigDecimal totalRevenue = BigDecimal.ZERO;
@@ -164,18 +174,28 @@ public class OwnerController {
             return map;
         }).collect(Collectors.toList());
 
+        Map<Integer, List<Promotion>> promotionsByHotel = new HashMap<>();
+        int totalPromotions = 0;
+        for (Hotel hotel : approvedHotels) {
+            List<Promotion> promotions = promotionService.getPromotionsByHotelId(hotel.getId());
+            promotionsByHotel.put(hotel.getId(), promotions);
+            totalPromotions += promotions.size();
+        }
+
         model.addAttribute("totalHotels", totalHotels);
         model.addAttribute("totalRooms", totalRooms);
         model.addAttribute("totalBookings", totalBookings);
         model.addAttribute("totalRevenue", totalRevenue);
         model.addAttribute("recentBookings", mappedBookings);
-        model.addAttribute("hotels", hotels);
+        model.addAttribute("hotels", allHotels);
+        model.addAttribute("approvedHotels", approvedHotels);
         model.addAttribute("roomCountMap", roomCountMap);
+        model.addAttribute("promotionsByHotel", promotionsByHotel);
+        model.addAttribute("totalPromotions", totalPromotions);
 
         return "owner/dashboard";
     }
 
-    // ===== ADD HOTEL (FROM DASHBOARD MODAL) =====
     @PostMapping("/dashboard/add-hotel")
     public String addHotelFromDashboard(
             @RequestParam("name") String name,
@@ -225,7 +245,6 @@ public class OwnerController {
                         StandardCopyOption.REPLACE_EXISTING);
                 imageUrl = HOTEL_IMAGE_URL_PREFIX + safeFilename;
 
-                // Sync to target/classes for instant hot reload
                 Path classesPath = Paths.get(System.getProperty("user.dir"), "target", "classes", "static", HOTEL_IMAGE_SUBDIR).toAbsolutePath().normalize();
                 if (Files.exists(Paths.get(System.getProperty("user.dir"), "target", "classes", "static"))) {
                     if (!Files.exists(classesPath)) {
@@ -307,7 +326,6 @@ public class OwnerController {
         return "redirect:/owner/dashboard?tab=hotels";
     }
 
-    // ===== DELETE HOTEL (FROM DASHBOARD) - ĐÃ SỬA =====
     @PostMapping("/dashboard/delete-hotel")
     public String deleteHotelFromDashboard(
             @RequestParam("hotelId") int hotelId,
@@ -350,12 +368,9 @@ public class OwnerController {
 
             List<Room> rooms = roomRepository.findByHotelId(hotelId);
             if (!rooms.isEmpty()) {
-                for (Room room : rooms) {
-                }
                 roomRepository.deleteAll(rooms);
                 roomRepository.flush();
             }
-
 
             hotelRepository.delete(hotel);
 
