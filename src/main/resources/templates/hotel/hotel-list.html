@@ -86,33 +86,176 @@
 
                             <hr class="border-gold-faint my-3">
 
-                            <!-- Price Range -->
+                            <!-- Price Range / Night (Dual Range Slider) -->
                             <div class="mb-4">
                                 <div class="filter-section-label">Price Range / Night</div>
-                                <div class="row g-2">
-                                    <div class="col-6">
-                                        <label class="form-label small text-muted mb-1" for="minPriceInput">From (VND)</label>
-                                        <input type="number" id="minPriceInput" name="minPrice"
-                                               class="filter-input" min="0" max="50000000" step="50000"
-                                               th:value="${minPrice}" placeholder="0" />
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label small text-muted mb-1" for="maxPriceInput">To (VND)</label>
-                                        <input type="number" id="maxPriceInput" name="maxPrice"
-                                               class="filter-input" min="0" max="50000000" step="50000"
-                                               th:value="${maxPrice}" placeholder="50M" />
-                                    </div>
+                                <div class="price-slider-wrapper">
+                                    <div class="slider-track"></div>
+                                    <input type="range" min="100000" max="50000000" step="100000"
+                                           th:value="${minPrice != null ? minPrice : 100000}" id="slider-1" oninput="slideOne()">
+                                    <input type="range" min="100000" max="50000000" step="100000"
+                                           th:value="${maxPrice != null ? maxPrice : 50000000}" id="slider-2" oninput="slideTwo()">
+                                </div>
+                                <div class="price-values d-flex justify-content-between mt-2">
+                                    <span id="range1">100,000 ₫</span>
+                                    <span id="range2">50,000,000 ₫</span>
+                                </div>
+                                <!-- Input ẩn để submit giá trị lên server -->
+                                <input type="hidden" id="minPriceInput" name="minPrice" th:value="${minPrice != null ? minPrice : 100000}">
+                                <input type="hidden" id="maxPriceInput" name="maxPrice" th:value="${maxPrice != null ? maxPrice : 50000000}">
+                            </div>
+
+                            <hr class="border-gold-faint my-3">
+
+                            <!-- Hotel Facilities -->
+                            <div class="mb-3">
+                                <div class="filter-section-label">Hotel Facilities</div>
+                                <div class="filter-btn-container" id="hotelFacilitiesContainer">
+                                    <!-- 5 Item đầu tiên (Hiện mặc định) -->
+                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-freeWifi" value="freeWifi" th:checked="${selectedHotelFacilities.contains('freeWifi')}" />
+                                    <label class="hl-filter-btn" for="h-fac-freeWifi">Free Wifi</label>
+
+                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-swimmingPool" value="swimmingPool" th:checked="${selectedHotelFacilities.contains('swimmingPool')}" />
+                                    <label class="hl-filter-btn" for="h-fac-swimmingPool">Pool</label>
+
+                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-parking" value="parking" th:checked="${selectedHotelFacilities.contains('parking')}" />
+                                    <label class="hl-filter-btn" for="h-fac-parking">Parking</label>
+
+                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-restaurant" value="restaurant" th:checked="${selectedHotelFacilities.contains('restaurant')}" />
+                                    <label class="hl-filter-btn" for="h-fac-restaurant">Restaurant</label>
+
+                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-breakfastAvailable" value="breakfastAvailable" th:checked="${selectedHotelFacilities.contains('breakfastAvailable')}" />
+                                    <label class="hl-filter-btn" for="h-fac-breakfastAvailable">Breakfast</label>
+
+                                    <!-- 7 Item sau -->
+                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-fitnessCentre" value="fitnessCentre" th:checked="${selectedHotelFacilities.contains('fitnessCentre')}" />
+                                    <label class="hl-filter-btn" for="h-fac-fitnessCentre">Gym</label>
+
+                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-nonSmokingRooms" value="nonSmokingRooms" th:checked="${selectedHotelFacilities.contains('nonSmokingRooms')}" />
+                                    <label class="hl-filter-btn" for="h-fac-nonSmokingRooms">Non-Smoking</label>
+
+                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-airportShuttle" value="airportShuttle" th:checked="${selectedHotelFacilities.contains('airportShuttle')}" />
+                                    <label class="hl-filter-btn" for="h-fac-airportShuttle">Shuttle</label>
+
+                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-spaWellnessCentre" value="spaWellnessCentre" th:checked="${selectedHotelFacilities.contains('spaWellnessCentre')}" />
+                                    <label class="hl-filter-btn" for="h-fac-spaWellnessCentre">Spa</label>
+
+                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-evChargingStation" value="evChargingStation" th:checked="${selectedHotelFacilities.contains('evChargingStation')}" />
+                                    <label class="hl-filter-btn" for="h-fac-evChargingStation">EV Charger</label>
+
+                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-wheelchairAccessible" value="wheelchairAccessible" th:checked="${selectedHotelFacilities.contains('wheelchairAccessible')}" />
+                                    <label class="hl-filter-btn" for="h-fac-wheelchairAccessible">Wheelchair</label>
+
+                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-barPub" value="barPub" th:checked="${selectedHotelFacilities.contains('barPub')}" />
+                                    <label class="hl-filter-btn" for="h-fac-barPub">Bar/Pub</label>
+
+                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-rentVehicle" value="rentVehicle" th:checked="${selectedHotelFacilities.contains('rentVehicle')}" />
+                                    <label class="hl-filter-btn" for="h-fac-rentVehicle">Rent Vehicle</label>
                                 </div>
                             </div>
 
-                            <!-- Action buttons -->
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-gold">
-                                    <i class="bi bi-search me-1"></i>
-                                    Search
-                                </button>
-                                <a th:href="@{/hotels}" class="btn btn-outline-secondary">Clear Filters</a>
+                            <hr class="border-gold-faint my-3">
+
+                            <!-- Hotel Views -->
+                            <div class="mb-3">
+                                <div class="filter-section-label">Hotel Views</div>
+                                <div class="filter-btn-container" id="hotelViewsContainer">
+                                    <input type="checkbox" class="btn-check" name="hotelViews" id="h-view-cityView" value="cityView" th:checked="${selectedHotelViews.contains('cityView')}" />
+                                    <label class="hl-filter-btn" for="h-view-cityView">City View</label>
+
+                                    <input type="checkbox" class="btn-check" name="hotelViews" id="h-view-beachView" value="beachView" th:checked="${selectedHotelViews.contains('beachView')}" />
+                                    <label class="hl-filter-btn" for="h-view-beachView">Beach View</label>
+
+                                    <input type="checkbox" class="btn-check" name="hotelViews" id="h-view-gardenView" value="gardenView" th:checked="${selectedHotelViews.contains('gardenView')}" />
+                                    <label class="hl-filter-btn" for="h-view-gardenView">Garden View</label>
+
+                                    <input type="checkbox" class="btn-check" name="hotelViews" id="h-view-poolView" value="poolView" th:checked="${selectedHotelViews.contains('poolView')}" />
+                                    <label class="hl-filter-btn" for="h-view-poolView">Pool View</label>
+
+                                    <input type="checkbox" class="btn-check" name="hotelViews" id="h-view-mountainView" value="mountainView" th:checked="${selectedHotelViews.contains('mountainView')}" />
+                                    <label class="hl-filter-btn" for="h-view-mountainView">Mountain View</label>
+
+                                    <input type="checkbox" class="btn-check" name="hotelViews" id="h-view-riverView" value="riverView" th:checked="${selectedHotelViews.contains('riverView')}" />
+                                    <label class="hl-filter-btn" for="h-view-riverView">River View</label>
+                                </div>
                             </div>
+
+                            <hr class="border-gold-faint my-3">
+
+                            <!-- Room Facilities -->
+                            <div class="mb-4">
+                                <div class="filter-section-label">Room Facilities</div>
+                                <div class="filter-btn-container" id="roomFacilitiesContainer">
+                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-airConditioning" value="airConditioning" th:checked="${selectedRoomFacilities.contains('airConditioning')}" />
+                                    <label class="hl-filter-btn" for="r-fac-airConditioning">Air Conditioning</label>
+
+                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-television" value="television" th:checked="${selectedRoomFacilities.contains('television')}" />
+                                    <label class="hl-filter-btn" for="r-fac-television">Television</label>
+
+                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-safetyDepositBox" value="safetyDepositBox" th:checked="${selectedRoomFacilities.contains('safetyDepositBox')}" />
+                                    <label class="hl-filter-btn" for="r-fac-safetyDepositBox">Safety Box</label>
+
+                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-desk" value="desk" th:checked="${selectedRoomFacilities.contains('desk')}" />
+                                    <label class="hl-filter-btn" for="r-fac-desk">Desk</label>
+
+                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-freeBottledWater" value="freeBottledWater" th:checked="${selectedRoomFacilities.contains('freeBottledWater')}" />
+                                    <label class="hl-filter-btn" for="r-fac-freeBottledWater">Free Water</label>
+
+                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-freeToiletries" value="freeToiletries" th:checked="${selectedRoomFacilities.contains('freeToiletries')}" />
+                                    <label class="hl-filter-btn" for="r-fac-freeToiletries">Toiletries</label>
+
+                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-shower" value="shower" th:checked="${selectedRoomFacilities.contains('shower')}" />
+                                    <label class="hl-filter-btn" for="r-fac-shower">Shower</label>
+
+                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-bathrobe" value="bathrobe" th:checked="${selectedRoomFacilities.contains('bathrobe')}" />
+                                    <label class="hl-filter-btn" for="r-fac-bathrobe">Bathrobe</label>
+
+                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-toilet" value="toilet" th:checked="${selectedRoomFacilities.contains('toilet')}" />
+                                    <label class="hl-filter-btn" for="r-fac-toilet">Toilet</label>
+
+                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-towels" value="towels" th:checked="${selectedRoomFacilities.contains('towels')}" />
+                                    <label class="hl-filter-btn" for="r-fac-towels">Towels</label>
+
+                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-slippers" value="slippers" th:checked="${selectedRoomFacilities.contains('slippers')}" />
+                                    <label class="hl-filter-btn" for="r-fac-slippers">Slippers</label>
+
+                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-hairdryer" value="hairdryer" th:checked="${selectedRoomFacilities.contains('hairdryer')}" />
+                                    <label class="hl-filter-btn" for="r-fac-hairdryer">Hairdryer</label>
+
+                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-toiletPaper" value="toiletPaper" th:checked="${selectedRoomFacilities.contains('toiletPaper')}" />
+                                    <label class="hl-filter-btn" for="r-fac-toiletPaper">Toilet Paper</label>
+
+                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-telephone" value="telephone" th:checked="${selectedRoomFacilities.contains('telephone')}" />
+                                    <label class="hl-filter-btn" for="r-fac-telephone">Telephone</label>
+
+                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-iron" value="iron" th:checked="${selectedRoomFacilities.contains('iron')}" />
+                                    <label class="hl-filter-btn" for="r-fac-iron">Iron</label>
+
+                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-electricKettle" value="electricKettle" th:checked="${selectedRoomFacilities.contains('electricKettle')}" />
+                                    <label class="hl-filter-btn" for="r-fac-electricKettle">Electric Kettle</label>
+
+                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-cableChannels" value="cableChannels" th:checked="${selectedRoomFacilities.contains('cableChannels')}" />
+                                    <label class="hl-filter-btn" for="r-fac-cableChannels">Cable Channels</label>
+
+                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-wakeUpService" value="wakeUpService" th:checked="${selectedRoomFacilities.contains('wakeUpService')}" />
+                                    <label class="hl-filter-btn" for="r-fac-wakeUpService">Wake-up Service</label>
+
+                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-wardrobeCloset" value="wardrobeCloset" th:checked="${selectedRoomFacilities.contains('wardrobeCloset')}" />
+                                    <label class="hl-filter-btn" for="r-fac-wardrobeCloset">Wardrobe</label>
+
+                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-clothesRack" value="clothesRack" th:checked="${selectedRoomFacilities.contains('clothesRack')}" />
+                                    <label class="hl-filter-btn" for="r-fac-clothesRack">Clothes Rack</label>
+                                </div>
+                            </div>
+
+                             <!-- Action buttons -->
+                             <div class="d-grid gap-2 mt-4">
+                                 <button type="submit" class="btn btn-gold d-flex align-items-center justify-content-center">
+                                     <i class="bi bi-search me-2"></i>
+                                     Search
+                                 </button>
+                                 <a th:href="@{/hotels}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center">Clear Filters</a>
+                             </div>
 
                         </form>
                     </div>
@@ -190,10 +333,66 @@
 <div th:replace="~{fragment/frag :: scripts}"></div>
 
 <script th:inline="javascript">
+    // Biến và hàm cho Dual Range Slider
+    const sliderOne = document.getElementById("slider-1");
+    const sliderTwo = document.getElementById("slider-2");
+    const minPriceInput = document.getElementById("minPriceInput");
+    const maxPriceInput = document.getElementById("maxPriceInput");
+    const displayValOne = document.getElementById("range1");
+    const displayValTwo = document.getElementById("range2");
+    const minGap = 200000; // Khoảng cách tối thiểu 200,000 VND
+    const sliderTrack = document.querySelector(".slider-track");
+
+    function slideOne() {
+        let val1 = parseInt(sliderOne.value);
+        let val2 = parseInt(sliderTwo.value);
+        if (val2 - val1 <= minGap) {
+            sliderOne.value = val2 - minGap;
+        }
+        minPriceInput.value = sliderOne.value;
+        displayValOne.textContent = formatCurrency(sliderOne.value);
+        fillColor();
+        
+        // Đưa slider 1 lên trên để tránh trùng lấn sự kiện kéo
+        sliderOne.style.zIndex = "10";
+        sliderTwo.style.zIndex = "0";
+    }
+
+    function slideTwo() {
+        let val1 = parseInt(sliderOne.value);
+        let val2 = parseInt(sliderTwo.value);
+        if (val2 - val1 <= minGap) {
+            sliderTwo.value = val1 + minGap;
+        }
+        maxPriceInput.value = sliderTwo.value;
+        displayValTwo.textContent = formatCurrency(sliderTwo.value);
+        fillColor();
+        
+        // Đưa slider 2 lên trên khi đang tương tác kéo max
+        sliderTwo.style.zIndex = "10";
+        sliderOne.style.zIndex = "0";
+    }
+
+    function fillColor() {
+        let val1 = parseInt(sliderOne.value);
+        let val2 = parseInt(sliderTwo.value);
+        let percent1 = ((val1 - 100000) / (50000000 - 100000)) * 100;
+        let percent2 = ((val2 - 100000) / (50000000 - 100000)) * 100;
+        sliderTrack.style.background = `linear-gradient(to right, #ced4da ${percent1}% , var(--gold) ${percent1}% , var(--gold) ${percent2}%, #ced4da ${percent2}%)`;
+    }
+
+    function formatCurrency(value) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(value);
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         const checkinVal = /*[[${checkin}]]*/ '';
         const checkoutVal = /*[[${checkout}]]*/ '';
         const todayVal = /*[[${today}]]*/ '';
+
+        // Khởi tạo trạng thái thanh trượt giá ban đầu
+        slideOne();
+        slideTwo();
 
         const checkinPicker = flatpickr("#filterCheckin", {
             dateFormat: "Y-m-d",

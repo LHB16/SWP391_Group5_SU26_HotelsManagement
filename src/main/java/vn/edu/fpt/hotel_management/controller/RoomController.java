@@ -23,7 +23,6 @@ public class RoomController {
     private final ReviewRepository reviewRepository;
     private final WishlistRepository wishlistRepository;
     private final CustomerRepository customerRepository;
-    private final BookingRepository bookingRepository;
     private final HotelOwnerRepository hotelOwnerRepository;
     private final RoomFacilityRepository roomFacilityRepository;
     private final OwnerService ownerService;
@@ -35,7 +34,6 @@ public class RoomController {
                           ReviewRepository reviewRepository,
                           WishlistRepository wishlistRepository,
                           CustomerRepository customerRepository,
-                          BookingRepository bookingRepository,
                           HotelOwnerRepository hotelOwnerRepository,
                           RoomFacilityRepository roomFacilityRepository,
                           OwnerService ownerService) {
@@ -44,7 +42,6 @@ public class RoomController {
         this.reviewRepository = reviewRepository;
         this.wishlistRepository = wishlistRepository;
         this.customerRepository = customerRepository;
-        this.bookingRepository = bookingRepository;
         this.hotelOwnerRepository = hotelOwnerRepository;
         this.roomFacilityRepository = roomFacilityRepository;
         this.ownerService = ownerService;
@@ -69,12 +66,15 @@ public class RoomController {
             @RequestParam(value = "maxPrice", required = false, defaultValue = "50000000") long maxPrice,
             @RequestParam(value = "checkin", required = false) String checkin,
             @RequestParam(value = "checkout", required = false) String checkout,
-            @RequestParam(value = "bookingId", required = false) Integer bookingId,
             HttpSession session,
-            Model model
+            Model model,
+            RedirectAttributes redirectAttributes
     ) {
         Hotel hotel = hotelRepository.findById(id).orElse(null);
-        if (hotel == null) return "redirect:/hotels";
+        if (hotel == null || !hotel.isActive()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
+            return "redirect:/hotels";
+        }
 
         List<Room> rooms;
         if (types == null || types.isEmpty()) {
@@ -123,77 +123,17 @@ public class RoomController {
         Integer currentCustomerId = null;
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         java.util.Set<Integer> wishlistRoomIds = new java.util.HashSet<>();
-        List<Booking> customerBookings = List.of();
-        Room latestBookedRoom = null;
-        boolean hasBooked = false;
-        Integer resolvedBookingId = null;
-
         if (loggedInUser != null) {
             Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
             if (customer != null) {
                 currentCustomerId = customer.getId();
+                hasReviewed = reviewRepository.existsByHotelIdAndCustomerId(id, customer.getId());
                 List<Wishlist> userWishlist = wishlistRepository.findByCustomerIdOrderByAddedAtDesc(customer.getId());
                 for (Wishlist wl : userWishlist) {
                     wishlistRoomIds.add(wl.getRoom().getId());
                 }
-
-                customerBookings = bookingRepository.findBookingsByCustomerAndHotel(
-                        customer.getId(),
-                        id,
-                        List.of("COMPLETED")
-                );
-
-                List<Review> customerReviews = reviewRepository.findByHotelIdAndCustomerId(id, customer.getId());
-
-                if (bookingId != null) {
-                    Booking specifiedBooking = bookingRepository.findById(bookingId).orElse(null);
-                    if (specifiedBooking != null && specifiedBooking.getCustomer().getId() == customer.getId()
-                            && specifiedBooking.getHotel().getId() == id
-                            && "COMPLETED".equals(specifiedBooking.getStatus())) {
-
-                        boolean alreadyReviewed = customerReviews.stream()
-                                .anyMatch(r -> r.getBooking() != null && r.getBooking().getId() == bookingId);
-
-                        if (!alreadyReviewed) {
-                            resolvedBookingId = bookingId;
-                            latestBookedRoom = specifiedBooking.getRoom();
-                            hasBooked = true;
-                            hasReviewed = false;
-                        }
-                    }
-                }
-
-                if (resolvedBookingId == null) {
-                    java.util.Map<Integer, Long> roomBookingCounts = customerBookings.stream()
-                            .collect(java.util.stream.Collectors.groupingBy(b -> b.getRoom().getId(), java.util.stream.Collectors.counting()));
-
-                    java.util.Map<Integer, Long> roomReviewCounts = customerReviews.stream()
-                            .collect(java.util.stream.Collectors.groupingBy(r -> r.getRoom().getId(), java.util.stream.Collectors.counting()));
-
-                    Booking unreviewedBooking = null;
-                    for (Booking b : customerBookings) {
-                        int roomId = b.getRoom().getId();
-                        long booked = roomBookingCounts.getOrDefault(roomId, 0L);
-                        long reviewed = roomReviewCounts.getOrDefault(roomId, 0L);
-                        if (reviewed < booked) {
-                            unreviewedBooking = b;
-                            break;
-                        }
-                    }
-
-                    hasBooked = (unreviewedBooking != null);
-                    if (hasBooked) {
-                        resolvedBookingId = unreviewedBooking.getId();
-                        latestBookedRoom = unreviewedBooking.getRoom();
-                        hasReviewed = false;
-                    } else {
-                        latestBookedRoom = null;
-                        hasReviewed = !customerBookings.isEmpty();
-                    }
-                }
             }
         }
-        model.addAttribute("resolvedBookingId", resolvedBookingId);
 
         long nights = 1;
         boolean isFiltered = false;
@@ -246,9 +186,6 @@ public class RoomController {
         model.addAttribute("avgRating", avgRating);
         model.addAttribute("totalReviews", reviews.size());
         model.addAttribute("hasReviewed", hasReviewed);
-        model.addAttribute("latestBookedRoom", latestBookedRoom);
-        model.addAttribute("hasBooked", hasBooked);
-        model.addAttribute("reviewBookings", reviewBookings);
         model.addAttribute("today", java.time.LocalDate.now().toString());
 
         return "hotel/room-list";
@@ -262,10 +199,14 @@ public class RoomController {
             @RequestParam(value = "checkin", required = false) String checkin,
             @RequestParam(value = "checkout", required = false) String checkout,
             HttpSession session,
-            Model model
+            Model model,
+            RedirectAttributes redirectAttributes
     ) {
         Hotel hotel = hotelRepository.findById(id).orElse(null);
-        if (hotel == null) return "redirect:/hotels";
+        if (hotel == null || !hotel.isActive()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
+            return "redirect:/hotels";
+        }
 
         Room room = roomRepository.findById(roomId).orElse(null);
         if (room == null || room.getHotelId() != id) {
@@ -412,6 +353,16 @@ public class RoomController {
                 Path filePath = uploadDir.resolve(safeName);
                 Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
                 imgUrl = "/assets/images/room/" + safeName;
+
+                // Sync to target/classes for instant hot reload
+                Path classesPath = Paths.get(System.getProperty("user.dir"), "target", "classes", "static", ROOM_IMAGE_SUBDIR).toAbsolutePath().normalize();
+                if (Files.exists(Paths.get(System.getProperty("user.dir"), "target", "classes", "static"))) {
+                    if (!Files.exists(classesPath)) {
+                        Files.createDirectories(classesPath);
+                    }
+                    Files.copy(filePath, classesPath.resolve(safeName), StandardCopyOption.REPLACE_EXISTING);
+                }
+
             } catch (IOException e) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Image upload failed: " + e.getMessage());
                 return "redirect:/hotels/" + id + "/rooms/new";

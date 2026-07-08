@@ -77,7 +77,8 @@ public class PaymentController {
             @RequestParam(value = "checkin", required = false) String checkin,
             @RequestParam(value = "checkout", required = false) String checkout,
             @RequestParam(value = "from", required = false) String from,
-            HttpSession session, Model model) {
+            HttpSession session, Model model,
+            RedirectAttributes redirectAttributes) {
 
         // Kiểm tra đã đăng nhập chưa
         User loggedInUser = (User) session.getAttribute("loggedInUser");
@@ -98,8 +99,13 @@ public class PaymentController {
             return "redirect:/hotels";
 
         Hotel hotel = hotelRepository.findById(room.getHotelId()).orElse(null);
-        if (hotel == null)
+        if (hotel == null || !hotel.isActive()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
+            if ("history".equals(from)) {
+                return "redirect:/booking/history";
+            }
             return "redirect:/hotels";
+        }
 
         // Đặt ngày mặc định nếu không có
         if (checkin == null || checkin.isBlank())
@@ -281,6 +287,16 @@ public class PaymentController {
         if (booking == null)
             return "redirect:/hotels";
 
+        Room room = booking.getRoom();
+        Hotel hotel = room != null ? hotelRepository.findById(room.getHotelId()).orElse(null) : null;
+        if (room == null || hotel == null || !hotel.isActive()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
+            if ("history".equals(from)) {
+                return "redirect:/booking/history";
+            }
+            return "redirect:/booking/history";
+        }
+
         // Nếu đã xác nhận thành công rồi thì chuyển sang lịch sử đặt phòng
         if ("CONFIRMED".equals(booking.getStatus())) {
             redirectAttributes.addFlashAttribute("successMessage",
@@ -310,11 +326,6 @@ public class PaymentController {
                     "This payment session has expired. Please make a new reservation.");
             return "redirect:/booking/history";
         }
-
-        Room room = booking.getRoom();
-        Hotel hotel = room != null ? hotelRepository.findById(room.getHotelId()).orElse(null) : null;
-        if (room == null || hotel == null)
-            return "redirect:/hotels";
 
         LocalDate checkInDate = booking.getCheckInDate();
         LocalDate checkOutDate = booking.getCheckOutDate();
@@ -392,7 +403,7 @@ public class PaymentController {
 
         // Tạo QR qua PayOS
         if (payosApiKey != null && !payosApiKey.isBlank()) {
-            String[] res = createPayOSPaymentRequest(bookingId, totalPrice.longValue(), transferInfo);
+            String[] res = createPayOSPaymentRequest(bookingId, totalPrice.longValue(), transferInfo, payment);
             if (res != null) {
                 if (payment != null) {
                     payment.setQrCodeUrl(res[0]);
@@ -563,14 +574,21 @@ public class PaymentController {
         try {
             if (payosClientId == null || payosClientId.isBlank())
                 return false;
+
+            String orderCodeStr = String.valueOf(bookingId);
+            if (payment != null && payment.getTransactionId() != null && !payment.getTransactionId().isBlank()) {
+                orderCodeStr = payment.getTransactionId();
+            }
+
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://api-merchant.payos.vn/v2/payment-requests/" + bookingId))
+                    .uri(URI.create("https://api-merchant.payos.vn/v2/payment-requests/" + orderCodeStr))
                     .header("x-client-id", payosClientId)
                     .header("x-api-key", payosApiKey)
                     .GET().build();
             String body = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
-            if (body != null && body.contains("\"PAID\"")) {
+            boolean isPaid = body != null && java.util.regex.Pattern.compile("\"status\"\\s*:\\s*\"PAID\"").matcher(body).find();
+            if (isPaid) {
                 if (payment != null) {
                     String accountNumber = extractJsonField(body, "counterAccountNumber");
                     String bankName = extractJsonField(body, "counterAccountBankName");
@@ -605,8 +623,15 @@ public class PaymentController {
     }
 
     // Tạo link thanh toán PayOS và lấy URL mã QR
-    private String[] createPayOSPaymentRequest(int bookingId, long amount, String description) {
+    private String[] createPayOSPaymentRequest(int bookingId, long amount, String description, Payment payment) {
         try {
+            // Sinh mã orderCode độc nhất sử dụng Unix timestamp ở đơn vị giây (khớp kiểu số 32-bit của PayOS)
+            long orderCode = System.currentTimeMillis() / 1000L;
+            if (payment != null) {
+                payment.setTransactionId(String.valueOf(orderCode));
+                paymentRepository.save(payment);
+            }
+
             // Làm sạch mô tả (PayOS chỉ chấp nhận tối đa 25 ký tự không dấu)
             description = description.replaceAll("[^a-zA-Z0-9 ]", "").trim();
             if (description.length() > 25)
@@ -617,11 +642,11 @@ public class PaymentController {
 
             // Tạo chữ ký bảo mật theo chuẩn PayOS (sắp xếp A-Z)
             String signatureData = "amount=" + amount + "&cancelUrl=" + cancelUrl
-                    + "&description=" + description + "&orderCode=" + bookingId + "&returnUrl=" + returnUrl;
+                    + "&description=" + description + "&orderCode=" + orderCode + "&returnUrl=" + returnUrl;
             String signature = computeHmacSha256(signatureData, payosChecksumKey);
 
             // Tạo JSON gửi lên PayOS
-            String jsonBody = "{\"orderCode\":" + bookingId + ",\"amount\":" + amount
+            String jsonBody = "{\"orderCode\":" + orderCode + ",\"amount\":" + amount
                     + ",\"description\":\"" + description + "\",\"cancelUrl\":\"" + cancelUrl
                     + "\",\"returnUrl\":\"" + returnUrl + "\",\"signature\":\"" + signature + "\"}";
 
@@ -736,5 +761,48 @@ public class PaymentController {
             // Bỏ qua lỗi regex
         }
         return "";
+    }
+
+    // Endpoint dành cho môi trường phát triển để bỏ qua/xác nhận thanh toán thủ công
+    @GetMapping("/booking/payment-bypass")
+    public String bypassPayment(@RequestParam("bookingId") int bookingId,
+                                HttpSession session,
+                                RedirectAttributes redirectAttributes) {
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+        
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking != null) {
+            Room room = booking.getRoom();
+            if (room != null) {
+                Hotel hotel = hotelRepository.findById(room.getHotelId()).orElse(null);
+                if (hotel == null || !hotel.isActive()) {
+                    redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
+                    return "redirect:/hotels";
+                }
+            }
+        }
+        
+        if (booking != null && "PENDING".equals(booking.getStatus())) {
+            Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
+            
+            // Cập nhật thông tin giao dịch giả lập thành công
+            if (payment != null) {
+                payment.setStatus("PAID");
+                payment.setPaidAt(LocalDateTime.now());
+                payment.setSenderAccountName(loggedInUser.getFullName() != null ? loggedInUser.getFullName() : loggedInUser.getUsername());
+                payment.setSenderAccountNumber("TEST-ACC-12345");
+                payment.setSenderBankName("Demo Bank");
+                paymentRepository.save(payment);
+            }
+            
+            confirmBooking(booking, payment);
+            
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Payment confirmed via bypass! Your booking is now confirmed.");
+        }
+        return "redirect:/booking/history";
     }
 }

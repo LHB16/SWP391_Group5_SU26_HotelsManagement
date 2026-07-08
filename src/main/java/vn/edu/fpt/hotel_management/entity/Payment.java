@@ -52,6 +52,9 @@ public class Payment {
     }
 
     public boolean isQrExpired() {
+        if (!"PENDING".equalsIgnoreCase(this.status)) {
+            return false;
+        }
         return qrExpiresAt != null && LocalDateTime.now().isAfter(qrExpiresAt);
     }
 

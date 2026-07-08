@@ -57,6 +57,12 @@ public class Hotel {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt = LocalDateTime.now();
 
+    @OneToOne(mappedBy = "hotel", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private HotelFacility facility;
+
+    @OneToOne(mappedBy = "hotel", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private HotelView view;
+
     // Getters and Setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
@@ -105,4 +111,10 @@ public class Hotel {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public HotelFacility getFacility() { return facility; }
+    public void setFacility(HotelFacility facility) { this.facility = facility; }
+
+    public HotelView getView() { return view; }
+    public void setView(HotelView view) { this.view = view; }
 }

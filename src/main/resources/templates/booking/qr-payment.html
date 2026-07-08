@@ -9,8 +9,6 @@
 
 <head>
     <th:block th:replace="~{fragment/frag :: head}"></th:block>
-    <!-- Tự động tải lại trang sau mỗi 5 giây để kiểm tra giao dịch ở phía Backend Java -->
-    <meta http-equiv="refresh" content="5" />
 </head>
 
 <body class="d-flex flex-column min-vh-100">
@@ -262,6 +260,29 @@
                 if (secs <= 0) { el.textContent = '00:00'; clearInterval(timer); return; }
                 el.textContent = fmt(secs);
             }, 1000);
+        })();
+
+        // Tự động kiểm tra trạng thái thanh toán chạy ngầm qua AJAX (không reload trang)
+        (function () {
+            var bookingId = /*[[${bookingId}]]*/ 0;
+            if (bookingId <= 0) return;
+            
+            var checkTimer = setInterval(function () {
+                fetch('/booking/check-status?bookingId=' + bookingId)
+                    .then(function (response) {
+                        return response.text();
+                    })
+                    .then(function (status) {
+                        if (status === 'CONFIRMED') {
+                            clearInterval(checkTimer);
+                            // Chuyển hướng qua trang status để lưu flash attribute thông báo thành công, rồi mới sang history
+                            window.location.href = '/booking/qr-payment-status?bookingId=' + bookingId;
+                        }
+                    })
+                    .catch(function (err) {
+                        console.error('Error checking payment status:', err);
+                    });
+            }, 3000); // Kiểm tra mỗi 3 giây
         })();
     </script>
 
