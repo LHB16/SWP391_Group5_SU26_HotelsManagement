@@ -73,10 +73,21 @@ document.addEventListener("DOMContentLoaded", function() {
     const checkoutInput = document.getElementById("filterCheckout");
 
     if (checkinInput && checkoutInput && typeof flatpickr === "function") {
-        const checkinVal = checkinInput.value;
-        const checkoutVal = checkoutInput.value;
-        const checkinMinDate = checkinInput.getAttribute("data-min-date") || "today";
-        const checkoutMinDate = checkoutInput.getAttribute("data-min-date") || "today";
+        
+        function parseLocal(str) {
+            if (!str) return null;
+            const p = str.split('-');
+            if (p.length !== 3) return null;
+            return new Date(+p[0], +p[1] - 1, +p[2]);
+        }
+
+        const ciVal = checkinInput.value || '';
+        const coVal = checkoutInput.value || '';
+
+        const checkinDate  = parseLocal(ciVal)  || new Date();
+        const tomorrowDate = new Date(checkinDate);
+        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+        const checkoutDate = parseLocal(coVal) || tomorrowDate;
 
         const checkinPicker = flatpickr(checkinInput, {
             dateFormat: "Y-m-d",
@@ -85,19 +96,17 @@ document.addEventListener("DOMContentLoaded", function() {
             altInputClass: checkinInput.classList.contains("form-control-sm")
                 ? "form-control form-control-sm filter-input w-100"
                 : "filter-input w-100",
-            minDate: checkinMinDate,
+            minDate: "today",
             allowInput: false,
-            defaultDate: checkinVal ? checkinVal : null,
-            onChange: function(selectedDates, dateStr) {
+            defaultDate: checkinDate,
+            onChange: function(selectedDates) {
                 if (selectedDates[0]) {
-                    const nextDay = new Date(selectedDates[0]);
-                    nextDay.setDate(nextDay.getDate() + 1);
-                    if (checkoutPicker) {
-                        checkoutPicker.set("minDate", nextDay);
-                        const currentCheckout = checkoutPicker.selectedDates[0];
-                        if (currentCheckout && currentCheckout <= selectedDates[0]) {
-                            checkoutPicker.setDate(nextDay);
-                        }
+                    const next = new Date(selectedDates[0]);
+                    next.setDate(next.getDate() + 1);
+                    checkoutPicker.set("minDate", next);
+                    const cur = checkoutPicker.selectedDates[0];
+                    if (!cur || cur <= selectedDates[0]) {
+                        checkoutPicker.setDate(next);
                     }
                 }
             }
@@ -110,11 +119,12 @@ document.addEventListener("DOMContentLoaded", function() {
             altInputClass: checkoutInput.classList.contains("form-control-sm")
                 ? "form-control form-control-sm filter-input w-100"
                 : "filter-input w-100",
-            minDate: checkoutMinDate,
+            minDate: tomorrowDate,
             allowInput: false,
-            defaultDate: checkoutVal ? checkoutVal : null
+            defaultDate: checkoutDate
         });
     }
+
 
     // ==========================================
     // 3. FLATPICKR DATE PICKER FOR WISHLIST CARDS

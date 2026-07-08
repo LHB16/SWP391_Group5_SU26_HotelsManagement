@@ -81,6 +81,16 @@ public class RoomController {
             RedirectAttributes redirectAttributes
     ) {
         Hotel hotel = hotelRepository.findById(id).orElse(null);
+        
+        // Nếu tham số rỗng, đọc lại từ session trước khi fallback
+        if (checkin == null || checkin.trim().isEmpty()) {
+            checkin = (String) session.getAttribute("hotelCheckinFilter");
+        }
+        if (checkout == null || checkout.trim().isEmpty()) {
+            checkout = (String) session.getAttribute("hotelCheckoutFilter");
+        }
+
+        // Fallback về today / tomorrow nếu session cũng không có
         if (checkin == null || checkin.trim().isEmpty()) {
             checkin = java.time.LocalDate.now().toString();
         }
@@ -88,6 +98,7 @@ public class RoomController {
             checkout = java.time.LocalDate.now().plusDays(1).toString();
         }
         String minCheckout = java.time.LocalDate.parse(checkin).plusDays(1).toString();
+
         if (hotel == null || !hotel.isActive()) {
             redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
             return "redirect:/hotels";

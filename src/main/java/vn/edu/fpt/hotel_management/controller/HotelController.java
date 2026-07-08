@@ -185,6 +185,11 @@ public class HotelController {
             checkout = java.time.LocalDate.now().plusDays(1).toString();
         }
 
+        // Lưu bộ lọc checkin/checkout của list hotel vào session
+        session.setAttribute("hotelCheckinFilter", checkin);
+        session.setAttribute("hotelCheckoutFilter", checkout);
+
+
         long nights = 1;
         boolean isFiltered = false;
         java.util.Map<Integer, BigDecimal> hotelPricesMap = new java.util.HashMap<>();
