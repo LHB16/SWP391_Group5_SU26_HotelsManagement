@@ -589,6 +589,15 @@ public class AdminDashboardController {
         targetUser.setEnabled(newStatus);
         userRepository.save(targetUser);
 
+        if (!newStatus) {
+            // Vô hiệu hóa tất cả khách sạn của Owner này khi tài khoản bị disable
+            List<Hotel> ownerHotels = hotelRepository.findByOwnerId(ownerId);
+            for (Hotel hotel : ownerHotels) {
+                hotel.setActive(false);
+                hotelRepository.save(hotel);
+            }
+        }
+
         String action = newStatus ? "enabled" : "disabled";
         redirectAttributes.addFlashAttribute("successMessage",
                 "Owner account \"" + targetOwner.getFullName() + "\" has been " + action + " successfully.");

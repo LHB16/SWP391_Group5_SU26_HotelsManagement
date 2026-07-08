@@ -77,7 +77,8 @@ public class PaymentController {
             @RequestParam(value = "checkin", required = false) String checkin,
             @RequestParam(value = "checkout", required = false) String checkout,
             @RequestParam(value = "from", required = false) String from,
-            HttpSession session, Model model) {
+            HttpSession session, Model model,
+            RedirectAttributes redirectAttributes) {
 
         // Kiểm tra đã đăng nhập chưa
         User loggedInUser = (User) session.getAttribute("loggedInUser");
@@ -98,8 +99,13 @@ public class PaymentController {
             return "redirect:/hotels";
 
         Hotel hotel = hotelRepository.findById(room.getHotelId()).orElse(null);
-        if (hotel == null)
+        if (hotel == null || !hotel.isActive()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
+            if ("history".equals(from)) {
+                return "redirect:/booking/history";
+            }
             return "redirect:/hotels";
+        }
 
         // Đặt ngày mặc định nếu không có
         if (checkin == null || checkin.isBlank())
@@ -281,6 +287,16 @@ public class PaymentController {
         if (booking == null)
             return "redirect:/hotels";
 
+        Room room = booking.getRoom();
+        Hotel hotel = room != null ? hotelRepository.findById(room.getHotelId()).orElse(null) : null;
+        if (room == null || hotel == null || !hotel.isActive()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
+            if ("history".equals(from)) {
+                return "redirect:/booking/history";
+            }
+            return "redirect:/booking/history";
+        }
+
         // Nếu đã xác nhận thành công rồi thì chuyển sang lịch sử đặt phòng
         if ("CONFIRMED".equals(booking.getStatus())) {
             redirectAttributes.addFlashAttribute("successMessage",
@@ -310,11 +326,6 @@ public class PaymentController {
                     "This payment session has expired. Please make a new reservation.");
             return "redirect:/booking/history";
         }
-
-        Room room = booking.getRoom();
-        Hotel hotel = room != null ? hotelRepository.findById(room.getHotelId()).orElse(null) : null;
-        if (room == null || hotel == null)
-            return "redirect:/hotels";
 
         LocalDate checkInDate = booking.getCheckInDate();
         LocalDate checkOutDate = booking.getCheckOutDate();
@@ -763,6 +774,17 @@ public class PaymentController {
         }
         
         Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking != null) {
+            Room room = booking.getRoom();
+            if (room != null) {
+                Hotel hotel = hotelRepository.findById(room.getHotelId()).orElse(null);
+                if (hotel == null || !hotel.isActive()) {
+                    redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
+                    return "redirect:/hotels";
+                }
+            }
+        }
+        
         if (booking != null && "PENDING".equals(booking.getStatus())) {
             Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
             

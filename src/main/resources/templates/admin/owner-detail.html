@@ -169,25 +169,26 @@
                 <div th:if="${selectedOwner.verificationStatus == 'PENDING'}" class="mb-5">
                     <h5 class="fw-bold text-dark mb-3" style="font-size: 1rem;">Owner Identity Verification Actions</h5>
                     <div class="row g-3">
-                        <!-- Approve -->
-                        <div class="col-md-3">
-                            <form th:action="@{/admin/verify-owner/approve}" method="post">
+                        <!-- Left: Rejection Reason Textarea -->
+                        <div class="col-md-9">
+                            <textarea form="rejectForm" name="rejectionReason" class="form-control owner-verify-textarea"
+                                      placeholder="Enter rejection reason (required for rejection)..." required></textarea>
+                        </div>
+                        
+                        <!-- Right: Stacked Action Buttons -->
+                        <div class="col-md-3 d-flex flex-column gap-2 justify-content-between">
+                            <!-- Approve Form -->
+                            <form th:action="@{/admin/verify-owner/approve}" method="post" class="w-100">
                                 <input type="hidden" name="ownerId" th:value="${selectedOwner.id}" />
-                                <button type="submit" class="btn w-100 fw-semibold"
-                                        style="border-radius: 10px; padding: 10px 0; background-color: #10b981; border-color: #10b981; color: #fff; font-size: 0.9rem;">
-                                    Approve Identity
+                                <button type="submit" class="btn btn-success w-100 fw-semibold text-white border-0 owner-verify-btn-approve">
+                                    Approve
                                 </button>
                             </form>
-                        </div>
-                        <!-- Reject with reason -->
-                        <div class="col-md-9">
-                            <form th:action="@{/admin/verify-owner/reject}" method="post" class="d-flex gap-2">
+                            
+                            <!-- Reject Form -->
+                            <form id="rejectForm" th:action="@{/admin/verify-owner/reject}" method="post" class="w-100">
                                 <input type="hidden" name="ownerId" th:value="${selectedOwner.id}" />
-                                <input type="text" name="rejectionReason" class="form-control"
-                                       placeholder="Enter rejection reason (required)..." required
-                                       style="border-radius: 10px; font-size: 0.9rem; border: 1.5px solid #e2e8f0;" />
-                                <button type="submit" class="btn fw-semibold flex-shrink-0"
-                                        style="border-radius: 10px; padding: 10px 20px; background-color: #ef4444; border-color: #ef4444; color: #fff; font-size: 0.9rem;">
+                                <button type="submit" class="btn btn-danger w-100 fw-semibold text-white border-0 owner-verify-btn-reject">
                                     Reject
                                 </button>
                             </form>
@@ -413,7 +414,7 @@
                                    : 'This action will ENABLE the owner account:'">
                             </p>
                             <p class="mb-0 fw-bold text-dark" style="font-size: 1rem;"
-                               th:text="${selectedOwner.fullName} + ' (@' + ${selectedOwner.userAccount.username} + ')'"></p>
+                               th:text="${selectedOwner.fullName} + ' (' + ${selectedOwner.userAccount.username} + ')'"></p>
                         </div>
                         <p class="text-muted mb-0" style="font-size: 0.875rem;"
                            th:text="${selectedOwner.userAccount.enabled}

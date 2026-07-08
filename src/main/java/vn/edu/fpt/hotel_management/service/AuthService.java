@@ -39,9 +39,16 @@ public class AuthService {
             throw new RuntimeException("Username or password incorrect!");
         }
         if (!user.isEnabled()) {
-            if (user.getOtpExpiry() != null && user.getOtpExpiry().isAfter(LocalDateTime.now())) {
+            // Nếu tài khoản đã kích hoạt trước đó (otp hoặc otpExpiry là null), chỉ ném lỗi mà không xóa tài khoản
+            if (user.getOtp() == null || user.getOtpExpiry() == null) {
+                throw new RuntimeException("Your account has been disabled by Admin!");
+            }
+            if (user.getOtpExpiry().isAfter(LocalDateTime.now())) {
                 throw new RuntimeException("UNVERIFIED:" + user.getEmail());
             } else {
+                customerRepository.findByUserAccount(user).ifPresent(customerRepository::delete);
+                hotelOwnerRepository.findByUserAccount(user).ifPresent(hotelOwnerRepository::delete);
+                adminRepository.findByUserAccount(user).ifPresent(adminRepository::delete);
                 userRepository.delete(user);
                 throw new RuntimeException("Account expired! Please register again.");
             }

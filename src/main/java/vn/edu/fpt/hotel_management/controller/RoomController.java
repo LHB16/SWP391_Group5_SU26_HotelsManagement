@@ -68,10 +68,14 @@ public class RoomController {
             @RequestParam(value = "checkin", required = false) String checkin,
             @RequestParam(value = "checkout", required = false) String checkout,
             HttpSession session,
-            Model model
+            Model model,
+            RedirectAttributes redirectAttributes
     ) {
         Hotel hotel = hotelRepository.findById(id).orElse(null);
-        if (hotel == null) return "redirect:/hotels";
+        if (hotel == null || !hotel.isActive()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
+            return "redirect:/hotels";
+        }
 
         List<Room> rooms;
         if (types == null || types.isEmpty()) {
@@ -176,10 +180,14 @@ public class RoomController {
             @RequestParam(value = "checkin", required = false) String checkin,
             @RequestParam(value = "checkout", required = false) String checkout,
             HttpSession session,
-            Model model
+            Model model,
+            RedirectAttributes redirectAttributes
     ) {
         Hotel hotel = hotelRepository.findById(id).orElse(null);
-        if (hotel == null) return "redirect:/hotels";
+        if (hotel == null || !hotel.isActive()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
+            return "redirect:/hotels";
+        }
 
         Room room = roomRepository.findById(roomId).orElse(null);
         if (room == null || room.getHotelId() != id) {
