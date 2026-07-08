@@ -177,6 +177,14 @@ public class HotelController {
             }).collect(java.util.stream.Collectors.toList());
         }
 
+        // Nếu checkin hoặc checkout chưa có, gán mặc định là hôm nay và ngày mai
+        if (checkin == null || checkin.trim().isEmpty()) {
+            checkin = java.time.LocalDate.now().toString();
+        }
+        if (checkout == null || checkout.trim().isEmpty()) {
+            checkout = java.time.LocalDate.now().plusDays(1).toString();
+        }
+
         long nights = 1;
         boolean isFiltered = false;
         java.util.Map<Integer, BigDecimal> hotelPricesMap = new java.util.HashMap<>();
@@ -217,6 +225,7 @@ public class HotelController {
                 hotelPricesMap.put(h.getId(), basePrice);
             }
         }
+
 
         model.addAttribute("hotels", hotels);
         model.addAttribute("hotelPricesMap", hotelPricesMap);

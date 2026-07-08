@@ -21948,14 +21948,21 @@ h6,
     align-items: center !important;
     justify-content: center !important;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
-    color: #ef4444 !important;
+    color: #ff4d6d !important;
     z-index: 10 !important;
     text-decoration: none !important;
 }
 
 .custom-wishlist-heart-btn:hover {
-    transform: scale(1.05) !important;
+    background: #ffffff !important;
+    transform: scale(1.1) !important;
 }
+
+.custom-wishlist-heart-btn .pink-heart,
+.custom-wishlist-heart-btn i.bi-heart-fill {
+    color: #ff4d6d !important;
+}
+
 
 /* ── Filter Bar phía trên card phòng ── */
 .wishlist-top-bar {
