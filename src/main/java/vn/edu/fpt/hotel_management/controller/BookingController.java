@@ -615,8 +615,40 @@ public class BookingController {
             @RequestParam(name = "checkin", required = false) String checkin,
             @RequestParam(name = "checkout", required = false) String checkout,
             HttpSession session, 
-            Model model) {
+            Model model,
+            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
         
+        // Kiểm tra khách sạn bị vô hiệu hóa trước khi xử lý
+        if (hotelId != null) {
+            Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
+            if (hotel == null || !hotel.isActive()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
+                return "redirect:/hotels";
+            }
+        }
+        if (roomId != null) {
+            Room r = roomRepository.findById(roomId).orElse(null);
+            if (r != null) {
+                Hotel hotel = hotelRepository.findById(r.getHotelId()).orElse(null);
+                if (hotel == null || !hotel.isActive()) {
+                    redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
+                    return "redirect:/hotels";
+                }
+            }
+        }
+        if (roomIds != null && !roomIds.isEmpty()) {
+            for (Integer rId : roomIds) {
+                Room r = roomRepository.findById(rId).orElse(null);
+                if (r != null) {
+                    Hotel hotel = hotelRepository.findById(r.getHotelId()).orElse(null);
+                    if (hotel == null || !hotel.isActive()) {
+                        redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
+                        return "redirect:/hotels";
+                    }
+                }
+            }
+        }
+
         // Lấy thông tin user đăng nhập từ Session (nếu có)
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser != null) {
@@ -649,7 +681,14 @@ public class BookingController {
             rooms = roomRepository.findByHotelId(hotelId);
             model.addAttribute("selectedHotelId", hotelId);
         } else {
-            rooms = roomRepository.findAll();
+            // Lọc chỉ lấy các phòng của khách sạn đang active
+            List<Room> allRooms = roomRepository.findAll();
+            for (Room r : allRooms) {
+                Hotel hotel = hotelRepository.findById(r.getHotelId()).orElse(null);
+                if (hotel != null && hotel.isActive()) {
+                    rooms.add(r);
+                }
+            }
         }
         model.addAttribute("rooms", rooms);
 

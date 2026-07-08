@@ -71,8 +71,18 @@ public class AdminDashboardController {
             return "redirect:/login";
         }
         
+        if ("hotelApprovalPanel".equals(tab)) {
+            tab = "hotelOwnerAccounts";
+        }
+        
         model.addAttribute("user", loggedInUser);
         model.addAttribute("tab", tab);
+
+        // Tính tổng số lượng yêu cầu xác thực cần xử lý
+        long pendingOwners = hotelOwnerRepository.countByVerificationStatus("PENDING");
+        long pendingHotels = hotelRepository.countByApprovalStatus("PENDING");
+        long totalPendingCount = pendingOwners + pendingHotels;
+        model.addAttribute("totalPendingCount", totalPendingCount);
 
         // Thống kê dữ liệu doanh thu độc lập cơ sở dữ liệu
         List<Map<String, Object>> revenueData = getHotelRevenueStatistics();
@@ -137,7 +147,18 @@ public class AdminDashboardController {
             Pageable ownerPageable = "hotelOwnerAccounts".equals(tab) ? defaultOwnerPageable : PageRequest.of(0, 5, Sort.by("userAccount.username").ascending());
             ownerPage = hotelOwnerRepository.findAll(ownerPageable);
         }
-        model.addAttribute("owners", ownerPage.getContent());
+        List<HotelOwner> ownerList = ownerPage.getContent();
+        Map<Integer, Long> ownerPendingCounts = new HashMap<>();
+        for (HotelOwner owner : ownerList) {
+            long count = 0;
+            if ("PENDING".equals(owner.getVerificationStatus())) {
+                count++;
+            }
+            count += hotelRepository.countByApprovalStatusAndOwnerId("PENDING", owner.getId());
+            ownerPendingCounts.put(owner.getId(), count);
+        }
+        model.addAttribute("owners", ownerList);
+        model.addAttribute("ownerPendingCounts", ownerPendingCounts);
         model.addAttribute("ownerCurrentPage", "hotelOwnerAccounts".equals(tab) ? page : 0);
         model.addAttribute("ownerTotalPages", ownerPage.getTotalPages());
 
@@ -589,6 +610,15 @@ public class AdminDashboardController {
         targetUser.setEnabled(newStatus);
         userRepository.save(targetUser);
 
+        if (!newStatus) {
+            // Vô hiệu hóa tất cả khách sạn của Owner này khi tài khoản bị disable
+            List<Hotel> ownerHotels = hotelRepository.findByOwnerId(ownerId);
+            for (Hotel hotel : ownerHotels) {
+                hotel.setActive(false);
+                hotelRepository.save(hotel);
+            }
+        }
+
         String action = newStatus ? "enabled" : "disabled";
         redirectAttributes.addFlashAttribute("successMessage",
                 "Owner account \"" + targetOwner.getFullName() + "\" has been " + action + " successfully.");
@@ -629,8 +659,9 @@ public class AdminDashboardController {
             hotelVerificationDocumentRepository.save(doc);
         }
 
+        int ownerId = (hotel.getOwner() != null) ? hotel.getOwner().getId() : 0;
         redirectAttributes.addFlashAttribute("successMessage", "Hotel \"" + hotel.getName() + "\" approved successfully.");
-        return "redirect:/admin/dashboard?tab=hotelApprovalPanel";
+        return ownerId > 0 ? "redirect:/admin/owner-detail?id=" + ownerId : "redirect:/admin/dashboard?tab=hotelOwnerAccounts";
     }
 
     @PostMapping("/admin/hotel/reject")
@@ -666,8 +697,9 @@ public class AdminDashboardController {
             hotelVerificationDocumentRepository.save(doc);
         }
 
+        int ownerId = (hotel.getOwner() != null) ? hotel.getOwner().getId() : 0;
         redirectAttributes.addFlashAttribute("successMessage", "Hotel \"" + hotel.getName() + "\" rejected.");
-        return "redirect:/admin/dashboard?tab=hotelApprovalPanel";
+        return ownerId > 0 ? "redirect:/admin/owner-detail?id=" + ownerId : "redirect:/admin/dashboard?tab=hotelOwnerAccounts";
     }
 
     @PostMapping("/admin/hotel/toggle-active")

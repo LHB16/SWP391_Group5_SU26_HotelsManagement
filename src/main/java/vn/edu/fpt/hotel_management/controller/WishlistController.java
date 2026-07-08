@@ -12,6 +12,8 @@ import vn.edu.fpt.hotel_management.entity.Wishlist;
 import vn.edu.fpt.hotel_management.repository.RoomRepository;
 import vn.edu.fpt.hotel_management.repository.WishlistRepository;
 import vn.edu.fpt.hotel_management.repository.CustomerRepository;
+import vn.edu.fpt.hotel_management.repository.HotelRepository;
+import vn.edu.fpt.hotel_management.entity.Hotel;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -27,13 +29,16 @@ public class WishlistController {
     private final WishlistRepository wishlistRepository;
     private final RoomRepository roomRepository;
     private final CustomerRepository customerRepository;
+    private final HotelRepository hotelRepository;
 
     public WishlistController(WishlistRepository wishlistRepository,
                               RoomRepository roomRepository,
-                              CustomerRepository customerRepository) {
+                              CustomerRepository customerRepository,
+                              HotelRepository hotelRepository) {
         this.wishlistRepository = wishlistRepository;
         this.roomRepository = roomRepository;
         this.customerRepository = customerRepository;
+        this.hotelRepository = hotelRepository;
     }
 
     @GetMapping("/wishlist")
@@ -49,7 +54,17 @@ public class WishlistController {
         }
         Customer customer = customerOpt.get();
 
-        List<Wishlist> wishlists = wishlistRepository.findByCustomerIdOrderByAddedAtDesc(customer.getId());
+        List<Wishlist> allWishlists = wishlistRepository.findByCustomerIdOrderByAddedAtDesc(customer.getId());
+        List<Wishlist> wishlists = new java.util.ArrayList<>();
+        for (Wishlist wl : allWishlists) {
+            Room room = wl.getRoom();
+            if (room != null) {
+                Hotel hotel = hotelRepository.findById(room.getHotelId()).orElse(null);
+                if (hotel != null && hotel.isActive()) {
+                    wishlists.add(wl);
+                }
+            }
+        }
 
         Map<Integer, BigDecimal> wishlistPricesMap = new HashMap<>();
         Map<Integer, Long> wishlistNightsMap = new HashMap<>();
@@ -104,6 +119,11 @@ public class WishlistController {
 
         Room room = roomRepository.findById(roomId).orElse(null);
         if (room != null) {
+            Hotel hotel = hotelRepository.findById(room.getHotelId()).orElse(null);
+            if (hotel == null || !hotel.isActive()) {
+                return "redirect:/hotels";
+            }
+            
             Optional<Wishlist> existing = wishlistRepository.findByCustomerIdAndRoomId(customer.getId(), roomId);
             if (existing.isPresent()) {
                 wishlistRepository.delete(existing.get());
