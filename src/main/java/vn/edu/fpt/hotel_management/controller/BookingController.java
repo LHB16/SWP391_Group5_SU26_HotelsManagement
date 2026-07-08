@@ -563,47 +563,13 @@ public class BookingController {
         refund.setAccountHolder(accountHolder.trim().toUpperCase());
         refund.setRefundAmount(refundAmount);
         refund.setStatus("PENDING");
+        refund.setCancellationReason(reason);
         refund.setRequestedAt(java.time.LocalDateTime.now());
         refundRepository.save(refund);
 
         String formattedAmount = String.format("%,.0f", refundAmount.doubleValue());
         redirectAttributes.addFlashAttribute("successMessage",
                 "Booking cancelled and refund request submitted successfully! " + formattedAmount + " VND will be processed within 3-5 business days.");
-        return "redirect:/booking/history";
-    }
-
-    // Xóa booking khỏi lịch sử của người dùng (xóa vĩnh viễn khỏi database)
-    // Xóa payment trước (nếu có) để tránh lỗi foreign key, sau đó mới xóa booking
-    @PostMapping("/booking/delete/{id}")
-    public String deleteBooking(
-            @PathVariable("id") int bookingId,
-            HttpSession session,
-            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
-
-        // Kiểm tra đăng nhập
-        User loggedInUser = (User) session.getAttribute("loggedInUser");
-        if (loggedInUser == null) {
-            return "redirect:/login";
-        }
-
-        // Chỉ xóa nếu booking thuộc về người dùng hiện tại
-        Booking booking = bookingRepository.findById(bookingId).orElse(null);
-        if (booking != null && booking.getCustomer().getId() == loggedInUser.getId()) {
-            // Giải phóng liên kết 2 chiều để tránh lỗi TransientPropertyValueException của Hibernate
-            Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
-            if (payment != null) {
-                booking.setPayment(null);
-                bookingRepository.saveAndFlush(booking); // Đồng bộ trạng thái Booking
-                paymentRepository.delete(payment);
-                paymentRepository.flush();
-            }
-            // Xóa booking
-            bookingRepository.delete(booking);
-            redirectAttributes.addFlashAttribute("successMessage", "Booking history record removed successfully!");
-        } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "Booking record not found or access denied.");
-        }
-
         return "redirect:/booking/history";
     }
 

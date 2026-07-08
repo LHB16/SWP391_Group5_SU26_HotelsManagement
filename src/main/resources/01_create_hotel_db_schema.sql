@@ -285,6 +285,7 @@ CREATE TABLE refunds (
     refund_amount DECIMAL(38,2) NOT NULL,
     status NVARCHAR(50) NOT NULL CONSTRAINT DF_refunds_status DEFAULT N'PENDING',
     note NVARCHAR(MAX) NULL,
+    cancellation_reason NVARCHAR(1000) NULL,
     requested_at DATETIME2 NOT NULL CONSTRAINT DF_refunds_requested_at DEFAULT GETDATE(),
     processed_at DATETIME2 NULL,
     CONSTRAINT CK_refunds_refund_amount CHECK (refund_amount >= 0),

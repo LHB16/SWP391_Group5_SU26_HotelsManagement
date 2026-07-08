@@ -544,48 +544,52 @@ BEGIN TRY
     IF NOT EXISTS (SELECT 1 FROM refunds WHERE booking_id = @booking1_id)
         INSERT INTO refunds (
             booking_id, bank_name, account_number, account_holder,
-            refund_amount, status, note, requested_at, processed_at
+            refund_amount, status, note, cancellation_reason, requested_at, processed_at
         )
         VALUES (
             @booking1_id, N'Vietcombank', N'0123456789', N'LUU HUU BINH',
             1500000, N'PENDING',
             N'Khách vừa gửi yêu cầu hoàn tiền do muốn đổi lịch đặt phòng.',
+            N'Personal reasons/Trip called off',
             DATEADD(HOUR, -2, GETDATE()), NULL
         );
 
     IF NOT EXISTS (SELECT 1 FROM refunds WHERE booking_id = @booking2_id)
         INSERT INTO refunds (
             booking_id, bank_name, account_number, account_holder,
-            refund_amount, status, note, requested_at, processed_at
+            refund_amount, status, note, cancellation_reason, requested_at, processed_at
         )
         VALUES (
             @booking2_id, N'Techcombank', N'0987654321', N'NGUYEN THI LAN',
             5000000, N'PROCESSED',
             N'Hoàn tiền thành công do khách hủy trong thời gian miễn phí.',
+            N'Found a different accommodation option',
             DATEADD(DAY, -5, GETDATE()), DATEADD(DAY, -4, GETDATE())
         );
 
     IF NOT EXISTS (SELECT 1 FROM refunds WHERE booking_id = @booking3_id)
         INSERT INTO refunds (
             booking_id, bank_name, account_number, account_holder,
-            refund_amount, status, note, requested_at, processed_at
+            refund_amount, status, note, cancellation_reason, requested_at, processed_at
         )
         VALUES (
             @booking3_id, N'MB Bank', N'1234567890', N'TRAN DUC MINH',
             4500000, N'PROCESSED',
             N'Hoàn tiền một phần theo chính sách của khách sạn.',
+            N'Change of dates or destination',
             DATEADD(DAY, -7, GETDATE()), DATEADD(DAY, -6, GETDATE())
         );
 
     IF NOT EXISTS (SELECT 1 FROM refunds WHERE booking_id = @booking4_id)
         INSERT INTO refunds (
             booking_id, bank_name, account_number, account_holder,
-            refund_amount, status, note, requested_at, processed_at
+            refund_amount, status, note, cancellation_reason, requested_at, processed_at
         )
         VALUES (
             @booking4_id, N'ACB', N'1122334455', N'PHAM HOAI ANH',
             1800000, N'REJECTED',
             N'Từ chối do yêu cầu hoàn tiền sau thời hạn policy.',
+            N'Change in the number or needs of travelers',
             DATEADD(DAY, -3, GETDATE()), DATEADD(DAY, -2, GETDATE())
         );
 
