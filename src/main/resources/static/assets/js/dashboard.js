@@ -224,3 +224,122 @@ document.addEventListener("DOMContentLoaded", function () {
         applyRevenueFilters();
     }
 });
+document.addEventListener('DOMContentLoaded', function() {
+
+    // Preview ảnh Hotel
+    const hotelImageInput = document.querySelector('input[name="imageFile"]');
+    const hotelImagePreview = document.getElementById('hotelImagePreview');
+    if (hotelImageInput && hotelImagePreview) {
+        hotelImageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    hotelImagePreview.innerHTML = `
+                        <div class="d-inline-block position-relative">
+                            <img src="${ev.target.result}" class="img-thumbnail" style="max-height: 120px; border-radius: 8px; border: 2px solid #c9a96e;" />
+                            <span class="badge bg-success position-absolute top-0 start-0 m-1">Selected</span>
+                        </div>
+                        <span class="ms-2 small text-success">${file.name}</span>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                hotelImagePreview.innerHTML = '';
+            }
+        });
+    }
+
+    // Preview Business Registration
+    const businessInput = document.querySelector('input[name="businessRegistrationDoc"]');
+    const businessPreview = document.getElementById('businessRegistrationPreview');
+    if (businessInput && businessPreview) {
+        businessInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    const isImage = file.type.startsWith('image/');
+                    if (isImage) {
+                        businessPreview.innerHTML = `
+                            <div class="d-inline-block position-relative">
+                                <img src="${ev.target.result}" class="img-thumbnail" style="max-height: 100px; border-radius: 8px; border: 2px solid #10b981;" />
+                                <span class="badge bg-success position-absolute top-0 start-0 m-1">Selected</span>
+                            </div>
+                            <span class="ms-2 small text-success">${file.name}</span>
+                        `;
+                    } else {
+                        businessPreview.innerHTML = `
+                            <span class="badge bg-info"><i class="bi bi-file-pdf"></i> ${file.name}</span>
+                        `;
+                    }
+                };
+                reader.readAsDataURL(file);
+            } else {
+                businessPreview.innerHTML = '';
+            }
+        });
+    }
+
+    // Preview Land Certificate
+    const landInput = document.querySelector('input[name="landCertificateDoc"]');
+    const landPreview = document.getElementById('landCertificatePreview');
+    if (landInput && landPreview) {
+        landInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    const isImage = file.type.startsWith('image/');
+                    if (isImage) {
+                        landPreview.innerHTML = `
+                            <div class="d-inline-block position-relative">
+                                <img src="${ev.target.result}" class="img-thumbnail" style="max-height: 100px; border-radius: 8px; border: 2px solid #10b981;" />
+                                <span class="badge bg-success position-absolute top-0 start-0 m-1">Selected</span>
+                            </div>
+                            <span class="ms-2 small text-success">${file.name}</span>
+                        `;
+                    } else {
+                        landPreview.innerHTML = `
+                            <span class="badge bg-info"><i class="bi bi-file-pdf"></i> ${file.name}</span>
+                        `;
+                    }
+                };
+                reader.readAsDataURL(file);
+            } else {
+                landPreview.innerHTML = '';
+            }
+        });
+    }
+
+    // Preview Rental Contract
+    const rentalInput = document.querySelector('input[name="rentalContractDoc"]');
+    const rentalPreview = document.getElementById('rentalContractPreview');
+    if (rentalInput && rentalPreview) {
+        rentalInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    const isImage = file.type.startsWith('image/');
+                    if (isImage) {
+                        rentalPreview.innerHTML = `
+                            <div class="d-inline-block position-relative">
+                                <img src="${ev.target.result}" class="img-thumbnail" style="max-height: 100px; border-radius: 8px; border: 2px solid #f59e0b;" />
+                                <span class="badge bg-warning position-absolute top-0 start-0 m-1">Selected</span>
+                            </div>
+                            <span class="ms-2 small text-muted">${file.name}</span>
+                        `;
+                    } else {
+                        rentalPreview.innerHTML = `
+                            <span class="badge bg-info"><i class="bi bi-file-pdf"></i> ${file.name}</span>
+                        `;
+                    }
+                };
+                reader.readAsDataURL(file);
+            } else {
+                rentalPreview.innerHTML = '';
+            }
+        });
+    }
+});

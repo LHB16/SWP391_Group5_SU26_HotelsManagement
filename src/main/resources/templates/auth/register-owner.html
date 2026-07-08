@@ -15,11 +15,11 @@
 
                 <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
-                <form method="post" action="/register-owner">
+                <form method="post" action="/register-owner" enctype="multipart/form-data">
 
                     <!-- Full Name -->
                     <div class="mb-3">
-                        <label class="form-label">Full Name <span class="text-danger"></span></label>
+                        <label class="form-label">Full Name <span class="text-danger">*</span></label>
                         <input type="text" name="fullName" class="form-control"
                                placeholder="Enter your full name..."
                                th:value="${fullName}"
@@ -28,7 +28,7 @@
 
                     <!-- Username -->
                     <div class="mb-3">
-                        <label class="form-label">Username <span class="text-danger"></span></label>
+                        <label class="form-label">Username <span class="text-danger">*</span></label>
                         <input type="text" name="username" class="form-control"
                                placeholder="Enter your username..."
                                th:value="${username}"
@@ -37,7 +37,7 @@
 
                     <!-- Email -->
                     <div class="mb-3">
-                        <label class="form-label">Email <span class="text-danger"></span></label>
+                        <label class="form-label">Email <span class="text-danger">*</span></label>
                         <input type="email" name="email" class="form-control"
                                placeholder="Enter your email..."
                                th:value="${email}"
@@ -46,7 +46,7 @@
 
                     <!-- Password -->
                     <div class="mb-3">
-                        <label class="form-label">Password <span class="text-danger"></span></label>
+                        <label class="form-label">Password <span class="text-danger">*</span></label>
                         <input type="password" name="password" class="form-control"
                                placeholder="Enter your password..."
                                required minlength="6"/>
@@ -54,10 +54,9 @@
 
                     <hr class="my-4">
 
-
                     <!-- Phone -->
                     <div class="mb-3">
-                        <label class="form-label">Phone Number <span class="text-danger"></span></label>
+                        <label class="form-label">Phone Number <span class="text-danger">*</span></label>
                         <input type="tel" name="phone" class="form-control"
                                placeholder="Enter your phone number..."
                                th:value="${phone}"
@@ -66,7 +65,7 @@
 
                     <!-- Address -->
                     <div class="mb-3">
-                        <label class="form-label">Address <span class="text-danger"></span></label>
+                        <label class="form-label">Address <span class="text-danger">*</span></label>
                         <input type="text" name="address" class="form-control"
                                placeholder="Enter your address..."
                                th:value="${address}"
@@ -75,7 +74,7 @@
 
                     <!-- ID Card -->
                     <div class="mb-3">
-                        <label class="form-label">ID Card / CCCD <span class="text-danger"></span></label>
+                        <label class="form-label">ID Card <span class="text-danger">*</span></label>
                         <input type="text" name="idCard" class="form-control"
                                placeholder="Enter your ID card number..."
                                th:value="${idCard}"
@@ -84,26 +83,35 @@
 
                     <!-- Tax ID -->
                     <div class="mb-3">
-                        <label class="form-label">Tax ID <span class="text-danger"></span></label>
+                        <label class="form-label">Tax ID <span class="text-danger">*</span></label>
                         <input type="text" name="taxId" class="form-control"
                                placeholder="Enter your tax ID..."
                                th:value="${taxId}"
                                required/>
                     </div>
 
+                    <!-- ===== THÊM PHẦN UPLOAD ẢNH CCCD ===== -->
+                    <div class="mb-3">
+                        <label class="form-label">ID Card <span class="text-danger">*</span></label>
+                        <input type="file" name="idCardDocument" class="form-control"
+                               accept="image/*,application/pdf" required/>
+                        <small class="text-muted">Supports JPG, PNG, PDF. Maximum 10MB.</small>
+                        <div th:if="${idCardDocumentError}" class="text-danger small" th:text="${idCardDocumentError}"></div>
+                    </div>
+
                     <button type="submit" class="btn btn-primary w-100 mt-2">Register as Owner</button>
                 </form>
 
                 <div class="text-center mt-3">
-                <span class="text-muted small">Are you a customer?
-                    <a th:href="@{/register}" class="fw-bold">Register as Customer</a>
-                </span>
+                    <span class="text-muted small">Are you a customer?
+                        <a th:href="@{/register}" class="fw-bold">Register as Customer</a>
+                    </span>
                 </div>
 
                 <div class="text-center mt-2">
-                <span class="text-muted small">Already have an account?
-                    <a th:href="@{/login}">Login here</a>
-                </span>
+                    <span class="text-muted small">Already have an account?
+                        <a th:href="@{/login}">Login here</a>
+                    </span>
                 </div>
 
             </div>

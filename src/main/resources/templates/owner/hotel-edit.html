@@ -46,6 +46,7 @@
                               enctype="multipart/form-data"
                               id="hotelForm">
 
+                            <!-- Hotel Name -->
                             <div class="mb-4">
                                 <label class="form-label-custom" for="hotelName">
                                     Hotel Name <span class="text-danger">*</span>
@@ -55,6 +56,7 @@
                                 <div class="form-text text-muted">Enter the official hotel name</div>
                             </div>
 
+                            <!-- Address -->
                             <div class="mb-4">
                                 <label class="form-label-custom" for="hotelAddress">
                                     Address <span class="text-danger">*</span>
@@ -64,23 +66,27 @@
                                 <div class="form-text text-muted">Full street address of the hotel</div>
                             </div>
 
-                            <div class="row g-4 mb-4">
-                                <div class="col-12 col-sm-6">
-                                    <label class="form-label-custom" for="hotelCity">
-                                        City <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="text" name="city" id="hotelCity" class="fc"
-                                           th:value="${hotel.city}" required maxlength="100" />
-                                </div>
-                                <div class="col-12 col-sm-6">
-                                    <label class="form-label-custom" for="hotelDistrict">
-                                        District
-                                    </label>
-                                    <input type="text" name="district" id="hotelDistrict" class="fc"
-                                           th:value="${hotel.district}" maxlength="100" />
-                                </div>
+                            <!-- District -->
+                            <div class="mb-4">
+                                <label class="form-label-custom" for="hotelDistrict">
+                                    District <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" name="district" id="hotelDistrict" class="fc"
+                                       th:value="${hotel.district}" required maxlength="100" />
+                                <div class="form-text text-muted">Enter the district where the hotel is located</div>
                             </div>
 
+                            <!-- City -->
+                            <div class="mb-4">
+                                <label class="form-label-custom" for="hotelCity">
+                                    City <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" name="city" id="hotelCity" class="fc"
+                                       th:value="${hotel.city}" required maxlength="100" />
+                                <div class="form-text text-muted">Enter the city where the hotel is located</div>
+                            </div>
+
+                            <!-- Description -->
                             <div class="mb-4">
                                 <label class="form-label-custom" for="hotelDescription">
                                     Description
@@ -93,6 +99,7 @@
 
                             <div class="form-divider"></div>
 
+                            <!-- Hotel Image -->
                             <div class="mb-4" th:if="${hotel.imageUrl != null and !hotel.imageUrl.isEmpty()}">
                                 <label class="form-label-custom">Current Image</label>
                                 <div class="mt-2">
@@ -117,7 +124,9 @@
 
                             <div class="form-divider"></div>
 
-                            <div class="mb-4">
+                            <!-- ===== PHẦN ACTIVE: CHỈ HIỂN THỊ KHI HOTEL ĐÃ DUYỆT VÀ CÓ PHÒNG ===== -->
+                            <!-- Kiểm tra điều kiện: approvalStatus == 'APPROVED' và roomCount > 0 -->
+                            <div th:if="${hotel.approvalStatus == 'APPROVED' and roomCount > 0}" class="mb-4">
                                 <label class="form-label-custom">Status</label>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" role="switch"
@@ -127,9 +136,29 @@
                                         Hotel Active
                                     </label>
                                 </div>
-                                <div class="form-text text-muted">Enable/disable hotel visibility</div>
+                                <div class="form-text text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Enable/disable hotel visibility. This option is only available when your hotel is approved and has at least one room.
+                                </div>
                             </div>
 
+                            <!-- Thông báo nếu chưa đủ điều kiện để hiển thị Active -->
+                            <div th:if="${hotel.approvalStatus != 'APPROVED' or roomCount == null or roomCount == 0}"
+                                 class="p-3 bg-light rounded-3 mb-4" style="border-left: 4px solid #f59e0b;">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1 text-warning"></i>
+                                    <span th:if="${hotel.approvalStatus != 'APPROVED'}">
+                                        <strong>Status:</strong> <span th:text="${hotel.approvalStatus ?: 'PENDING'}"></span>.
+                                        <span class="fw-bold">Hotel Active</span> option will be available after admin approval.
+                                    </span>
+                                    <span th:if="${hotel.approvalStatus == 'APPROVED' and (roomCount == null or roomCount == 0)}">
+                                        <strong>No rooms yet.</strong>
+                                        <span class="fw-bold">Hotel Active</span> option will be available after you add at least one room.
+                                    </span>
+                                </small>
+                            </div>
+
+                            <!-- Approval Status (readonly) -->
                             <div class="mb-4">
                                 <label class="form-label-custom">Approval Status</label>
                                 <div>
@@ -145,6 +174,7 @@
 
                             <div class="form-divider"></div>
 
+                            <!-- Buttons -->
                             <div class="d-flex gap-3 justify-content-end flex-wrap">
                                 <a th:href="@{/owner/hotels/{id}(id=${hotel.id})}" class="btn-cancel">
                                     <i class="bi bi-arrow-left"></i>

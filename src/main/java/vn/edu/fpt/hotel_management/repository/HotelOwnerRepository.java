@@ -17,4 +17,6 @@ public interface HotelOwnerRepository extends JpaRepository<HotelOwner, Integer>
     Page<HotelOwner> findByUserAccountEmailContainingIgnoreCase(String email, Pageable pageable);
     Page<HotelOwner> findByPhoneContaining(String phone, Pageable pageable);
     Page<HotelOwner> findById(int id, Pageable pageable);
+    
+    long countByVerificationStatus(String verificationStatus);
 }

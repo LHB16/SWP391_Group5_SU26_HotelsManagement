@@ -8,25 +8,72 @@
    Main palette: champagne gold, white, and black/navy.
    ========================================================================== */
 :root {
-  --hotel-black: #0a0a0a;
-  --hotel-navy: #0a1628;
-  --hotel-white: #ffffff;
-  --hotel-gold: #c9a96e;
-  --hotel-gold-dark: #a8824e;
-  --hotel-gold-light: #e8d5a3;
-  --hotel-cream: #faf8f4;
-  --navy: #0a1628;
-  --navy-light: #142038;
-  --navy-primary: #0a1628;
-  --gold: #c9a96e;
-  --gold-accent: #c9a96e;
-  --gold-hover: #b39257;
-  --gold-dark: #a8824e;
-  --gold-dk: #a8824e;
-  --gold-light: #e8d5a3;
-  --gold-lt: #e8d5a3;
-  --cream: #faf8f4;
-  --text-dark: #1a1a2e;
+    /* === Hotel Brand Colors === */
+    --hotel-black: #0a0a0a;
+    --hotel-navy: #0a1628;
+    --hotel-white: #ffffff;
+    --hotel-gold: #c9a96e;
+    --hotel-gold-dark: #a8824e;
+    --hotel-gold-light: #e8d5a3;
+    --hotel-cream: #faf8f4;
+
+    /* === Shorthand Aliases === */
+    --navy: #0a1628;
+    --navy-light: #142038;
+    --navy-lt: #142038;
+    --navy-primary: #0a1628;
+    --gold: #c9a96e;
+    --gold-accent: #c9a96e;
+    --gold-hover: #b39257;
+    --gold-dark: #a8824e;
+    --gold-dk: #a8824e;
+    --gold-light: #e8d5a3;
+    --gold-lt: #e8d5a3;
+    --cream: #faf8f4;
+    --white: #ffffff;
+
+    /* === Text Colors === */
+    --text-dark: #1a1a2e;
+    --text-muted: #6c757d;
+    --text-primary: #0a1628;
+    --text-secondary: #495057;
+    --gray-text: #6c757d;
+
+    /* === Gray Scale === */
+    --gray-100: #f8f9fa;
+    --gray-200: #e9ecef;
+    --gray-400: #ced4da;
+    --gray-600: #6c757d;
+
+    /* === Border === */
+    --border-color: #dee2e6;
+    --border-glass: rgba(201, 169, 110, 0.2);
+    --border-radius: 0.375rem;
+
+    /* === Border Radius === */
+    --radius: 8px;
+    --radius-lg: 16px;
+
+    /* === Shadows === */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.15);
+    --shadow-card: 0 2px 12px rgba(10, 22, 40, 0.06);
+    --shadow-soft: 0 8px 32px rgba(10, 22, 40, 0.08);
+
+    /* === Transitions === */
+    --transition: all 0.25s ease;
+    --tr: all 0.25s ease;
+
+    /* === Gradients === */
+    --primary-gradient: linear-gradient(135deg, #0a1628, #142038);
+    --secondary-gradient: linear-gradient(135deg, #c9a96e, #a8824e);
+    --success-gradient: linear-gradient(135deg, #198754, #157347);
+    --accent-gradient: linear-gradient(135deg, #c9a96e 0%, #e8d5a3 100%);
+
+    /* === Glassmorphism === */
+    --bg-glass: rgba(255, 255, 255, 0.85);
 }
 
 /* ==========================================================================
@@ -14232,11 +14279,7 @@ main {
   --border-color: #f1f5f9;
 }
 
-body {
-  background-color: #f8fafc;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  color: var(--text-primary);
-}
+/* [body{}] — background/font/color đã gộp vào block body tổng hợp bên dưới */
 
 /* Page Layout */
 .dashboard-container {
@@ -14932,10 +14975,7 @@ input[type="date"]::-webkit-datetime-edit {
 /* ────────────────────────────────────────────────────────────
    Base
    ──────────────────────────────────────────────────────────── */
-body {
-  font-family: 'Inter', sans-serif;
-  background: var(--cream);
-}
+/* [body{}] — font/background đã gộp vào block body tổng hợp bên dưới */
 
 /* ────────────────────────────────────────────────────────────
    Brand Utility Classes (dùng chung trong trang này)
@@ -15111,15 +15151,15 @@ body {
 
 /* Label section trong filter */
 .filter-section-label {
-  font-size: .72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .07em;
-  color: #6b7280;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--navy);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
 /* Inputs trong filter */
@@ -15212,11 +15252,7 @@ input[type="date"]::-webkit-datetime-edit {
 /* ────────────────────────────────────────────────────────────
    Base / Reset
    ──────────────────────────────────────────────────────────── */
-body {
-  font-family: 'Inter', sans-serif;
-  background: var(--cream);
-  color: var(--text-dark);
-}
+/* [body{}] — font/background/color đã gộp vào block body tổng hợp bên dưới */
 
 /* ────────────────────────────────────────────────────────────
    Hero Banner – đầu trang tên khách sạn
@@ -15339,12 +15375,12 @@ body {
 }
 
 .filter-section-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  margin-bottom: 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--navy);
+    margin-bottom: 10px;
 }
 
 /* Type Filter Buttons */
@@ -15530,16 +15566,17 @@ body {
    Room Card – Layout ảnh trái / info phải (Lion Hotel style)
    ──────────────────────────────────────────────────────────── */
 .room-card {
-  background: var(--white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--gray-200);
-  overflow: hidden;
-  display: flex;
-  flex-direction: row;
-  transition: box-shadow var(--transition), transform var(--transition);
-  margin-bottom: 24px;
-  min-height: 240px;
+    position: relative;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    transition: box-shadow var(--transition), transform var(--transition);
+    margin-bottom: 24px;
+    min-height: 240px;
 }
 
 .room-card:hover {
@@ -16594,10 +16631,7 @@ body {
 /* ────────────────────────────────────────────────────────────
    Base
    ──────────────────────────────────────────────────────────── */
-body {
-  font-family: 'Inter', sans-serif;
-  background: var(--cream);
-}
+/* [body{}] — font/background đã gộp vào block body tổng hợp bên dưới */
 
 /* ────────────────────────────────────────────────────────────
    Page Hero Header
@@ -17024,10 +17058,7 @@ body {
 /* ────────────────────────────────────────────────────────────
    Base
    ──────────────────────────────────────────────────────────── */
-body {
-  font-family: 'Inter', sans-serif;
-  background: var(--cream);
-}
+/* [body{}] — font/background đã gộp vào block body tổng hợp bên dưới */
 
 /* ────────────────────────────────────────────────────────────
    Hero Banner
@@ -17406,11 +17437,7 @@ body {
   --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.07);
 }
 
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background-color: #f8f9fc;
-  color: #1e293b;
-}
+/* [body{}] — font/background/color đã gộp vào block body tổng hợp bên dưới */
 
 /* ============================================================
    SHARED BOOKING PAGE LAYOUT
@@ -17985,13 +18012,22 @@ input[type="date"]::-webkit-datetime-edit {
 /* ==========================================================================
    Unified Hotel Theme Overrides
    ========================================================================== */
+/* ==========================================================================
+   UNIFIED BODY STYLES — Gộp từ tất cả các body{} trong dự án
+   ========================================================================== */
 body {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: var(--hotel-cream);
-  color: var(--text-dark);
+    /* Bootstrap reset overrides */
+    margin: 0;
+    /* Layout */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    /* Typography */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    font-size: 14px;
+    /* Colors */
+    background: var(--hotel-cream);
+    color: var(--text-dark);
 }
 
 .navbar.bg-dark,
@@ -18111,10 +18147,7 @@ body:has(.owner-sidebar) {
 }
 
 /* === Đồng bộ font chữ & kích thước chữ cho toàn bộ project === */
-body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
-  font-size: 14px;
-}
+/* [body{}] — font-family và font-size đã gộp vào block body tổng hợp bên trên */
 
 h1,
 h2,
@@ -21258,29 +21291,569 @@ h6,
   box-shadow: 0 2px 10px rgba(201, 169, 110, 0.35);
 }
 
+/* --- btn-outline-gold --- */
+.btn-outline-gold {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 8px 18px;
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--gold);
+    background-color: transparent;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.btn-outline-gold:hover {
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+    color: #fff;
+    border-color: transparent;
+    text-decoration: none;
+    box-shadow: 0 2px 10px rgba(201,169,110,0.25);
+}
+
+/* --- room-qty-badge --- */
+.room-qty-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    left: auto;
+    background: rgba(10, 22, 40, 0.85);
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(201, 169, 110, 0.3);
+    z-index: 10;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+}
+.room-qty-badge i {
+    color: var(--gold);
+}
+
+/* --- Dual Range Slider --- */
+.price-slider-wrapper {
+    position: relative;
+    width: 100%;
+    height: 30px;
+    margin-top: 10px;
+}
+.price-slider-wrapper input[type="range"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 100%;
+    outline: none;
+    position: absolute;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+    background: transparent;
+    pointer-events: none;
+}
+.slider-track {
+    width: 100%;
+    height: 5px;
+    position: absolute;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+    border-radius: 5px;
+    background-color: #ced4da;
+}
+.price-slider-wrapper input[type="range"]::-webkit-slider-runnable-track {
+    -webkit-appearance: none;
+    height: 5px;
+}
+.price-slider-wrapper input[type="range"]::-moz-range-track {
+    -moz-appearance: none;
+    height: 5px;
+}
+.price-slider-wrapper input[type="range"]::-ms-track {
+    appearance: none;
+    height: 5px;
+}
+.price-slider-wrapper input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 18px;
+    width: 18px;
+    background-color: var(--gold);
+    cursor: pointer;
+    border-radius: 50%;
+    pointer-events: auto;
+    margin-top: -6px;
+    border: 2px solid #fff;
+    box-shadow: var(--shadow-sm);
+}
+.price-slider-wrapper input[type="range"]::-moz-range-thumb {
+    -moz-appearance: none;
+    height: 18px;
+    width: 18px;
+    background-color: var(--gold);
+    cursor: pointer;
+    border-radius: 50%;
+    pointer-events: auto;
+    border: 2px solid #fff;
+    box-shadow: var(--shadow-sm);
+}
+.price-slider-wrapper input[type="range"]::-ms-thumb {
+    appearance: none;
+    height: 18px;
+    width: 18px;
+    background-color: var(--gold);
+    cursor: pointer;
+    border-radius: 50%;
+    pointer-events: auto;
+    border: 2px solid #fff;
+    box-shadow: var(--shadow-sm);
+}
+.price-slider-wrapper input[type="range"]:active::-webkit-slider-thumb {
+    background-color: var(--gold-dark);
+}
+.price-values {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--navy);
+}
+
+/* --- hl-filter-btn --- */
+.hl-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 36px;
+    padding: 6px 8px;
+    font-size: 0.76rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background-color: #fff;
+    border: 1px solid var(--gray-400);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    user-select: none;
+    text-align: center;
+    line-height: 1.2;
+}
+.hl-filter-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background-color: var(--cream);
+}
+.btn-check:checked + .hl-filter-btn {
+    color: #fff !important;
+    background-color: var(--navy) !important;
+    border-color: var(--navy) !important;
+    box-shadow: var(--shadow-sm);
+}
+.filter-btn-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+}
+.hidden-filter-item {
+    display: none !important;
+}
+.show-more-btn {
+    display: inline-block;
+    background: none;
+    border: none;
+    color: var(--gold-dark);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    padding: 0;
+    transition: color 0.2s ease;
+}
+.show-more-btn:hover {
+    color: var(--gold);
+}
+
 /* --- Responsive --- */
 @media (max-width: 576px) {
-  .create-hero {
-    padding: 32px 0 24px;
-  }
+    .create-hero {
+        padding: 32px 0 24px;
+    }
+    .create-hero h1 {
+        font-size: 1.5rem;
+    }
+    .form-card-body {
+        padding: 20px 16px;
+    }
+    .form-card-header {
+        padding: 16px 16px;
+    }
+    .facility-grid {
+        grid-template-columns: 1fr;
+    }
+    .room-status-toggle {
+        flex-direction: column;
+    }
+}
 
-  .create-hero h1 {
-    font-size: 1.5rem;
-  }
+/* === Restore missing classes === */
+.login-header {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
 
-  .form-card-body {
-    padding: 20px 16px;
-  }
-
-  .form-card-header {
-    padding: 16px 16px;
-  }
-
-  .facility-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .room-status-toggle {
-    flex-direction: column;
+@media (min-width: 768px) {
+  .border-end-md {
+    border-right: 1px solid #cbd5e1 !important;
   }
 }
+
+.bg-navy {
+  background-color: #0d233a !important;
+}
+
+.text-navy {
+  color: #0d233a !important;
+}
+
+.pending-verification-card {
+  background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%);
+  border: 1.5px solid #f59e0b;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.15);
+}
+.pending-verification-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+.pending-verification-icon {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  background: rgba(245, 158, 11, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #b45309;
+}
+.pending-verification-content {
+  flex: 1;
+}
+.pending-verification-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #92400e;
+  margin-bottom: 6px;
+  font-family: 'Playfair Display', serif;
+}
+.pending-verification-text {
+  font-size: 0.92rem;
+  color: #78350f;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+.pending-verification-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+.pending-verification-email {
+  font-size: 0.85rem;
+  color: #78350f;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rejected-verification-card {
+  background: linear-gradient(135deg, #fef2f2 0%, #fff5f5 100%);
+  border: 1.5px solid #ef4444;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.12);
+}
+.rejected-verification-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+.rejected-verification-icon {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  background: rgba(239, 68, 68, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dc2626;
+}
+.rejected-verification-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #991b1b;
+  margin-bottom: 6px;
+  font-family: 'Playfair Display', serif;
+}
+.rejected-verification-text {
+  font-size: 0.92rem;
+  color: #7f1d1d;
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+.rejected-verification-reason {
+  background: #fee2e2;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  color: #991b1b;
+  border-left: 3px solid #ef4444;
+}
+.rejected-verification-reason strong {
+  color: #7f1d1d;
+}
+.rejected-verification-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 576px) {
+  .pending-verification-inner {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .rejected-verification-inner {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .pending-verification-status {
+    justify-content: center;
+  }
+  .rejected-verification-actions {
+    justify-content: center;
+  }
+}
+
+/* ==========================================================================
+   CSS DÀNH RIÊNG CHO TRANG PROFILE (FLAT STYLE)
+   Đảm bảo các class này độc lập và không ảnh hưởng đến các trang khác
+   ========================================================================== */
+.profile-container {
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+}
+
+.profile-sidebar {
+    border-right: 1px solid #cbd5e1;
+    padding-right: 2rem;
+    height: 100%;
+}
+
+@media (max-width: 768px) {
+    .profile-sidebar {
+        border-right: none;
+        padding-right: 0;
+        margin-bottom: 1.5rem;
+    }
+}
+
+.profile-title {
+    font-size: 1.8rem;
+    color: #0f4c81;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.profile-desc {
+    color: #64748b;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.profile-content-area {
+    padding-left: 1rem;
+}
+
+@media (max-width: 768px) {
+    .profile-content-area {
+        padding-left: 0;
+    }
+}
+
+/* Loại bỏ kiểu Card cũ, chuyển thành Flat style */
+.profile-form-wrapper {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+.profile-section-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 1.5rem;
+    font-family: 'Playfair Display', serif !important;
+}
+
+/* Thiết kế Input phẳng tối giản */
+.profile-input-readonly {
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #475569 !important;
+    font-size: 0.95rem;
+    padding: 0.65rem 1rem !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+}
+
+.profile-input-editable {
+    background-color: #ffffff !important;
+    border: 1px solid #0f4c81 !important;
+    color: #0f172a !important;
+    font-size: 0.95rem;
+    padding: 0.65rem 1rem !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+}
+
+.profile-input-editable:focus {
+    box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.15) !important;
+    border-color: #0f4c81 !important;
+}
+
+.profile-label-sm {
+    font-size: 0.75rem !important;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+    color: #64748b !important;
+}
+
+/* Căn chỉnh lại các button */
+.profile-btn-primary {
+    background-color: #0f4c81 !important;
+    border: 1px solid #0f4c81 !important;
+    color: #ffffff !important;
+    font-weight: 500;
+    padding: 0.6rem 1.5rem !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease;
+}
+
+.profile-btn-primary:hover {
+    background-color: #0c3e69 !important;
+    border-color: #0c3e69 !important;
+}
+
+.profile-btn-secondary {
+    background-color: transparent !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #475569 !important;
+    font-weight: 500;
+    padding: 0.6rem 1.5rem !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease;
+}
+
+.profile-btn-secondary:hover {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+}
+
+/* Custom styles for navigation and auth page adjustments */
+.avatar-btn {
+    width: auto !important;
+    padding: 0 16px !important;
+    border-radius: 20px !important;
+}
+
+.forgot-password-card-header {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.forgot-password-title {
+    color: #000000 !important;
+    font-weight: bold !important;
+}
+
+/* ── Owner Identity Verification Styles ── */
+.owner-verify-textarea {
+    border-radius: 10px;
+    font-size: 0.9rem;
+    border: 1.5px solid #e2e8f0;
+    height: 102px;
+    resize: none;
+}
+
+.owner-verify-btn-approve,
+.owner-verify-btn-reject {
+    border-radius: 10px;
+    height: 47px;
+    font-size: 0.9rem;
+}
+
+/* ── PayPal & VietQR Payment Selection Tabs (UC-14) ── */
+.payment-content-none, .payment-content-vietqr, .payment-content-paypal {
+    display: none;
+}
+#tab-none:checked ~ .payment-content-none {
+    display: block;
+}
+#tab-vietqr:checked ~ .payment-content-vietqr {
+    display: block;
+}
+#tab-paypal:checked ~ .payment-content-paypal {
+    display: block;
+}
+
+.tab-btn {
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid #dee2e6;
+    color: #495057;
+    background-color: #f8f9fa;
+    transition: all 0.2s ease-in-out;
+}
+.tab-btn:hover {
+    border-color: #c9a96e;
+    color: #0a1628;
+}
+
+#tab-vietqr:checked ~ div .btn-vietqr-label {
+    background-color: #0a1628;
+    color: #c9a96e;
+    border-color: #0a1628;
+}
+
+#tab-paypal:checked ~ div .btn-paypal-label {
+    background-color: #0a1628;
+    color: #c9a96e;
+    border-color: #0a1628;
+}
+
+.hover-card {
+    transition: all 0.2s ease-in-out;
+}
+.hover-card:hover {
+    border-color: #c9a96e !important;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(201, 169, 110, 0.15);
+}
+
+

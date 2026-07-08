@@ -73,88 +73,145 @@
                     <span th:text="${errorMessage}"></span>
                 </div>
 
-                <!-- Stat Cards -->
-                <div class="row g-4 mb-4">
-                    <div class="col-md-3">
-                        <div class="stat-card card-hotels">
-                            <div class="stat-icon"><i data-lucide="hotel" style="stroke-width: 1.5;"></i></div>
-                            <div class="stat-value" th:text="${totalHotels}">0</div>
-                            <div class="stat-label">Total Hotels</div>
+                <!-- ===== THÔNG BÁO ĐỢI DUYỆT ===== -->
+                <div th:if="${verificationStatus == 'PENDING'}" class="pending-verification-card mb-4">
+                    <div class="pending-verification-inner">
+                        <div class="pending-verification-icon">
+                            <i data-lucide="clock" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
                         </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-card card-rooms">
-                            <div class="stat-icon"><i data-lucide="door-open" style="stroke-width: 1.5;"></i></div>
-                            <div class="stat-value" th:text="${totalRooms}">0</div>
-                            <div class="stat-label">Total Rooms</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-card card-bookings">
-                            <div class="stat-icon"><i data-lucide="calendar-check" style="stroke-width: 1.5;"></i></div>
-                            <div class="stat-value" th:text="${totalBookings}">0</div>
-                            <div class="stat-label">Total Bookings</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-card card-revenue">
-                            <div class="stat-icon"><i data-lucide="dollar-sign" style="stroke-width: 1.5;"></i></div>
-                            <div class="stat-value" th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</div>
-                            <div class="stat-label">Total Revenue</div>
+                        <div class="pending-verification-content">
+                            <h4 class="pending-verification-title">Account Pending Verification</h4>
+                            <p class="pending-verification-text">
+                                Your hotel owner account is being reviewed by the admin.
+                                You will be able to manage your hotels and rooms once your account is approved.
+                            </p>
+                            <div class="pending-verification-status">
+                                <span class="badge-status badge-status-warning">
+                                    <i data-lucide="hourglass" style="width: 14px; height: 14px;"></i>
+                                    Status: PENDING
+                                </span>
+                                <span class="pending-verification-email">
+                                    <i data-lucide="mail" style="width: 14px; height: 14px;"></i>
+                                    Check your email for approval notification
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Recent Bookings -->
-                <div class="dashboard-section">
-                    <h2 class="section-title">
-                        <i data-lucide="clock" style="stroke-width: 1.5; color: #4f46e5;"></i>
-                        Recent Bookings
-                    </h2>
-                    <div class="custom-table-container">
-                        <table class="custom-table">
-                            <thead>
-                            <tr>
-                                <th>Booking ID</th>
-                                <th>Customer</th>
-                                <th>Hotel</th>
-                                <th>Room Type</th>
-                                <th>Check-in</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="b : ${recentBookings}">
-                                <td><strong th:text="'#' + ${b.bookingId}">#1</strong></td>
-                                <td th:text="${b.customerName}">Customer</td>
-                                <td th:text="${b.hotelName}">Hotel</td>
-                                <td th:text="${b.roomType}">Room Type</td>
-                                <td th:text="${b.checkInDate}">Date</td>
-                                <td>
-                                    <strong class="text-success"
-                                            th:text="${#numbers.formatDecimal(b.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' VND'">
-                                        0 VND
-                                    </strong>
-                                </td>
-                                <td>
-                                    <span class="badge-status"
-                                          th:classappend="${b.bookingStatus == 'CONFIRMED'} ? 'badge-status-success' :
-                                                         (${b.bookingStatus == 'PENDING'} ? 'badge-status-warning' :
-                                                         (${b.bookingStatus == 'CANCELLED'} ? 'badge-status-danger' : 'badge-status-neutral'))"
-                                          th:text="${b.bookingStatus}">STATUS</span>
-                                </td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(recentBookings)}">
-                                <td colspan="7" class="text-center text-muted py-5">
-                                    <i data-lucide="inbox" class="d-block mx-auto mb-2" style="width: 40px; height: 40px; opacity: 0.4;"></i>
-                                    No bookings found for your hotels.
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
+                <div th:if="${verificationStatus == 'REJECTED'}" class="rejected-verification-card mb-4">
+                    <div class="rejected-verification-inner">
+                        <div class="rejected-verification-icon">
+                            <i data-lucide="x-circle" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
+                        </div>
+                        <div class="rejected-verification-content">
+                            <h4 class="rejected-verification-title">Account Rejected</h4>
+                            <p class="rejected-verification-text">
+                                Your account registration has been rejected by the admin.
+                            </p>
+                            <div th:if="${owner.rejectionReason != null}" class="rejected-verification-reason">
+                                <strong>Reason:</strong> <span th:text="${owner.rejectionReason}"></span>
+                            </div>
+                            <div class="rejected-verification-actions mt-3">
+                                <a th:href="@{/logout}" class="btn btn-danger btn-sm">
+                                    <i data-lucide="log-out" style="width: 14px; height: 14px;"></i>
+                                    Logout &amp; Try Again
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- ========================================================= -->
+                <!-- ===== ẨN TOÀN BỘ NỘI DUNG NẾU CHƯA DUYỆT ===== -->
+                <!-- ========================================================= -->
+                <div th:if="${verificationStatus == 'APPROVED'}">
+
+                    <!-- Stat Cards -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-3">
+                            <div class="stat-card card-hotels">
+                                <div class="stat-icon"><i data-lucide="hotel" style="stroke-width: 1.5;"></i></div>
+                                <div class="stat-value" th:text="${totalHotels}">0</div>
+                                <div class="stat-label">Total Hotels</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card card-rooms">
+                                <div class="stat-icon"><i data-lucide="door-open" style="stroke-width: 1.5;"></i></div>
+                                <div class="stat-value" th:text="${totalRooms}">0</div>
+                                <div class="stat-label">Total Rooms</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card card-bookings">
+                                <div class="stat-icon"><i data-lucide="calendar-check" style="stroke-width: 1.5;"></i></div>
+                                <div class="stat-value" th:text="${totalBookings}">0</div>
+                                <div class="stat-label">Total Bookings</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card card-revenue">
+                                <div class="stat-icon"><i data-lucide="dollar-sign" style="stroke-width: 1.5;"></i></div>
+                                <div class="stat-value" th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</div>
+                                <div class="stat-label">Total Revenue</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Bookings -->
+                    <div class="dashboard-section">
+                        <h2 class="section-title">
+                            <i data-lucide="clock" style="stroke-width: 1.5; color: #4f46e5;"></i>
+                            Recent Bookings
+                        </h2>
+                        <div class="custom-table-container">
+                            <table class="custom-table">
+                                <thead>
+                                <tr>
+                                    <th>Booking ID</th>
+                                    <th>Customer</th>
+                                    <th>Hotel</th>
+                                    <th>Room Type</th>
+                                    <th>Check-in</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="b : ${recentBookings}">
+                                    <td><strong th:text="'#' + ${b.bookingId}">#1</strong></td>
+                                    <td th:text="${b.customerName}">Customer</td>
+                                    <td th:text="${b.hotelName}">Hotel</td>
+                                    <td th:text="${b.roomType}">Room Type</td>
+                                    <td th:text="${b.checkInDate}">Date</td>
+                                    <td>
+                                        <strong class="text-success"
+                                                th:text="${#numbers.formatDecimal(b.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' VND'">
+                                            0 VND
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge-status"
+                                              th:classappend="${b.bookingStatus == 'CONFIRMED'} ? 'badge-status-success' :
+                                                             (${b.bookingStatus == 'PENDING'} ? 'badge-status-warning' :
+                                                             (${b.bookingStatus == 'CANCELLED'} ? 'badge-status-danger' : 'badge-status-neutral'))"
+                                              th:text="${b.bookingStatus}">STATUS</span>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(recentBookings)}">
+                                    <td colspan="7" class="text-center text-muted py-5">
+                                        <i data-lucide="inbox" class="d-block mx-auto mb-2" style="width: 40px; height: 40px; opacity: 0.4;"></i>
+                                        No bookings found for your hotels.
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- ===== KẾT THÚC PHẦN ẨN NỘI DUNG ===== -->
 
             </div>
 
@@ -170,62 +227,97 @@
                     </div>
                 </div>
 
-                <div class="dashboard-section">
-                    <h2 class="section-title">
-                        <i data-lucide="list" style="stroke-width: 1.5; color: #4f46e5;"></i>
-                        All Bookings
-                    </h2>
-                    <div class="custom-table-container">
-                        <table class="custom-table">
-                            <thead>
-                            <tr>
-                                <th>Booking ID</th>
-                                <th>Customer</th>
-                                <th>Hotel</th>
-                                <th>Room Type</th>
-                                <th>Check-in</th>
-                                <th>Check-out</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                                <th>Payment</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="b : ${recentBookings}">
-                                <td><strong th:text="'#' + ${b.bookingId}">#1</strong></td>
-                                <td th:text="${b.customerName}">Customer</td>
-                                <td th:text="${b.hotelName}">Hotel</td>
-                                <td th:text="${b.roomType}">Room Type</td>
-                                <td th:text="${b.checkInDate}">In</td>
-                                <td th:text="${b.checkOutDate}">Out</td>
-                                <td>
-                                    <strong class="text-success"
-                                            th:text="${#numbers.formatDecimal(b.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' VND'">
-                                        0 VND
-                                    </strong>
-                                </td>
-                                <td>
-                                    <span class="badge-status"
-                                          th:classappend="${b.bookingStatus == 'CONFIRMED'} ? 'badge-status-success' :
-                                                         (${b.bookingStatus == 'PENDING'} ? 'badge-status-warning' :
-                                                         (${b.bookingStatus == 'CANCELLED'} ? 'badge-status-danger' : 'badge-status-neutral'))"
-                                          th:text="${b.bookingStatus}">STATUS</span>
-                                </td>
-                                <td>
-                                    <span class="badge-status"
-                                          th:classappend="${b.paymentStatus == 'PAID'} ? 'badge-status-success' :
-                                                         (${b.paymentStatus == 'PENDING'} ? 'badge-status-warning' : 'badge-status-danger')"
-                                          th:text="${b.paymentStatus}">PAYMENT</span>
-                                </td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(recentBookings)}">
-                                <td colspan="9" class="text-center text-muted py-5">
-                                    <i data-lucide="inbox" class="d-block mx-auto mb-2" style="width: 40px; height: 40px; opacity: 0.4;"></i>
-                                    No bookings found.
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
+                <div th:if="${verificationStatus == 'PENDING'}" class="pending-verification-card mb-4">
+                    <div class="pending-verification-inner">
+                        <div class="pending-verification-icon">
+                            <i data-lucide="clock" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
+                        </div>
+                        <div class="pending-verification-content">
+                            <h4 class="pending-verification-title">Account Pending Verification</h4>
+                            <p class="pending-verification-text">
+                                Your account is being reviewed by admin. Bookings management will be available after approval.
+                            </p>
+                            <div class="pending-verification-status">
+                                <span class="badge-status badge-status-warning">
+                                    <i data-lucide="hourglass" style="width: 14px; height: 14px;"></i>
+                                    Status: PENDING
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${verificationStatus == 'REJECTED'}" class="rejected-verification-card mb-4">
+                    <div class="rejected-verification-inner">
+                        <div class="rejected-verification-icon">
+                            <i data-lucide="x-circle" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
+                        </div>
+                        <div class="rejected-verification-content">
+                            <h4 class="rejected-verification-title">Account Rejected</h4>
+                            <p class="rejected-verification-text">Your account has been rejected by admin.</p>
+                            <a th:href="@{/logout}" class="btn btn-danger btn-sm">Logout</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${verificationStatus == 'APPROVED'}">
+                    <div class="dashboard-section">
+                        <h2 class="section-title">
+                            <i data-lucide="list" style="stroke-width: 1.5; color: #4f46e5;"></i>
+                            All Bookings
+                        </h2>
+                        <div class="custom-table-container">
+                            <table class="custom-table">
+                                <thead>
+                                <tr>
+                                    <th>Booking ID</th>
+                                    <th>Customer</th>
+                                    <th>Hotel</th>
+                                    <th>Room Type</th>
+                                    <th>Check-in</th>
+                                    <th>Check-out</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Payment</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="b : ${recentBookings}">
+                                    <td><strong th:text="'#' + ${b.bookingId}">#1</strong></td>
+                                    <td th:text="${b.customerName}">Customer</td>
+                                    <td th:text="${b.hotelName}">Hotel</td>
+                                    <td th:text="${b.roomType}">Room Type</td>
+                                    <td th:text="${b.checkInDate}">In</td>
+                                    <td th:text="${b.checkOutDate}">Out</td>
+                                    <td>
+                                        <strong class="text-success"
+                                                th:text="${#numbers.formatDecimal(b.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' VND'">
+                                            0 VND
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge-status"
+                                              th:classappend="${b.bookingStatus == 'CONFIRMED'} ? 'badge-status-success' :
+                                                             (${b.bookingStatus == 'PENDING'} ? 'badge-status-warning' :
+                                                             (${b.bookingStatus == 'CANCELLED'} ? 'badge-status-danger' : 'badge-status-neutral'))"
+                                              th:text="${b.bookingStatus}">STATUS</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge-status"
+                                              th:classappend="${b.paymentStatus == 'PAID'} ? 'badge-status-success' :
+                                                             (${b.paymentStatus == 'PENDING'} ? 'badge-status-warning' : 'badge-status-danger')"
+                                              th:text="${b.paymentStatus}">PAYMENT</span>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(recentBookings)}">
+                                    <td colspan="9" class="text-center text-muted py-5">
+                                        <i data-lucide="inbox" class="d-block mx-auto mb-2" style="width: 40px; height: 40px; opacity: 0.4;"></i>
+                                        No bookings found.
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -246,121 +338,154 @@
                             <i data-lucide="hotel" style="width: 16px; height: 16px;"></i>
                             <strong th:text="${totalHotels}">0</strong> hotels
                         </span>
-                        <button class="btn-gold" onclick="openAddHotelModal()">
+                        <button class="btn-gold" onclick="openAddHotelModal()"
+                                th:disabled="${verificationStatus != 'APPROVED'}">
                             <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
                             Add New Hotel
                         </button>
                     </div>
                 </div>
 
-                <!-- Flash Messages -->
-                <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
-                    <i data-lucide="check-circle"></i>
-                    <span th:text="${successMessage}"></span>
-                </div>
-                <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
-                    <i data-lucide="alert-circle"></i>
-                    <span th:text="${errorMessage}"></span>
-                </div>
-
-                <!-- Hotel Grid -->
-                <div th:if="${not #lists.isEmpty(hotels)}" class="row g-4">
-                    <div th:each="hotel : ${hotels}" class="col-12 col-md-6 col-lg-4">
-                        <div class="card h-100 hotel-card" style="border-radius: 14px; border: 1px solid #f1f5f9; box-shadow: 0 4px 16px rgba(0,0,0,0.04); overflow: hidden;">
-
-                            <!-- Image -->
-                            <div class="position-relative overflow-hidden" style="height: 180px; background: #f1f5f9;">
-                                <img th:if="${hotel.imageUrl != null and !hotel.imageUrl.isEmpty()}"
-                                     th:src="@{${hotel.imageUrl}}" th:alt="${hotel.name}"
-                                     class="w-100 h-100 object-fit-cover" />
-                                <div th:if="${hotel.imageUrl == null or hotel.imageUrl.isEmpty()}"
-                                     class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
-                                    <i data-lucide="image" class="text-muted" style="width: 40px; height: 40px; opacity: 0.3;"></i>
-                                </div>
-                                <span class="badge position-absolute top-0 end-0 m-2"
-                                      th:classappend="${hotel.approvalStatus == 'APPROVED'} ? 'bg-success' :
-                                                     (${hotel.approvalStatus == 'REJECTED'} ? 'bg-danger' : 'bg-warning text-dark')"
-                                      th:text="${hotel.approvalStatus ?: 'PENDING'}">PENDING</span>
-                                <span class="badge position-absolute bottom-0 start-0 m-2"
-                                      style="background: rgba(0,0,0,0.6); color: #f59e0b; backdrop-filter: blur(4px);">
-                                    <i data-lucide="star" style="width: 12px; height: 12px; fill: #f59e0b;"></i>
-                                    <span th:text="${hotel.rating}">0.0</span>
+                <!-- Thông báo đợi duyệt -->
+                <div th:if="${verificationStatus == 'PENDING'}" class="pending-verification-card mb-4">
+                    <div class="pending-verification-inner">
+                        <div class="pending-verification-icon">
+                            <i data-lucide="clock" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
+                        </div>
+                        <div class="pending-verification-content">
+                            <h4 class="pending-verification-title">Account Pending Verification</h4>
+                            <p class="pending-verification-text">
+                                Your account is being reviewed by admin. Hotel management will be available after approval.
+                            </p>
+                            <div class="pending-verification-status">
+                                <span class="badge-status badge-status-warning">
+                                    <i data-lucide="hourglass" style="width: 14px; height: 14px;"></i>
+                                    Status: PENDING
                                 </span>
-                            </div>
-
-                            <!-- Body -->
-                            <div class="card-body">
-                                <h6 class="fw-bold text-dark mb-1" th:text="${hotel.name}">Hotel Name</h6>
-                                <p class="text-muted small mb-0">
-                                    <i data-lucide="map-pin" style="width: 12px; height: 12px;"></i>
-                                    <span th:text="${hotel.address}">Address</span>
-                                </p>
-                                <div class="mt-2 d-flex gap-2 flex-wrap">
-                                    <span class="badge bg-light text-dark">
-                                        <i data-lucide="star" style="width: 12px; height: 12px; color: #f59e0b;"></i>
-                                        <span th:text="${hotel.rating}">0.0</span>
-                                    </span>
-                                    <span class="badge bg-light text-dark">
-                                        <i data-lucide="door-open" style="width: 12px; height: 12px;"></i>
-                                        <span th:text="${roomCountMap.get(hotel.id)}">0</span> rooms
-                                    </span>
-                                    <span class="badge bg-light text-dark" th:if="${hotel.active}">
-                                        <i data-lucide="check-circle" style="width: 12px; height: 12px; color: #22c55e;"></i>
-                                        Active
-                                    </span>
-                                    <span class="badge bg-light text-dark" th:unless="${hotel.active}">
-                                        <i data-lucide="x-circle" style="width: 12px; height: 12px; color: #ef4444;"></i>
-                                        Inactive
-                                    </span>
-                                </div>
-                            </div>
-
-                            <!-- Footer -->
-                            <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                <div class="d-flex gap-2">
-                                    <!-- View Hotel Button -->
-                                    <a th:href="@{/owner/hotels/{id}(id=${hotel.id})}"
-                                       class="btn btn-sm btn-outline-info">
-                                        <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
-                                        View
-                                    </a>
-                                    <!-- Rooms Button -->
-                                    <a th:href="@{/owner/hotels/{id}/rooms(id=${hotel.id})}"
-                                       class="btn btn-sm btn-outline-primary">
-                                        <i data-lucide="door-open" style="width: 14px; height: 14px;"></i>
-                                        Rooms
-                                    </a>
-                                </div>
-                                <div class="d-flex gap-2">
-                                    <!-- Edit Button -->
-                                    <a th:href="@{/owner/hotels/{id}/edit(id=${hotel.id})}"
-                                       class="btn btn-sm btn-outline-secondary">
-                                        <i data-lucide="pencil" style="width: 14px; height: 14px;"></i>
-                                    </a>
-                                    <!-- Delete Button -->
-                                    <form th:action="@{/owner/dashboard/delete-hotel}"
-                                          method="post"
-                                          onsubmit="return confirm('Delete this hotel? This action cannot be undone!');">
-                                        <input type="hidden" name="hotelId" th:value="${hotel.id}" />
-                                        <button type="submit" class="btn btn-sm btn-danger">
-                                            <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
-                                        </button>
-                                    </form>
-                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Empty State -->
-                <div th:if="${#lists.isEmpty(hotels)}" class="text-center py-5">
-                    <i data-lucide="building" class="d-block mx-auto mb-3" style="width: 60px; height: 60px; opacity: 0.3; color: #94a3b8;"></i>
-                    <h5 class="text-muted">You don't have any hotels yet</h5>
-                    <p class="text-muted">Register your first hotel to start managing</p>
-                    <button class="btn-gold mt-2" onclick="openAddHotelModal()">
-                        <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
-                        Add Your First Hotel
-                    </button>
+                <div th:if="${verificationStatus == 'REJECTED'}" class="rejected-verification-card mb-4">
+                    <div class="rejected-verification-inner">
+                        <div class="rejected-verification-icon">
+                            <i data-lucide="x-circle" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
+                        </div>
+                        <div class="rejected-verification-content">
+                            <h4 class="rejected-verification-title">Account Rejected</h4>
+                            <p class="rejected-verification-text">Your account has been rejected by admin.</p>
+                            <a th:href="@{/logout}" class="btn btn-danger btn-sm">Logout</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${verificationStatus == 'APPROVED'}">
+                    <!-- Flash Messages -->
+                    <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
+                        <i data-lucide="check-circle"></i>
+                        <span th:text="${successMessage}"></span>
+                    </div>
+                    <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+                        <i data-lucide="alert-circle"></i>
+                        <span th:text="${errorMessage}"></span>
+                    </div>
+
+                    <!-- Hotel Grid -->
+                    <div th:if="${not #lists.isEmpty(hotels)}" class="row g-4">
+                        <div th:each="hotel : ${hotels}" class="col-12 col-md-6 col-lg-4">
+                            <div class="card h-100 hotel-card" style="border-radius: 14px; border: 1px solid #f1f5f9; box-shadow: 0 4px 16px rgba(0,0,0,0.04); overflow: hidden;">
+
+                                <!-- Image -->
+                                <div class="position-relative overflow-hidden" style="height: 180px; background: #f1f5f9;">
+                                    <img th:if="${hotel.imageUrl != null and !hotel.imageUrl.isEmpty()}"
+                                         th:src="@{${hotel.imageUrl}}" th:alt="${hotel.name}"
+                                         class="w-100 h-100 object-fit-cover" />
+                                    <div th:if="${hotel.imageUrl == null or hotel.imageUrl.isEmpty()}"
+                                         class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
+                                        <i data-lucide="image" class="text-muted" style="width: 40px; height: 40px; opacity: 0.3;"></i>
+                                    </div>
+                                    <span class="badge position-absolute top-0 end-0 m-2"
+                                          th:classappend="${hotel.approvalStatus == 'APPROVED'} ? 'bg-success' :
+                                                         (${hotel.approvalStatus == 'REJECTED'} ? 'bg-danger' : 'bg-warning text-dark')"
+                                          th:text="${hotel.approvalStatus ?: 'PENDING'}">PENDING</span>
+                                    <span class="badge position-absolute bottom-0 start-0 m-2"
+                                          style="background: rgba(0,0,0,0.6); color: #f59e0b; backdrop-filter: blur(4px);">
+                                        <i data-lucide="star" style="width: 12px; height: 12px; fill: #f59e0b;"></i>
+                                        <span th:text="${hotel.rating}">0.0</span>
+                                    </span>
+                                </div>
+
+                                <!-- Body -->
+                                <div class="card-body">
+                                    <h6 class="fw-bold text-dark mb-1" th:text="${hotel.name}">Hotel Name</h6>
+                                    <p class="text-muted small mb-0">
+                                        <i data-lucide="map-pin" style="width: 12px; height: 12px;"></i>
+                                        <span th:text="${hotel.address}">Address</span>
+                                    </p>
+                                    <div class="mt-2 d-flex gap-2 flex-wrap">
+                                        <span class="badge bg-light text-dark">
+                                            <i data-lucide="star" style="width: 12px; height: 12px; color: #f59e0b;"></i>
+                                            <span th:text="${hotel.rating}">0.0</span>
+                                        </span>
+                                        <span class="badge bg-light text-dark">
+                                            <i data-lucide="door-open" style="width: 12px; height: 12px;"></i>
+                                            <span th:text="${roomCountMap.get(hotel.id)}">0</span> rooms
+                                        </span>
+                                        <span class="badge bg-light text-dark" th:if="${hotel.active}">
+                                            <i data-lucide="check-circle" style="width: 12px; height: 12px; color: #22c55e;"></i>
+                                            Active
+                                        </span>
+                                        <span class="badge bg-light text-dark" th:unless="${hotel.active}">
+                                            <i data-lucide="x-circle" style="width: 12px; height: 12px; color: #ef4444;"></i>
+                                            Inactive
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Footer -->
+                                <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <div class="d-flex gap-2">
+                                        <a th:href="@{/hotels/{id}/rooms#reviews(id=${hotel.id})}"
+                                           class="btn btn-sm btn-outline-info">
+                                            <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                                            View
+                                        </a>
+                                        <a th:href="@{/owner/hotels/{id}(id=${hotel.id})}"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i data-lucide="door-open" style="width: 14px; height: 14px;"></i>
+                                            Rooms
+                                        </a>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <a th:href="@{/owner/hotels/{id}/edit(id=${hotel.id})}"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i data-lucide="pencil" style="width: 14px; height: 14px;"></i>
+                                        </a>
+                                        <form th:action="@{/owner/dashboard/delete-hotel}"
+                                              method="post"
+                                              onsubmit="return confirm('Delete this hotel? This action cannot be undone!');">
+                                            <input type="hidden" name="hotelId" th:value="${hotel.id}" />
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div th:if="${#lists.isEmpty(hotels)}" class="text-center py-5">
+                        <i data-lucide="building" class="d-block mx-auto mb-3" style="width: 60px; height: 60px; opacity: 0.3; color: #94a3b8;"></i>
+                        <h5 class="text-muted">You don't have any hotels yet</h5>
+                        <p class="text-muted">Register your first hotel to start managing</p>
+                        <button class="btn-gold mt-2" onclick="openAddHotelModal()">
+                            <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+                            Add Your First Hotel
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -369,7 +494,7 @@
 </main>
 
 <!-- ========================================================= -->
-<!-- MODAL: Add Hotel -->
+<!-- MODAL: Add Hotel  -->
 <!-- ========================================================= -->
 <div class="modal fade" id="addHotelModal" tabindex="-1" aria-labelledby="addHotelModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -392,56 +517,125 @@
                       id="addHotelForm">
 
                     <div class="row g-4">
+
+                        <!-- Hotel Name -->
                         <div class="col-12">
                             <label class="form-label fw-semibold">Hotel Name <span class="text-danger">*</span></label>
                             <input type="text" name="name" class="form-control" placeholder="Enter hotel name" required maxlength="200" />
                         </div>
 
+                        <!-- Address -->
                         <div class="col-12">
                             <label class="form-label fw-semibold">Address <span class="text-danger">*</span></label>
                             <input type="text" name="address" class="form-control" placeholder="Enter full address" required maxlength="500" />
                         </div>
 
+                        <!-- District -->
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label fw-semibold">District <span class="text-danger">*</span></label>
+                            <input type="text" name="district" class="form-control" placeholder="Enter district" required maxlength="100" />
+                        </div>
+
+                        <!-- City -->
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold">City <span class="text-danger">*</span></label>
                             <input type="text" name="city" class="form-control" placeholder="Enter city" required maxlength="100" />
                         </div>
 
+                        <!-- ===== THÊM SĐT VÀ EMAIL ===== -->
+                        <!-- Phone -->
                         <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold">District</label>
-                            <input type="text" name="district" class="form-control" placeholder="Enter district" maxlength="100" />
+                            <label class="form-label fw-semibold">Phone Number <span class="text-danger">*</span></label>
+                            <input type="tel" name="phone" class="form-control" placeholder="Enter hotel phone number" required maxlength="20" />
+                            <small class="text-muted">Contact phone number for the hotel</small>
                         </div>
 
+                        <!-- Email -->
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control" placeholder="Enter hotel email" required maxlength="255" />
+                            <small class="text-muted">Contact email for the hotel</small>
+                        </div>
+
+                        <!-- Description -->
                         <div class="col-12">
                             <label class="form-label fw-semibold">Description</label>
                             <textarea name="description" class="form-control" rows="3" placeholder="Describe your hotel, services, amenities..." style="resize: vertical;"></textarea>
                         </div>
 
+                        <!-- Hotel Image -->
                         <div class="col-12">
                             <label class="form-label fw-semibold">Hotel Image</label>
                             <input type="file" name="imageFile" class="form-control" accept="image/jpeg,image/png,image/webp,image/jpg" />
                             <small class="text-muted">JPG, PNG, WEBP · Max 10MB</small>
+                            <div class="mt-2" id="hotelImagePreview"></div>
                         </div>
 
+                        <!-- ============================================================ -->
+                        <!-- PHẦN GIẤY TỜ HOTEL -->
+                        <!-- ============================================================ -->
                         <div class="col-12">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch"
-                                       id="activeCheckbox" name="active" value="true" checked />
-                                <label class="form-check-label fw-semibold" for="activeCheckbox">
-                                    Hotel Active
-                                </label>
-                            </div>
-                            <small class="text-muted">Enable/disable hotel visibility (admin approval required)</small>
+                            <hr style="border-color: rgba(201,169,110,0.3);">
+                            <h6 class="fw-bold mb-2" style="color: var(--hotel-navy);">
+                                <i data-lucide="file-text" style="width: 18px; height: 18px; color: #c9a96e;"></i>
+                                Hotel Verification Documents
+                            </h6>
+                            <p class="text-muted small mb-3">
+                                Upload required documents for hotel verification.
+                                These will be reviewed by admin before your hotel is approved.
+                                <span class="text-danger">*</span> Required
+                            </p>
                         </div>
 
+                        <!-- Business Registration -->
                         <div class="col-12">
-                            <div class="p-3 bg-light rounded-3" style="border-left: 4px solid #c9a96e;">
+                            <label class="form-label fw-semibold">Business Registration <span class="text-danger">*</span></label>
+                            <input type="file" name="businessRegistrationDoc" class="form-control" accept="image/*,application/pdf" required />
+                            <small class="text-muted">JPG, PNG, PDF - Max 10MB</small>
+                            <div class="mt-2" id="businessRegistrationPreview"></div>
+                        </div>
+
+                        <!-- Land Certificate -->
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Land Certificate <span class="text-danger">*</span></label>
+                            <input type="file" name="landCertificateDoc" class="form-control" accept="image/*,application/pdf" required />
+                            <small class="text-muted">JPG, PNG, PDF - Max 10MB</small>
+                            <div class="mt-2" id="landCertificatePreview"></div>
+                        </div>
+
+                        <!-- Rental Contract (Optional) -->
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Rental Contract <span class="text-muted">(Optional)</span></label>
+                            <input type="file" name="rentalContractDoc" class="form-control" accept="image/*,application/pdf" />
+                            <small class="text-muted">JPG, PNG, PDF - Max 10MB (Optional)</small>
+                            <div class="mt-2" id="rentalContractPreview"></div>
+                        </div>
+
+                        <!-- ============================================================ -->
+                        <!-- KHÔNG CÓ ACTIVE - Chỉ hiển thị thông báo -->
+                        <!-- ============================================================ -->
+                        <div class="col-12">
+                            <hr style="border-color: rgba(201,169,110,0.3);">
+                            <div class="p-3 bg-light rounded-3" style="border-left: 4px solid #f59e0b;">
                                 <small class="text-muted">
-                                    <i data-lucide="info" style="width: 14px; height: 14px;"></i>
-                                    After registration, your hotel will be reviewed by admin before becoming visible to customers.
+                                    <i data-lucide="info" style="width: 14px; height: 14px; color: #f59e0b;"></i>
+                                    <strong>Hotel Active</strong> option will be available after the hotel is
+                                    <span class="fw-bold text-success">approved by admin</span> and has
+                                    <span class="fw-bold text-primary">at least one room</span>.
                                 </small>
                             </div>
                         </div>
+
+                        <!-- Info note -->
+                        <div class="col-12">
+                            <div class="p-3 bg-light rounded-3" style="border-left: 4px solid #c9a96e;">
+                                <small class="text-muted">
+                                    <i data-lucide="info" style="width: 14px; height: 14px; color: #c9a96e;"></i>
+                                    After registration, your hotel and documents will be reviewed by admin before becoming visible to customers.
+                                </small>
+                            </div>
+                        </div>
+
                     </div>
 
                 </form>
@@ -463,7 +657,6 @@
 
 <footer th:replace="~{fragment/frag :: footer}"></footer>
 <th:block th:replace="~{fragment/frag :: scripts}"></th:block>
-
 <script th:src="@{/assets/js/owner-dashboard.js}"></script>
 </body>
 </html>

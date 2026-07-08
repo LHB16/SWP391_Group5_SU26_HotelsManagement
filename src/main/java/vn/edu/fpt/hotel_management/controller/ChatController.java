@@ -4,10 +4,11 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import vn.edu.fpt.hotel_management.entity.*;
 import vn.edu.fpt.hotel_management.repository.*;
+import vn.edu.fpt.hotel_management.service.OwnerService;
 
-import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,20 +25,25 @@ public class ChatController {
     private final HotelRepository hotelRepository;
     private final UserRepository userRepository;
     private final HotelOwnerRepository hotelOwnerRepository;
+    private final OwnerService ownerService;
+    private final CustomerRepository customerRepository;
 
     public ChatController(MessageRepository messageRepository,
                           HotelRepository hotelRepository,
                           UserRepository userRepository,
-                          HotelOwnerRepository hotelOwnerRepository) {
+                          HotelOwnerRepository hotelOwnerRepository,
+                          OwnerService ownerService,
+                          CustomerRepository customerRepository) {
         this.messageRepository = messageRepository;
         this.hotelRepository = hotelRepository;
         this.userRepository = userRepository;
         this.hotelOwnerRepository = hotelOwnerRepository;
+        this.ownerService = ownerService;
+        this.customerRepository = customerRepository;
     }
 
     // ===================== KHÁCH HÀNG (CUSTOMER) =====================
 
-    // Giao diện chính của khung Chat phía khách hàng
     @GetMapping("/customer/chat")
     public String customerChatPage(@RequestParam("hotelId") int hotelId,
                                    HttpSession session,
@@ -57,14 +63,13 @@ public class ChatController {
         return "booking/chat";
     }
 
-    // Trang nội dung tin nhắn của khách hàng (hiển thị trong iframe để auto-refresh)
     @GetMapping("/customer/chat/messages")
     public String customerChatMessages(@RequestParam("hotelId") int hotelId,
                                        HttpSession session,
                                        Model model) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
-            return "auth/login"; // Trả về trang đăng nhập đơn giản cho iframe
+            return "auth/login";
         }
 
         Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
@@ -75,7 +80,6 @@ public class ChatController {
         int customerUserId = loggedInUser.getId();
         int ownerUserId = hotel.getOwner().getUserAccount().getId();
 
-        // Đánh dấu toàn bộ tin nhắn nhận được (chủ nhà gửi cho khách hàng này) thành Đã đọc
         List<Message> unreadMessages = messageRepository.findByHotelIdAndSenderIdAndReceiverIdAndIsReadFalse(hotelId, ownerUserId, customerUserId);
         if (!unreadMessages.isEmpty()) {
             for (Message msg : unreadMessages) {
@@ -84,11 +88,12 @@ public class ChatController {
             messageRepository.saveAll(unreadMessages);
         }
 
-        // Lấy lịch sử chat
         List<Message> chatHistory = messageRepository.findByHotelIdAndSenderIdAndReceiverIdOrHotelIdAndSenderIdAndReceiverIdOrderBySentAtAsc(
                 hotelId, customerUserId, ownerUserId,
                 hotelId, ownerUserId, customerUserId
         );
+
+        populateUserFullNames(chatHistory);
 
         model.addAttribute("chatHistory", chatHistory);
         model.addAttribute("currentUser", loggedInUser);
@@ -96,7 +101,6 @@ public class ChatController {
         return "booking/chat-messages";
     }
 
-    // Gửi tin nhắn từ phía Khách hàng
     @PostMapping("/customer/chat/send")
     public String customerSendMessage(@RequestParam("hotelId") int hotelId,
                                       @RequestParam(value = "content", required = false) String content,
@@ -111,7 +115,7 @@ public class ChatController {
         if (hotel != null) {
             boolean hasContent = content != null && !content.trim().isEmpty();
             boolean hasImage = imageFile != null && !imageFile.isEmpty();
-            
+
             if (hasContent || hasImage) {
                 Message message = new Message();
                 message.setSender(loggedInUser);
@@ -137,7 +141,6 @@ public class ChatController {
 
     // ===================== CHỦ KHÁCH SẠN (OWNER) =====================
 
-    // Giao diện Inbox của chủ khách sạn (Khớp với liên kết trên navbar)
     @GetMapping("/chat/inbox")
     public String ownerChatPage(@RequestParam(value = "hotelId", required = false) Integer hotelId,
                                 @RequestParam(value = "customerId", required = false) Integer customerId,
@@ -151,12 +154,18 @@ public class ChatController {
             return "redirect:/home";
         }
 
-        HotelOwner owner = hotelOwnerRepository.findByUserAccount(loggedInUser).orElse(null);
+        // Kiểm tra Owner đã được duyệt
+        if (!ownerService.isOwnerApproved(loggedInUser)) {
+            session.setAttribute("errorMessage",
+                    "Your account is pending admin approval. Chat is not available.");
+            return "redirect:/owner/dashboard";
+        }
+
+        HotelOwner owner = ownerService.getOwnerByUser(loggedInUser).orElse(null);
         if (owner == null) {
             return "redirect:/home";
         }
 
-        // Lấy danh sách khách sạn của chủ nhà
         List<Hotel> ownerHotels = hotelRepository.findByOwnerId(owner.getId());
         model.addAttribute("hotels", ownerHotels);
 
@@ -167,7 +176,6 @@ public class ChatController {
             return "owner/inbox";
         }
 
-        // Xác định khách sạn đang được chọn
         Hotel activeHotel = null;
         if (hotelId != null) {
             activeHotel = hotelRepository.findById(hotelId).orElse(null);
@@ -177,35 +185,41 @@ public class ChatController {
         }
         model.addAttribute("activeHotel", activeHotel);
 
-        // Lấy tất cả tin nhắn liên quan tới chủ nhà này để lọc ra các khách hàng đã chat với khách sạn được chọn
         int ownerUserId = loggedInUser.getId();
         int activeHotelId = activeHotel.getId();
         List<Message> allOwnerMessages = messageRepository.findBySenderIdOrReceiverIdOrderBySentAtDesc(ownerUserId, ownerUserId);
 
-        // Lọc ra các tin nhắn thuộc khách sạn đang active
         List<Message> hotelMessages = allOwnerMessages.stream()
                 .filter(m -> m.getHotel().getId() == activeHotelId)
                 .collect(Collectors.toList());
 
-        // Gom nhóm lấy danh sách khách hàng duy nhất đã từng chat
         List<User> customers = new ArrayList<>();
         Set<Integer> addedUserIds = new HashSet<>();
         for (Message m : hotelMessages) {
             User partner = m.getSender().getId() == ownerUserId ? m.getReceiver() : m.getSender();
-            // Đối tác phải có vai trò CUSTOMER
             if ("CUSTOMER".equals(partner.getRole()) && !addedUserIds.contains(partner.getId())) {
                 addedUserIds.add(partner.getId());
-                // Thiết lập fullName tạm thời từ email hoặc thông tin cơ bản nếu cần
-                partner.setFullName(partner.getUsername()); // Fallback sang username
+                // Nạp tên đầy đủ thực tế của khách hàng từ CustomerRepository
+                customerRepository.findByUserAccountId(partner.getId()).ifPresent(c -> {
+                    partner.setFullName(c.getFullName());
+                });
+                if (partner.getFullName() == null || partner.getFullName().isBlank()) {
+                    partner.setFullName(partner.getUsername());
+                }
                 customers.add(partner);
             }
         }
         model.addAttribute("customers", customers);
 
-        // Xác định khách hàng đang được chọn để chat
         User activeCustomer = null;
         if (customerId != null) {
             activeCustomer = userRepository.findById(customerId).orElse(null);
+            if (activeCustomer != null) {
+                final User finalCust = activeCustomer;
+                customerRepository.findByUserAccountId(activeCustomer.getId()).ifPresent(c -> {
+                    finalCust.setFullName(c.getFullName());
+                });
+            }
         }
         if (activeCustomer == null && !customers.isEmpty()) {
             activeCustomer = customers.get(0);
@@ -216,7 +230,6 @@ public class ChatController {
         return "owner/inbox";
     }
 
-    // Trang nội dung tin nhắn của chủ nhà (hiển thị trong iframe để auto-refresh)
     @GetMapping("/owner/chat/messages")
     public String ownerChatMessages(@RequestParam("hotelId") int hotelId,
                                     @RequestParam("customerId") int customerId,
@@ -234,7 +247,6 @@ public class ChatController {
 
         int ownerUserId = loggedInUser.getId();
 
-        // Đánh dấu toàn bộ tin nhắn từ khách hàng này gửi tới khách sạn này thành Đã đọc
         List<Message> unreadMessages = messageRepository.findByHotelIdAndSenderIdAndReceiverIdAndIsReadFalse(hotelId, customerId, ownerUserId);
         if (!unreadMessages.isEmpty()) {
             for (Message msg : unreadMessages) {
@@ -243,11 +255,12 @@ public class ChatController {
             messageRepository.saveAll(unreadMessages);
         }
 
-        // Lấy lịch sử chat
         List<Message> chatHistory = messageRepository.findByHotelIdAndSenderIdAndReceiverIdOrHotelIdAndSenderIdAndReceiverIdOrderBySentAtAsc(
                 hotelId, customerId, ownerUserId,
                 hotelId, ownerUserId, customerId
         );
+
+        populateUserFullNames(chatHistory);
 
         model.addAttribute("chatHistory", chatHistory);
         model.addAttribute("currentUser", loggedInUser);
@@ -255,7 +268,6 @@ public class ChatController {
         return "booking/chat-messages";
     }
 
-    // Gửi tin nhắn từ phía Chủ khách sạn
     @PostMapping("/owner/chat/send")
     public String ownerSendMessage(@RequestParam("hotelId") int hotelId,
                                    @RequestParam("customerId") int customerId,
@@ -273,7 +285,7 @@ public class ChatController {
         if (customer != null && hotel != null) {
             boolean hasContent = content != null && !content.trim().isEmpty();
             boolean hasImage = imageFile != null && !imageFile.isEmpty();
-            
+
             if (hasContent || hasImage) {
                 Message message = new Message();
                 message.setSender(loggedInUser);
@@ -297,40 +309,47 @@ public class ChatController {
         return "redirect:/chat/inbox?hotelId=" + hotelId + "&customerId=" + customerId;
     }
 
-    // API xử lý thả reaction của tin nhắn
-    @GetMapping("/chat/react")
-    public String reactToMessage(@RequestParam("messageId") int messageId,
-                                 @RequestParam("emoji") String emoji,
-                                 @RequestParam("redirectUrl") String redirectUrl,
-                                 HttpSession session) {
-        User loggedInUser = (User) session.getAttribute("loggedInUser");
-        if (loggedInUser == null) {
-            return "redirect:/login";
-        }
 
-        Message message = messageRepository.findById(messageId).orElse(null);
-        if (message != null) {
-            // Nếu đã thả emoji trùng thì gỡ bỏ (set null), ngược lại cập nhật emoji mới
-            if (emoji.equals(message.getReaction())) {
-                message.setReaction(null);
-            } else {
-                message.setReaction(emoji);
+
+    // Hàm đối chiếu lấy FullName cho người gửi/nhận trong lịch sử chat
+    private void populateUserFullNames(List<Message> chatHistory) {
+        if (chatHistory == null) return;
+        for (Message msg : chatHistory) {
+            User sender = msg.getSender();
+            if (sender != null && (sender.getFullName() == null || sender.getFullName().equals(sender.getUsername()))) {
+                if ("CUSTOMER".equals(sender.getRole())) {
+                    customerRepository.findByUserAccountId(sender.getId()).ifPresent(c -> {
+                        sender.setFullName(c.getFullName());
+                    });
+                } else if ("HOTEL_OWNER".equals(sender.getRole())) {
+                    hotelOwnerRepository.findByUserAccountId(sender.getId()).ifPresent(o -> {
+                        sender.setFullName(o.getFullName());
+                    });
+                }
             }
-            messageRepository.save(message);
+            User receiver = msg.getReceiver();
+            if (receiver != null && (receiver.getFullName() == null || receiver.getFullName().equals(receiver.getUsername()))) {
+                if ("CUSTOMER".equals(receiver.getRole())) {
+                    customerRepository.findByUserAccountId(receiver.getId()).ifPresent(c -> {
+                        receiver.setFullName(c.getFullName());
+                    });
+                } else if ("HOTEL_OWNER".equals(receiver.getRole())) {
+                    hotelOwnerRepository.findByUserAccountId(receiver.getId()).ifPresent(o -> {
+                        receiver.setFullName(o.getFullName());
+                    });
+                }
+            }
         }
-
-        return "redirect:" + redirectUrl;
     }
 
-    // Hàm helper lưu trữ hình ảnh tải lên vào thư mục tĩnh của dự án
+    // ===== HELPER: LƯU ẢNH =====
     private String saveUploadedImage(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             return null;
         }
         try {
             String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            
-            // 1. Đường dẫn lưu vào mã nguồn (persistent)
+
             Path sourcePath = Paths.get("src/main/resources/static/assets/images/chat").toAbsolutePath().normalize();
             if (!Files.exists(sourcePath)) {
                 Files.createDirectories(sourcePath);
@@ -338,7 +357,6 @@ public class ChatController {
             Path sourceTarget = sourcePath.resolve(fileName);
             Files.copy(file.getInputStream(), sourceTarget, StandardCopyOption.REPLACE_EXISTING);
 
-            // 2. Đường dẫn lưu vào target build classes (để hiển thị trực tiếp lên trình duyệt)
             Path classesPath = Paths.get("target/classes/static/assets/images/chat").toAbsolutePath().normalize();
             if (Files.exists(Paths.get("target/classes/static"))) {
                 if (!Files.exists(classesPath)) {
@@ -353,6 +371,5 @@ public class ChatController {
             e.printStackTrace();
             return null;
         }
-
     }
 }

@@ -63,7 +63,8 @@ public class UserService {
     @Transactional
     public void savePendingUser(String fullName, String username,
                                 String password, String email, String otp, String role,
-                                String phone, String address, String idCard, String taxId) {
+                                String phone, String address, String idCard, String taxId,
+                                String idCardDocument) {  // <-- THÊM THAM SỐ
         if (!"CUSTOMER".equalsIgnoreCase(role) && !"HOTEL_OWNER".equalsIgnoreCase(role)) {
             throw new RuntimeException("Invalid role selected!");
         }
@@ -92,6 +93,7 @@ public class UserService {
             owner.setAddress(address);
             owner.setIdCard(idCard);
             owner.setTaxId(taxId);
+            owner.setIdCardDocument(idCardDocument);  // <-- THÊM
             owner.setVerificationStatus("PENDING");
             hotelOwnerRepository.save(owner);
         }

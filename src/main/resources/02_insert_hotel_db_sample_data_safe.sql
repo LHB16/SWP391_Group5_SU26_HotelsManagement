@@ -700,56 +700,56 @@ BEGIN TRY
     IF NOT EXISTS (SELECT 1 FROM messages WHERE id = 7) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 11) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 12) AND EXISTS (SELECT 1 FROM hotel WHERE id = 5)
     BEGIN
         SET IDENTITY_INSERT messages ON;
-        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, reaction, image_url)
-        VALUES (7, 11, 12, 5, NULL, N'Xin chào', 1, '2026-07-06 00:27:08.9928933', NULL, NULL);
+        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, image_url)
+        VALUES (7, 11, 12, 5, NULL, N'Xin chào', 1, '2026-07-06 00:27:08.9928933', NULL);
         SET IDENTITY_INSERT messages OFF;
     END
 
     IF NOT EXISTS (SELECT 1 FROM messages WHERE id = 8) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 11) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 12) AND EXISTS (SELECT 1 FROM hotel WHERE id = 5)
     BEGIN
         SET IDENTITY_INSERT messages ON;
-        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, reaction, image_url)
-        VALUES (8, 11, 12, 5, NULL, N'Phòng này ở được mấy người ạ', 1, '2026-07-06 00:29:10.2701432', N'❤️', NULL);
+        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, image_url)
+        VALUES (8, 11, 12, 5, NULL, N'Phòng này ở được mấy người ạ', 1, '2026-07-06 00:29:10.2701432', NULL);
         SET IDENTITY_INSERT messages OFF;
     END
 
     IF NOT EXISTS (SELECT 1 FROM messages WHERE id = 9) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 12) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 11) AND EXISTS (SELECT 1 FROM hotel WHERE id = 5)
     BEGIN
         SET IDENTITY_INSERT messages ON;
-        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, reaction, image_url)
-        VALUES (9, 12, 11, 5, NULL, N'Phòng này ở được 100 người em ạ', 1, '2026-07-06 00:30:10.3148074', N'❤️', NULL);
+        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, image_url)
+        VALUES (9, 12, 11, 5, NULL, N'Phòng này ở được 100 người em ạ', 1, '2026-07-06 00:30:10.3148074', NULL);
         SET IDENTITY_INSERT messages OFF;
     END
 
     IF NOT EXISTS (SELECT 1 FROM messages WHERE id = 10) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 13) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 12) AND EXISTS (SELECT 1 FROM hotel WHERE id = 5)
     BEGIN
         SET IDENTITY_INSERT messages ON;
-        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, reaction, image_url)
-        VALUES (10, 13, 12, 5, NULL, N'Phòng này bao nhiêu ạ', 1, '2026-07-06 00:46:06.8212082', NULL, NULL);
+        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, image_url)
+        VALUES (10, 13, 12, 5, NULL, N'Phòng này bao nhiêu ạ', 1, '2026-07-06 00:46:06.8212082', NULL);
         SET IDENTITY_INSERT messages OFF;
     END
 
     IF NOT EXISTS (SELECT 1 FROM messages WHERE id = 11) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 12) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 13) AND EXISTS (SELECT 1 FROM hotel WHERE id = 5)
     BEGIN
         SET IDENTITY_INSERT messages ON;
-        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, reaction, image_url)
-        VALUES (11, 12, 13, 5, NULL, N'Phòng này 500 e nhé', 1, '2026-07-06 00:50:21.9652664', N'👍', NULL);
+        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, image_url)
+        VALUES (11, 12, 13, 5, NULL, N'Phòng này 500 e nhé', 1, '2026-07-06 00:50:21.9652664', NULL);
         SET IDENTITY_INSERT messages OFF;
     END
 
     IF NOT EXISTS (SELECT 1 FROM messages WHERE id = 12) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 12) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 13) AND EXISTS (SELECT 1 FROM hotel WHERE id = 5)
     BEGIN
         SET IDENTITY_INSERT messages ON;
-        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, reaction, image_url)
-        VALUES (12, 12, 13, 5, NULL, NULL, 1, '2026-07-06 00:55:17.7665778', NULL, N'aa6ba30a-c4e7-4ba6-b293-cd66caceac91_186_lion5.1.jpg');
+        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, image_url)
+        VALUES (12, 12, 13, 5, NULL, NULL, 1, '2026-07-06 00:55:17.7665778', N'aa6ba30a-c4e7-4ba6-b293-cd66caceac91_186_lion5.1.jpg');
         SET IDENTITY_INSERT messages OFF;
     END
 
     IF NOT EXISTS (SELECT 1 FROM messages WHERE id = 13) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 12) AND EXISTS (SELECT 1 FROM user_accounts WHERE id = 13) AND EXISTS (SELECT 1 FROM hotel WHERE id = 5)
     BEGIN
         SET IDENTITY_INSERT messages ON;
-        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, reaction, image_url)
-        VALUES (13, 12, 13, 5, NULL, NULL, 1, '2026-07-06 00:58:05.7115651', NULL, N'8848eb61-de07-4ae3-8638-a5628e948ec6_186_lion5.1.jpg');
+        INSERT INTO messages (id, sender_id, receiver_id, hotel_id, booking_id, content, is_read, sent_at, image_url)
+        VALUES (13, 12, 13, 5, NULL, NULL, 1, '2026-07-06 00:58:05.7115651', N'8848eb61-de07-4ae3-8638-a5628e948ec6_186_lion5.1.jpg');
         SET IDENTITY_INSERT messages OFF;
     END
 

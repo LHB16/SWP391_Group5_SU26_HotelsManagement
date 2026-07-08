@@ -232,7 +232,6 @@ Table messages {
   hotel_id INT [note: 'Khóa ngoại liên kết đến bảng hotel.']
   booking_id INT [note: 'Khóa ngoại liên kết đến bảng bookings.']
   content NVARCHAR(MAX)
-  reaction NVARCHAR(50)
   image_url NVARCHAR(255)
   is_read BIT
   sent_at DATETIME2

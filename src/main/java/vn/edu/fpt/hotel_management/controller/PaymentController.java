@@ -8,16 +8,32 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.hotel_management.entity.*;
 import vn.edu.fpt.hotel_management.repository.*;
+import vn.edu.fpt.hotel_management.service.ExchangeRateService;
+
+// PayPal Server SDK
+import com.paypal.sdk.PaypalServerSdkClient;
+import com.paypal.sdk.authentication.ClientCredentialsAuthModel;
+import com.paypal.sdk.controllers.OrdersController;
+import com.paypal.sdk.models.*;
+import com.paypal.sdk.http.response.ApiResponse;
+import com.paypal.sdk.Environment;
 
 import java.math.BigDecimal;
 import java.net.URI;
-import java.net.URLEncoder;
+import java.net.URL;
+import java.net.HttpURLConnection;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.URLEncoder;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Base64;
+import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.crypto.Mac;
@@ -31,6 +47,7 @@ public class PaymentController {
     private final RoomRepository roomRepository;
     private final HotelRepository hotelRepository;
     private final CustomerRepository customerRepository;
+    private final ExchangeRateService exchangeRateService;
 
     // Thông tin tài khoản ngân hàng (đọc từ application.properties)
     @Value("${payment.bank-code:KLB}")
@@ -56,16 +73,34 @@ public class PaymentController {
     @Value("${payment.payos.checksum-key:}")
     private String payosChecksumKey;
 
+    // Cấu hình PayPal
+    @Value("${payment.paypal.client-id:}")
+    private String paypalClientId;
+
+    @Value("${payment.paypal.client-secret:}")
+    private String paypalClientSecret;
+
+    @Value("${payment.paypal.mode:sandbox}")
+    private String paypalMode;
+
+    @Value("${payment.paypal.vnd-to-usd-rate:25400}")
+    private double vndToUsdRate;
+
+    @Value("${payment.paypal.return-base-url:http://localhost:8082}")
+    private String returnBaseUrl;
+
     public PaymentController(BookingRepository bookingRepository,
             PaymentRepository paymentRepository,
             RoomRepository roomRepository,
             HotelRepository hotelRepository,
-            CustomerRepository customerRepository) {
+            CustomerRepository customerRepository,
+            ExchangeRateService exchangeRateService) {
         this.bookingRepository = bookingRepository;
         this.paymentRepository = paymentRepository;
         this.roomRepository = roomRepository;
         this.hotelRepository = hotelRepository;
         this.customerRepository = customerRepository;
+        this.exchangeRateService = exchangeRateService;
     }
 
     // ===================== HIỂN THỊ TRANG QR THANH TOÁN =====================
@@ -77,7 +112,8 @@ public class PaymentController {
             @RequestParam(value = "checkin", required = false) String checkin,
             @RequestParam(value = "checkout", required = false) String checkout,
             @RequestParam(value = "from", required = false) String from,
-            HttpSession session, Model model) {
+            HttpSession session, Model model,
+            RedirectAttributes redirectAttributes) {
 
         // Kiểm tra đã đăng nhập chưa
         User loggedInUser = (User) session.getAttribute("loggedInUser");
@@ -98,8 +134,13 @@ public class PaymentController {
             return "redirect:/hotels";
 
         Hotel hotel = hotelRepository.findById(room.getHotelId()).orElse(null);
-        if (hotel == null)
+        if (hotel == null || !hotel.isActive()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
+            if ("history".equals(from)) {
+                return "redirect:/booking/history";
+            }
             return "redirect:/hotels";
+        }
 
         // Đặt ngày mặc định nếu không có
         if (checkin == null || checkin.isBlank())
@@ -128,7 +169,7 @@ public class PaymentController {
         BigDecimal totalPrice = subtotal.add(tax).add(serviceFee);
 
         // Lấy thông tin Customer từ User đang đăng nhập
-        Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
+        vn.edu.fpt.hotel_management.entity.Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
         if (customer == null)
             return "redirect:/hotels/" + hotel.getId() + "/rooms";
 
@@ -281,6 +322,16 @@ public class PaymentController {
         if (booking == null)
             return "redirect:/hotels";
 
+        Room room = booking.getRoom();
+        Hotel hotel = room != null ? hotelRepository.findById(room.getHotelId()).orElse(null) : null;
+        if (room == null || hotel == null || !hotel.isActive()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
+            if ("history".equals(from)) {
+                return "redirect:/booking/history";
+            }
+            return "redirect:/booking/history";
+        }
+
         // Nếu đã xác nhận thành công rồi thì chuyển sang lịch sử đặt phòng
         if ("CONFIRMED".equals(booking.getStatus())) {
             redirectAttributes.addFlashAttribute("successMessage",
@@ -310,11 +361,6 @@ public class PaymentController {
                     "This payment session has expired. Please make a new reservation.");
             return "redirect:/booking/history";
         }
-
-        Room room = booking.getRoom();
-        Hotel hotel = room != null ? hotelRepository.findById(room.getHotelId()).orElse(null) : null;
-        if (room == null || hotel == null)
-            return "redirect:/hotels";
 
         LocalDate checkInDate = booking.getCheckInDate();
         LocalDate checkOutDate = booking.getCheckOutDate();
@@ -434,6 +480,13 @@ public class PaymentController {
         model.addAttribute("qrExpiresAt", qrExpiresAt);
         model.addAttribute("remainingSeconds", remainingSeconds);
         model.addAttribute("from", from);
+
+        // Tính toán quy đổi USD cho PayPal
+        double rate = exchangeRateService.getRate();
+        BigDecimal exchangeRate = BigDecimal.valueOf(rate <= 0 ? 25400 : rate);
+        BigDecimal usdPrice = totalPrice.divide(exchangeRate, 2, java.math.RoundingMode.HALF_UP);
+        model.addAttribute("vndToUsdRate", rate);
+        model.addAttribute("usdPrice", usdPrice);
     }
 
     // Tạo nội dung chuyển khoản ngắn gọn (tối đa 25 ký tự)
@@ -545,9 +598,12 @@ public class PaymentController {
                             accountName = extractSenderNameFromDescription(description, accountNumber);
                         }
 
-                        if (!accountNumber.isEmpty()) payment.setSenderAccountNumber(accountNumber);
-                        if (!bankName.isEmpty()) payment.setSenderBankName(bankName);
-                        if (!accountName.isEmpty()) payment.setSenderAccountName(accountName);
+                        if (!accountNumber.isEmpty())
+                            payment.setSenderAccountNumber(accountNumber);
+                        if (!bankName.isEmpty())
+                            payment.setSenderBankName(bankName);
+                        if (!accountName.isEmpty())
+                            payment.setSenderAccountName(accountName);
                     }
                     return true;
                 }
@@ -576,7 +632,8 @@ public class PaymentController {
                     .header("x-api-key", payosApiKey)
                     .GET().build();
             String body = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
-            boolean isPaid = body != null && java.util.regex.Pattern.compile("\"status\"\\s*:\\s*\"PAID\"").matcher(body).find();
+            boolean isPaid = body != null
+                    && java.util.regex.Pattern.compile("\"status\"\\s*:\\s*\"PAID\"").matcher(body).find();
             if (isPaid) {
                 if (payment != null) {
                     String accountNumber = extractJsonField(body, "counterAccountNumber");
@@ -593,15 +650,19 @@ public class PaymentController {
                         String txDesc = "";
                         int txIdx = body.indexOf("counterAccountNumber");
                         if (txIdx != -1) {
-                            String txWindow = body.substring(Math.max(0, txIdx - 200), Math.min(body.length(), txIdx + 500));
+                            String txWindow = body.substring(Math.max(0, txIdx - 200),
+                                    Math.min(body.length(), txIdx + 500));
                             txDesc = extractJsonField(txWindow, "description");
                         }
                         accountName = extractSenderNameFromDescription(txDesc, accountNumber);
                     }
 
-                    if (!accountNumber.isEmpty()) payment.setSenderAccountNumber(accountNumber);
-                    if (!bankName.isEmpty()) payment.setSenderBankName(bankName);
-                    if (!accountName.isEmpty()) payment.setSenderAccountName(accountName);
+                    if (!accountNumber.isEmpty())
+                        payment.setSenderAccountNumber(accountNumber);
+                    if (!bankName.isEmpty())
+                        payment.setSenderBankName(bankName);
+                    if (!accountName.isEmpty())
+                        payment.setSenderAccountName(accountName);
                 }
                 return true;
             }
@@ -614,7 +675,8 @@ public class PaymentController {
     // Tạo link thanh toán PayOS và lấy URL mã QR
     private String[] createPayOSPaymentRequest(int bookingId, long amount, String description, Payment payment) {
         try {
-            // Sinh mã orderCode độc nhất sử dụng Unix timestamp ở đơn vị giây (khớp kiểu số 32-bit của PayOS)
+            // Sinh mã orderCode độc nhất sử dụng Unix timestamp ở đơn vị giây (khớp kiểu số
+            // 32-bit của PayOS)
             long orderCode = System.currentTimeMillis() / 1000L;
             if (payment != null) {
                 payment.setTransactionId(String.valueOf(orderCode));
@@ -701,7 +763,8 @@ public class PaymentController {
 
     // Tra cứu tên ngân hàng theo mã BIN VietQR/Napas
     private String getBankNameByBin(String bin) {
-        if (bin == null || bin.isBlank()) return "";
+        if (bin == null || bin.isBlank())
+            return "";
         return switch (bin) {
             case "970436" -> "Vietcombank";
             case "970415" -> "VietinBank";
@@ -752,35 +815,292 @@ public class PaymentController {
         return "";
     }
 
-    // Endpoint dành cho môi trường phát triển để bỏ qua/xác nhận thanh toán thủ công
+    // Endpoint dành cho môi trường phát triển để bỏ qua/xác nhận thanh toán thủ
+    // công
     @GetMapping("/booking/payment-bypass")
     public String bypassPayment(@RequestParam("bookingId") int bookingId,
-                                HttpSession session,
-                                RedirectAttributes redirectAttributes) {
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
             return "redirect:/login";
         }
-        
+
         Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking != null) {
+            Room room = booking.getRoom();
+            if (room != null) {
+                Hotel hotel = hotelRepository.findById(room.getHotelId()).orElse(null);
+                if (hotel == null || !hotel.isActive()) {
+                    redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
+                    return "redirect:/hotels";
+                }
+            }
+        }
+
         if (booking != null && "PENDING".equals(booking.getStatus())) {
             Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
-            
+
             // Cập nhật thông tin giao dịch giả lập thành công
             if (payment != null) {
                 payment.setStatus("PAID");
                 payment.setPaidAt(LocalDateTime.now());
-                payment.setSenderAccountName(loggedInUser.getFullName() != null ? loggedInUser.getFullName() : loggedInUser.getUsername());
+                payment.setSenderAccountName(
+                        loggedInUser.getFullName() != null ? loggedInUser.getFullName() : loggedInUser.getUsername());
                 payment.setSenderAccountNumber("TEST-ACC-12345");
                 payment.setSenderBankName("Demo Bank");
                 paymentRepository.save(payment);
             }
-            
+
             confirmBooking(booking, payment);
-            
+
             redirectAttributes.addFlashAttribute("successMessage",
                     "Payment confirmed via bypass! Your booking is now confirmed.");
         }
         return "redirect:/booking/history";
     }
-}
+
+    // ===================== PAYPAL PAYMENTS (NO JS REDIRECT FLOW)
+    // =====================
+
+
+    @PostMapping("/booking/paypal/pay")
+    public String payWithPaypal(@RequestParam("bookingId") int bookingId,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Booking not found.");
+            return "redirect:/hotels";
+        }
+
+        Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
+        if (payment == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Payment session not found.");
+            return "redirect:/hotels";
+        }
+
+        if ("PAID".equals(payment.getStatus())) {
+            redirectAttributes.addFlashAttribute("successMessage", "Booking is already paid.");
+            return "redirect:/booking/history";
+        }
+
+        // Đổi VND sang USD (Tỷ giá tự động từ API hoặc mặc định 25400)
+        BigDecimal vndAmount = payment.getAmount();
+        double rate = exchangeRateService.getRate();
+        BigDecimal exchangeRate = BigDecimal.valueOf(rate <= 0 ? 25400 : rate);
+        BigDecimal usdAmount = vndAmount.divide(exchangeRate, 2, java.math.RoundingMode.HALF_UP);
+
+        // Đặt phương thức là PAYPAL
+        payment.setMethod("PAYPAL");
+        paymentRepository.save(payment);
+
+        // Gọi PayPal tạo order
+        String[] orderResult = createPaypalOrder(bookingId, usdAmount);
+        if (orderResult != null) {
+            String paypalOrderId = orderResult[0];
+            String approveUrl = orderResult[1];
+
+            // Lưu Paypal Order ID
+            payment.setTransactionId(paypalOrderId);
+            paymentRepository.save(payment);
+
+            return "redirect:" + approveUrl;
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Failed to initiate PayPal payment. Please try again.");
+            return "redirect:/booking/qr-payment-status?bookingId=" + bookingId;
+        }
+    }
+
+    @GetMapping("/booking/paypal/success")
+    public String paypalSuccess(@RequestParam("token") String orderId,
+            @RequestParam("bookingId") int bookingId,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Booking not found.");
+            return "redirect:/booking/history";
+        }
+
+        Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
+        if (payment == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Payment details not found.");
+            return "redirect:/booking/history";
+        }
+
+        // Thực thu tiền qua PayPal
+        boolean isSuccess = capturePaypalOrder(orderId, payment, booking);
+        if (isSuccess) {
+            confirmBooking(booking, payment);
+            redirectAttributes.addFlashAttribute("successMessage", "Payment verified via PayPal successfully!");
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "PayPal payment verification failed. Please contact support.");
+        }
+        return "redirect:/booking/history";
+    }
+
+    @GetMapping("/booking/paypal/cancel")
+    public String paypalCancel(@RequestParam("bookingId") int bookingId,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+
+        redirectAttributes.addFlashAttribute("errorMessage", "PayPal payment was cancelled.");
+        return "redirect:/booking/qr-payment-status?bookingId=" + bookingId;
+    }
+
+    private PaypalServerSdkClient buildPaypalClient() {
+        System.out.println("[PayPal SDK] Building client...");
+        System.out.println("[PayPal SDK] Mode: " + paypalMode);
+        System.out.println("[PayPal SDK] Client ID length: " + (paypalClientId != null ? paypalClientId.trim().length() : "null"));
+        System.out.println("[PayPal SDK] Secret length: " + (paypalClientSecret != null ? paypalClientSecret.trim().length() : "null"));
+        Environment env = "sandbox".equalsIgnoreCase(paypalMode)
+                ? Environment.SANDBOX
+                : Environment.PRODUCTION;
+        return new PaypalServerSdkClient.Builder()
+                .clientCredentialsAuth(new ClientCredentialsAuthModel.Builder(
+                        paypalClientId.trim(),
+                        paypalClientSecret.trim())
+                        .build())
+                .environment(env)
+                .build();
+    }
+
+    private String[] createPaypalOrder(int bookingId, BigDecimal usdAmount) {
+        try {
+            PaypalServerSdkClient client = buildPaypalClient();
+            OrdersController ordersController = client.getOrdersController();
+
+            String cancelUrl = returnBaseUrl + "/booking/paypal/cancel?bookingId=" + bookingId;
+            String returnUrl = returnBaseUrl + "/booking/paypal/success?bookingId=" + bookingId;
+
+            // Xây dựng request
+            CreateOrderInput input = new CreateOrderInput.Builder(
+                    null,
+                    new OrderRequest.Builder(
+                            CheckoutPaymentIntent.CAPTURE,
+                            List.of(new PurchaseUnitRequest.Builder(
+                                    new AmountWithBreakdown.Builder(
+                                            "USD",
+                                            String.format(Locale.US, "%.2f", usdAmount.doubleValue()))
+                                            .build())
+                                    .referenceId(String.valueOf(bookingId))
+                                    .build()))
+                            .paymentSource(new PaymentSource.Builder()
+                                    .paypal(new PaypalWallet.Builder()
+                                            .experienceContext(new PaypalWalletExperienceContext.Builder()
+                                                    .returnUrl(returnUrl)
+                                                    .cancelUrl(cancelUrl)
+                                                    .userAction(PaypalExperienceUserAction.PAY_NOW)
+                                                    .build())
+                                            .build())
+                                    .build())
+                            .build())
+                    .build();
+
+            ApiResponse<Order> response = ordersController.createOrderAsync(input).get();
+            Order order = response.getResult();
+
+
+            if (order != null && order.getId() != null) {
+                String orderId = order.getId();
+                String approveUrl = "";
+                if (order.getLinks() != null) {
+                    for (LinkDescription link : order.getLinks()) {
+                        if ("approve".equals(link.getRel()) || "payer-action".equals(link.getRel())) {
+                            approveUrl = link.getHref();
+                            break;
+                        }
+                    }
+                }
+                if (!approveUrl.isEmpty()) {
+                    return new String[]{orderId, approveUrl};
+                }
+            }
+        } catch (Throwable e) {
+            System.err.println("[PayPal] Create order EXCEPTION TYPE: " + e.getClass().getName());
+            System.err.println("[PayPal] Create order EXCEPTION MSG: " + e.getMessage());
+            if (e.getCause() != null) System.err.println("[PayPal] CAUSED BY: " + e.getCause().getMessage());
+            e.printStackTrace();
+            // Ghi ra file để debug
+            try {
+                java.io.FileWriter fw = new java.io.FileWriter("paypal_error.txt", false);
+                fw.write("EXCEPTION: " + e.getClass().getName() + "\n");
+                fw.write("MSG: " + e.getMessage() + "\n");
+                if (e.getCause() != null) fw.write("CAUSE: " + e.getCause().getMessage() + "\n");
+                Throwable root = e;
+                while (root.getCause() != null) root = root.getCause();
+                fw.write("ROOT: " + root.getClass().getName() + ": " + root.getMessage() + "\n");
+                java.io.PrintWriter pw = new java.io.PrintWriter(fw);
+                e.printStackTrace(pw);
+                pw.close();
+                fw.close();
+            } catch (Exception ignored) {}
+        }
+        return null;
+    }
+
+    private boolean capturePaypalOrder(String orderId, Payment payment, Booking booking) {
+        try {
+            PaypalServerSdkClient client = buildPaypalClient();
+            OrdersController ordersController = client.getOrdersController();
+
+            CaptureOrderInput input = new CaptureOrderInput.Builder(orderId, null).build();
+            ApiResponse<Order> response = ordersController.captureOrderAsync(input).get();
+            Order order = response.getResult();
+
+            if (order != null && "COMPLETED".equals(order.getStatus() != null ? order.getStatus().toString() : "")) {
+                String captureId = orderId;
+                String payerEmail = "";
+                String payerName = "";
+
+                if (order.getPurchaseUnits() != null && !order.getPurchaseUnits().isEmpty()) {
+                    PurchaseUnit pu = order.getPurchaseUnits().get(0);
+                    if (pu.getPayments() != null && pu.getPayments().getCaptures() != null
+                            && !pu.getPayments().getCaptures().isEmpty()) {
+                        OrdersCapture capture = pu.getPayments().getCaptures().get(0);
+                        if (capture.getId() != null) captureId = capture.getId();
+                    }
+                }
+                if (order.getPayer() != null) {
+                    if (order.getPayer().getEmailAddress() != null) payerEmail = order.getPayer().getEmailAddress();
+                    if (order.getPayer().getName() != null) {
+                        String given = order.getPayer().getName().getGivenName() != null ? order.getPayer().getName().getGivenName() : "";
+                        String sur = order.getPayer().getName().getSurname() != null ? order.getPayer().getName().getSurname() : "";
+                        payerName = (given + " " + sur).trim();
+                    }
+                }
+
+                payment.setTransactionId(captureId);
+                payment.setSenderBankName("PayPal");
+                payment.setSenderAccountNumber(payerEmail.isEmpty() ? "PayPal Account" : payerEmail);
+                payment.setSenderAccountName(payerName.isEmpty()
+                        ? (booking.getCustomer() != null ? booking.getCustomer().getFullName() : "N/A")
+                        : payerName);
+                return true;
+            } else {
+                System.err.println("[PayPal] Capture order status: " + (order != null ? order.getStatus() : "null"));
+            }
+        } catch (Exception e) {
+            System.err.println("[PayPal] Capture exception: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+}

@@ -39,7 +39,15 @@ public class ForgotPasswordService {
         user.setOtpType("FORGOT_PASSWORD");
         userRepository.save(user);
 
-        emailService.sendPasswordResetOtp(email, otp);
+        final String targetEmail = email;
+        final String targetOtp = otp;
+        java.util.concurrent.CompletableFuture.runAsync(() -> {
+            try {
+                emailService.sendPasswordResetOtp(targetEmail, targetOtp);
+            } catch (Exception e) {
+                System.err.println("[Email] Error sending reset password OTP in background: " + e.getMessage());
+            }
+        });
     }
 
     public void resetPassword(String email, String newPassword) {
