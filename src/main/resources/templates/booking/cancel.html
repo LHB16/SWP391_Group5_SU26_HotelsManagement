@@ -130,7 +130,7 @@
                     <div class="bc-hotel-brief">
                         <div class="bc-hotel-img-wrap">
                             <img th:if="${hotel.imageUrl != null and !#strings.isEmpty(hotel.imageUrl)}"
-                                 th:src="@{${hotel.imageUrl}}"
+                                 th:src="${hotel.imageUrl}"
                                  th:alt="${hotel.name}"
                                  class="bc-hotel-img" />
                             <div th:unless="${hotel.imageUrl != null and !#strings.isEmpty(hotel.imageUrl)}"

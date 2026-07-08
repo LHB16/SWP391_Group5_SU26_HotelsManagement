@@ -13,29 +13,8 @@
         <div class="container">
             <div class="row">
 
-                <!-- Sidebar -->
-                <div class="col-md-3 mb-4">
-                    <div class="bh-sidebar">
-                        <div class="bh-sidebar-title">PROFILE MANAGEMENT</div>
-                        <ul class="bh-sidebar-menu">
-                            <li class="bh-sidebar-item">
-                                <a th:href="@{/profile}" class="bh-sidebar-link">
-                                    <i class="bi bi-person"></i>
-                                    Profile Information
-                                </a>
-                            </li>
-                            <li class="bh-sidebar-item">
-                                <a th:href="@{/booking/history}" class="bh-sidebar-link bh-active">
-                                    <i class="bi bi-clock-history"></i>
-                                    Booking History
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Nội dung chính -->
-                <div class="col-md-9">
+                <!-- Nội dung chính (căn giữa 8/12 cột để có bố cục đẹp) -->
+                <div class="col-md-8 mx-auto">
 
                     <!-- Header -->
                     <div class="bh-content-header">
@@ -53,10 +32,6 @@
                             </span>
                         </div>
                         <div class="rf-summary-body">
-                            <div class="rf-summary-row">
-                                <span class="rf-label">Booking ID</span>
-                                <span class="rf-value" th:text="'#' + ${booking.id}">#001</span>
-                            </div>
                             <div class="rf-summary-row">
                                 <span class="rf-label">Room Type</span>
                                 <span class="rf-value" th:text="${room != null ? room.roomType : 'N/A'}">Deluxe</span>
@@ -171,6 +146,7 @@
                                        name="accountHolder"
                                        placeholder="e.g. NGUYEN VAN A"
                                        maxlength="100"
+                                       style="text-transform: uppercase;"
                                        required/>
                                 <span class="rf-form-hint">Must match exactly as shown on your bank account (in UPPERCASE).</span>
                             </div>
@@ -191,7 +167,7 @@
                                     <i class="bi bi-arrow-left"></i>
                                     Back to History
                                 </a>
-                                <button type="button" class="rf-btn-submit" id="submitRefundBtn">
+                                <button type="button" class="rf-btn-submit" id="submitRefundBtn" disabled>
                                     <i class="bi bi-send"></i>
                                     Submit Refund Request
                                 </button>
@@ -200,7 +176,7 @@
                     </div>
 
                 </div>
-                <!-- /Cột phải -->
+                <!-- /Cột chính -->
             </div>
         </div>
     </main>
@@ -240,22 +216,47 @@
         document.addEventListener("DOMContentLoaded", function () {
             var refundModal = new bootstrap.Modal(document.getElementById('refundConfirmModal'));
             var refundForm = document.getElementById('refundForm');
+            var bankName = document.getElementById('bankName');
+            var accountNumber = document.getElementById('accountNumber');
+            var accountHolder = document.getElementById('accountHolder');
+            var submitRefundBtn = document.getElementById('submitRefundBtn');
+
+            // Kiểm tra tính hợp lệ của biểu mẫu để bật/tắt nút Submit
+            function checkFormValidity() {
+                var isBankValid = bankName.value !== "";
+                var isAccountValid = accountNumber.value.length >= 6 && /^[0-9]+$/.test(accountNumber.value);
+                var isHolderValid = accountHolder.value.trim().length > 0;
+
+                if (isBankValid && isAccountValid && isHolderValid) {
+                    submitRefundBtn.removeAttribute('disabled');
+                } else {
+                    submitRefundBtn.setAttribute('disabled', 'true');
+                }
+            }
+
+            // Tự động viết hoa giá trị của ô nhập tên chủ tài khoản
+            accountHolder.addEventListener('input', function () {
+                this.value = this.value.toUpperCase();
+                checkFormValidity();
+            });
+
+            bankName.addEventListener('change', checkFormValidity);
+            accountNumber.addEventListener('input', checkFormValidity);
+
+            // Kiểm tra ban đầu khi tải trang
+            checkFormValidity();
 
             document.getElementById('submitRefundBtn').addEventListener('click', function () {
-                var bankName = document.getElementById('bankName').value;
-                var accountNumber = document.getElementById('accountNumber').value;
-                var accountHolder = document.getElementById('accountHolder').value;
-
                 // Validate trước khi mở modal
-                if (!bankName || !accountNumber || !accountHolder) {
+                if (!bankName.value || !accountNumber.value || !accountHolder.value) {
                     refundForm.reportValidity();
                     return;
                 }
 
                 // Hiển thị thông tin xác nhận
-                document.getElementById('confirmBank').textContent = bankName;
-                document.getElementById('confirmAccount').textContent = accountNumber;
-                document.getElementById('confirmHolder').textContent = accountHolder.toUpperCase();
+                document.getElementById('confirmBank').textContent = bankName.value;
+                document.getElementById('confirmAccount').textContent = accountNumber.value;
+                document.getElementById('confirmHolder').textContent = accountHolder.value.toUpperCase();
 
                 refundModal.show();
             });

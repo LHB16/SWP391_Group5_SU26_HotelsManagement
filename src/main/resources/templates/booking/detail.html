@@ -18,7 +18,7 @@
             </div>
 
             <!-- Banner trên: Hình nền khách sạn, Tên phòng và Ngày -->
-            <div class="bd-banner" th:style="'background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.5)), url(' + (${hotel.imageUrl != null and !#strings.isEmpty(hotel.imageUrl)} ? @{${hotel.imageUrl}} : '/assets/images/hotel-placeholder.jpg') + ');'">
+            <div class="bd-banner" th:style="'background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.5)), url(' + (${hotel.imageUrl != null and !#strings.isEmpty(hotel.imageUrl)} ? ${hotel.imageUrl} : '/assets/images/hotel-placeholder.jpg') + ');'">
                 <div class="bd-banner-content">
                     <h1 class="bd-banner-room-name">
                         <span th:text="${room.type}">Room Type</span>
@@ -35,7 +35,7 @@
                     <!-- Ảnh khách sạn góc trái -->
                     <div class="bd-hotel-img-wrap">
                         <img th:if="${hotel.imageUrl != null and !#strings.isEmpty(hotel.imageUrl)}"
-                             th:src="@{${hotel.imageUrl}}"
+                             th:src="${hotel.imageUrl}"
                              th:alt="${hotel.name}"
                              class="bd-hotel-img"/>
                         <div th:unless="${hotel.imageUrl != null and !#strings.isEmpty(hotel.imageUrl)}"

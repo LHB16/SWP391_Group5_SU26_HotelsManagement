@@ -34,6 +34,9 @@ public class Refund {
     @Column(name = "note", columnDefinition = "NVARCHAR(MAX)")
     private String note;
 
+    @Column(name = "cancellation_reason", length = 1000)
+    private String cancellationReason;
+
     @Column(name = "requested_at", nullable = false)
     private LocalDateTime requestedAt = LocalDateTime.now();
 
@@ -59,6 +62,8 @@ public class Refund {
     public void setStatus(String status) { this.status = status; }
     public String getNote() { return note; }
     public void setNote(String note) { this.note = note; }
+    public String getCancellationReason() { return cancellationReason; }
+    public void setCancellationReason(String cancellationReason) { this.cancellationReason = cancellationReason; }
     public LocalDateTime getRequestedAt() { return requestedAt; }
     public void setRequestedAt(LocalDateTime requestedAt) { this.requestedAt = requestedAt; }
     public LocalDateTime getProcessedAt() { return processedAt; }

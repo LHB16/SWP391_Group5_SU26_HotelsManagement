@@ -288,6 +288,7 @@ Table refunds {
   refund_amount DECIMAL(38,2) [note: 'Số tiền hoàn lại cho khách hàng.']
   status NVARCHAR(50) [note: 'Trạng thái hoàn tiền: PENDING, PROCESSED, REJECTED.']
   note NVARCHAR(MAX) [note: 'Ghi chú xử lý hoàn tiền.']
+  cancellation_reason NVARCHAR(1000) [note: 'Lý do khách hàng hủy phòng.']
   requested_at DATETIME2 [note: 'Thời điểm khách yêu cầu hoàn tiền.']
   processed_at DATETIME2 [note: 'Thời điểm hoàn tiền hoàn tất.']
 }
