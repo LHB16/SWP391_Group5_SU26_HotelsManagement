@@ -74,7 +74,7 @@
 
                     <!-- ID Card -->
                     <div class="mb-3">
-                        <label class="form-label">ID Card / CCCD Number <span class="text-danger">*</span></label>
+                        <label class="form-label">ID Card <span class="text-danger">*</span></label>
                         <input type="text" name="idCard" class="form-control"
                                placeholder="Enter your ID card number..."
                                th:value="${idCard}"
@@ -92,10 +92,10 @@
 
                     <!-- ===== THÊM PHẦN UPLOAD ẢNH CCCD ===== -->
                     <div class="mb-3">
-                        <label class="form-label">ID Card / CCCD Image <span class="text-danger">*</span></label>
+                        <label class="form-label">ID Card <span class="text-danger">*</span></label>
                         <input type="file" name="idCardDocument" class="form-control"
                                accept="image/*,application/pdf" required/>
-                        <small class="text-muted">Hỗ trợ JPG, PNG, PDF. Tối đa 10MB.</small>
+                        <small class="text-muted">Supports JPG, PNG, PDF. Maximum 10MB.</small>
                         <div th:if="${idCardDocumentError}" class="text-danger small" th:text="${idCardDocumentError}"></div>
                     </div>
 
