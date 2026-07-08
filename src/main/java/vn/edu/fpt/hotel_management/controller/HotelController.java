@@ -493,6 +493,8 @@ public class HotelController {
                 .orElseThrow(() -> new RuntimeException("Hotel not found or you don't have permission!"));
 
         model.addAttribute("hotel", hotel);
+        List<Room> rooms = roomRepository.findByHotelId(hotelId);
+        model.addAttribute("rooms", rooms);
         model.addAttribute("user", loggedInUser);
         return "owner/hotel-detail";
     }

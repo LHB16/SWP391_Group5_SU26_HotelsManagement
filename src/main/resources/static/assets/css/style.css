@@ -22175,6 +22175,141 @@ h6,
     font-weight: 500 !important;
 }
 
+.owner-rooms-table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    width: 100% !important;
+    background-color: #ffffff !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05) !important;
+}
+
+.owner-rooms-table th {
+    background-color: var(--navy-primary) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    font-size: 0.85rem !important;
+    letter-spacing: 0.5px !important;
+    padding: 14px 16px !important;
+    border: none !important;
+    text-align: center !important;
+}
+
+.owner-rooms-table td {
+    padding: 14px 16px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    color: #475569 !important;
+    font-size: 0.9rem !important;
+    text-align: center !important;
+}
+
+.owner-rooms-table tr:last-child td {
+    border-bottom: none !important;
+}
+
+.owner-rooms-table tr:hover td {
+    background-color: #f8fafc !important;
+}
+
+/* Owner action buttons */
+.btn-action-view {
+    background-color: #0284c7 !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    font-size: 0.82rem !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+    text-decoration: none !important;
+    display: inline-block !important;
+}
+
+.btn-action-view:hover {
+    background-color: #0369a1 !important;
+    color: #ffffff !important;
+}
+
+.btn-action-modify {
+    background-color: #f59e0b !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    font-size: 0.82rem !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+    text-decoration: none !important;
+    display: inline-block !important;
+}
+
+.btn-action-modify:hover {
+    background-color: #d97706 !important;
+    color: #ffffff !important;
+}
+
+.btn-action-delete {
+    background-color: #ef4444 !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    font-size: 0.82rem !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+    display: inline-block !important;
+}
+
+.btn-action-delete:hover {
+    background-color: #dc2626 !important;
+    color: #ffffff !important;
+}
+
+/* Custom Styled Confirmation Modal overlay and card */
+.custom-modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(15, 23, 42, 0.45) !important;
+    backdrop-filter: blur(5px) !important;
+    display: none !important; /* Hide by default */
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 99999 !important;
+    transition: opacity 0.25s ease-in-out !important;
+}
+
+.custom-modal-overlay.active {
+    display: flex !important; /* Show when active class is added */
+}
+
+.custom-modal-card {
+    background: #ffffff !important;
+    border-radius: 16px !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
+    width: 90% !important;
+    max-width: 440px !important;
+    padding: 32px 28px !important;
+    text-align: center !important;
+    animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    border: 1px solid #f1f5f9 !important;
+}
+
+@keyframes modalSlideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
 
 
 
