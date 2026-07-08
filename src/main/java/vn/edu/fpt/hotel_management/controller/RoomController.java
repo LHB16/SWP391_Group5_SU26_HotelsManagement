@@ -333,6 +333,15 @@ public class RoomController {
 
                 imgUrl = "/assets/images/room/" + safeName;
 
+                // Sync to target/classes for instant hot reload
+                Path classesPath = Paths.get(System.getProperty("user.dir"), "target", "classes", "static", ROOM_IMAGE_SUBDIR).toAbsolutePath().normalize();
+                if (Files.exists(Paths.get(System.getProperty("user.dir"), "target", "classes", "static"))) {
+                    if (!Files.exists(classesPath)) {
+                        Files.createDirectories(classesPath);
+                    }
+                    Files.copy(filePath, classesPath.resolve(safeName), StandardCopyOption.REPLACE_EXISTING);
+                }
+
             } catch (IOException e) {
                 redirectAttributes.addFlashAttribute("errorMessage",
                         "Image upload failed: " + e.getMessage());
