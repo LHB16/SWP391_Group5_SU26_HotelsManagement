@@ -26,6 +26,7 @@ public class RoomController {
     private final HotelOwnerRepository hotelOwnerRepository;
     private final RoomFacilityRepository roomFacilityRepository;
     private final OwnerService ownerService;
+    private final BookingRepository bookingRepository;
 
     private static final String ROOM_IMAGE_SUBDIR = "assets/images/room";
 
@@ -36,7 +37,8 @@ public class RoomController {
                           CustomerRepository customerRepository,
                           HotelOwnerRepository hotelOwnerRepository,
                           RoomFacilityRepository roomFacilityRepository,
-                          OwnerService ownerService) {
+                          OwnerService ownerService,
+                          BookingRepository bookingRepository) {
         this.roomRepository = roomRepository;
         this.hotelRepository = hotelRepository;
         this.reviewRepository = reviewRepository;
@@ -45,6 +47,7 @@ public class RoomController {
         this.hotelOwnerRepository = hotelOwnerRepository;
         this.roomFacilityRepository = roomFacilityRepository;
         this.ownerService = ownerService;
+        this.bookingRepository = bookingRepository;
     }
 
     // ===== RESOLVE STATIC DIR =====
