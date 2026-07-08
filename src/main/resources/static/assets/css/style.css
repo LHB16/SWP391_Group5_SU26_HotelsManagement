@@ -19461,3 +19461,55 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     height: 47px;
     font-size: 0.9rem;
 }
+
+/* ── PayPal & VietQR Payment Selection Tabs (UC-14) ── */
+.payment-content-none, .payment-content-vietqr, .payment-content-paypal {
+    display: none;
+}
+#tab-none:checked ~ .payment-content-none {
+    display: block;
+}
+#tab-vietqr:checked ~ .payment-content-vietqr {
+    display: block;
+}
+#tab-paypal:checked ~ .payment-content-paypal {
+    display: block;
+}
+
+.tab-btn {
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid #dee2e6;
+    color: #495057;
+    background-color: #f8f9fa;
+    transition: all 0.2s ease-in-out;
+}
+.tab-btn:hover {
+    border-color: #c9a96e;
+    color: #0a1628;
+}
+
+#tab-vietqr:checked ~ div .btn-vietqr-label {
+    background-color: #0a1628;
+    color: #c9a96e;
+    border-color: #0a1628;
+}
+
+#tab-paypal:checked ~ div .btn-paypal-label {
+    background-color: #0a1628;
+    color: #c9a96e;
+    border-color: #0a1628;
+}
+
+.hover-card {
+    transition: all 0.2s ease-in-out;
+}
+.hover-card:hover {
+    border-color: #c9a96e !important;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(201, 169, 110, 0.15);
+}
+
+

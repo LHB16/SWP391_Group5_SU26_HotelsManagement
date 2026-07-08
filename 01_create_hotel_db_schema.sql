@@ -267,7 +267,7 @@ CREATE TABLE payments (
     created_at DATETIME2 NOT NULL CONSTRAINT DF_payments_created_at DEFAULT GETDATE(),
     qr_expires_at DATETIME2 NULL,
     CONSTRAINT CK_payments_amount CHECK (amount IS NULL OR amount >= 0),
-    CONSTRAINT CK_payments_method CHECK (method IS NULL OR method IN (N'QR_CODE', N'CASH', N'BANK_TRANSFER', N'MOMO', N'VNPAY')),
+    CONSTRAINT CK_payments_method CHECK (method IS NULL OR method IN (N'QR_CODE', N'CASH', N'BANK_TRANSFER', N'MOMO', N'VNPAY', N'PAYPAL')),
     CONSTRAINT CK_payments_status CHECK (status IS NULL OR status IN (N'PENDING', N'PAID', N'FAILED', N'EXPIRED', N'REFUNDED'))
 );
 GO
