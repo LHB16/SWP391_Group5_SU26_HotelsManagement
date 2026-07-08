@@ -32,7 +32,7 @@ public class ChatController {
                           HotelRepository hotelRepository,
                           UserRepository userRepository,
                           HotelOwnerRepository hotelOwnerRepository,
-                          OwnerService ownerService) {
+                          OwnerService ownerService,
                           CustomerRepository customerRepository) {
         this.messageRepository = messageRepository;
         this.hotelRepository = hotelRepository;
