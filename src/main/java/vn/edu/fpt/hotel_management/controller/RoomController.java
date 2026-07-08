@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.hotel_management.entity.*;
 import vn.edu.fpt.hotel_management.repository.*;
+import vn.edu.fpt.hotel_management.service.OwnerService;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -25,8 +26,8 @@ public class RoomController {
     private final BookingRepository bookingRepository;
     private final HotelOwnerRepository hotelOwnerRepository;
     private final RoomFacilityRepository roomFacilityRepository;
+    private final OwnerService ownerService;
 
-    // Ảnh phòng lưu trong: {project}/src/main/resources/static/assets/images/room/
     private static final String ROOM_IMAGE_SUBDIR = "assets/images/room";
 
     public RoomController(RoomRepository roomRepository,
@@ -36,7 +37,8 @@ public class RoomController {
                           CustomerRepository customerRepository,
                           BookingRepository bookingRepository,
                           HotelOwnerRepository hotelOwnerRepository,
-                          RoomFacilityRepository roomFacilityRepository) {
+                          RoomFacilityRepository roomFacilityRepository,
+                          OwnerService ownerService) {
         this.roomRepository = roomRepository;
         this.hotelRepository = hotelRepository;
         this.reviewRepository = reviewRepository;
@@ -45,23 +47,20 @@ public class RoomController {
         this.bookingRepository = bookingRepository;
         this.hotelOwnerRepository = hotelOwnerRepository;
         this.roomFacilityRepository = roomFacilityRepository;
+        this.ownerService = ownerService;
     }
 
-    /**
-     * Tính đường dẫn tuyệt đối đến thư mục lưu ảnh trong static resources.
-     * Dùng user.dir (working directory khi chạy IDE = project root).
-     */
+    // ===== RESOLVE STATIC DIR =====
     private Path resolveStaticDir(String subDir) throws IOException {
         Path path = Paths.get(System.getProperty("user.dir"),
-                              "src", "main", "resources", "static", subDir);
+                "src", "main", "resources", "static", subDir);
         if (!Files.exists(path)) {
             Files.createDirectories(path);
         }
         return path;
     }
 
-    // ======================== GET /hotels/{id}/rooms ========================
-
+    // ===================== GET /hotels/{id}/rooms =====================
     @GetMapping("/hotels/{id}/rooms")
     public String showRoomsPage(
             @PathVariable("id") int id,
@@ -86,7 +85,6 @@ public class RoomController {
 
         List<String> allTypes = roomRepository.findDistinctTypesByHotelId(id);
 
-        // Tải danh sách đánh giá (sắp xếp đánh giá tốt lên trước, rồi mới tới ngày mới nhất)
         List<Review> reviews = reviewRepository.findByHotelIdOrderByRatingDescCreatedAtDesc(id);
         double avgRating = 0.0;
         if (!reviews.isEmpty()) {
@@ -102,16 +100,16 @@ public class RoomController {
         for (Review r : reviews) {
             if (r.getCustomer() != null) {
                 List<Booking> bkList = bookingRepository.findBookingsByCustomerAndHotel(
-                    r.getCustomer().getId(),
-                    id,
-                    List.of("COMPLETED")
+                        r.getCustomer().getId(),
+                        id,
+                        List.of("COMPLETED")
                 );
                 Booking match = null;
                 if (r.getRoom() != null) {
                     match = bkList.stream()
-                        .filter(b -> b.getRoom().getId() == r.getRoom().getId())
-                        .findFirst()
-                        .orElse(bkList.isEmpty() ? null : bkList.get(0));
+                            .filter(b -> b.getRoom().getId() == r.getRoom().getId())
+                            .findFirst()
+                            .orElse(bkList.isEmpty() ? null : bkList.get(0));
                 } else if (!bkList.isEmpty()) {
                     match = bkList.get(0);
                 }
@@ -140,22 +138,22 @@ public class RoomController {
                 }
 
                 customerBookings = bookingRepository.findBookingsByCustomerAndHotel(
-                    customer.getId(),
-                    id,
-                    List.of("COMPLETED")
+                        customer.getId(),
+                        id,
+                        List.of("COMPLETED")
                 );
 
                 List<Review> customerReviews = reviewRepository.findByHotelIdAndCustomerId(id, customer.getId());
 
                 if (bookingId != null) {
                     Booking specifiedBooking = bookingRepository.findById(bookingId).orElse(null);
-                    if (specifiedBooking != null && specifiedBooking.getCustomer().getId() == customer.getId() 
-                            && specifiedBooking.getHotel().getId() == id 
+                    if (specifiedBooking != null && specifiedBooking.getCustomer().getId() == customer.getId()
+                            && specifiedBooking.getHotel().getId() == id
                             && "COMPLETED".equals(specifiedBooking.getStatus())) {
-                        
+
                         boolean alreadyReviewed = customerReviews.stream()
                                 .anyMatch(r -> r.getBooking() != null && r.getBooking().getId() == bookingId);
-                        
+
                         if (!alreadyReviewed) {
                             resolvedBookingId = bookingId;
                             latestBookedRoom = specifiedBooking.getRoom();
@@ -167,11 +165,11 @@ public class RoomController {
 
                 if (resolvedBookingId == null) {
                     java.util.Map<Integer, Long> roomBookingCounts = customerBookings.stream()
-                        .collect(java.util.stream.Collectors.groupingBy(b -> b.getRoom().getId(), java.util.stream.Collectors.counting()));
-                        
+                            .collect(java.util.stream.Collectors.groupingBy(b -> b.getRoom().getId(), java.util.stream.Collectors.counting()));
+
                     java.util.Map<Integer, Long> roomReviewCounts = customerReviews.stream()
-                        .collect(java.util.stream.Collectors.groupingBy(r -> r.getRoom().getId(), java.util.stream.Collectors.counting()));
-                    
+                            .collect(java.util.stream.Collectors.groupingBy(r -> r.getRoom().getId(), java.util.stream.Collectors.counting()));
+
                     Booking unreviewedBooking = null;
                     for (Booking b : customerBookings) {
                         int roomId = b.getRoom().getId();
@@ -182,7 +180,7 @@ public class RoomController {
                             break;
                         }
                     }
-                    
+
                     hasBooked = (unreviewedBooking != null);
                     if (hasBooked) {
                         resolvedBookingId = unreviewedBooking.getId();
@@ -197,7 +195,6 @@ public class RoomController {
         }
         model.addAttribute("resolvedBookingId", resolvedBookingId);
 
-        // Tính toán số đêm và giá thực tế của từng phòng
         long nights = 1;
         boolean isFiltered = false;
         java.util.Map<Integer, BigDecimal> roomPricesMap = new java.util.HashMap<>();
@@ -257,8 +254,7 @@ public class RoomController {
         return "hotel/room-list";
     }
 
-    // ======================== GET /hotels/{id}/rooms/{roomId} ========================
-
+    // ===================== GET /hotels/{id}/rooms/{roomId} =====================
     @GetMapping("/hotels/{id}/rooms/{roomId}")
     public String showRoomDetailPage(
             @PathVariable("id") int id,
@@ -278,7 +274,6 @@ public class RoomController {
 
         User loggedInUser = (User) session.getAttribute("loggedInUser");
 
-        // Tính toán số đêm và giá
         long nights = 1;
         boolean isFiltered = false;
         BigDecimal roomPrice = room.getPrice();
@@ -309,31 +304,33 @@ public class RoomController {
         return "hotel/room-detail";
     }
 
-    // ======================== GET /hotels/{id}/rooms/new ========================
-
+    // ===================== GET /hotels/{id}/rooms/new =====================
     @GetMapping("/hotels/{id}/rooms/new")
     public String showCreateRoomForm(
             @PathVariable("id") int id,
             HttpSession session,
-            Model model
-    ) {
-        // Kiểm tra đăng nhập
+            Model model) {
+
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
             return "redirect:/login";
         }
 
-        // Kiểm tra role HOTEL_OWNER
         if (!"HOTEL_OWNER".equals(loggedInUser.getRole())) {
             return "redirect:/home";
         }
 
-        // Kiểm tra hotel tồn tại
+        // Kiểm tra Owner đã được duyệt
+        if (!ownerService.isOwnerApproved(loggedInUser)) {
+            session.setAttribute("errorMessage",
+                    "Your account is pending admin approval. You cannot add rooms yet.");
+            return "redirect:/owner/dashboard";
+        }
+
         Hotel hotel = hotelRepository.findById(id).orElse(null);
         if (hotel == null) return "redirect:/hotels";
 
-        // Kiểm tra owner sở hữu khách sạn này
-        HotelOwner owner = hotelOwnerRepository.findByUserAccount(loggedInUser).orElse(null);
+        HotelOwner owner = ownerService.getOwnerByUser(loggedInUser).orElse(null);
         if (owner == null || hotel.getOwner().getId() != owner.getId()) {
             return "redirect:/home";
         }
@@ -343,94 +340,84 @@ public class RoomController {
         return "hotel/room-create";
     }
 
-    // ======================== POST /hotels/{id}/rooms/new ========================
-
+    // ===================== POST /hotels/{id}/rooms/new =====================
     @PostMapping("/hotels/{id}/rooms/new")
     public String createRoom(
             @PathVariable("id") int id,
-            // --- Room fields ---
-            @RequestParam("type")                                    String type,
-            @RequestParam("price")                                   long   price,
-            @RequestParam(value = "description", defaultValue = "")  String description,
-            @RequestParam(value = "window",  defaultValue = "0")     int    window,
-            @RequestParam(value = "bed",     defaultValue = "0")     int    bed,
-            @RequestParam("acreage")                                 double acreage,
-            @RequestParam("person")                                  int    person,
-            @RequestParam(value = "numberRooms", defaultValue = "1") int    numberRooms,
-            @RequestParam(value = "roomStatus", required = false)    Boolean roomStatus,
-            @RequestParam(value = "imageFile", required = false)     MultipartFile imageFile,
-            // --- Room Facilities fields ---
-            @RequestParam(value = "freeToiletries", required = false)    Boolean freeToiletries,
-            @RequestParam(value = "shower", required = false)            Boolean shower,
-            @RequestParam(value = "bathrobe", required = false)          Boolean bathrobe,
-            @RequestParam(value = "toilet", required = false)            Boolean toilet,
-            @RequestParam(value = "towels", required = false)            Boolean towels,
-            @RequestParam(value = "slippers", required = false)          Boolean slippers,
-            @RequestParam(value = "hairdryer", required = false)         Boolean hairdryer,
-            @RequestParam(value = "toiletPaper", required = false)       Boolean toiletPaper,
-            @RequestParam(value = "airConditioning", required = false)   Boolean airConditioning,
-            @RequestParam(value = "safetyDepositBox", required = false)  Boolean safetyDepositBox,
-            @RequestParam(value = "desk", required = false)              Boolean desk,
-            @RequestParam(value = "television", required = false)        Boolean television,
-            @RequestParam(value = "telephone", required = false)         Boolean telephone,
-            @RequestParam(value = "iron", required = false)              Boolean iron,
-            @RequestParam(value = "electricKettle", required = false)    Boolean electricKettle,
-            @RequestParam(value = "cableChannels", required = false)     Boolean cableChannels,
-            @RequestParam(value = "wakeUpService", required = false)     Boolean wakeUpService,
-            @RequestParam(value = "wardrobeCloset", required = false)    Boolean wardrobeCloset,
-            @RequestParam(value = "clothesRack", required = false)       Boolean clothesRack,
-            @RequestParam(value = "freeBottledWater", defaultValue = "0") int    freeBottledWater,
+            @RequestParam("type") String type,
+            @RequestParam("price") long price,
+            @RequestParam(value = "description", defaultValue = "") String description,
+            @RequestParam(value = "window", defaultValue = "0") int window,
+            @RequestParam(value = "bed", defaultValue = "0") int bed,
+            @RequestParam("acreage") double acreage,
+            @RequestParam("person") int person,
+            @RequestParam(value = "numberRooms", defaultValue = "1") int numberRooms,
+            @RequestParam(value = "roomStatus", required = false) Boolean roomStatus,
+            @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+            @RequestParam(value = "freeToiletries", required = false) Boolean freeToiletries,
+            @RequestParam(value = "shower", required = false) Boolean shower,
+            @RequestParam(value = "bathrobe", required = false) Boolean bathrobe,
+            @RequestParam(value = "toilet", required = false) Boolean toilet,
+            @RequestParam(value = "towels", required = false) Boolean towels,
+            @RequestParam(value = "slippers", required = false) Boolean slippers,
+            @RequestParam(value = "hairdryer", required = false) Boolean hairdryer,
+            @RequestParam(value = "toiletPaper", required = false) Boolean toiletPaper,
+            @RequestParam(value = "airConditioning", required = false) Boolean airConditioning,
+            @RequestParam(value = "safetyDepositBox", required = false) Boolean safetyDepositBox,
+            @RequestParam(value = "desk", required = false) Boolean desk,
+            @RequestParam(value = "television", required = false) Boolean television,
+            @RequestParam(value = "telephone", required = false) Boolean telephone,
+            @RequestParam(value = "iron", required = false) Boolean iron,
+            @RequestParam(value = "electricKettle", required = false) Boolean electricKettle,
+            @RequestParam(value = "cableChannels", required = false) Boolean cableChannels,
+            @RequestParam(value = "wakeUpService", required = false) Boolean wakeUpService,
+            @RequestParam(value = "wardrobeCloset", required = false) Boolean wardrobeCloset,
+            @RequestParam(value = "clothesRack", required = false) Boolean clothesRack,
+            @RequestParam(value = "freeBottledWater", defaultValue = "0") int freeBottledWater,
             HttpSession session,
-            RedirectAttributes redirectAttributes
-    ) {
-        // Kiểm tra đăng nhập
+            RedirectAttributes redirectAttributes) {
+
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
             return "redirect:/login";
         }
 
-        // Kiểm tra role HOTEL_OWNER
         if (!"HOTEL_OWNER".equals(loggedInUser.getRole())) {
             return "redirect:/home";
         }
 
-        // Kiểm tra khách sạn tồn tại
+        // Kiểm tra Owner đã được duyệt
+        if (!ownerService.isOwnerApproved(loggedInUser)) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Your account is pending admin approval. You cannot add rooms yet.");
+            return "redirect:/owner/dashboard";
+        }
+
         Hotel hotel = hotelRepository.findById(id).orElse(null);
         if (hotel == null) return "redirect:/hotels";
 
-        // Kiểm tra owner sở hữu khách sạn này
-        HotelOwner owner = hotelOwnerRepository.findByUserAccount(loggedInUser).orElse(null);
+        HotelOwner owner = ownerService.getOwnerByUser(loggedInUser).orElse(null);
         if (owner == null || hotel.getOwner().getId() != owner.getId()) {
             redirectAttributes.addFlashAttribute("errorMessage", "You don't have permission to add rooms to this hotel.");
             return "redirect:/home";
         }
 
         String imgUrl = null;
-
-        // Xử lý upload ảnh nếu có file
         if (imageFile != null && !imageFile.isEmpty()) {
             try {
                 String original = imageFile.getOriginalFilename();
                 String safeName = System.currentTimeMillis() + "_"
-                        + (original != null
-                            ? original.replaceAll("[^a-zA-Z0-9._-]", "_")
-                            : "room.jpg");
-
+                        + (original != null ? original.replaceAll("[^a-zA-Z0-9._-]", "_") : "room.jpg");
                 Path uploadDir = resolveStaticDir(ROOM_IMAGE_SUBDIR);
-                Path filePath  = uploadDir.resolve(safeName);
-
+                Path filePath = uploadDir.resolve(safeName);
                 Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
                 imgUrl = "/assets/images/room/" + safeName;
-
             } catch (IOException e) {
-                redirectAttributes.addFlashAttribute("errorMessage",
-                        "Image upload failed: " + e.getMessage());
+                redirectAttributes.addFlashAttribute("errorMessage", "Image upload failed: " + e.getMessage());
                 return "redirect:/hotels/" + id + "/rooms/new";
             }
         }
 
-        // Tạo và lưu Room vào DB
         Room room = new Room();
         room.setHotelId(id);
         room.setRoomType(type.trim());
@@ -443,10 +430,8 @@ public class RoomController {
         room.setImgUrl(imgUrl);
         room.setNumberRooms(numberRooms);
         room.setRoomStatus(roomStatus != null ? roomStatus : true);
-
         roomRepository.save(room);
 
-        // Tạo và lưu RoomFacility vào DB
         RoomFacility facility = new RoomFacility();
         facility.setRoom(room);
         facility.setFreeToiletries(freeToiletries != null && freeToiletries);
@@ -469,45 +454,37 @@ public class RoomController {
         facility.setWardrobeCloset(wardrobeCloset != null && wardrobeCloset);
         facility.setClothesRack(clothesRack != null && clothesRack);
         facility.setFreeBottledWater(freeBottledWater);
-
         roomFacilityRepository.save(facility);
 
-        redirectAttributes.addFlashAttribute("successMessage",
-                "Room \"" + type + "\" added successfully!");
+        redirectAttributes.addFlashAttribute("successMessage", "Room \"" + type + "\" added successfully!");
         return "redirect:/owner/hotels/" + id;
     }
 
+    // ===== HELPER METHODS =====
     private boolean isHolidayOrWeekend(java.time.LocalDate date) {
-        // 1. Kiểm tra cuối tuần (Thứ 7 & Chủ Nhật)
         java.time.DayOfWeek dayOfWeek = date.getDayOfWeek();
         if (dayOfWeek == java.time.DayOfWeek.SATURDAY || dayOfWeek == java.time.DayOfWeek.SUNDAY) {
             return true;
         }
 
-        // 2. Kiểm tra ngày lễ
         int m = date.getMonthValue();
         int d = date.getDayOfMonth();
 
-        // Lễ dương lịch VN cố định
-        if (m == 1 && d == 1) return true;   // Tết Dương Lịch
-        if (m == 4 && d == 30) return true;  // Giải phóng Miền Nam
-        if (m == 5 && d == 1) return true;   // Quốc tế Lao động
-        if (m == 9 && d == 2) return true;   // Quốc khánh
+        if (m == 1 && d == 1) return true;
+        if (m == 4 && d == 30) return true;
+        if (m == 5 && d == 1) return true;
+        if (m == 9 && d == 2) return true;
+        if (m == 2 && d == 14) return true;
+        if (m == 3 && d == 8) return true;
+        if (m == 6 && d == 1) return true;
+        if (m == 10 && d == 20) return true;
+        if (m == 11 && d == 20) return true;
+        if (m == 12 && d == 25) return true;
 
-        // Các ngày lễ đặc biệt yêu cầu thêm
-        if (m == 2 && d == 14) return true;  // Valentine
-        if (m == 3 && d == 8) return true;   // Quốc tế Phụ nữ
-        if (m == 6 && d == 1) return true;   // Quốc tế Thiếu nhi
-        if (m == 10 && d == 20) return true; // Phụ nữ VN
-        if (m == 11 && d == 20) return true; // Nhà giáo VN
-        if (m == 12 && d == 25) return true; // Giáng sinh
-
-        // Tết Âm Lịch năm 2025 (Từ 28/01 đến 03/02/2025)
         if (date.getYear() == 2025) {
             if (m == 1 && d >= 28) return true;
             if (m == 2 && d <= 3) return true;
         }
-        // Tết Âm Lịch năm 2026 (Từ 16/02 đến 22/02/2026)
         if (date.getYear() == 2026) {
             if (m == 2 && d >= 16 && d <= 22) return true;
         }

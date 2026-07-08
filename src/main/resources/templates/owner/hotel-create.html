@@ -13,7 +13,7 @@
             <span class="bc-sep">/</span>
             <span class="bc-active">Add New Hotel</span>
         </nav>
-        <h1>Register New Hotel</h1>
+        <h1>Add New Hotel</h1>
         <p>Fill in all hotel information below to register your hotel</p>
     </div>
 </section>
@@ -41,41 +41,51 @@
                     <div class="form-card-body">
                         <form action="/owner/hotels/new" method="post" enctype="multipart/form-data" id="hotelForm">
 
+                            <!-- ============================================================ -->
+                            <!-- PHẦN 1: THÔNG TIN CƠ BẢN -->
+                            <!-- ============================================================ -->
+
+                            <!-- Hotel Name -->
                             <div class="mb-4">
                                 <label class="form-label-custom" for="hotelName">
-                                    Hotel Name <span class="text-danger"></span>
+                                    Hotel Name <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" name="name" id="hotelName" class="fc"
                                        placeholder="Enter hotel name" required maxlength="200" />
                                 <div class="form-text text-muted">Enter the official hotel name</div>
                             </div>
 
+                            <!-- Address -->
                             <div class="mb-4">
                                 <label class="form-label-custom" for="hotelAddress">
-                                    Address <span class="text-danger"></span>
+                                    Address <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" name="address" id="hotelAddress" class="fc"
                                        placeholder="Enter full address" required maxlength="500" />
                                 <div class="form-text text-muted">Full street address of the hotel</div>
                             </div>
 
-                            <div class="row g-4 mb-4">
-                                <div class="col-12 col-sm-6">
-                                    <label class="form-label-custom" for="hotelCity">
-                                        City <span class="text-danger"></span>
-                                    </label>
-                                    <input type="text" name="city" id="hotelCity" class="fc"
-                                           placeholder="Enter city" required maxlength="100" />
-                                </div>
-                                <div class="col-12 col-sm-6">
-                                    <label class="form-label-custom" for="hotelDistrict">
-                                        District
-                                    </label>
-                                    <input type="text" name="district" id="hotelDistrict" class="fc"
-                                           placeholder="Enter district" maxlength="100" />
-                                </div>
+                            <!-- District -->
+                            <div class="mb-4">
+                                <label class="form-label-custom" for="hotelDistrict">
+                                    District <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" name="district" id="hotelDistrict" class="fc"
+                                       placeholder="Enter district" required maxlength="100" />
+                                <div class="form-text text-muted">Enter the district where the hotel is located</div>
                             </div>
 
+                            <!-- City -->
+                            <div class="mb-4">
+                                <label class="form-label-custom" for="hotelCity">
+                                    City <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" name="city" id="hotelCity" class="fc"
+                                       placeholder="Enter city" required maxlength="100" />
+                                <div class="form-text text-muted">Enter the city where the hotel is located</div>
+                            </div>
+
+                            <!-- Description -->
                             <div class="mb-4">
                                 <label class="form-label-custom" for="hotelDescription">
                                     Description
@@ -86,6 +96,9 @@
                                 <div class="form-text text-muted">Provide detailed information about your hotel</div>
                             </div>
 
+                            <!-- ============================================================ -->
+                            <!-- PHẦN 2: HÌNH ẢNH HOTEL -->
+                            <!-- ============================================================ -->
                             <div class="form-divider"></div>
 
                             <div class="mb-4">
@@ -93,12 +106,81 @@
                                 <input type="file" name="imageFile" id="imageFile" class="form-control"
                                        accept="image/jpeg,image/png,image/webp,image/jpg" />
                                 <div class="form-text text-muted mt-1">JPG, PNG, WEBP · Max 10MB</div>
+                                <!-- Preview ảnh hotel -->
+                                <div class="mt-2" id="hotelImagePreview"></div>
                             </div>
 
-                            <input type="hidden" name="rating" value="0" />
-
+                            <!-- ============================================================ -->
+                            <!-- PHẦN 3: GIẤY TỜ HOTEL (QUAN TRỌNG) -->
+                            <!-- ============================================================ -->
                             <div class="form-divider"></div>
 
+                            <h5 class="fw-bold mb-3" style="color: var(--hotel-navy);">
+                                <i class="bi bi-file-earmark-text me-2 text-gold"></i>
+                                Hotel Verification Documents
+                            </h5>
+                            <p class="text-muted small mb-3">
+                                Upload required documents for hotel verification.
+                                These will be reviewed by admin before your hotel is approved.
+                                <span class="text-danger">*</span> Required fields
+                            </p>
+
+                            <!-- 3.1 Business Registration -->
+                            <div class="mb-4">
+                                <label class="form-label-custom" for="businessRegistrationDoc">
+                                    Business Registration <span class="text-danger">*</span>
+                                </label>
+                                <input type="file" name="businessRegistrationDoc" id="businessRegistrationDoc"
+                                       class="form-control" accept="image/*,application/pdf" required />
+                                <div class="form-text text-muted">
+                                    Upload business registration certificate (JPG, PNG, PDF) - <span class="text-danger">Required</span>
+                                </div>
+                                <div class="mt-2" id="businessRegistrationPreview"></div>
+                            </div>
+
+                            <!-- 3.2 Land Certificate -->
+                            <div class="mb-4">
+                                <label class="form-label-custom" for="landCertificateDoc">
+                                    Land Certificate <span class="text-danger">*</span>
+                                </label>
+                                <input type="file" name="landCertificateDoc" id="landCertificateDoc"
+                                       class="form-control" accept="image/*,application/pdf" required />
+                                <div class="form-text text-muted">
+                                    Upload land use right certificate (JPG, PNG, PDF) - <span class="text-danger">Required</span>
+                                </div>
+                                <div class="mt-2" id="landCertificatePreview"></div>
+                            </div>
+
+                            <!-- 3.3 Rental Contract -->
+                            <div class="mb-4">
+                                <label class="form-label-custom" for="rentalContractDoc">
+                                    Rental Contract <span class="text-muted">(Optional)</span>
+                                </label>
+                                <input type="file" name="rentalContractDoc" id="rentalContractDoc"
+                                       class="form-control" accept="image/*,application/pdf" />
+                                <div class="form-text text-muted">
+                                    Upload rental contract if applicable (JPG, PNG, PDF) - Optional
+                                </div>
+                                <div class="mt-2" id="rentalContractPreview"></div>
+                            </div>
+
+                            <!-- ============================================================ -->
+                            <!-- PHẦN 4: KHÔNG CÓ ACTIVE - CHỈ HIỂN THỊ THÔNG BÁO -->
+                            <!-- ============================================================ -->
+                            <div class="form-divider"></div>
+
+                            <div class="p-3 bg-light rounded-3 mb-4" style="border-left: 4px solid #f59e0b;">
+                                <i class="bi bi-info-circle me-1 text-warning"></i>
+                                <small class="text-muted">
+                                    <strong>Hotel Active</strong> option will be available after the hotel is
+                                    <span class="fw-bold text-success">approved by admin</span> and has
+                                    <span class="fw-bold text-primary">at least one room</span>.
+                                </small>
+                            </div>
+
+                            <!-- ============================================================ -->
+                            <!-- PHẦN 5: NÚT HÀNH ĐỘNG -->
+                            <!-- ============================================================ -->
                             <div class="d-flex gap-3 justify-content-end flex-wrap">
                                 <a href="/owner/hotels" class="btn-cancel">
                                     <i class="bi bi-arrow-left"></i>
@@ -113,8 +195,7 @@
                             <div class="mt-4 p-3 bg-light rounded-3" style="border-left: 4px solid var(--gold);">
                                 <small class="text-muted">
                                     <i class="bi bi-info-circle me-1"></i>
-                                    After registration, your hotel will be reviewed by admin before becoming visible to customers.
-                                    Customers will be able to rate your hotel after their stay.
+                                    After registration, your hotel and documents will be reviewed by admin before becoming visible to customers.
                                 </small>
                             </div>
 
@@ -129,6 +210,131 @@
 
 <footer th:replace="~{fragment/frag :: footer}"></footer>
 <div th:replace="~{fragment/frag :: scripts}"></div>
-<script th:src="@{/assets/js/owner-hotel-create.js}"></script>
+
+<!-- ============================================================ -->
+<!-- SCRIPT PREVIEW ẢNH -->
+<!-- ============================================================ -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // Preview ảnh Hotel
+        const hotelImageInput = document.getElementById('imageFile');
+        const hotelImagePreview = document.getElementById('hotelImagePreview');
+        if (hotelImageInput) {
+            hotelImageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        hotelImagePreview.innerHTML = `
+                        <div class="d-inline-block position-relative">
+                            <img src="${ev.target.result}" class="img-thumbnail" style="max-height: 150px; border-radius: 8px; border: 2px solid var(--gold);" />
+                            <span class="badge bg-success position-absolute top-0 start-0 m-1">Selected</span>
+                        </div>
+                        <span class="ms-2 small text-success"><i class="bi bi-check-circle-fill"></i> ${file.name}</span>
+                    `;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    hotelImagePreview.innerHTML = '';
+                }
+            });
+        }
+
+        // Preview Business Registration
+        const businessInput = document.getElementById('businessRegistrationDoc');
+        const businessPreview = document.getElementById('businessRegistrationPreview');
+        if (businessInput) {
+            businessInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        const isImage = file.type.startsWith('image/');
+                        if (isImage) {
+                            businessPreview.innerHTML = `
+                            <div class="d-inline-block position-relative">
+                                <img src="${ev.target.result}" class="img-thumbnail" style="max-height: 120px; border-radius: 8px; border: 2px solid #10b981;" />
+                                <span class="badge bg-success position-absolute top-0 start-0 m-1">Selected</span>
+                            </div>
+                            <span class="ms-2 small text-success"><i class="bi bi-check-circle-fill"></i> ${file.name}</span>
+                        `;
+                        } else {
+                            businessPreview.innerHTML = `
+                            <span class="badge bg-info"><i class="bi bi-file-pdf"></i> ${file.name}</span>
+                        `;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    businessPreview.innerHTML = '';
+                }
+            });
+        }
+
+        // Preview Land Certificate
+        const landInput = document.getElementById('landCertificateDoc');
+        const landPreview = document.getElementById('landCertificatePreview');
+        if (landInput) {
+            landInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        const isImage = file.type.startsWith('image/');
+                        if (isImage) {
+                            landPreview.innerHTML = `
+                            <div class="d-inline-block position-relative">
+                                <img src="${ev.target.result}" class="img-thumbnail" style="max-height: 120px; border-radius: 8px; border: 2px solid #10b981;" />
+                                <span class="badge bg-success position-absolute top-0 start-0 m-1">Selected</span>
+                            </div>
+                            <span class="ms-2 small text-success"><i class="bi bi-check-circle-fill"></i> ${file.name}</span>
+                        `;
+                        } else {
+                            landPreview.innerHTML = `
+                            <span class="badge bg-info"><i class="bi bi-file-pdf"></i> ${file.name}</span>
+                        `;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    landPreview.innerHTML = '';
+                }
+            });
+        }
+
+        // Preview Rental Contract
+        const rentalInput = document.getElementById('rentalContractDoc');
+        const rentalPreview = document.getElementById('rentalContractPreview');
+        if (rentalInput) {
+            rentalInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        const isImage = file.type.startsWith('image/');
+                        if (isImage) {
+                            rentalPreview.innerHTML = `
+                            <div class="d-inline-block position-relative">
+                                <img src="${ev.target.result}" class="img-thumbnail" style="max-height: 120px; border-radius: 8px; border: 2px solid #f59e0b;" />
+                                <span class="badge bg-warning position-absolute top-0 start-0 m-1">Selected</span>
+                            </div>
+                            <span class="ms-2 small text-muted"><i class="bi bi-check-circle"></i> ${file.name}</span>
+                        `;
+                        } else {
+                            rentalPreview.innerHTML = `
+                            <span class="badge bg-info"><i class="bi bi-file-pdf"></i> ${file.name}</span>
+                        `;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    rentalPreview.innerHTML = '';
+                }
+            });
+        }
+    });
+</script>
+
 </body>
 </html>

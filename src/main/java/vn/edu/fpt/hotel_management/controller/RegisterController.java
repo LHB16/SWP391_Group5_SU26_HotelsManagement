@@ -4,9 +4,16 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import vn.edu.fpt.hotel_management.service.EmailService;
 import vn.edu.fpt.hotel_management.service.OtpService;
 import vn.edu.fpt.hotel_management.service.UserService;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 @Controller
 public class RegisterController {
@@ -45,8 +52,7 @@ public class RegisterController {
             String otp = otpService.generateOtp();
             emailService.sendOtp(email, otp);
 
-            // Customer không có thông tin bổ sung
-            userService.savePendingUser(fullName, username, password, email, otp, role, null, null, null, null);
+            userService.savePendingUser(fullName, username, password, email, otp, role, null, null, null, null, null);
 
             session.setAttribute("pendingEmail", email);
             session.setAttribute("pendingFullName", fullName);
@@ -68,6 +74,7 @@ public class RegisterController {
                                 @RequestParam String address,
                                 @RequestParam String idCard,
                                 @RequestParam String taxId,
+                                @RequestParam(value = "idCardDocument", required = false) MultipartFile idCardDocument,
                                 HttpSession session,
                                 Model model) {
         try {
@@ -94,9 +101,27 @@ public class RegisterController {
             String otp = otpService.generateOtp();
             emailService.sendOtp(email, otp);
 
-            // Owner có đầy đủ thông tin
+            // ===== XỬ LÝ UPLOAD ẢNH CCCD =====
+            String idCardDocumentPath = null;
+            if (idCardDocument != null && !idCardDocument.isEmpty()) {
+                try {
+                    idCardDocumentPath = saveUploadedFile(idCardDocument, "owner_docs");
+                } catch (IOException e) {
+                    model.addAttribute("error", "Failed to upload ID card document: " + e.getMessage());
+                    model.addAttribute("fullName", fullName);
+                    model.addAttribute("username", username);
+                    model.addAttribute("email", email);
+                    model.addAttribute("phone", phone);
+                    model.addAttribute("address", address);
+                    model.addAttribute("idCard", idCard);
+                    model.addAttribute("taxId", taxId);
+                    return "auth/register-owner";
+                }
+            }
+
+            // Owner có đầy đủ thông tin kèm đường dẫn ảnh CCCD
             userService.savePendingUser(fullName, username, password, email, otp, "HOTEL_OWNER",
-                    phone, address, idCard, taxId);
+                    phone, address, idCard, taxId, idCardDocumentPath);
 
             session.setAttribute("pendingEmail", email);
             session.setAttribute("pendingFullName", fullName);
@@ -115,5 +140,20 @@ public class RegisterController {
             model.addAttribute("taxId", taxId);
             return "auth/register-owner";
         }
+    }
+
+
+    private String saveUploadedFile(MultipartFile file, String subDir) throws IOException {
+        Path uploadPath = Paths.get(System.getProperty("user.dir"),
+                "src", "main", "resources", "static", "assets", "docs", subDir);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+        String originalFilename = file.getOriginalFilename();
+        String safeFilename = System.currentTimeMillis() + "_" +
+                (originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_") : "document.pdf");
+        Path target = uploadPath.resolve(safeFilename);
+        Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+        return "/assets/docs/" + subDir + "/" + safeFilename;
     }
 }
