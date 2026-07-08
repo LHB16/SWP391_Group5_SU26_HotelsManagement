@@ -73,32 +73,19 @@ document.addEventListener("DOMContentLoaded", function() {
     const checkoutInput = document.getElementById("filterCheckout");
 
     if (checkinInput && checkoutInput && typeof flatpickr === "function") {
-        
-        function parseLocal(str) {
-            if (!str) return null;
-            const p = str.split('-');
-            if (p.length !== 3) return null;
-            return new Date(+p[0], +p[1] - 1, +p[2]);
-        }
-
-        const ciVal = checkinInput.value || '';
-        const coVal = checkoutInput.value || '';
-
-        const checkinDate  = parseLocal(ciVal)  || new Date();
-        const tomorrowDate = new Date(checkinDate);
-        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-        const checkoutDate = parseLocal(coVal) || tomorrowDate;
+        const checkinVal = checkinInput.value;
+        const checkoutVal = checkoutInput.value;
+        const checkinMinDate = checkinInput.getAttribute("data-min-date") || "today";
+        const checkoutMinDate = checkoutInput.getAttribute("data-min-date") || "today";
 
         const checkinPicker = flatpickr(checkinInput, {
             dateFormat: "Y-m-d",
             altInput: true,
             altFormat: "d/m/Y",
-            altInputClass: checkinInput.classList.contains("form-control-sm")
-                ? "form-control form-control-sm filter-input w-100"
-                : "filter-input w-100",
-            minDate: "today",
+            altInputClass: "form-control form-control-sm filter-input w-100",
+            minDate: checkinMinDate,
             allowInput: false,
-            defaultDate: checkinDate,
+            defaultDate: checkinVal ? checkinVal : null,
             onChange: function(selectedDates) {
                 if (selectedDates[0]) {
                     const next = new Date(selectedDates[0]);
@@ -116,14 +103,15 @@ document.addEventListener("DOMContentLoaded", function() {
             dateFormat: "Y-m-d",
             altInput: true,
             altFormat: "d/m/Y",
-            altInputClass: checkoutInput.classList.contains("form-control-sm")
-                ? "form-control form-control-sm filter-input w-100"
-                : "filter-input w-100",
-            minDate: tomorrowDate,
+            altInputClass: "form-control form-control-sm filter-input w-100",
+            minDate: "today",
             allowInput: false,
-            defaultDate: checkoutDate
+            defaultDate: checkoutVal ? checkoutVal : null
         });
+
     }
+
+
 
 
     // ==========================================
@@ -222,15 +210,45 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (count === 0) {
                     bookBtn.setAttribute('href', '#');
                     bookBtn.classList.add('wl-book-disabled');
-                } else if (count === 1 && lastBtn) {
-                    const url = '/booking?hotelId=' + lastBtn.getAttribute('data-hotelid')
-                        + '&roomId='   + lastBtn.getAttribute('data-roomid')
-                        + (lastBtn.getAttribute('data-checkin')  ? '&checkin='  + lastBtn.getAttribute('data-checkin')  : '')
-                        + (lastBtn.getAttribute('data-checkout') ? '&checkout=' + lastBtn.getAttribute('data-checkout') : '');
-                    bookBtn.setAttribute('href', url);
-                    bookBtn.classList.remove('wl-book-disabled');
                 } else {
-                    bookBtn.setAttribute('href', '#');
+                    let queryParams = [];
+                    let firstHotelId = null;
+
+                    document.querySelectorAll('.wl-add-btn.active').forEach(function(btn) {
+                        const rId = btn.getAttribute('data-roomid');
+                        queryParams.push('roomIds=' + rId);
+                        if (!firstHotelId) {
+                            firstHotelId = btn.getAttribute('data-hotelid');
+                        }
+                        
+                        const card = btn.closest('.wishlist-room-card');
+                        let ci = btn.getAttribute('data-checkin');
+                        let co = btn.getAttribute('data-checkout');
+                        if (card) {
+                            const ciInput = card.querySelector('.wl-checkin-picker');
+                            const coInput = card.querySelector('.wl-checkout-picker');
+                            if (ciInput && ciInput.value) {
+                                ci = ciInput.value;
+                            }
+                            if (coInput && coInput.value) {
+                                co = coInput.value;
+                            }
+                        }
+                        
+                        queryParams.push('checkins=' + (ci ? ci : ''));
+                        queryParams.push('checkouts=' + (co ? co : ''));
+                        queryParams.push('quantities=1');
+                    });
+
+                    let url = '/booking';
+                    if (firstHotelId) {
+                        url += '?hotelId=' + firstHotelId;
+                    }
+                    if (queryParams.length > 0) {
+                        url += (url.includes('?') ? '&' : '?') + queryParams.join('&');
+                    }
+
+                    bookBtn.setAttribute('href', url);
                     bookBtn.classList.remove('wl-book-disabled');
                 }
             }
@@ -248,4 +266,104 @@ document.addEventListener("DOMContentLoaded", function() {
         recalcTotal();
     }
 
+
+
+    // ==========================================
+    // 6. ROOM CREATE VALIDATION
+    // ==========================================
+    const roomForm = document.getElementById("roomForm");
+    if (roomForm) {
+        roomForm.addEventListener("submit", function(event) {
+            let isValid = true;
+            let firstErrorElement = null;
+
+            // 1. Kiểm tra HTML5 validation mặc định
+            const inputs = roomForm.querySelectorAll("input[required], textarea[required]");
+            inputs.forEach(input => {
+                input.classList.remove("is-invalid");
+                if (!input.checkValidity()) {
+                    isValid = false;
+                    input.classList.add("is-invalid");
+                    if (!firstErrorElement) {
+                        firstErrorElement = input;
+                    }
+                }
+            });
+
+            // 2. Kiểm tra ít nhất 1 Bathroom Amenity được chọn
+            const bathroomCheckboxes = document.querySelectorAll('#bathroomAmenitiesSection input[type="checkbox"]');
+            const isBathroomSelected = Array.from(bathroomCheckboxes).some(cb => cb.checked);
+            const bathroomTitle = document.querySelector('#bathroomAmenitiesSection .facility-section-title');
+            
+            if (bathroomTitle) {
+                bathroomTitle.style.color = "";
+                bathroomTitle.style.borderBottom = "";
+                const oldBathErr = document.getElementById("bath-err-msg");
+                if (oldBathErr) oldBathErr.remove();
+
+                if (!isBathroomSelected) {
+                    isValid = false;
+                    bathroomTitle.style.color = "var(--danger, #dc3545)";
+                    bathroomTitle.style.borderBottom = "2px solid var(--danger, #dc3545)";
+                    
+                    const errMsg = document.createElement("div");
+                    errMsg.id = "bath-err-msg";
+                    errMsg.className = "text-danger small mt-2 fw-semibold";
+                    errMsg.innerText = "Please select at least 1 bathroom amenity.";
+                    bathroomTitle.parentNode.appendChild(errMsg);
+
+                    if (!firstErrorElement) {
+                        firstErrorElement = bathroomTitle;
+                    }
+                }
+            }
+
+            // 3. Kiểm tra ít nhất 1 Room Amenity được chọn
+            const roomCheckboxes = document.querySelectorAll('#roomAmenitiesSection input[type="checkbox"]');
+            const isRoomSelected = Array.from(roomCheckboxes).some(cb => cb.checked);
+            const roomTitle = document.querySelector('#roomAmenitiesSection .facility-section-title');
+            
+            if (roomTitle) {
+                roomTitle.style.color = "";
+                roomTitle.style.borderBottom = "";
+                const oldRoomErr = document.getElementById("room-err-msg");
+                if (oldRoomErr) oldRoomErr.remove();
+
+                if (!isRoomSelected) {
+                    isValid = false;
+                    roomTitle.style.color = "var(--danger, #dc3545)";
+                    roomTitle.style.borderBottom = "2px solid var(--danger, #dc3545)";
+                    
+                    const errMsg = document.createElement("div");
+                    errMsg.id = "room-err-msg";
+                    errMsg.className = "text-danger small mt-2 fw-semibold";
+                    errMsg.innerText = "Please select at least 1 room amenity.";
+                    roomTitle.parentNode.appendChild(errMsg);
+
+                    if (!firstErrorElement) {
+                        firstErrorElement = roomTitle;
+                    }
+                }
+            }
+
+            // Nếu form không hợp lệ, chặn submit, tự động scroll đến phần tử lỗi đầu tiên và hiển thị thông báo
+            if (!isValid) {
+                event.preventDefault();
+                if (firstErrorElement) {
+                    firstErrorElement.scrollIntoView({ behavior: "smooth", block: "center" });
+                    
+                    setTimeout(() => {
+                        if (typeof firstErrorElement.focus === "function") {
+                            firstErrorElement.focus();
+                        }
+                        if (typeof firstErrorElement.reportValidity === "function") {
+                            firstErrorElement.reportValidity();
+                        }
+                    }, 400); // Đợi scroll chạy xong rồi hiển thị tooltip lỗi
+                }
+            }
+        });
+    }
+
 });
+

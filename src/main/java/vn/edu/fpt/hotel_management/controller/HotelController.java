@@ -241,7 +241,10 @@ public class HotelController {
         model.addAttribute("maxPrice", resolvedMaxPrice);
         model.addAttribute("checkin", checkin);
         model.addAttribute("checkout", checkout);
+        model.addAttribute("today", java.time.LocalDate.now().toString());
+        model.addAttribute("minCheckout", java.time.LocalDate.parse(checkin).plusDays(1).toString());
         model.addAttribute("totalResults", hotels.size());
+
         model.addAttribute("user", session.getAttribute("loggedInUser"));
         model.addAttribute("today", java.time.LocalDate.now().toString());
 

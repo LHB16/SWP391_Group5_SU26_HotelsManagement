@@ -137,7 +137,7 @@
                         <!-- Room Quantity Badge -->
                         <div class="room-qty-badge">
                             <i class="bi bi-door-open me-1"></i>
-                            <span th:text="${availableRoomsMap != null and availableRoomsMap.containsKey(room.id) ? (availableRoomsMap.get(room.id) + ' room' + (availableRoomsMap.get(room.id) > 1 ? 's' : '') + ' available') : (room.numberRooms != null ? room.numberRooms + ' room' + (room.numberRooms > 1 ? 's' : '') + ' available' : '0 rooms available')}">5 rooms available</span>
+                            <span th:text="${availableRoomsMap != null and availableRoomsMap.containsKey(room.id) ? (availableRoomsMap.get(room.id) + ' Available Rooms') : (room.numberRooms != null ? room.numberRooms + ' Available Rooms' : '0 Available Rooms')}">5 Available Rooms</span>
                         </div>
 
                         <!-- Ảnh -->
@@ -468,6 +468,6 @@
 <footer th:replace="~{fragment/frag :: footer}"></footer>
 <div th:replace="~{fragment/frag :: scripts}"></div>
 
-<script th:src="@{/assets/js/filter.js}"></script>
+<script th:src="@{/assets/js/filter.js?v=2}"></script>
 </body>
 </html>

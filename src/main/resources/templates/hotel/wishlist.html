@@ -118,9 +118,9 @@
                     <div class="room-qty-badge wishlist-qty-badge">
                         <i class="bi bi-door-open me-1"></i>
                         <span th:text="${wishlistAvailableRoomsMap != null and wishlistAvailableRoomsMap.containsKey(wl.id)
-                            ? (wishlistAvailableRoomsMap.get(wl.id) + ' room' + (wishlistAvailableRoomsMap.get(wl.id) > 1 ? 's' : '') + ' available')
-                            : (wl.room.numberRooms != null ? wl.room.numberRooms + ' room' + (wl.room.numberRooms > 1 ? 's' : '') + ' available' : '0 rooms available')}">
-                            5 rooms available
+                            ? (wishlistAvailableRoomsMap.get(wl.id) + ' Available Rooms')
+                            : (wl.room.numberRooms != null ? wl.room.numberRooms + ' Available Rooms' : '0 Available Rooms')}">
+                            5 Available Rooms
                         </span>
                     </div>
 
@@ -229,7 +229,7 @@
 
 <footer th:replace="~{fragment/frag :: footer}"></footer>
 <div th:replace="~{fragment/frag :: scripts}"></div>
-<script th:src="@{/assets/js/filter.js}"></script>
+<script th:src="@{/assets/js/filter.js?v=2}"></script>
 
 </body>
 </html>

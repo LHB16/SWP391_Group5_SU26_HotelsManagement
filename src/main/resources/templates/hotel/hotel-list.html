@@ -60,13 +60,14 @@
                             <div class="mb-3">
                                 <label class="filter-section-label" for="filterCheckin">Check-in Date</label>
                                 <input type="text" name="checkin" id="filterCheckin"
-                                       class="filter-input" th:value="${checkin}" placeholder="Select Check-in" />
+                                       class="form-control form-control-sm filter-input" th:value="${checkin}" th:data-min-date="${today}" placeholder="Select Check-in" />
                             </div>
                             <div class="mb-3">
                                 <label class="filter-section-label" for="filterCheckout">Check-out Date</label>
                                 <input type="text" name="checkout" id="filterCheckout"
-                                       class="filter-input" th:value="${checkout}" placeholder="Select Check-out" />
+                                       class="form-control form-control-sm filter-input" th:value="${checkout}" th:data-min-date="${minCheckout}" placeholder="Select Check-out" />
                             </div>
+
 
                             <hr class="border-gold-faint my-3">
 
@@ -306,16 +307,18 @@
                             </div>
 
                             <!-- Card footer -->
-                            <div class="card-footer d-flex justify-content-between align-items-center">
-                                <div>
-                                    <span class="fw-bold text-gold-dark fs-6"
+                            <div class="card-footer d-flex justify-content-between align-items-center custom-hl-card-footer">
+                                <div class="text-nowrap lh-1 d-flex align-items-baseline custom-hl-price-container">
+                                    <span class="fw-bold text-gold-dark custom-hl-price-number"
                                         th:text="${#numbers.formatInteger(hotelPricesMap != null && hotelPricesMap.get(hotel.id) != null ? hotelPricesMap.get(hotel.id) : 0, 0, 'COMMA')}">0</span>
-                                    <small class="text-muted" th:text="${isFiltered} ? ' VND / ' + ${nights} + ' night' + (${nights > 1} ? 's' : '') : ' VND/night'"> VND/night</small>
+                                    <span class="text-muted custom-hl-price-desc" 
+                                          th:text="${isFiltered} ? ' VND / ' + ${nights} + ' night' + (${nights > 1} ? 's' : '') : ' VND/night'"> VND/night</span>
                                 </div>
                                 <a th:href="@{/hotels/{id}/rooms(id=${hotel.id}, checkin=${checkin}, checkout=${checkout})}"
-                                   class="btn btn-gold btn-sm">
+                                   target="_blank"
+                                   class="btn btn-gold btn-sm text-nowrap custom-hl-view-btn">
                                     View Rooms
-                                    <i class="bi bi-arrow-right ms-1"></i>
+                                    <i class="bi bi-arrow-right ms-1 custom-hl-view-btn-icon"></i>
                                 </a>
                             </div>
 
@@ -331,103 +334,8 @@
 
 <footer th:replace="~{fragment/frag :: footer}"></footer>
 <div th:replace="~{fragment/frag :: scripts}"></div>
-<script th:src="@{/assets/js/filter.js}"></script>
+<script th:src="@{/assets/js/filter.js?v=2}"></script>
 
 
-<script th:inline="javascript">
-    // Biến và hàm cho Dual Range Slider
-    const sliderOne = document.getElementById("slider-1");
-    const sliderTwo = document.getElementById("slider-2");
-    const minPriceInput = document.getElementById("minPriceInput");
-    const maxPriceInput = document.getElementById("maxPriceInput");
-    const displayValOne = document.getElementById("range1");
-    const displayValTwo = document.getElementById("range2");
-    const minGap = 200000; // Khoảng cách tối thiểu 200,000 VND
-    const sliderTrack = document.querySelector(".slider-track");
-
-    function slideOne() {
-        let val1 = parseInt(sliderOne.value);
-        let val2 = parseInt(sliderTwo.value);
-        if (val2 - val1 <= minGap) {
-            sliderOne.value = val2 - minGap;
-        }
-        minPriceInput.value = sliderOne.value;
-        displayValOne.textContent = formatCurrency(sliderOne.value);
-        fillColor();
-        
-        // Đưa slider 1 lên trên để tránh trùng lấn sự kiện kéo
-        sliderOne.style.zIndex = "10";
-        sliderTwo.style.zIndex = "0";
-    }
-
-    function slideTwo() {
-        let val1 = parseInt(sliderOne.value);
-        let val2 = parseInt(sliderTwo.value);
-        if (val2 - val1 <= minGap) {
-            sliderTwo.value = val1 + minGap;
-        }
-        maxPriceInput.value = sliderTwo.value;
-        displayValTwo.textContent = formatCurrency(sliderTwo.value);
-        fillColor();
-        
-        // Đưa slider 2 lên trên khi đang tương tác kéo max
-        sliderTwo.style.zIndex = "10";
-        sliderOne.style.zIndex = "0";
-    }
-
-    function fillColor() {
-        let val1 = parseInt(sliderOne.value);
-        let val2 = parseInt(sliderTwo.value);
-        let percent1 = ((val1 - 100000) / (50000000 - 100000)) * 100;
-        let percent2 = ((val2 - 100000) / (50000000 - 100000)) * 100;
-        sliderTrack.style.background = `linear-gradient(to right, #ced4da ${percent1}% , var(--gold) ${percent1}% , var(--gold) ${percent2}%, #ced4da ${percent2}%)`;
-    }
-
-    function formatCurrency(value) {
-        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(value);
-    }
-
-    document.addEventListener("DOMContentLoaded", function() {
-        const checkinVal = /*[[${checkin}]]*/ '';
-        const checkoutVal = /*[[${checkout}]]*/ '';
-        const todayVal = /*[[${today}]]*/ '';
-
-        // Khởi tạo trạng thái thanh trượt giá ban đầu
-        slideOne();
-        slideTwo();
-
-        const checkinPicker = flatpickr("#filterCheckin", {
-            dateFormat: "Y-m-d",
-            altInput: true,
-            altFormat: "d/m/Y",
-            altInputClass: "filter-input w-100",
-            minDate: todayVal ? todayVal : "today",
-            allowInput: false,
-            defaultDate: checkinVal ? checkinVal : null,
-            onChange: function(selectedDates, dateStr) {
-                if (selectedDates[0]) {
-                    const nextDay = new Date(selectedDates[0]);
-                    nextDay.setDate(nextDay.getDate() + 1);
-                    checkoutPicker.set("minDate", nextDay);
-
-                    const currentCheckout = checkoutPicker.selectedDates[0];
-                    if (currentCheckout && currentCheckout <= selectedDates[0]) {
-                        checkoutPicker.setDate(nextDay);
-                    }
-                }
-            }
-        });
-
-        const checkoutPicker = flatpickr("#filterCheckout", {
-            dateFormat: "Y-m-d",
-            altInput: true,
-            altFormat: "d/m/Y",
-            altInputClass: "filter-input w-100",
-            minDate: checkinVal ? new Date(new Date(checkinVal).getTime() + 86400000) : new Date().setDate(new Date().getDate() + 1),
-            allowInput: false,
-            defaultDate: checkoutVal ? checkoutVal : null
-        });
-    });
-</script>
 </body>
 </html>

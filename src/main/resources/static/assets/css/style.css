@@ -21451,8 +21451,8 @@ h6,
 }
 .btn-check:checked + .hl-filter-btn {
     color: #fff !important;
-    background-color: var(--navy) !important;
-    border-color: var(--navy) !important;
+    background-color: var(--gold) !important;
+    border-color: var(--gold) !important;
     box-shadow: var(--shadow-sm);
 }
 .filter-btn-container {
@@ -22035,6 +22035,146 @@ h6,
     pointer-events: none !important;
     cursor: not-allowed !important;
 }
+
+/* ── Custom Hotel Card Footer Single Line Pricing ── */
+.custom-hl-card-footer {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+    gap: 4px;
+}
+
+.custom-hl-price-container {
+    max-width: 65% !important;
+}
+
+.custom-hl-price-number {
+    font-size: 1rem !important;
+}
+
+.custom-hl-price-desc {
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    margin-left: 2px !important;
+}
+
+.custom-hl-view-btn {
+    font-size: 0.78rem !important;
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    max-width: 35% !important;
+}
+
+.custom-hl-view-btn-icon {
+    font-size: 0.7rem !important;
+}
+
+/* ── Redesigned Booking Room Block ── */
+.booking-room-block {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    margin-bottom: 24px !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+}
+
+.booking-room-hotel-header {
+    background-color: var(--gold, #c9a96e) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    text-align: center !important;
+    padding: 10px 16px !important;
+    letter-spacing: 0.5px !important;
+    border-top-left-radius: 7px !important;
+    border-top-right-radius: 7px !important;
+}
+
+.booking-room-details-row {
+    background-color: #f8fafc !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding: 16px !important;
+}
+
+.booking-room-desc-row {
+    padding: 16px !important;
+}
+
+.custom-rooms-select {
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 4px !important;
+    padding: 6px 12px !important;
+    font-weight: 600 !important;
+    color: var(--navy-primary) !important;
+    cursor: pointer !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    white-space: pre !important;
+}
+
+.custom-rooms-select:focus {
+    border-color: var(--gold, #c9a96e) !important;
+    box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.25) !important;
+}
+
+.custom-rooms-select[size]:not([size="1"]) {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: auto !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    z-index: 100 !important;
+    background-color: #ffffff !important;
+}
+
+.booking-hotel-header-styled {
+    background-color: var(--gold, #c9a96e) !important;
+    font-size: 1.05rem !important;
+    letter-spacing: 0.5px !important;
+}
+
+.booking-picker-weight {
+    font-weight: 500 !important;
+}
+
+.booking-hidden-label {
+    visibility: hidden !important;
+}
+
+.booking-room-img-wrap {
+    width: 220px !important;
+    height: 130px !important;
+    border-radius: 6px !important;
+    overflow: hidden !important;
+}
+
+.booking-available-badge {
+    background-color: var(--navy-primary) !important;
+}
+
+.booking-room-type-title {
+    color: var(--navy-primary) !important;
+    font-size: 1.25rem !important;
+}
+
+.booking-price-label {
+    letter-spacing: 0.5px !important;
+    font-size: 0.72rem !important;
+    margin-bottom: 2px !important;
+}
+
+.booking-price-amount {
+    font-size: 1.45rem !important;
+}
+
+.booking-price-night {
+    font-size: 0.8rem !important;
+    font-weight: 500 !important;
+}
+
 
 
 
