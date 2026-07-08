@@ -46,4 +46,8 @@ public interface HotelRepository extends JpaRepository<Hotel, Integer> {
     Page<Hotel> findByApprovalStatusAndNameContainingIgnoreCase(String approvalStatus, String name, Pageable pageable);
 
     Page<Hotel> findByNameContainingIgnoreCase(String name, Pageable pageable);
+    
+    long countByApprovalStatus(String approvalStatus);
+    
+    long countByApprovalStatusAndOwnerId(String approvalStatus, int ownerId);
 }

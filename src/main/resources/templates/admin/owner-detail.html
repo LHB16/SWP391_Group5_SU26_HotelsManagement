@@ -255,8 +255,8 @@
                                     <div class="fw-semibold text-dark mt-1"
                                          th:text="${#numbers.formatDecimal(hotel.rating, 1, 'COMMA', 1, 'POINT')} + ' ★'">0.0 ★</div>
                                     
-                                    <!-- Active/Inactive button -->
-                                    <div class="mt-2" th:id="'hotel-action-container-' + ${hotel.id}">
+                                    <!-- Activation Actions (only for APPROVED hotels) -->
+                                    <div class="mt-2" th:if="${hotel.approvalStatus == 'APPROVED'}" th:id="'hotel-action-container-' + ${hotel.id}">
                                         <!-- Active Button Trigger Modal -->
                                         <button type="button"
                                                 class="btn btn-sm btn-success d-flex align-items-center gap-1 text-white border-0 hotel-active-btn"
@@ -342,37 +342,43 @@
                                     </div>
                                 </div>
 
-                                <!-- Hotel Document Approve / Reject (only if PENDING) -->
-                                <div th:if="${doc != null && doc.uploadStatus == 'PENDING'}" class="row g-2 mt-1">
-                                    <div class="col-md-3">
-                                        <form th:action="@{/admin/verify-hotel/approve}" method="post">
-                                            <input type="hidden" name="docId" th:value="${doc.id}" />
-                                            <button type="submit" class="btn w-100 fw-semibold"
-                                                    style="border-radius: 8px; padding: 8px 0; background-color: #10b981; border-color: #10b981; color: #fff; font-size: 0.85rem;">
-                                                Approve Hotel Docs
-                                            </button>
-                                        </form>
-                                    </div>
-                                    <div class="col-md-9">
-                                        <form th:action="@{/admin/verify-hotel/reject}" method="post" class="d-flex gap-2">
-                                            <input type="hidden" name="docId" th:value="${doc.id}" />
-                                            <input type="text" name="rejectionReason" class="form-control"
-                                                   placeholder="Enter rejection reason (required)..." required
-                                                   style="border-radius: 8px; font-size: 0.85rem; border: 1.5px solid #e2e8f0;" />
-                                            <button type="submit" class="btn fw-semibold flex-shrink-0"
-                                                    style="border-radius: 8px; padding: 8px 16px; background-color: #ef4444; border-color: #ef4444; color: #fff; font-size: 0.85rem;">
-                                                Reject
-                                            </button>
-                                        </form>
+                                <!-- Hotel Approval Actions (only if hotel is PENDING) -->
+                                <div th:if="${hotel.approvalStatus == 'PENDING'}" class="mt-4 pt-3 border-top">
+                                    <h5 class="fw-bold text-dark mb-3" style="font-size: 1rem;">Hotel Approval Actions</h5>
+                                    <div class="row g-3">
+                                        <!-- Left: Rejection Reason Textarea -->
+                                        <div class="col-md-9">
+                                            <textarea th:form="'hotelRejectForm-' + ${hotel.id}" name="rejectionReason" class="form-control owner-verify-textarea"
+                                                      placeholder="Enter rejection reason (required for rejection)..." required></textarea>
+                                        </div>
+                                        
+                                        <!-- Right: Stacked Action Buttons -->
+                                        <div class="col-md-3 d-flex flex-column gap-2 justify-content-between">
+                                            <!-- Approve Form -->
+                                            <form th:action="@{/admin/hotel/approve}" method="post" class="w-100">
+                                                <input type="hidden" name="hotelId" th:value="${hotel.id}" />
+                                                <button type="submit" class="btn btn-success w-100 fw-semibold text-white border-0 owner-verify-btn-approve">
+                                                    Approve
+                                                </button>
+                                            </form>
+                                            
+                                            <!-- Reject Form -->
+                                            <form th:id="'hotelRejectForm-' + ${hotel.id}" th:action="@{/admin/hotel/reject}" method="post" class="w-100">
+                                                <input type="hidden" name="hotelId" th:value="${hotel.id}" />
+                                                <button type="submit" class="btn btn-danger w-100 fw-semibold text-white border-0 owner-verify-btn-reject">
+                                                    Reject
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- Rejection reason for hotel doc -->
-                                <div th:if="${doc != null && doc.uploadStatus == 'REJECTED'}"
+                                <!-- Rejection reason for hotel doc or hotel direct -->
+                                <div th:if="${(doc != null && doc.uploadStatus == 'REJECTED') || hotel.approvalStatus == 'REJECTED'}"
                                      class="mt-2 p-2 rounded-2"
                                      style="background-color: #fef2f2; border-left: 3px solid #fca5a5;">
                                     <small class="fw-bold" style="color: #dc2626;">Rejection Reason: </small>
-                                    <small th:text="${doc.rejectionReason}" class="text-dark">Reason...</small>
+                                    <small th:text="${doc != null && doc.rejectionReason != null ? doc.rejectionReason : hotel.rejectionReason}" class="text-dark">Reason...</small>
                                 </div>
                             </div>
                         </div>
