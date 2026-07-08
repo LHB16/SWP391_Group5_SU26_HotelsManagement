@@ -2,7 +2,6 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 
 <head th:replace="~{fragment/frag :: head}"></head>
-<link th:href="@{/assets/css/wishlist.css}" rel="stylesheet"/>
 
 <body class="d-flex flex-column min-vh-100" style="padding-bottom: 80px;">
 <nav th:replace="~{fragment/frag :: navBar}"></nav>
@@ -132,12 +131,12 @@
                              class="object-fit-cover wishlist-card-img" />
                         <div th:if="${wl.room.imgUrl == null or wl.room.imgUrl.isEmpty()}"
                              class="d-flex align-items-center justify-content-center bg-light wishlist-card-img">
-                            <i class="bi bi-image text-muted fs-3"></i>
-                        </div>
+                             <i class="bi bi-image text-muted fs-3"></i>
+                         </div>
 
                         <!-- Heart button (remove from wishlist) -->
                         <a th:href="@{/wishlist/remove(id=${wl.id})}"
-                           class="wishlist-heart-btn"
+                           class="custom-wishlist-heart-btn"
                            title="Remove from Wishlist">
                             <i class="bi bi-heart-fill pink-heart"></i>
                         </a>
