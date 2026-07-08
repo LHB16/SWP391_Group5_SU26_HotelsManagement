@@ -13,7 +13,10 @@ import vn.edu.fpt.hotel_management.service.OwnerService;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.*;
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class RoomController {
@@ -27,6 +30,7 @@ public class RoomController {
     private final RoomFacilityRepository roomFacilityRepository;
     private final OwnerService ownerService;
     private final BookingRepository bookingRepository;
+    private final FeedbackReplyRepository feedbackReplyRepository;
 
     private static final String ROOM_IMAGE_SUBDIR = "assets/images/room";
 
@@ -38,7 +42,8 @@ public class RoomController {
                           HotelOwnerRepository hotelOwnerRepository,
                           RoomFacilityRepository roomFacilityRepository,
                           OwnerService ownerService,
-                          BookingRepository bookingRepository) {
+                          BookingRepository bookingRepository,
+                          FeedbackReplyRepository feedbackReplyRepository) {
         this.roomRepository = roomRepository;
         this.hotelRepository = hotelRepository;
         this.reviewRepository = reviewRepository;
@@ -48,6 +53,7 @@ public class RoomController {
         this.roomFacilityRepository = roomFacilityRepository;
         this.ownerService = ownerService;
         this.bookingRepository = bookingRepository;
+        this.feedbackReplyRepository = feedbackReplyRepository;
     }
 
     // ===== RESOLVE STATIC DIR =====
@@ -69,6 +75,7 @@ public class RoomController {
             @RequestParam(value = "maxPrice", required = false, defaultValue = "50000000") long maxPrice,
             @RequestParam(value = "checkin", required = false) String checkin,
             @RequestParam(value = "checkout", required = false) String checkout,
+            @RequestParam(value = "bookingId", required = false) Integer bookingId,
             HttpSession session,
             Model model,
             RedirectAttributes redirectAttributes
@@ -77,6 +84,14 @@ public class RoomController {
         if (hotel == null || !hotel.isActive()) {
             redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
             return "redirect:/hotels";
+        }
+
+        Integer defaultRoomId = null;
+        if (bookingId != null) {
+            Booking booking = bookingRepository.findById(bookingId).orElse(null);
+            if (booking != null && booking.getRoom() != null) {
+                defaultRoomId = booking.getRoom().getId();
+            }
         }
 
         List<Room> rooms;
@@ -170,6 +185,22 @@ public class RoomController {
             }
         }
 
+        boolean isHotelOwner = false;
+        if (loggedInUser != null && "HOTEL_OWNER".equals(loggedInUser.getRole())) {
+            HotelOwner currentOwner = hotelOwnerRepository.findByUserAccount(loggedInUser).orElse(null);
+            if (currentOwner != null && hotel.getOwner() != null && hotel.getOwner().getId() == currentOwner.getId()) {
+                isHotelOwner = true;
+            }
+        }
+
+        List<FeedbackReply> replies = feedbackReplyRepository.findByHotelId(id);
+        Map<Integer, FeedbackReply> repliesMap = new HashMap<>();
+        for (FeedbackReply r : replies) {
+            if (r.getFeedback() != null) {
+                repliesMap.put(r.getFeedback().getId(), r);
+            }
+        }
+
         model.addAttribute("hotel", hotel);
         model.addAttribute("rooms", rooms);
         model.addAttribute("roomPricesMap", roomPricesMap);
@@ -189,7 +220,11 @@ public class RoomController {
         model.addAttribute("avgRating", avgRating);
         model.addAttribute("totalReviews", reviews.size());
         model.addAttribute("hasReviewed", hasReviewed);
-        model.addAttribute("today", java.time.LocalDate.now().toString());
+        model.addAttribute("today", LocalDate.now().toString());
+        model.addAttribute("isHotelOwner", isHotelOwner);
+        model.addAttribute("repliesMap", repliesMap);
+        model.addAttribute("bookingId", bookingId);
+        model.addAttribute("defaultRoomId", defaultRoomId);
 
         return "hotel/room-list";
     }
