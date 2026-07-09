@@ -67,6 +67,16 @@
                                 <!-- Trạng thái thanh toán khác -->
                                 <span th:if="${booking.status == 'CONFIRMED'}" class="bd-status-label bd-status-confirmed">Confirmed</span>
                                 <span th:if="${booking.status == 'DONE' or booking.status == 'COMPLETED'}" class="bd-status-label bd-status-done">Completed</span>
+                                <th:block th:if="${booking.status == 'DONE' or booking.status == 'COMPLETED'}">
+                                    <a th:if="${!hasFeedback}" th:href="@{/booking/{id}/feedback(id=${booking.id})}" 
+                                       class="bd-status-label ms-2" 
+                                       style="background-color: var(--gold) !important; color: white !important; text-decoration: none; display: inline-block; vertical-align: middle;">
+                                        Feedback
+                                    </a>
+                                    <span th:if="${hasFeedback}" class="bd-status-label bd-status-confirmed ms-2" style="vertical-align: middle;">
+                                        Reviewed
+                                    </span>
+                                </th:block>
                                 <span th:if="${booking.status == 'CANCELLED'}" class="bd-status-label bd-status-cancelled">Cancelled</span>
                             </th:block>
                         </div>

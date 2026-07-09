@@ -886,6 +886,8 @@ public class BookingController {
             refundEligible = (p != null && "REFUNDED".equalsIgnoreCase(p.getStatus())) && !refundSubmitted;
         }
 
+        boolean hasFeedback = reviewRepository.existsByBookingId(booking.getId());
+
         model.addAttribute("booking", booking);
         model.addAttribute("hotel", booking.getHotel());
         model.addAttribute("room", booking.getRoom());
@@ -894,6 +896,7 @@ public class BookingController {
         model.addAttribute("refundEligible", refundEligible);
         model.addAttribute("refundSubmitted", refundSubmitted);
         model.addAttribute("user", loggedInUser);
+        model.addAttribute("hasFeedback", hasFeedback);
 
         return "booking/detail";
     }

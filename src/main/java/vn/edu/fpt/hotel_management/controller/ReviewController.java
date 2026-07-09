@@ -497,4 +497,96 @@ public class ReviewController {
         response.put("status", review.getStatus());
         return response;
     }
+
+    @GetMapping("/booking/{bookingId}/feedback")
+    public String showFeedbackForm(@PathVariable("bookingId") int bookingId, HttpSession session, org.springframework.ui.Model model) {
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+        
+        Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        
+        if (booking == null || customer == null || booking.getCustomer().getId() != customer.getId()) {
+            session.setAttribute("errorMessage", "Booking not found.");
+            return "redirect:/booking/history";
+        }
+        
+        // Chặn nếu trạng thái không phải COMPLETED hoặc DONE
+        if (!"COMPLETED".equalsIgnoreCase(booking.getStatus()) && !"DONE".equalsIgnoreCase(booking.getStatus())) {
+            session.setAttribute("errorMessage", "You can only feedback after your stay is completed.");
+            return "redirect:/booking/detail/" + bookingId;
+        }
+        
+        // Chặn nếu đã feedback cho booking này rồi
+        boolean exists = reviewRepository.existsByBookingId(bookingId);
+        if (exists) {
+            session.setAttribute("errorMessage", "You have already submitted feedback for this booking.");
+            return "redirect:/booking/detail/" + bookingId;
+        }
+        
+        model.addAttribute("booking", booking);
+        model.addAttribute("customer", customer);
+        model.addAttribute("hotel", booking.getHotel());
+        model.addAttribute("room", booking.getRoom());
+        model.addAttribute("user", loggedInUser);
+        return "booking/feedback";
+    }
+
+    @PostMapping("/booking/{bookingId}/feedback")
+    public String submitFeedback(
+            @PathVariable("bookingId") int bookingId,
+            @RequestParam("rating") int rating,
+            @RequestParam(value = "comment", required = false) String comment,
+            HttpSession session) {
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+        
+        Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        
+        if (booking == null || customer == null || booking.getCustomer().getId() != customer.getId()) {
+            session.setAttribute("errorMessage", "Booking not found.");
+            return "redirect:/booking/history";
+        }
+        
+        // Chặn nếu trạng thái không phải COMPLETED hoặc DONE
+        if (!"COMPLETED".equalsIgnoreCase(booking.getStatus()) && !"DONE".equalsIgnoreCase(booking.getStatus())) {
+            session.setAttribute("errorMessage", "You can only feedback after your stay is completed.");
+            return "redirect:/booking/detail/" + bookingId;
+        }
+        
+        // Chặn nếu đã feedback cho booking này rồi
+        boolean exists = reviewRepository.existsByBookingId(bookingId);
+        if (exists) {
+            session.setAttribute("errorMessage", "You have already submitted feedback for this booking.");
+            return "redirect:/booking/detail/" + bookingId;
+        }
+        
+        if (rating < 1 || rating > 5) {
+            session.setAttribute("errorMessage", "Rating must be between 1 and 5 stars.");
+            return "redirect:/booking/" + bookingId + "/feedback";
+        }
+        
+        String cleanComment = (comment != null ? comment.trim() : "");
+        
+        Review review = new Review();
+        review.setCustomer(customer);
+        review.setHotel(booking.getHotel());
+        review.setRoom(booking.getRoom());
+        review.setUserFullName(customer.getFullName());
+        review.setRoomType(booking.getRoom().getType());
+        review.setRating(rating);
+        review.setComment(cleanComment);
+        review.setStatus("VISIBLE");
+        review.setBooking(booking);
+        
+        reviewRepository.save(review);
+        
+        session.setAttribute("successMessage", "Feedback submitted successfully!");
+        return "redirect:/hotels/" + booking.getHotel().getId() + "/rooms#reviews";
+    }
 }
