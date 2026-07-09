@@ -75,32 +75,12 @@
                 <div class="col-12 col-md-5">
                     <div class="booking-card h-100">
 
-                        <!-- Hotel / Room header -->
-                        <div class="summary-header">
-                            <div class="summary-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
-                                    fill="none" stroke="#c9a96e" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                                </svg>
-                            </div>
-                            <div>
-                                <div class="summary-hotel-name" th:text="${hotel.name}">Hotel Name</div>
-                                <div class="summary-room-type" th:if="${bookingsList == null or bookingsList.size() <= 1}" th:text="${room.roomType}">Room Type</div>
-                                <div class="summary-room-type" th:if="${bookingsList != null and bookingsList.size() > 1}">
-                                    <span th:each="b, iterStat : ${bookingsList}" th:text="${bookingQuantitiesMap.get(b.id)} + ' x ' + ${b.room.roomType} + (${iterStat.last} ? '' : ', ')">Room Types</span>
-                                </div>
-                            </div>
-                        </div>
+
 
                         <!-- Booking detail rows -->
                         <div class="summary-row">
                             <span class="summary-label">Rooms Selected</span>
-                            <div class="text-end">
-                                <div th:if="${bookingsList == null or bookingsList.size() <= 1}" class="summary-value" th:text="${qty} + ' Room(s) (' + ${room.roomType} + ')'">1 Room(s) (Superior Room)</div>
-                                <div th:if="${bookingsList != null and bookingsList.size() > 1}" th:each="b : ${bookingsList}" class="summary-value" style="font-size: 0.9rem; font-weight: normal; margin-bottom: 2px;" th:text="${bookingQuantitiesMap.get(b.id)} + ' Room(s) (' + ${b.room.roomType} + ')'">1 Room(s) (Superior Room)</div>
-                            </div>
+                            <span class="summary-value" th:text="${qty} + ' Room(s)'">1 Room(s)</span>
                         </div>
                         <div class="summary-row">
                             <span class="summary-label">Subtotal</span>
@@ -132,9 +112,9 @@
                         <div class="summary-total">
                             <div class="summary-total-label">Total Amount</div>
                             <div>
-                                <span class="summary-total-amount"
+                                <span class="summary-total-amount" style="color: var(--gold) !important; font-weight: bold;"
                                     th:text="${#numbers.formatInteger(totalPrice, 0, 'COMMA')}">1,040,000</span>
-                                <span class="summary-total-unit">VND</span>
+                                <span class="summary-total-unit" style="color: var(--gold) !important; font-weight: bold;">VND</span>
                             </div>
                         </div>
 
@@ -274,7 +254,7 @@
                                     </div>
                                     <div class="qr-bank-info-row">
                                         <span class="qr-bank-label">Amount</span>
-                                        <span class="qr-bank-value amount">
+                                        <span class="qr-bank-value amount" style="color: var(--gold) !important; font-weight: bold;">
                                             <th:block th:text="${#numbers.formatInteger(totalPrice, 0, 'COMMA')}">
                                                 1,040,000</th:block>
                                             VND

@@ -323,7 +323,7 @@
                 altFormat: "d/m/Y",
                 altInputClass: "bh-filter-input",
                 allowInput: false,
-                minDate: checkinVal ? new Date(new Date(checkinVal).getTime() + 86400000) : null,
+                minDate: checkinVal ? checkinVal : null,
                 defaultDate: checkoutVal ? checkoutVal : null
             });
         });

@@ -112,6 +112,8 @@ public class PaymentController {
             @RequestParam(value = "quantities", required = false) java.util.List<Integer> quantities,
             @RequestParam(value = "checkin", required = false) String checkin,
             @RequestParam(value = "checkout", required = false) String checkout,
+            @RequestParam(value = "checkins", required = false) java.util.List<String> checkins,
+            @RequestParam(value = "checkouts", required = false) java.util.List<String> checkouts,
             @RequestParam(value = "from", required = false) String from,
             HttpSession session, Model model,
             RedirectAttributes redirectAttributes) {
@@ -120,6 +122,18 @@ public class PaymentController {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null)
             return "redirect:/login";
+
+        // Đồng bộ checkin/checkout từ danh sách checkins/checkouts nếu có
+        if (checkin == null || checkin.isBlank()) {
+            if (checkins != null && !checkins.isEmpty()) {
+                checkin = checkins.get(0);
+            }
+        }
+        if (checkout == null || checkout.isBlank()) {
+            if (checkouts != null && !checkouts.isEmpty()) {
+                checkout = checkouts.get(0);
+            }
+        }
 
         // Đặt ngày mặc định nếu không có
         if (checkin == null || checkin.isBlank())
@@ -207,78 +221,52 @@ public class PaymentController {
         if (customer == null)
             return "redirect:/hotels/" + hotel.getId() + "/rooms";
 
-        // Kiểm tra nếu đã có booking PENDING cho phòng chính còn hạn QR thì dùng lại
-        java.util.Optional<Booking> existingOpt = bookingRepository
-                .findByCustomerIdAndRoomIdAndCheckInDateAndCheckOutDateAndStatusOrderByCreatedAtDesc(
-                        customer.getId(), primaryRoomId, checkInDate, checkOutDate, "PENDING")
-                .stream()
-                .filter(b -> {
-                    Payment p = paymentRepository.findByBookingId(b.getId()).orElse(null);
-                    return p != null && !p.isQrExpired(); // QR còn hạn
-                })
-                .findFirst();
-
         Booking parentBooking;
         java.util.List<Booking> bookingsList = new java.util.ArrayList<>();
         java.util.Map<Integer, Integer> bookingQuantitiesMap = new java.util.HashMap<>();
 
-        if (existingOpt.isPresent()) {
-            parentBooking = existingOpt.get();
-            bookingsList.add(parentBooking);
-            bookingQuantitiesMap.put(parentBooking.getId(), validQuantities.get(0));
-            
-            // Tìm các booking con hiện tại của group
-            java.util.List<Booking> children = bookingRepository.findByCustomerIdOrderByCreatedAtDesc(customer.getId()).stream()
-                    .filter(b -> b.getSpecialNotes() != null && b.getSpecialNotes().equals("GROUP_BOOKING_parent:" + parentBooking.getId()))
-                    .collect(java.util.stream.Collectors.toList());
-            bookingsList.addAll(children);
-            for (int i = 1; i < validRoomIds.size() && i < bookingsList.size(); i++) {
-                bookingQuantitiesMap.put(bookingsList.get(i).getId(), validQuantities.get(i));
-            }
-        } else {
-            // Tạo mới cả group booking
-            parentBooking = new Booking();
-            parentBooking.setCustomer(customer);
-            parentBooking.setRoom(room);
-            parentBooking.setHotel(hotel);
-            parentBooking.setNumNights((int) nights);
-            parentBooking.setCheckInDate(checkInDate);
-            parentBooking.setCheckOutDate(checkOutDate);
-            
-            BigDecimal rSub = roomSubtotals.get(0);
-            BigDecimal rTax = rSub.multiply(BigDecimal.valueOf(0.1)).setScale(0, java.math.RoundingMode.HALF_UP);
-            BigDecimal rTotalPrice = rSub.add(rTax).add(serviceFee);
-            
-            parentBooking.setTotalPrice(rTotalPrice);
-            parentBooking.setStatus("PENDING");
-            parentBooking.setCreatedAt(LocalDateTime.now());
-            bookingRepository.save(parentBooking);
-            
-            bookingsList.add(parentBooking);
-            bookingQuantitiesMap.put(parentBooking.getId(), validQuantities.get(0));
+        // Luôn tạo mới cả group booking để đảm bảo chính xác các phòng và số lượng đã chọn
+        parentBooking = new Booking();
+        parentBooking.setCustomer(customer);
+        parentBooking.setRoom(room);
+        parentBooking.setHotel(hotel);
+        parentBooking.setNumNights((int) nights);
+        parentBooking.setCheckInDate(checkInDate);
+        parentBooking.setCheckOutDate(checkOutDate);
+        
+        BigDecimal rSub = roomSubtotals.get(0);
+        BigDecimal rTax = rSub.multiply(BigDecimal.valueOf(0.1)).setScale(0, java.math.RoundingMode.HALF_UP);
+        BigDecimal rTotalPrice = rSub.add(rTax).add(serviceFee);
+        
+        parentBooking.setTotalPrice(rTotalPrice);
+        parentBooking.setStatus("PENDING");
+        parentBooking.setCreatedAt(LocalDateTime.now());
+        bookingRepository.save(parentBooking);
+        
+        bookingsList.add(parentBooking);
+        bookingQuantitiesMap.put(parentBooking.getId(), validQuantities.get(0));
 
-            for (int i = 1; i < validRoomIds.size(); i++) {
-                Room r = roomRepository.findById(validRoomIds.get(i)).orElse(null);
-                BigDecimal childSub = roomSubtotals.get(i);
-                BigDecimal childTax = childSub.multiply(BigDecimal.valueOf(0.1)).setScale(0, java.math.RoundingMode.HALF_UP);
-                BigDecimal childTotalPrice = childSub.add(childTax);
-                
-                Booking childBooking = new Booking();
-                childBooking.setCustomer(customer);
-                childBooking.setRoom(r);
-                childBooking.setHotel(hotel);
-                childBooking.setNumNights((int) nights);
-                childBooking.setCheckInDate(checkInDate);
-                childBooking.setCheckOutDate(checkOutDate);
-                childBooking.setTotalPrice(childTotalPrice);
-                childBooking.setStatus("PENDING");
-                childBooking.setCreatedAt(LocalDateTime.now());
-                childBooking.setSpecialNotes("GROUP_BOOKING_parent:" + parentBooking.getId());
-                bookingRepository.save(childBooking);
-                
-                bookingsList.add(childBooking);
-                bookingQuantitiesMap.put(childBooking.getId(), validQuantities.get(i));
-            }
+        for (int i = 1; i < validRoomIds.size(); i++) {
+            Room r = roomRepository.findById(validRoomIds.get(i)).orElse(null);
+            BigDecimal childSub = roomSubtotals.get(i);
+            BigDecimal childTax = childSub.multiply(BigDecimal.valueOf(0.1)).setScale(0, java.math.RoundingMode.HALF_UP);
+            BigDecimal childTotalPrice = childSub.add(childTax);
+            
+            Booking childBooking = new Booking();
+            childBooking.setCustomer(customer);
+            childBooking.setRoom(r);
+            childBooking.setHotel(hotel);
+            childBooking.setNumNights((int) nights);
+            childBooking.setCheckInDate(checkInDate);
+            childBooking.setCheckOutDate(checkOutDate);
+            childBooking.setTotalPrice(childTotalPrice);
+            childBooking.setStatus("PENDING");
+            childBooking.setCreatedAt(LocalDateTime.now());
+            childBooking.setSpecialNotes("GROUP_BOOKING_parent:" + parentBooking.getId());
+            bookingRepository.save(childBooking);
+            
+            bookingsList.add(childBooking);
+            bookingQuantitiesMap.put(childBooking.getId(), validQuantities.get(i));
         }
 
         int bookingId = parentBooking.getId();
@@ -307,10 +295,17 @@ public class PaymentController {
         // Tính thời gian còn lại cho đồng hồ đếm ngược
         long remainingSeconds = Math.max(0, java.time.Duration.between(LocalDateTime.now(), qrExpiresAt).getSeconds());
 
+        int totalQty = 0;
+        if (validQuantities != null) {
+            for (int q : validQuantities) {
+                totalQty += q;
+            }
+        }
+
         // Đưa dữ liệu vào model để hiển thị trên giao diện
         pushToModel(model, loggedInUser, hotel, room, checkInDate, checkOutDate,
                 nights, totalSubtotal, totalTax, serviceFee, grandTotalPrice, qrUrl,
-                transferInfo, bookingId, qrExpiresAt, remainingSeconds, from, validQuantities.get(0));
+                transferInfo, bookingId, qrExpiresAt, remainingSeconds, from, totalQty);
         
         model.addAttribute("bookingsList", bookingsList);
         model.addAttribute("bookingQuantitiesMap", bookingQuantitiesMap);
@@ -500,9 +495,16 @@ public class PaymentController {
         LocalDateTime qrExpiresAt = payment != null ? payment.getQrExpiresAt() : LocalDateTime.now().plusMinutes(15);
         long remainingSeconds = Math.max(0, java.time.Duration.between(LocalDateTime.now(), qrExpiresAt).getSeconds());
 
+        int totalQty = 0;
+        if (bookingQuantitiesMap != null) {
+            for (int q : bookingQuantitiesMap.values()) {
+                totalQty += q;
+            }
+        }
+
         pushToModel(model, loggedInUser, hotel, room, checkInDate, checkOutDate,
                 nights, totalSubtotal, totalTax, serviceFee, grandTotalPrice, qrUrl,
-                transferInfo, bookingId, qrExpiresAt, remainingSeconds, from, bookingQuantitiesMap.get(bookingId));
+                transferInfo, bookingId, qrExpiresAt, remainingSeconds, from, totalQty);
 
         model.addAttribute("bookingsList", bookingsList);
         model.addAttribute("bookingQuantitiesMap", bookingQuantitiesMap);

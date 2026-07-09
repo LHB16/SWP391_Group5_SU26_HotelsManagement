@@ -80,4 +80,13 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
             @Param("hotelIds") List<Integer> hotelIds,
             @Param("checkOutDate") LocalDate checkOutDate
     );
+
+    List<Booking> findByCustomerIdAndStatusContainingIgnoreCaseAndRoomTypeContainingIgnoreCaseAndCheckInDateLessThanEqualAndCheckOutDateGreaterThanEqualOrderByCreatedAtDesc(
+            int customerId,
+            String status,
+            String roomType,
+            java.time.LocalDate checkOutLimit,
+            java.time.LocalDate checkInLimit
+    );
 }
+

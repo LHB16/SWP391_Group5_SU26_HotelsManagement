@@ -22513,6 +22513,7 @@ td .discount-badge {
   padding: 0.125rem 0.5rem; /* px-2 py-0.5 equivalent */
 }
 
+
 /* Custom Red Delete Button for Modal (No inline style) */
 .btn-delete-modal {
   background-color: #ef4444 !important;
@@ -22661,3 +22662,4 @@ td .discount-badge {
   -ms-user-select: none !important;
   cursor: pointer !important;
 }
+

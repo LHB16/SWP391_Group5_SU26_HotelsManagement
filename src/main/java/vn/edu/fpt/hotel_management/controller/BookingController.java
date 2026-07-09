@@ -96,55 +96,45 @@ public class BookingController {
                     }
                 }
             }
+
+            // Tự động chuyển sang COMPLETED nếu đã qua 12h trưa ngày checkout
+            if ("CONFIRMED".equals(b.getStatus())) {
+                if (b.getCheckOutDate() != null && b.getCheckOutDate().atTime(12, 0).isBefore(java.time.LocalDateTime.now())) {
+                    b.setStatus("COMPLETED");
+                    b.setUpdatedAt(java.time.LocalDateTime.now());
+                    bookingRepository.save(b);
+                }
+            }
         }
 
-        // Lọc theo các tiêu chí
-        List<Booking> filteredBookings = new java.util.ArrayList<>();
-        for (Booking b : allBookings) {
-            boolean matches = true;
+        // Chuẩn bị tham số lọc và gọi Magic Method từ Repository
+        String statusParam = (status != null) ? status.trim() : "";
+        String roomTypeParam = (roomType != null) ? roomType.trim() : "";
 
-            // Lọc theo trạng thái
-            if (status != null && !status.trim().isEmpty()) {
-                if (!status.equalsIgnoreCase(b.getStatus())) {
-                    matches = false;
-                }
-            }
-
-            // Lọc theo loại phòng
-            if (roomType != null && !roomType.trim().isEmpty()) {
-                if (b.getRoom() == null || !roomType.equalsIgnoreCase(b.getRoom().getRoomType())) {
-                    matches = false;
-                }
-            }
-
-            // Lọc theo ngày check-in
-            if (checkIn != null && !checkIn.trim().isEmpty()) {
-                try {
-                    java.time.LocalDate filterCheckInDate = java.time.LocalDate.parse(checkIn);
-                    if (b.getCheckInDate() == null || !b.getCheckInDate().isEqual(filterCheckInDate)) {
-                        matches = false;
-                    }
-                } catch (Exception e) {
-                    // Bỏ qua lỗi
-                }
-            }
-
-            // Lọc theo ngày check-out
-            if (checkOut != null && !checkOut.trim().isEmpty()) {
-                try {
-                    java.time.LocalDate filterCheckOutDate = java.time.LocalDate.parse(checkOut);
-                    if (b.getCheckOutDate() == null || !b.getCheckOutDate().isEqual(filterCheckOutDate)) {
-                        matches = false;
-                    }
-                } catch (Exception e) {
-                    // Bỏ qua lỗi
-                }
-            }
-
-            if (matches) {
-                filteredBookings.add(b);
-            }
+        java.time.LocalDate filterCheckInDate = null;
+        if (checkIn != null && !checkIn.trim().isEmpty()) {
+            try {
+                filterCheckInDate = java.time.LocalDate.parse(checkIn.trim());
+            } catch (Exception e) {}
         }
+
+        java.time.LocalDate filterCheckOutDate = null;
+        if (checkOut != null && !checkOut.trim().isEmpty()) {
+            try {
+                filterCheckOutDate = java.time.LocalDate.parse(checkOut.trim());
+            } catch (Exception e) {}
+        }
+
+        java.time.LocalDate checkInLimit = (filterCheckInDate != null) ? filterCheckInDate : java.time.LocalDate.of(1970, 1, 1);
+        java.time.LocalDate checkOutLimit = (filterCheckOutDate != null) ? filterCheckOutDate : java.time.LocalDate.of(2099, 12, 31);
+
+        List<Booking> filteredBookings = bookingRepository.findByCustomerIdAndStatusContainingIgnoreCaseAndRoomTypeContainingIgnoreCaseAndCheckInDateLessThanEqualAndCheckOutDateGreaterThanEqualOrderByCreatedAtDesc(
+                customerId,
+                statusParam,
+                roomTypeParam,
+                checkOutLimit,
+                checkInLimit
+        );
 
         // Lấy danh sách allRoomTypes của toàn bộ hệ thống để hiển thị trên Filter Panel
         List<String> allRoomTypes = new java.util.ArrayList<>();
@@ -205,7 +195,7 @@ public class BookingController {
                 Payment p = paymentRepository.findByBookingId(b.getId()).orElse(null);
                 boolean alreadySubmitted = refundRepository.existsByBookingId(b.getId());
                 // Kiểm tra điều kiện hoàn tiền
-                boolean eligible = (p != null && "REFUNDED".equalsIgnoreCase(p.getStatus())) && !alreadySubmitted;
+                boolean eligible = (p != null && "PAID".equalsIgnoreCase(p.getStatus())) && !alreadySubmitted;
                 refundEligibleMap.put(b.getId(), eligible);
                 refundSubmittedMap.put(b.getId(), alreadySubmitted);
             }
@@ -547,9 +537,7 @@ public class BookingController {
         bookingRepository.save(booking);
         session.removeAttribute("cancelReason_" + bookingId); // dọn dẹp session
 
-        // Cập nhật payment thành REFUNDED
-        p.setStatus("REFUNDED");
-        paymentRepository.save(p);
+        // Trạng thái thanh toán vẫn giữ là PAID, chỉ chuyển sang REFUNDED khi Admin Approve hoàn tiền thành công
 
         // Hoàn tiền 100%
         java.math.BigDecimal refundAmount = booking.getTotalPrice()

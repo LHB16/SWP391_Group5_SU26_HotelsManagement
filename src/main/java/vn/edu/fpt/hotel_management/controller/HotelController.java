@@ -76,6 +76,7 @@ public class HotelController {
 
     @GetMapping("/hotels")
     public String showHotelsPage(
+            @RequestParam(value = "search", required = false) String search,
             @RequestParam(value = "rating", required = false) Double rating,
             @RequestParam(value = "minPrice", required = false) BigDecimal minPrice,
             @RequestParam(value = "maxPrice", required = false) BigDecimal maxPrice,
@@ -95,6 +96,16 @@ public class HotelController {
             hotels = hotelRepository.findByPriceRange(resolvedMinPrice, resolvedMaxPrice);
         } else {
             hotels = hotelRepository.filterByRatingAndPrice(rating, resolvedMinPrice, resolvedMaxPrice);
+        }
+
+        if (search != null && !search.trim().isEmpty()) {
+            String cleanSearch = search.trim().toLowerCase();
+            hotels = hotels.stream().filter(h -> 
+                (h.getName() != null && h.getName().toLowerCase().contains(cleanSearch)) ||
+                (h.getCity() != null && h.getCity().toLowerCase().contains(cleanSearch)) ||
+                (h.getDistrict() != null && h.getDistrict().toLowerCase().contains(cleanSearch)) ||
+                (h.getAddress() != null && h.getAddress().toLowerCase().contains(cleanSearch))
+            ).collect(java.util.stream.Collectors.toList());
         }
 
         if (hotelFacilities != null && !hotelFacilities.isEmpty()) {
@@ -231,6 +242,7 @@ public class HotelController {
         model.addAttribute("hotelPricesMap", hotelPricesMap);
         model.addAttribute("nights", nights);
         model.addAttribute("isFiltered", isFiltered);
+        model.addAttribute("search", search);
         model.addAttribute("rating", rating);
         model.addAttribute("minPrice", resolvedMinPrice);
         model.addAttribute("maxPrice", resolvedMaxPrice);
@@ -600,7 +612,8 @@ public class HotelController {
         hotel.setCity(city);
         hotel.setDistrict(district);
         hotel.setDescription(description);
-        hotel.setActive(active);
+        hotel.setApprovalStatus("PENDING");
+        hotel.setActive(false);
 
         if (imageFile != null && !imageFile.isEmpty()) {
             try {
