@@ -22313,3 +22313,157 @@ h6,
 
 
 
+.promo-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid transparent;
+}
+
+.promo-status-active {
+  background-color: #dcfce7;
+  color: #15803d;
+  border-color: #86efac;
+}
+
+.promo-status-expired {
+  background-color: #f1f5f9;
+  color: #64748b;
+  border-color: #e2e8f0;
+}
+
+.promo-status-inactive {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+.promo-filter-btn {
+  padding: 0.35rem 1rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1.5px solid #e2e8f0;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.promo-filter-btn:hover {
+  border-color: #c9a96e;
+  color: #0a1628;
+  background: #faf8f4;
+}
+
+.promo-filter-btn.active {
+  background: #0a1628;
+  border-color: #0a1628;
+  color: #c9a96e;
+}
+
+.promo-table-row:hover {
+  background: #f8fafc;
+}
+
+.promo-action-btn {
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Inter', sans-serif;
+}
+
+.promo-action-btn-edit {
+  background: #e0e7ff;
+  color: #4f46e5;
+}
+
+.promo-action-btn-edit:hover {
+  background: #4f46e5;
+  color: #fff;
+}
+
+.promo-action-btn-delete {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.promo-action-btn-delete:hover {
+  background: #b91c1c;
+  color: #fff;
+}
+
+.promo-discount-badge {
+  background: linear-gradient(135deg, #c9a96e, #a8824e);
+  color: #fff;
+  font-weight: 700;
+  padding: 0.15rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  display: inline-block;
+  letter-spacing: 0.02em;
+}
+
+.promo-modal-body {
+  padding: 20px 24px 0;
+}
+
+.promo-modal-footer {
+  padding: 16px 24px 24px;
+  border-top: none;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.promo-hotel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.promo-hotel-title {
+  font-weight: 700;
+  color: #0a1628;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.promo-hotel-badge {
+  background-color: #ede9fe;
+  color: #4f46e5;
+  border-radius: 9999px;
+  padding: 0.1rem 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .promo-filter-btn {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.7rem;
+  }
+  .promo-action-btn {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.65rem;
+  }
+  .promo-status-badge {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.5rem;
+  }
+}

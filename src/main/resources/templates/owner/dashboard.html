@@ -1,10 +1,10 @@
-<!-- src/main/resources/templates/owner/dashboard.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en" class="h-100">
 
 <head>
     <th:block th:replace="~{fragment/frag :: head}"></th:block>
     <link th:href="@{/assets/css/dashboard.css}" rel="stylesheet"/>
+    <link th:href="@{/assets/css/promotion.css}" rel="stylesheet"/>
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
@@ -33,6 +33,10 @@
                     <button class="sidebar-link" th:classappend="${tab == 'hotels'} ? 'active' : ''" data-tab="hotels">
                         <i data-lucide="hotel" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
                         <span>My Hotels</span>
+                    </button>
+                    <button class="sidebar-link" th:classappend="${tab == 'promotions'} ? 'active' : ''" data-tab="promotions">
+                        <i data-lucide="percent" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
+                        <span>Promotions</span>
                     </button>
                     <a th:href="@{/chat/inbox}" class="sidebar-link text-decoration-none text-dark d-flex align-items-center gap-2">
                         <i data-lucide="message-square" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
@@ -73,7 +77,6 @@
                     <span th:text="${errorMessage}"></span>
                 </div>
 
-                <!-- ===== THÔNG BÁO ĐỢI DUYỆT ===== -->
                 <div th:if="${verificationStatus == 'PENDING'}" class="pending-verification-card mb-4">
                     <div class="pending-verification-inner">
                         <div class="pending-verification-icon">
@@ -122,12 +125,7 @@
                     </div>
                 </div>
 
-                <!-- ========================================================= -->
-                <!-- ===== ẨN TOÀN BỘ NỘI DUNG NẾU CHƯA DUYỆT ===== -->
-                <!-- ========================================================= -->
                 <div th:if="${verificationStatus == 'APPROVED'}">
-
-                    <!-- Stat Cards -->
                     <div class="row g-4 mb-4">
                         <div class="col-md-3">
                             <div class="stat-card card-hotels">
@@ -159,7 +157,6 @@
                         </div>
                     </div>
 
-                    <!-- Recent Bookings -->
                     <div class="dashboard-section">
                         <h2 class="section-title">
                             <i data-lucide="clock" style="stroke-width: 1.5; color: #4f46e5;"></i>
@@ -209,10 +206,7 @@
                             </table>
                         </div>
                     </div>
-
                 </div>
-                <!-- ===== KẾT THÚC PHẦN ẨN NỘI DUNG ===== -->
-
             </div>
 
             <!-- ========================================================= -->
@@ -327,7 +321,6 @@
             <!-- ========================================================= -->
             <div id="hotels" class="tab-panel" th:classappend="${tab == 'hotels'} ? 'active' : ''">
 
-                <!-- Header với nút Add Hotel -->
                 <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3 flex-wrap gap-2">
                     <div>
                         <h1 class="fw-bold text-dark m-0">My Hotels</h1>
@@ -346,7 +339,6 @@
                     </div>
                 </div>
 
-                <!-- Thông báo đợi duyệt -->
                 <div th:if="${verificationStatus == 'PENDING'}" class="pending-verification-card mb-4">
                     <div class="pending-verification-inner">
                         <div class="pending-verification-icon">
@@ -381,7 +373,6 @@
                 </div>
 
                 <div th:if="${verificationStatus == 'APPROVED'}">
-                    <!-- Flash Messages -->
                     <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
                         <i data-lucide="check-circle"></i>
                         <span th:text="${successMessage}"></span>
@@ -391,12 +382,10 @@
                         <span th:text="${errorMessage}"></span>
                     </div>
 
-                    <!-- Hotel Grid -->
                     <div th:if="${not #lists.isEmpty(hotels)}" class="row g-4">
                         <div th:each="hotel : ${hotels}" class="col-12 col-md-6 col-lg-4">
                             <div class="card h-100 hotel-card" style="border-radius: 14px; border: 1px solid #f1f5f9; box-shadow: 0 4px 16px rgba(0,0,0,0.04); overflow: hidden;">
 
-                                <!-- Image -->
                                 <div class="position-relative overflow-hidden" style="height: 180px; background: #f1f5f9;">
                                     <img th:if="${hotel.imageUrl != null and !hotel.imageUrl.isEmpty()}"
                                          th:src="@{${hotel.imageUrl}}" th:alt="${hotel.name}"
@@ -416,7 +405,6 @@
                                     </span>
                                 </div>
 
-                                <!-- Body -->
                                 <div class="card-body">
                                     <h6 class="fw-bold text-dark mb-1" th:text="${hotel.name}">Hotel Name</h6>
                                     <p class="text-muted small mb-0">
@@ -443,7 +431,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Footer -->
                                 <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
                                     <div class="d-flex gap-2">
                                         <a th:href="@{/hotels/{id}/rooms#reviews(id=${hotel.id})}"
@@ -476,7 +463,6 @@
                         </div>
                     </div>
 
-                    <!-- Empty State -->
                     <div th:if="${#lists.isEmpty(hotels)}" class="text-center py-5">
                         <i data-lucide="building" class="d-block mx-auto mb-3" style="width: 60px; height: 60px; opacity: 0.3; color: #94a3b8;"></i>
                         <h5 class="text-muted">You don't have any hotels yet</h5>
@@ -488,13 +474,137 @@
                     </div>
                 </div>
             </div>
+            <!-- ========================================================= -->
+            <!-- PANEL 4: PROMOTIONS -->
+            <!-- ========================================================= -->
+            <div id="promotions" class="tab-panel" th:classappend="${tab == 'promotions'} ? 'active' : ''">
+
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3 flex-wrap gap-2">
+                    <div>
+                        <h1 class="fw-bold text-dark m-0">Promotions Management</h1>
+                        <p class="text-muted m-0 mt-1">Create and manage special offers for your hotels</p>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <button class="btn-gold" onclick="openAddPromotionModal()"
+                                th:disabled="${verificationStatus != 'APPROVED'}">
+                            <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+                            Add Promotion
+                        </button>
+                    </div>
+                </div>
+
+                <div th:if="${verificationStatus == 'PENDING'}" class="pending-verification-card mb-4">
+                    <div class="pending-verification-inner">
+                        <div class="pending-verification-icon">
+                            <i data-lucide="clock" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
+                        </div>
+                        <div class="pending-verification-content">
+                            <h4 class="pending-verification-title">Account Pending Verification</h4>
+                            <p class="pending-verification-text">
+                                Your account is being reviewed by admin. Promotion management will be available after approval.
+                            </p>
+                            <div class="pending-verification-status">
+                    <span class="badge-status badge-status-warning">
+                        <i data-lucide="hourglass" style="width: 14px; height: 14px;"></i>
+                        Status: PENDING
+                    </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${verificationStatus == 'REJECTED'}" class="rejected-verification-card mb-4">
+                    <div class="rejected-verification-inner">
+                        <div class="rejected-verification-icon">
+                            <i data-lucide="x-circle" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
+                        </div>
+                        <div class="rejected-verification-content">
+                            <h4 class="rejected-verification-title">Account Rejected</h4>
+                            <p class="rejected-verification-text">Your account has been rejected by admin.</p>
+                            <a th:href="@{/logout}" class="btn btn-danger btn-sm">Logout</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${verificationStatus == 'APPROVED'}">
+
+                    <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
+                        <i data-lucide="check-circle"></i>
+                        <span th:text="${successMessage}"></span>
+                    </div>
+                    <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+                        <i data-lucide="alert-circle"></i>
+                        <span th:text="${errorMessage}"></span>
+                    </div>
+
+                    <div th:if="${not #lists.isEmpty(approvedHotels)}">
+
+                        <!-- Dropdown chọn khách sạn -->
+                        <div class="mb-4">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold mb-1">Select Hotel</label>
+                                    <select id="hotelFilterSelect" class="form-select" onchange="filterPromotionsByHotel(this.value)">
+                                        <option value="all">All Hotels</option>
+                                        <option th:each="hotel : ${approvedHotels}" th:value="${hotel.id}" th:text="${hotel.name}"></option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Filter buttons -->
+                        <div class="mb-3">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="promo-filter-btn active" onclick="filterPromotions(this, 'all')">All</button>
+                                <button type="button" class="promo-filter-btn" onclick="filterPromotions(this, 'ACTIVE')">Active</button>
+                                <button type="button" class="promo-filter-btn" onclick="filterPromotions(this, 'EXPIRED')">Expired</button>
+                                <button type="button" class="promo-filter-btn" onclick="filterPromotions(this, 'INACTIVE')">Inactive</button>
+                            </div>
+                        </div>
+
+                        <!-- Promotion Table -->
+                        <div class="table-responsive">
+                            <table class="table table-hover" style="border-radius: 12px; overflow: hidden; border: 1px solid #f1f5f9;">
+                                <thead style="background-color: #f8fafc;">
+                                <tr>
+                                    <th style="padding: 12px 16px; font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Title</th>
+                                    <th style="padding: 12px 16px; font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Discount</th>
+                                    <th style="padding: 12px 16px; font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Period</th>
+                                    <th style="padding: 12px 16px; font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Status</th>
+                                    <th style="padding: 12px 16px; font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; text-align: center;">Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody id="promotionTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                        Loading promotions...
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div th:if="${#lists.isEmpty(approvedHotels)}" class="text-center py-5">
+                        <i data-lucide="building" class="d-block mx-auto mb-3" style="width: 60px; height: 60px; opacity: 0.3; color: #94a3b8;"></i>
+                        <h5 class="text-muted">No approved hotels yet</h5>
+                        <p class="text-muted">You need at least one approved hotel to manage promotions.</p>
+                        <a th:href="@{/owner/dashboard(tab='hotels')}" class="btn-gold mt-2">
+                            <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
+                            View My Hotels
+                        </a>
+                    </div>
+
+                </div>
+            </div>
 
         </div>
     </div>
 </main>
 
 <!-- ========================================================= -->
-<!-- MODAL: Add Hotel  -->
+<!-- MODAL: Add Hotel -->
 <!-- ========================================================= -->
 <div class="modal fade" id="addHotelModal" tabindex="-1" aria-labelledby="addHotelModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -517,53 +627,43 @@
                       id="addHotelForm">
 
                     <div class="row g-4">
-
-                        <!-- Hotel Name -->
                         <div class="col-12">
                             <label class="form-label fw-semibold">Hotel Name <span class="text-danger">*</span></label>
                             <input type="text" name="name" class="form-control" placeholder="Enter hotel name" required maxlength="200" />
                         </div>
 
-                        <!-- Address -->
                         <div class="col-12">
                             <label class="form-label fw-semibold">Address <span class="text-danger">*</span></label>
                             <input type="text" name="address" class="form-control" placeholder="Enter full address" required maxlength="500" />
                         </div>
 
-                        <!-- District -->
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold">District <span class="text-danger">*</span></label>
                             <input type="text" name="district" class="form-control" placeholder="Enter district" required maxlength="100" />
                         </div>
 
-                        <!-- City -->
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold">City <span class="text-danger">*</span></label>
                             <input type="text" name="city" class="form-control" placeholder="Enter city" required maxlength="100" />
                         </div>
 
-                        <!-- ===== THÊM SĐT VÀ EMAIL ===== -->
-                        <!-- Phone -->
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold">Phone Number <span class="text-danger">*</span></label>
                             <input type="tel" name="phone" class="form-control" placeholder="Enter hotel phone number" required maxlength="20" />
                             <small class="text-muted">Contact phone number for the hotel</small>
                         </div>
 
-                        <!-- Email -->
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
                             <input type="email" name="email" class="form-control" placeholder="Enter hotel email" required maxlength="255" />
                             <small class="text-muted">Contact email for the hotel</small>
                         </div>
 
-                        <!-- Description -->
                         <div class="col-12">
                             <label class="form-label fw-semibold">Description</label>
                             <textarea name="description" class="form-control" rows="3" placeholder="Describe your hotel, services, amenities..." style="resize: vertical;"></textarea>
                         </div>
 
-                        <!-- Hotel Image -->
                         <div class="col-12">
                             <label class="form-label fw-semibold">Hotel Image</label>
                             <input type="file" name="imageFile" class="form-control" accept="image/jpeg,image/png,image/webp,image/jpg" />
@@ -571,9 +671,6 @@
                             <div class="mt-2" id="hotelImagePreview"></div>
                         </div>
 
-                        <!-- ============================================================ -->
-                        <!-- PHẦN GIẤY TỜ HOTEL -->
-                        <!-- ============================================================ -->
                         <div class="col-12">
                             <hr style="border-color: rgba(201,169,110,0.3);">
                             <h6 class="fw-bold mb-2" style="color: var(--hotel-navy);">
@@ -587,7 +684,6 @@
                             </p>
                         </div>
 
-                        <!-- Business Registration -->
                         <div class="col-12">
                             <label class="form-label fw-semibold">Business Registration <span class="text-danger">*</span></label>
                             <input type="file" name="businessRegistrationDoc" class="form-control" accept="image/*,application/pdf" required />
@@ -595,7 +691,6 @@
                             <div class="mt-2" id="businessRegistrationPreview"></div>
                         </div>
 
-                        <!-- Land Certificate -->
                         <div class="col-12">
                             <label class="form-label fw-semibold">Land Certificate <span class="text-danger">*</span></label>
                             <input type="file" name="landCertificateDoc" class="form-control" accept="image/*,application/pdf" required />
@@ -603,7 +698,6 @@
                             <div class="mt-2" id="landCertificatePreview"></div>
                         </div>
 
-                        <!-- Rental Contract (Optional) -->
                         <div class="col-12">
                             <label class="form-label fw-semibold">Rental Contract <span class="text-muted">(Optional)</span></label>
                             <input type="file" name="rentalContractDoc" class="form-control" accept="image/*,application/pdf" />
@@ -611,9 +705,6 @@
                             <div class="mt-2" id="rentalContractPreview"></div>
                         </div>
 
-                        <!-- ============================================================ -->
-                        <!-- KHÔNG CÓ ACTIVE - Chỉ hiển thị thông báo -->
-                        <!-- ============================================================ -->
                         <div class="col-12">
                             <hr style="border-color: rgba(201,169,110,0.3);">
                             <div class="p-3 bg-light rounded-3" style="border-left: 4px solid #f59e0b;">
@@ -626,7 +717,6 @@
                             </div>
                         </div>
 
-                        <!-- Info note -->
                         <div class="col-12">
                             <div class="p-3 bg-light rounded-3" style="border-left: 4px solid #c9a96e;">
                                 <small class="text-muted">
@@ -635,9 +725,7 @@
                                 </small>
                             </div>
                         </div>
-
                     </div>
-
                 </form>
             </div>
 
@@ -655,8 +743,164 @@
     </div>
 </div>
 
+<!-- ========================================================= -->
+<!-- MODAL: Add Promotion -->
+<!-- ========================================================= -->
+<div class="modal fade" id="addPromotionModal" tabindex="-1" aria-labelledby="addPromotionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow border-0" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0" style="padding: 24px 24px 0;">
+                <div>
+                    <h5 class="modal-title fw-bold" id="addPromotionModalLabel">
+                        <i data-lucide="percent" style="width: 20px; height: 20px; color: #c9a96e;"></i>
+                        Create New Promotion
+                    </h5>
+                    <p class="text-muted small mt-1">Create a special offer to attract more customers</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body promo-modal-body">
+                <form th:action="@{/owner/promotions/create}" method="post">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Hotel <span class="text-danger">*</span></label>
+                        <select name="hotelId" class="form-select" required>
+                            <option value="">Select hotel...</option>
+                            <option th:each="h : ${approvedHotels}" th:value="${h.id}" th:text="${h.name}"></option>
+                        </select>
+                        <small class="text-muted" th:if="${#lists.isEmpty(approvedHotels)}" style="color: #dc2626;">
+                            No approved hotels available. Please wait for admin approval.
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Promotion Title <span class="text-danger">*</span></label>
+                        <input type="text" name="title" class="form-control" placeholder="Enter promotion title" required maxlength="255" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Description</label>
+                        <textarea name="description" class="form-control" rows="3" placeholder="Describe your promotion..." style="resize: vertical;"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Discount (%) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="number" name="discountPercent" class="form-control" placeholder="Enter discount" min="1" max="100" step="0.5" required />
+                            <span class="input-group-text">%</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Start Date <span class="text-danger">*</span></label>
+                        <input type="date" name="startDate" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">End Date <span class="text-danger">*</span></label>
+                        <input type="date" name="endDate" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="ACTIVE">Active</option>
+                            <option value="INACTIVE">Inactive</option>
+                        </select>
+                    </div>
+
+                    <div class="promo-modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                            <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-gold">
+                            <i data-lucide="floppy-disk" style="width: 16px; height: 16px;"></i>
+                            Create Promotion
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ========================================================= -->
+<!-- MODAL: Edit Promotion -->
+<!-- ========================================================= -->
+<div class="modal fade" id="editPromotionModal" tabindex="-1" aria-labelledby="editPromotionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow border-0" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0" style="padding: 24px 24px 0;">
+                <div>
+                    <h5 class="modal-title fw-bold" id="editPromotionModalLabel">
+                        <i data-lucide="pencil" style="width: 20px; height: 20px; color: #c9a96e;"></i>
+                        Edit Promotion
+                    </h5>
+                    <p class="text-muted small mt-1">Update your promotion details</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body promo-modal-body">
+                <form th:action="@{/owner/promotions/update}" method="post">
+                    <input type="hidden" name="promotionId" id="editPromotionId" />
+                    <input type="hidden" name="hotelId" id="editHotelId" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Promotion Title <span class="text-danger">*</span></label>
+                        <input type="text" name="title" id="editTitle" class="form-control" required maxlength="255" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Description</label>
+                        <textarea name="description" id="editDescription" class="form-control" rows="3" style="resize: vertical;"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Discount (%) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="number" name="discountPercent" id="editDiscountPercent" class="form-control" min="1" max="100" step="0.5" required />
+                            <span class="input-group-text">%</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Start Date <span class="text-danger">*</span></label>
+                        <input type="date" name="startDate" id="editStartDate" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">End Date <span class="text-danger">*</span></label>
+                        <input type="date" name="endDate" id="editEndDate" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Status</label>
+                        <select name="status" id="editStatus" class="form-select">
+                            <option value="ACTIVE">Active</option>
+                            <option value="INACTIVE">Inactive</option>
+                        </select>
+                    </div>
+
+                    <div class="promo-modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                            <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-gold">
+                            <i data-lucide="floppy-disk" style="width: 16px; height: 16px;"></i>
+                            Update Promotion
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <footer th:replace="~{fragment/frag :: footer}"></footer>
 <th:block th:replace="~{fragment/frag :: scripts}"></th:block>
 <script th:src="@{/assets/js/owner-dashboard.js}"></script>
+<script th:src="@{/assets/js/promotion.js}"></script>
 </body>
 </html>
