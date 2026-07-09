@@ -31,6 +31,7 @@ public class RoomController {
     private final OwnerService ownerService;
     private final BookingRepository bookingRepository;
     private final FeedbackReplyRepository feedbackReplyRepository;
+    private final FeedbackVoteRepository feedbackVoteRepository;
 
     private static final String ROOM_IMAGE_SUBDIR = "assets/images/room";
 
@@ -43,7 +44,8 @@ public class RoomController {
                           RoomFacilityRepository roomFacilityRepository,
                           OwnerService ownerService,
                           BookingRepository bookingRepository,
-                          FeedbackReplyRepository feedbackReplyRepository) {
+                          FeedbackReplyRepository feedbackReplyRepository,
+                          FeedbackVoteRepository feedbackVoteRepository) {
         this.roomRepository = roomRepository;
         this.hotelRepository = hotelRepository;
         this.reviewRepository = reviewRepository;
@@ -54,6 +56,7 @@ public class RoomController {
         this.ownerService = ownerService;
         this.bookingRepository = bookingRepository;
         this.feedbackReplyRepository = feedbackReplyRepository;
+        this.feedbackVoteRepository = feedbackVoteRepository;
     }
 
     // ===== RESOLVE STATIC DIR =====
@@ -121,7 +124,23 @@ public class RoomController {
 
         List<String> allTypes = roomRepository.findDistinctTypesByHotelId(id);
 
-        List<Review> reviews = reviewRepository.findByHotelIdOrderByRatingDescCreatedAtDesc(id);
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        boolean isHotelOwner = false;
+        if (loggedInUser != null && "HOTEL_OWNER".equals(loggedInUser.getRole())) {
+            HotelOwner currentOwner = hotelOwnerRepository.findByUserAccount(loggedInUser).orElse(null);
+            if (currentOwner != null && hotel.getOwner() != null && hotel.getOwner().getId() == currentOwner.getId()) {
+                isHotelOwner = true;
+            }
+        }
+        boolean isAdmin = loggedInUser != null && "ADMIN".equals(loggedInUser.getRole());
+
+        List<Review> reviews;
+        if (isAdmin || isHotelOwner) {
+            reviews = reviewRepository.findByHotelIdOrderByRatingDescCreatedAtDesc(id);
+        } else {
+            reviews = reviewRepository.findByHotelIdAndStatusOrderByRatingDescCreatedAtDesc(id, "VISIBLE");
+        }
+
         double avgRating = 0.0;
         if (!reviews.isEmpty()) {
             double sum = 0;
@@ -157,8 +176,8 @@ public class RoomController {
 
         boolean hasReviewed = false;
         Integer currentCustomerId = null;
-        User loggedInUser = (User) session.getAttribute("loggedInUser");
         java.util.Set<Integer> wishlistRoomIds = new java.util.HashSet<>();
+        java.util.Map<Integer, String> userVotesMap = new java.util.HashMap<>();
         if (loggedInUser != null) {
             Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
             if (customer != null) {
@@ -167,6 +186,10 @@ public class RoomController {
                 List<Wishlist> userWishlist = wishlistRepository.findByCustomerIdOrderByAddedAtDesc(customer.getId());
                 for (Wishlist wl : userWishlist) {
                     wishlistRoomIds.add(wl.getRoom().getId());
+                }
+                for (Review r : reviews) {
+                    feedbackVoteRepository.findByFeedbackIdAndCustomerId(r.getId(), customer.getId())
+                            .ifPresent(v -> userVotesMap.put(r.getId(), v.getVoteType()));
                 }
             }
         }
@@ -215,13 +238,6 @@ public class RoomController {
             availableRoomsMap.put(r.getId(), available);
         }
 
-        boolean isHotelOwner = false;
-        if (loggedInUser != null && "HOTEL_OWNER".equals(loggedInUser.getRole())) {
-            HotelOwner currentOwner = hotelOwnerRepository.findByUserAccount(loggedInUser).orElse(null);
-            if (currentOwner != null && hotel.getOwner() != null && hotel.getOwner().getId() == currentOwner.getId()) {
-                isHotelOwner = true;
-            }
-        }
 
         List<FeedbackReply> replies = feedbackReplyRepository.findByHotelId(id);
         Map<Integer, FeedbackReply> repliesMap = new HashMap<>();
@@ -257,6 +273,7 @@ public class RoomController {
         model.addAttribute("repliesMap", repliesMap);
         model.addAttribute("bookingId", bookingId);
         model.addAttribute("defaultRoomId", defaultRoomId);
+        model.addAttribute("userVotesMap", userVotesMap);
 
         return "hotel/room-list";
     }
