@@ -96,6 +96,15 @@ public class BookingController {
                     }
                 }
             }
+
+            // Tự động chuyển sang COMPLETED nếu đã qua 12h trưa ngày checkout
+            if ("CONFIRMED".equals(b.getStatus())) {
+                if (b.getCheckOutDate() != null && b.getCheckOutDate().atTime(12, 0).isBefore(java.time.LocalDateTime.now())) {
+                    b.setStatus("COMPLETED");
+                    b.setUpdatedAt(java.time.LocalDateTime.now());
+                    bookingRepository.save(b);
+                }
+            }
         }
 
         // Chuẩn bị tham số lọc và gọi Magic Method từ Repository
