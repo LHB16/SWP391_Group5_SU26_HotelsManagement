@@ -205,7 +205,7 @@
                                                 <div class="modal-content modal-content-rounded">
                                                     <div class="modal-header border-0 pt-4 pb-0 justify-content-center">
                                                         <div class="text-center">
-                                                            <i class="bi bi-exclamation-triangle icon-warning-large text-gold"></i>
+                                                            <i data-lucide="alert-triangle" class="text-gold" style="width: 48px; height: 48px; stroke-width: 1.5;"></i>
                                                         </div>
                                                     </div>
                                                     <div class="modal-body text-center px-4 py-3">
@@ -221,7 +221,7 @@
                                                         </button>
                                                         <form th:action="@{/owner/hotels/{id}/rooms/{rid}/delete(id=${hotel.id}, rid=${room.id})}"
                                                               method="post" class="d-inline">
-                                                            <button type="submit" class="btn btn-delete-modal px-4 py-2 rounded-3 fw-semibold text-white">
+                                                            <button type="submit" class="btn btn-danger px-4 py-2 rounded-3 fw-semibold text-white font-size-9">
                                                                 Yes, Delete
                                                             </button>
                                                         </form>
