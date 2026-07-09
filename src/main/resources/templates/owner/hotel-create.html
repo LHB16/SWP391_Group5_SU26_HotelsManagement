@@ -88,11 +88,11 @@
                             <!-- Description -->
                             <div class="mb-4">
                                 <label class="form-label-custom" for="hotelDescription">
-                                    Description
+                                    Description <span class="text-danger">*</span>
                                 </label>
                                 <textarea name="description" id="hotelDescription" class="fc" rows="5"
                                           placeholder="Describe your hotel, services, amenities, location advantages..."
-                                          style="resize:vertical;"></textarea>
+                                          style="resize:vertical;" required></textarea>
                                 <div class="form-text text-muted">Provide detailed information about your hotel</div>
                             </div>
 
@@ -102,11 +102,10 @@
                             <div class="form-divider"></div>
 
                             <div class="mb-4">
-                                <label class="form-label-custom" for="imageFile">Hotel Image</label>
+                                <label class="form-label-custom" for="imageFile">Hotel Image <span class="text-danger">*</span></label>
                                 <input type="file" name="imageFile" id="imageFile" class="form-control"
-                                       accept="image/jpeg,image/png,image/webp,image/jpg" />
-                                <div class="form-text text-muted mt-1">JPG, PNG, WEBP · Max 10MB</div>
-                                <!-- Preview ảnh hotel -->
+                                       accept="image/jpeg,image/png,image/webp,image/jpg" required />
+                                <div class="form-text text-muted mt-1">JPG, PNG, WEBP · Max 10MB · <span class="text-danger">Required</span></div>
                                 <div class="mt-2" id="hotelImagePreview"></div>
                             </div>
 
@@ -131,9 +130,9 @@
                                     Business Registration <span class="text-danger">*</span>
                                 </label>
                                 <input type="file" name="businessRegistrationDoc" id="businessRegistrationDoc"
-                                       class="form-control" accept="image/*,application/pdf" required />
+                                       class="form-control" accept="application/pdf" required />
                                 <div class="form-text text-muted">
-                                    Upload business registration certificate (JPG, PNG, PDF) - <span class="text-danger">Required</span>
+                                    Upload business registration certificate (PDF only) - <span class="text-danger">Required</span>
                                 </div>
                                 <div class="mt-2" id="businessRegistrationPreview"></div>
                             </div>
@@ -144,9 +143,9 @@
                                     Land Certificate <span class="text-danger">*</span>
                                 </label>
                                 <input type="file" name="landCertificateDoc" id="landCertificateDoc"
-                                       class="form-control" accept="image/*,application/pdf" required />
+                                       class="form-control" accept="application/pdf" required />
                                 <div class="form-text text-muted">
-                                    Upload land use right certificate (JPG, PNG, PDF) - <span class="text-danger">Required</span>
+                                    Upload land use right certificate (PDF only) - <span class="text-danger">Required</span>
                                 </div>
                                 <div class="mt-2" id="landCertificatePreview"></div>
                             </div>
@@ -157,9 +156,9 @@
                                     Rental Contract <span class="text-muted">(Optional)</span>
                                 </label>
                                 <input type="file" name="rentalContractDoc" id="rentalContractDoc"
-                                       class="form-control" accept="image/*,application/pdf" />
+                                       class="form-control" accept="application/pdf" />
                                 <div class="form-text text-muted">
-                                    Upload rental contract if applicable (JPG, PNG, PDF) - Optional
+                                    Upload rental contract if applicable (PDF only) - Optional
                                 </div>
                                 <div class="mt-2" id="rentalContractPreview"></div>
                             </div>
@@ -248,24 +247,17 @@
             businessInput.addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(ev) {
-                        const isImage = file.type.startsWith('image/');
-                        if (isImage) {
-                            businessPreview.innerHTML = `
-                            <div class="d-inline-block position-relative">
-                                <img src="${ev.target.result}" class="img-thumbnail" style="max-height: 120px; border-radius: 8px; border: 2px solid #10b981;" />
-                                <span class="badge bg-success position-absolute top-0 start-0 m-1">Selected</span>
-                            </div>
-                            <span class="ms-2 small text-success"><i class="bi bi-check-circle-fill"></i> ${file.name}</span>
-                        `;
-                        } else {
-                            businessPreview.innerHTML = `
+                    if (file.type === 'application/pdf') {
+                        businessPreview.innerHTML = `
                             <span class="badge bg-info"><i class="bi bi-file-pdf"></i> ${file.name}</span>
+                            <span class="ms-2 small text-success"><i class="bi bi-check-circle-fill"></i> PDF file selected</span>
                         `;
-                        }
-                    };
-                    reader.readAsDataURL(file);
+                    } else {
+                        businessPreview.innerHTML = `
+                            <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Invalid file type. Please select PDF.</span>
+                        `;
+                        businessInput.value = '';
+                    }
                 } else {
                     businessPreview.innerHTML = '';
                 }
@@ -279,24 +271,17 @@
             landInput.addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(ev) {
-                        const isImage = file.type.startsWith('image/');
-                        if (isImage) {
-                            landPreview.innerHTML = `
-                            <div class="d-inline-block position-relative">
-                                <img src="${ev.target.result}" class="img-thumbnail" style="max-height: 120px; border-radius: 8px; border: 2px solid #10b981;" />
-                                <span class="badge bg-success position-absolute top-0 start-0 m-1">Selected</span>
-                            </div>
-                            <span class="ms-2 small text-success"><i class="bi bi-check-circle-fill"></i> ${file.name}</span>
-                        `;
-                        } else {
-                            landPreview.innerHTML = `
+                    if (file.type === 'application/pdf') {
+                        landPreview.innerHTML = `
                             <span class="badge bg-info"><i class="bi bi-file-pdf"></i> ${file.name}</span>
+                            <span class="ms-2 small text-success"><i class="bi bi-check-circle-fill"></i> PDF file selected</span>
                         `;
-                        }
-                    };
-                    reader.readAsDataURL(file);
+                    } else {
+                        landPreview.innerHTML = `
+                            <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Invalid file type. Please select PDF.</span>
+                        `;
+                        landInput.value = '';
+                    }
                 } else {
                     landPreview.innerHTML = '';
                 }
@@ -310,24 +295,17 @@
             rentalInput.addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(ev) {
-                        const isImage = file.type.startsWith('image/');
-                        if (isImage) {
-                            rentalPreview.innerHTML = `
-                            <div class="d-inline-block position-relative">
-                                <img src="${ev.target.result}" class="img-thumbnail" style="max-height: 120px; border-radius: 8px; border: 2px solid #f59e0b;" />
-                                <span class="badge bg-warning position-absolute top-0 start-0 m-1">Selected</span>
-                            </div>
-                            <span class="ms-2 small text-muted"><i class="bi bi-check-circle"></i> ${file.name}</span>
-                        `;
-                        } else {
-                            rentalPreview.innerHTML = `
+                    if (file.type === 'application/pdf') {
+                        rentalPreview.innerHTML = `
                             <span class="badge bg-info"><i class="bi bi-file-pdf"></i> ${file.name}</span>
+                            <span class="ms-2 small text-muted"><i class="bi bi-check-circle"></i> PDF file selected</span>
                         `;
-                        }
-                    };
-                    reader.readAsDataURL(file);
+                    } else {
+                        rentalPreview.innerHTML = `
+                            <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Invalid file type. Please select PDF.</span>
+                        `;
+                        rentalInput.value = '';
+                    }
                 } else {
                     rentalPreview.innerHTML = '';
                 }
