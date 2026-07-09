@@ -20,6 +20,7 @@ public class ReviewController {
     private final BookingRepository bookingRepository;
     private final FeedbackReplyRepository feedbackReplyRepository;
     private final HotelOwnerRepository hotelOwnerRepository;
+    private final FeedbackVoteRepository feedbackVoteRepository;
 
     public ReviewController(ReviewRepository reviewRepository,
                             CustomerRepository customerRepository,
@@ -27,7 +28,8 @@ public class ReviewController {
                             RoomRepository roomRepository,
                             BookingRepository bookingRepository,
                             FeedbackReplyRepository feedbackReplyRepository,
-                            HotelOwnerRepository hotelOwnerRepository) {
+                            HotelOwnerRepository hotelOwnerRepository,
+                            FeedbackVoteRepository feedbackVoteRepository) {
         this.reviewRepository = reviewRepository;
         this.customerRepository = customerRepository;
         this.hotelRepository = hotelRepository;
@@ -35,6 +37,7 @@ public class ReviewController {
         this.bookingRepository = bookingRepository;
         this.feedbackReplyRepository = feedbackReplyRepository;
         this.hotelOwnerRepository = hotelOwnerRepository;
+        this.feedbackVoteRepository = feedbackVoteRepository;
     }
 
     @PostMapping("/hotels/{id}/reviews")
@@ -134,6 +137,7 @@ public class ReviewController {
         review.setComment(combinedComment);
         review.setRoom(room);
         review.setRoomType(room.getType());
+        review.setStatus("VISIBLE");
 
         if (bookingId != null) {
             Booking booking = bookingRepository.findById(bookingId).orElse(null);
@@ -345,5 +349,152 @@ public class ReviewController {
 
         session.setAttribute("successMessage", "Reply deleted successfully!");
         return "redirect:/hotels/" + hotelId + "/rooms#reviews";
+    }
+
+    @PostMapping("/hotels/{id}/reviews/{reviewId}/vote")
+    @ResponseBody
+    public java.util.Map<String, Object> voteReview(
+            @PathVariable("id") int hotelId,
+            @PathVariable("reviewId") int reviewId,
+            @RequestParam("type") String voteType,
+            HttpSession session) {
+        
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            response.put("success", false);
+            response.put("message", "Please log in to vote.");
+            return response;
+        }
+
+        Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
+        if (customer == null) {
+            response.put("success", false);
+            response.put("message", "Only customers can vote.");
+            return response;
+        }
+
+        Review review = reviewRepository.findById(reviewId).orElse(null);
+        if (review == null || review.getHotel().getId() != hotelId) {
+            response.put("success", false);
+            response.put("message", "Review not found.");
+            return response;
+        }
+
+        if (!"UPVOTE".equalsIgnoreCase(voteType) && !"DOWNVOTE".equalsIgnoreCase(voteType)) {
+            response.put("success", false);
+            response.put("message", "Invalid vote type.");
+            return response;
+        }
+
+        Optional<FeedbackVote> existingVoteOpt = feedbackVoteRepository.findByFeedbackIdAndCustomerId(reviewId, customer.getId());
+        String finalVoteType = voteType.toUpperCase();
+        String userVoteResult = null;
+
+        if (existingVoteOpt.isPresent()) {
+            FeedbackVote existingVote = existingVoteOpt.get();
+            if (existingVote.getVoteType().equalsIgnoreCase(finalVoteType)) {
+                // Cancel vote
+                feedbackVoteRepository.delete(existingVote);
+                if ("UPVOTE".equals(finalVoteType)) {
+                    review.setUpvote(Math.max(0, review.getUpvote() - 1));
+                } else {
+                    review.setDownvote(Math.max(0, review.getDownvote() - 1));
+                }
+                userVoteResult = "NONE";
+            } else {
+                // Change vote type
+                existingVote.setVoteType(finalVoteType);
+                feedbackVoteRepository.save(existingVote);
+                if ("UPVOTE".equals(finalVoteType)) {
+                    review.setUpvote(review.getUpvote() + 1);
+                    review.setDownvote(Math.max(0, review.getDownvote() - 1));
+                } else {
+                    review.setDownvote(review.getDownvote() + 1);
+                    review.setUpvote(Math.max(0, review.getUpvote() - 1));
+                }
+                userVoteResult = finalVoteType;
+            }
+        } else {
+            // New vote
+            FeedbackVote newVote = new FeedbackVote(review, customer, finalVoteType);
+            feedbackVoteRepository.save(newVote);
+            if ("UPVOTE".equals(finalVoteType)) {
+                review.setUpvote(review.getUpvote() + 1);
+            } else {
+                review.setDownvote(review.getDownvote() + 1);
+            }
+            userVoteResult = finalVoteType;
+        }
+
+        reviewRepository.save(review);
+
+        response.put("success", true);
+        response.put("upvotes", review.getUpvote());
+        response.put("downvotes", review.getDownvote());
+        response.put("userVote", userVoteResult);
+        return response;
+    }
+
+    @PostMapping("/admin/reviews/{reviewId}/status")
+    public String updateReviewStatus(
+            @PathVariable("reviewId") int reviewId,
+            @RequestParam("status") String status,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            HttpSession session,
+            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+        
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"ADMIN".equalsIgnoreCase(loggedInUser.getRole())) {
+            return "redirect:/login";
+        }
+
+        Review review = reviewRepository.findById(reviewId).orElse(null);
+        if (review == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Review not found.");
+            return "redirect:/admin/dashboard?tab=customerReviewPanel";
+        }
+
+        if (!"VISIBLE".equalsIgnoreCase(status) && !"HIDDEN".equalsIgnoreCase(status) && !"PENDING".equalsIgnoreCase(status)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Invalid status.");
+            return "redirect:/admin/dashboard?tab=customerReviewPanel";
+        }
+
+        review.setStatus(status.toUpperCase());
+        reviewRepository.save(review);
+
+        redirectAttributes.addFlashAttribute("successMessage", "Review status updated to " + status.toUpperCase() + " successfully.");
+        return "redirect:/admin/dashboard?tab=customerReviewPanel&page=" + page;
+    }
+
+    @PostMapping("/hotels/{id}/reviews/{reviewId}/status")
+    @ResponseBody
+    public java.util.Map<String, Object> updateReviewStatusFromDetail(
+            @PathVariable("id") int hotelId,
+            @PathVariable("reviewId") int reviewId,
+            @RequestParam("status") String status,
+            HttpSession session) {
+        
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"ADMIN".equalsIgnoreCase(loggedInUser.getRole())) {
+            response.put("success", false);
+            response.put("message", "Please log in as Admin.");
+            return response;
+        }
+
+        Review review = reviewRepository.findById(reviewId).orElse(null);
+        if (review == null || review.getHotel().getId() != hotelId) {
+            response.put("success", false);
+            response.put("message", "Review not found.");
+            return response;
+        }
+
+        review.setStatus(status.toUpperCase());
+        reviewRepository.save(review);
+
+        response.put("success", true);
+        response.put("status", review.getStatus());
+        return response;
     }
 }
