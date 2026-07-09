@@ -112,6 +112,8 @@ public class PaymentController {
             @RequestParam(value = "quantities", required = false) java.util.List<Integer> quantities,
             @RequestParam(value = "checkin", required = false) String checkin,
             @RequestParam(value = "checkout", required = false) String checkout,
+            @RequestParam(value = "checkins", required = false) java.util.List<String> checkins,
+            @RequestParam(value = "checkouts", required = false) java.util.List<String> checkouts,
             @RequestParam(value = "from", required = false) String from,
             HttpSession session, Model model,
             RedirectAttributes redirectAttributes) {
@@ -120,6 +122,18 @@ public class PaymentController {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null)
             return "redirect:/login";
+
+        // Đồng bộ checkin/checkout từ danh sách checkins/checkouts nếu có
+        if (checkin == null || checkin.isBlank()) {
+            if (checkins != null && !checkins.isEmpty()) {
+                checkin = checkins.get(0);
+            }
+        }
+        if (checkout == null || checkout.isBlank()) {
+            if (checkouts != null && !checkouts.isEmpty()) {
+                checkout = checkouts.get(0);
+            }
+        }
 
         // Đặt ngày mặc định nếu không có
         if (checkin == null || checkin.isBlank())
