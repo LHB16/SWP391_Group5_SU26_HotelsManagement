@@ -600,7 +600,8 @@ public class HotelController {
         hotel.setCity(city);
         hotel.setDistrict(district);
         hotel.setDescription(description);
-        hotel.setActive(active);
+        hotel.setApprovalStatus("PENDING");
+        hotel.setActive(false);
 
         if (imageFile != null && !imageFile.isEmpty()) {
             try {
