@@ -5,27 +5,8 @@ document.addEventListener("DOMContentLoaded", function () {
         lucide.createIcons();
     }
 
-    // 2. Sidebar Tab Switching
-    const sidebarLinks = document.querySelectorAll(".sidebar-link");
-    const tabPanels = document.querySelectorAll(".tab-panel");
-
-    sidebarLinks.forEach(link => {
-        link.addEventListener("click", function () {
-            // Remove active class from all links
-            sidebarLinks.forEach(l => l.classList.remove("active"));
-            // Add active class to clicked link
-            this.classList.add("active");
-
-            // Hide all tab panels
-            tabPanels.forEach(panel => panel.classList.remove("active"));
-            // Show target tab panel
-            const targetTab = this.getAttribute("data-tab");
-            const targetPanel = document.getElementById(targetTab);
-            if (targetPanel) {
-                targetPanel.classList.add("active");
-            }
-        });
-    });
+    // 2. Sidebar Tab Switching is handled server-side to optimize database queries.
+    // Each tab link reloads the page with the corresponding 'tab' parameter.
 
     // 3. Load Data from window globals (rendered by Thymeleaf inline JS)
     const bookingsData = window.bookingsData || [];

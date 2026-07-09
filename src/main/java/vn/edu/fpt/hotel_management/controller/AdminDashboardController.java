@@ -84,124 +84,147 @@ public class AdminDashboardController {
         long totalPendingCount = pendingOwners + pendingHotels;
         model.addAttribute("totalPendingCount", totalPendingCount);
 
-        // Thống kê dữ liệu doanh thu độc lập cơ sở dữ liệu
-        List<Map<String, Object>> revenueData = getHotelRevenueStatistics();
-        model.addAttribute("revenueData", revenueData);
-
-        // Danh sách khách sạn phục vụ lọc doanh thu
-        model.addAttribute("hotels", hotelRepository.findAll());
-
-        // Danh sách khách hàng & chủ khách sạn kèm phân trang và tìm kiếm
+        // Khởi tạo các Pageable và biến chứa dữ liệu cần thiết
         Pageable defaultCustomerPageable = PageRequest.of(page, 5, Sort.by("userAccount.username").ascending());
         Pageable defaultOwnerPageable = PageRequest.of(page, 5, Sort.by("userAccount.username").ascending());
-        Pageable searchPageable = PageRequest.of(page, 5); // When searching, sorting could be by relevance or default
+        Pageable defaultManagedHotelPageable = PageRequest.of(page, 5, Sort.by("id").descending());
+        Pageable defaultFeedbackReplyPageable = PageRequest.of(page, 5, Sort.by("id").descending());
+        Pageable searchPageable = PageRequest.of(page, 5);
 
-        Page<Customer> customerPage = Page.empty(defaultCustomerPageable);
-        Page<HotelOwner> ownerPage = Page.empty(defaultOwnerPageable);
+        // --- Tab 1: revenuePanel (Doanh thu) ---
+        if ("revenuePanel".equals(tab)) {
+            // Danh sách khách sạn phục vụ lọc doanh thu
+            model.addAttribute("hotels", hotelRepository.findAll());
+            model.addAttribute("revenueData", Collections.emptyList()); // Loại bỏ thống kê phía Java dư thừa
 
-        // --- Xử lý Customer ---
-        if ("customerPanel".equals(tab) && searchQuery != null && !searchQuery.trim().isEmpty()) {
-            String query = searchQuery.trim();
-            if ("id".equals(searchType)) {
-                try {
-                    int targetId = Integer.parseInt(query);
-                    customerPage = customerRepository.findById(targetId, searchPageable);
-                } catch (NumberFormatException e) {
-                    customerPage = Page.empty(searchPageable);
+            // Danh sách đặt phòng hợp lệ toàn hệ thống
+            List<Booking> validBookings = bookingRepository.findByStatusInOrderByCreatedAtDesc(
+                    Arrays.asList("CONFIRMED", "CHECKED_IN", "CHECKED_OUT")
+            );
+            List<Map<String, Object>> mappedBookings = validBookings.stream().map(b -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("bookingId", b.getId());
+                map.put("customerId", b.getCustomer() != null ? b.getCustomer().getId() : null);
+                map.put("roomType", b.getRoom() != null ? b.getRoom().getRoomType() : null);
+                
+                if (b.getRoom() != null) {
+                    int hotelId = b.getRoom().getHotelId();
+                    Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
+                    map.put("hotelName", hotel != null ? hotel.getName() : "Unknown");
+                } else {
+                    map.put("hotelName", "Unknown");
                 }
-            } else if ("fullName".equals(searchType)) {
-                customerPage = customerRepository.findByFullNameContainingIgnoreCase(query, searchPageable);
-            } else if ("email".equals(searchType)) {
-                customerPage = customerRepository.findByUserAccountEmailContainingIgnoreCase(query, searchPageable);
-            } else {
-                customerPage = customerRepository.findByUserAccountUsernameContainingIgnoreCase(query, searchPageable);
-            }
+                
+                map.put("checkInDate", b.getCheckInDate() != null ? b.getCheckInDate().toString() : null);
+                map.put("checkOutDate", b.getCheckOutDate() != null ? b.getCheckOutDate().toString() : null);
+                map.put("totalPrice", b.getTotalPrice());
+                map.put("bookingStatus", b.getStatus());
+                map.put("paymentStatus", (b.getPayment() != null && b.getPayment().getStatus() != null) ? b.getPayment().getStatus() : "PENDING");
+                map.put("createdAt", b.getCreatedAt() != null ? b.getCreatedAt().toString() : null);
+                return map;
+            }).collect(Collectors.toList());
+            model.addAttribute("bookings", mappedBookings);
         } else {
-            Pageable customerPageable = "customerPanel".equals(tab) ? defaultCustomerPageable : PageRequest.of(0, 5, Sort.by("userAccount.username").ascending());
-            customerPage = customerRepository.findAll(customerPageable);
+            model.addAttribute("hotels", Collections.emptyList());
+            model.addAttribute("revenueData", Collections.emptyList());
+            model.addAttribute("bookings", Collections.emptyList());
+        }
+
+        // --- Tab 2: customerPanel (Tài khoản Khách hàng) ---
+        Page<Customer> customerPage = Page.empty(defaultCustomerPageable);
+        if ("customerPanel".equals(tab)) {
+            if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+                String query = searchQuery.trim();
+                if ("id".equals(searchType)) {
+                    try {
+                        int targetId = Integer.parseInt(query);
+                        customerPage = customerRepository.findById(targetId, searchPageable);
+                    } catch (NumberFormatException e) {
+                        customerPage = Page.empty(searchPageable);
+                    }
+                } else if ("fullName".equals(searchType)) {
+                    customerPage = customerRepository.findByFullNameContainingIgnoreCase(query, searchPageable);
+                } else if ("email".equals(searchType)) {
+                    customerPage = customerRepository.findByUserAccountEmailContainingIgnoreCase(query, searchPageable);
+                } else {
+                    customerPage = customerRepository.findByUserAccountUsernameContainingIgnoreCase(query, searchPageable);
+                }
+            } else {
+                customerPage = customerRepository.findAll(defaultCustomerPageable);
+            }
         }
         model.addAttribute("customers", customerPage.getContent());
         model.addAttribute("customerCurrentPage", "customerPanel".equals(tab) ? page : 0);
         model.addAttribute("customerTotalPages", customerPage.getTotalPages());
 
-        // --- Xử lý Owner ---
-        if ("hotelOwnerAccounts".equals(tab) && searchQuery != null && !searchQuery.trim().isEmpty()) {
-            String query = searchQuery.trim();
-            if ("id".equals(searchType)) {
-                try {
-                    int targetId = Integer.parseInt(query);
-                    ownerPage = hotelOwnerRepository.findById(targetId, searchPageable);
-                } catch (NumberFormatException e) {
-                    ownerPage = Page.empty(searchPageable);
-                }
-            } else if ("fullName".equals(searchType)) {
-                ownerPage = hotelOwnerRepository.findByFullNameContainingIgnoreCase(query, searchPageable);
-            } else if ("email".equals(searchType)) {
-                ownerPage = hotelOwnerRepository.findByUserAccountEmailContainingIgnoreCase(query, searchPageable);
-            } else if ("phone".equals(searchType)) {
-                ownerPage = hotelOwnerRepository.findByPhoneContaining(query, searchPageable);
-            } else {
-                ownerPage = hotelOwnerRepository.findByUserAccountUsernameContainingIgnoreCase(query, searchPageable);
-            }
-        } else {
-            Pageable ownerPageable = "hotelOwnerAccounts".equals(tab) ? defaultOwnerPageable : PageRequest.of(0, 5, Sort.by("userAccount.username").ascending());
-            ownerPage = hotelOwnerRepository.findAllByOrderByPendingPriorityAsc(ownerPageable);
-        }
-        List<HotelOwner> ownerList = ownerPage.getContent();
+        // --- Tab 3: hotelOwnerAccounts (Tài khoản Chủ khách sạn) ---
+        Page<HotelOwner> ownerPage = Page.empty(defaultOwnerPageable);
         Map<Integer, Long> ownerPendingCounts = new HashMap<>();
-        for (HotelOwner owner : ownerList) {
-            long count = 0;
-            if ("PENDING".equals(owner.getVerificationStatus())) {
-                count++;
+        if ("hotelOwnerAccounts".equals(tab)) {
+            if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+                String query = searchQuery.trim();
+                if ("id".equals(searchType)) {
+                    try {
+                        int targetId = Integer.parseInt(query);
+                        ownerPage = hotelOwnerRepository.findById(targetId, searchPageable);
+                    } catch (NumberFormatException e) {
+                        ownerPage = Page.empty(searchPageable);
+                    }
+                } else if ("fullName".equals(searchType)) {
+                    ownerPage = hotelOwnerRepository.findByFullNameContainingIgnoreCase(query, searchPageable);
+                } else if ("email".equals(searchType)) {
+                    ownerPage = hotelOwnerRepository.findByUserAccountEmailContainingIgnoreCase(query, searchPageable);
+                } else if ("phone".equals(searchType)) {
+                    ownerPage = hotelOwnerRepository.findByPhoneContaining(query, searchPageable);
+                } else {
+                    ownerPage = hotelOwnerRepository.findByUserAccountUsernameContainingIgnoreCase(query, searchPageable);
+                }
+            } else {
+                ownerPage = hotelOwnerRepository.findAllByOrderByPendingPriorityAsc(defaultOwnerPageable);
             }
-            count += hotelRepository.countByApprovalStatusAndOwnerId("PENDING", owner.getId());
-            ownerPendingCounts.put(owner.getId(), count);
+            
+            for (HotelOwner owner : ownerPage.getContent()) {
+                long count = 0;
+                if ("PENDING".equals(owner.getVerificationStatus())) {
+                    count++;
+                }
+                count += hotelRepository.countByApprovalStatusAndOwnerId("PENDING", owner.getId());
+                ownerPendingCounts.put(owner.getId(), count);
+            }
         }
-        model.addAttribute("owners", ownerList);
+        model.addAttribute("owners", ownerPage.getContent());
         model.addAttribute("ownerPendingCounts", ownerPendingCounts);
         model.addAttribute("ownerCurrentPage", "hotelOwnerAccounts".equals(tab) ? page : 0);
         model.addAttribute("ownerTotalPages", ownerPage.getTotalPages());
 
-        // --- Xử lý Hotel Approval ---
-        Pageable defaultHotelPageable = PageRequest.of(page, 5, Sort.by("id").descending());
-        Page<Hotel> pendingHotelPage = Page.empty(defaultHotelPageable);
+        // --- Tab 4: hotelApprovalPanel (Duyệt tài liệu - Không sử dụng trực tiếp trên HTML, gán rỗng để tối ưu) ---
+        model.addAttribute("pendingHotels", Collections.emptyList());
+        model.addAttribute("hotelCurrentPage", 0);
+        model.addAttribute("hotelTotalPages", 0);
 
-        if ("hotelApprovalPanel".equals(tab) && searchQuery != null && !searchQuery.trim().isEmpty()) {
-            String query = searchQuery.trim();
-            pendingHotelPage = hotelRepository.findByApprovalStatusAndNameContainingIgnoreCase("PENDING", query, searchPageable);
-        } else {
-            Pageable hotelPageable = "hotelApprovalPanel".equals(tab) ? defaultHotelPageable : PageRequest.of(0, 5, Sort.by("id").descending());
-            pendingHotelPage = hotelRepository.findByApprovalStatus("PENDING", hotelPageable);
-        }
-        model.addAttribute("pendingHotels", pendingHotelPage.getContent());
-        model.addAttribute("hotelCurrentPage", "hotelApprovalPanel".equals(tab) ? page : 0);
-        model.addAttribute("hotelTotalPages", pendingHotelPage.getTotalPages());
-
-        // --- Xử lý Hotel Management ---
-        Pageable defaultManagedHotelPageable = PageRequest.of(page, 5, Sort.by("id").descending());
+        // --- Tab 5: hotelManagementPanel (Quản lý trạng thái hoạt động Khách sạn) ---
         Page<Hotel> managedHotelPage = Page.empty(defaultManagedHotelPageable);
-
-        if ("hotelManagementPanel".equals(tab) && searchQuery != null && !searchQuery.trim().isEmpty()) {
-            String query = searchQuery.trim();
-            managedHotelPage = hotelRepository.findByNameContainingIgnoreCase(query, searchPageable);
-        } else {
-            Pageable managedHotelPageable = "hotelManagementPanel".equals(tab) ? defaultManagedHotelPageable : PageRequest.of(0, 5, Sort.by("id").descending());
-            managedHotelPage = hotelRepository.findAll(managedHotelPageable);
+        if ("hotelManagementPanel".equals(tab)) {
+            if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+                String query = searchQuery.trim();
+                managedHotelPage = hotelRepository.findByNameContainingIgnoreCase(query, searchPageable);
+            } else {
+                managedHotelPage = hotelRepository.findAll(defaultManagedHotelPageable);
+            }
         }
         model.addAttribute("managedHotels", managedHotelPage.getContent());
         model.addAttribute("managedHotelCurrentPage", "hotelManagementPanel".equals(tab) ? page : 0);
         model.addAttribute("managedHotelTotalPages", managedHotelPage.getTotalPages());
 
-        // --- Xử lý Owner Feedback ---
-        Pageable defaultFeedbackReplyPageable = PageRequest.of(page, 5, Sort.by("id").descending());
+        // --- Tab 6: ownerFeedbackPanel (Quản lý bình luận/phản hồi) ---
         Page<FeedbackReply> feedbackReplyPage = Page.empty(defaultFeedbackReplyPageable);
-
-        if ("ownerFeedbackPanel".equals(tab) && searchQuery != null && !searchQuery.trim().isEmpty()) {
-            String query = searchQuery.trim();
-            feedbackReplyPage = feedbackReplyRepository.searchFeedbackReplies(query, searchPageable);
-        } else {
-            Pageable feedbackReplyPageable = "ownerFeedbackPanel".equals(tab) ? defaultFeedbackReplyPageable : PageRequest.of(0, 5, Sort.by("id").descending());
-            feedbackReplyPage = feedbackReplyRepository.findAllWithAssociations(feedbackReplyPageable);
+        if ("ownerFeedbackPanel".equals(tab)) {
+            if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+                String query = searchQuery.trim();
+                feedbackReplyPage = feedbackReplyRepository.searchFeedbackReplies(query, searchPageable);
+            } else {
+                feedbackReplyPage = feedbackReplyRepository.findAllWithAssociations(defaultFeedbackReplyPageable);
+            }
         }
         model.addAttribute("feedbackReplies", feedbackReplyPage.getContent());
         model.addAttribute("feedbackReplyCurrentPage", "ownerFeedbackPanel".equals(tab) ? page : 0);
@@ -213,34 +236,7 @@ public class AdminDashboardController {
             model.addAttribute("searchType", searchType);
         }
 
-        // Danh sách đặt phòng toàn hệ thống
-        // Ánh xạ sang Map để tránh Lazy Loading Exception khi chuyển sang JSON
-        List<Booking> allBookings = bookingRepository.findAllByOrderByCreatedAtDesc();
-        List<Map<String, Object>> mappedBookings = allBookings.stream().map(b -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("bookingId", b.getId());
-            map.put("customerId", b.getCustomer() != null ? b.getCustomer().getId() : null);
-            map.put("roomType", b.getRoom() != null ? b.getRoom().getRoomType() : null);
-            
-            // Lấy thông tin tên khách sạn
-            if (b.getRoom() != null) {
-                int hotelId = b.getRoom().getHotelId();
-                Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
-                map.put("hotelName", hotel != null ? hotel.getName() : "Unknown");
-            } else {
-                map.put("hotelName", "Unknown");
-            }
-            
-            map.put("checkInDate", b.getCheckInDate() != null ? b.getCheckInDate().toString() : null);
-            map.put("checkOutDate", b.getCheckOutDate() != null ? b.getCheckOutDate().toString() : null);
-            map.put("totalPrice", b.getTotalPrice());
-            map.put("bookingStatus", b.getStatus());
-            map.put("paymentStatus", (b.getPayment() != null && b.getPayment().getStatus() != null) ? b.getPayment().getStatus() : "PENDING");
-            map.put("createdAt", b.getCreatedAt() != null ? b.getCreatedAt().toString() : null);
-            return map;
-        }).collect(Collectors.toList());
 
-        model.addAttribute("bookings", mappedBookings);
 
         // Hiển thị giao diện dashboard admin
         return "admin/dashboard";
@@ -332,9 +328,11 @@ public class AdminDashboardController {
         return "redirect:/admin/customer-detail?id=" + userId + "&page=" + page;
     }
 
-    /**
-     * Thống kê doanh thu độc lập Database, chạy trực tiếp trên Java
-     */
+    /*
+     * PHƯƠNG THỨC NÀY ĐÃ BỊ DƯ THỪA (DEAD CODE):
+     * Không còn được gọi từ Controller và UI do bộ lọc doanh thu đã được chuyển sang xử lý tối ưu động ở Frontend.
+     * Tạm thời comment out để tránh các câu lệnh SELECT findAll() làm giảm hiệu năng hệ thống.
+     *
     private List<Map<String, Object>> getHotelRevenueStatistics() {
         List<Booking> bookings = bookingRepository.findAll();
         List<Hotel> hotels = hotelRepository.findAll();
@@ -404,6 +402,7 @@ public class AdminDashboardController {
 
         return result;
     }
+    */
 
     @GetMapping("/admin/owner-detail")
     public String showOwnerDetail(

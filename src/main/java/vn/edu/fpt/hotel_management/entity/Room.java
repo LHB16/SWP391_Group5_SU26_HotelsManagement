@@ -87,7 +87,7 @@ public class Room {
     public void setImgUrl(String imgUrl) { this.imgUrl = imgUrl; }
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
-    @OneToOne(mappedBy = "room", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToOne(mappedBy = "room", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private RoomFacility facility;
 
     public RoomFacility getFacility() { return facility; }
