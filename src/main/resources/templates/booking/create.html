@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragment/frag :: head}"></head>
+
 <body class="d-flex flex-column min-vh-100 bg-light">
 
     <!-- NAVBAR -->
     <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
     <!-- CSS riêng cho trang Booking -->
-<!-- MAIN CONTENT -->
+    <!-- MAIN CONTENT -->
     <main class="flex-grow-1 py-5">
         <div class="container">
-            
+
             <!-- Page Title -->
             <div class="mb-4">
                 <h1 class="checkout-title mb-1">Room Reservation Checkout</h1>
@@ -18,16 +20,13 @@
             </div>
 
             <!-- Empty State -->
-            <div th:if="${rooms == null or rooms.isEmpty()}" class="text-center py-5 booking-card p-5">
-                <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#dee2e6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-                <h4 class="mt-3 text-dark fw-bold">No Rooms Available</h4>
+            <div th:if="${rooms == null or rooms.isEmpty()}" class="card border-0 shadow-sm text-center py-5 p-5 my-4">
+                <div class="mb-3 text-muted">
+                    <i class="bi bi-calendar-x" style="font-size: 3.5rem;"></i>
+                </div>
+                <h4 class="text-dark fw-bold">No Rooms Available</h4>
                 <p class="text-muted">Please go back and select a hotel or try checking other options.</p>
-                <a href="/hotels" class="btn btn-primary mt-2">Back to Hotels</a>
+                <a href="/hotels" class="btn btn-primary mt-2 px-4 py-2">Back to Hotels</a>
             </div>
 
             <!-- Booking Form (Pure Thymeleaf/Spring Boot) -->
@@ -36,127 +35,168 @@
                 <input type="hidden" name="hotelId" th:value="${selectedHotelId}">
 
                 <div class="row g-4">
-                    
+
                     <!-- LEFT COLUMN: Room Checklist -->
                     <div class="col-12 col-lg-8">
-                        <div class="booking-card p-4">
+                        <div class="card border-0 shadow-sm p-4">
 
                             <div class="d-flex flex-column gap-4">
                                 <!-- Loop Room Cards -->
-                                <div th:each="room, iterStat : ${rooms}" class="booking-room-block border rounded overflow-hidden bg-white shadow-sm mb-4">
+                                <div th:each="room, iterStat : ${rooms}"
+                                    class="card booking-room-block border-0 shadow-sm mb-4 overflow-hidden bg-white">
                                     <!-- HÀNG 1: Tên khách sạn và địa chỉ -->
-                                    <div class="booking-room-hotel-header py-2 px-3 text-center text-white fw-bold booking-hotel-header-styled">
-                                        <span th:text="${(hotelMap != null ? hotelMap.get(room.hotelId) : '') + ': ' + (hotelAddressMap != null ? hotelAddressMap.get(room.hotelId) : '')}">Hotel Name: Address</span>
+                                    <div
+                                        class="card-header booking-room-hotel-header py-2 px-3 text-center text-white fw-bold booking-hotel-header-styled border-0">
+                                        <span
+                                            th:text="${(hotelMap != null ? hotelMap.get(room.hotelId) : '') + ': ' + (hotelAddressMap != null ? hotelAddressMap.get(room.hotelId) : '')}">Hotel
+                                            Name: Address</span>
                                     </div>
 
                                     <!-- HÀNG 2: Gồm check in, check out, select room và nút Filter -->
-                                    <div class="booking-room-details-row p-3 border-bottom bg-light">
+                                    <div class="card-body booking-room-details-row p-3 border-bottom bg-light">
                                         <div class="row align-items-center g-3">
                                             <!-- Check-in Date -->
                                             <div class="col-12 col-md-3">
-                                                <label class="form-label small fw-bold text-uppercase text-muted mb-1">Check-in Date</label>
+                                                <label
+                                                    class="form-label small fw-bold text-uppercase text-muted mb-1">Check-in
+                                                    Date</label>
                                                 <div class="input-group input-group-sm">
-                                                    <span class="input-group-text bg-white"><i class="bi bi-calendar-check text-gold"></i></span>
-                                                    <input type="text" name="checkins" class="form-control bg-white booking-checkin-picker booking-picker-weight" th:value="${checkins.get(iterStat.index)}">
+                                                    <span class="input-group-text bg-white"><i
+                                                            class="bi bi-calendar-check text-gold"></i></span>
+                                                    <input type="text" name="checkins"
+                                                        class="form-control bg-white booking-checkin-picker booking-picker-weight"
+                                                        th:value="${checkins.get(iterStat.index)}">
                                                 </div>
                                             </div>
                                             <!-- Check-out Date -->
                                             <div class="col-12 col-md-3">
-                                                <label class="form-label small fw-bold text-uppercase text-muted mb-1">Check-out Date</label>
+                                                <label
+                                                    class="form-label small fw-bold text-uppercase text-muted mb-1">Check-out
+                                                    Date</label>
                                                 <div class="input-group input-group-sm">
-                                                    <span class="input-group-text bg-white"><i class="bi bi-calendar-x text-gold"></i></span>
-                                                    <input type="text" name="checkouts" class="form-control bg-white booking-checkout-picker booking-picker-weight" th:value="${checkouts.get(iterStat.index)}">
+                                                    <span class="input-group-text bg-white"><i
+                                                            class="bi bi-calendar-x text-gold"></i></span>
+                                                    <input type="text" name="checkouts"
+                                                        class="form-control bg-white booking-checkout-picker booking-picker-weight"
+                                                        th:value="${checkouts.get(iterStat.index)}">
                                                 </div>
                                             </div>
                                             <!-- Select Room -->
                                             <div class="col-12 col-md-4">
-                                                <label class="form-label small fw-bold text-uppercase text-muted mb-1">Select Room</label>
+                                                <label
+                                                    class="form-label small fw-bold text-uppercase text-muted mb-1">Select
+                                                    Room</label>
                                                 <div class="position-relative">
-                                                    <select name="quantities" class="form-select form-select-sm custom-rooms-select"
-                                                            onfocus="if(this.options.length>5) this.size=5;" 
-                                                            onblur="this.size=1;" 
-                                                            onchange="this.size=1; this.blur();">
-                                                        <option th:each="i : ${#numbers.sequence(1, room.numberRooms > 0 ? room.numberRooms : 1)}"
-                                                                th:value="${i}"
-                                                                th:selected="${i == quantities.get(iterStat.index)}"
-                                                                th:with="
+                                                    <select name="quantities"
+                                                        class="form-select form-select-sm custom-rooms-select"
+                                                        onfocus="if(this.options.length>5) this.size=5;"
+                                                        onblur="this.size=1;" onchange="this.size=1; this.blur();">
+                                                        <option
+                                                            th:each="i : ${#numbers.sequence(1, room.numberRooms > 0 ? room.numberRooms : 1)}"
+                                                            th:value="${i}"
+                                                            th:selected="${i == quantities.get(iterStat.index)}"
+                                                            th:with="
                                                                     maxRooms=${room.numberRooms > 0 ? room.numberRooms : 1},
                                                                     maxPriceStr=${#numbers.formatDecimal(roomSinglePricesMap.get(room.id).multiply(new java.math.BigDecimal(maxRooms)), 0, 'COMMA', 0, 'POINT')},
                                                                     priceStr=${#numbers.formatDecimal(roomSinglePricesMap.get(room.id).multiply(new java.math.BigDecimal(i)), 0, 'COMMA', 0, 'POINT')},
                                                                     numSpaces=${3 - (i + '').length() + 1},
                                                                     spacesCount=${maxPriceStr.length() - priceStr.length() + 3}
                                                                 "
-                                                                th:utext="${i} + ${#strings.repeat('&nbsp;', numSpaces)} + ${priceStr} + ${#strings.repeat('&nbsp;', spacesCount)} + 'VND'">
+                                                            th:utext="${i} + ${#strings.repeat('&nbsp;', numSpaces)} + ${priceStr} + ${#strings.repeat('&nbsp;', spacesCount)} + 'VND'">
                                                         </option>
                                                     </select>
                                                 </div>
                                             </div>
                                             <!-- Filter Button -->
                                             <div class="col-12 col-md-2">
-                                                <label class="form-label small fw-bold text-uppercase text-muted mb-1 booking-hidden-label">Action</label>
-                                                <button type="submit" class="btn btn-gold btn-sm w-100 fw-semibold py-2">
-                                                    <i class="bi bi-funnel-fill me-1"></i>Filter
+                                                <label
+                                                    class="form-label small fw-bold text-uppercase text-muted mb-1 d-none d-md-block invisible">Action</label>
+                                                <button type="submit"
+                                                    class="btn btn-gold btn-sm w-100 fw-semibold py-2">
+                                                    <i class="bi bi-arrow-repeat me-1"></i>Change
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- HÀNG 3: Hình ảnh + Mô tả (Wishlist style) -->
-                                    <div class="booking-room-desc-row p-3 d-flex flex-column flex-md-row gap-3 position-relative">
-                                        <!-- Hidden input to submit roomId -->
-                                        <input type="hidden" name="roomIds" th:value="${room.id}">
+                                    <div class="card-body p-3">
+                                        <div class="row g-3 position-relative">
+                                            <!-- Hidden input to submit roomId -->
+                                            <input type="hidden" name="roomIds" th:value="${room.id}">
 
-                                        <!-- Ảnh phòng -->
-                                        <div class="room-card-img-wrap position-relative flex-shrink-0 booking-room-img-wrap">
-                                            <img th:if="${room.imgUrl != null and !room.imgUrl.isEmpty()}" th:src="${room.imgUrl}" alt="Room Image" class="w-100 h-100 object-fit-cover">
-                                            <div th:if="${room.imgUrl == null or room.imgUrl.isEmpty()}" class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
-                                                <i class="bi bi-image text-muted fs-3"></i>
-                                            </div>
-                                        </div>
-
-                                        <!-- Thông tin chi tiết phòng -->
-                                        <div class="d-flex flex-column justify-content-between flex-grow-1">
-                                            <div>
-                                                <!-- Header & Available badge -->
-                                                <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
-                                                    <h4 class="fw-bold mb-0 booking-room-type-title" th:text="${room.type}">Standard Garden Room</h4>
-                                                    <!-- Badge số phòng trống ở góc phải -->
-                                                    <span class="badge bg-navy text-white px-2 py-1 fs-7 rounded-pill booking-available-badge">
-                                                        <i class="bi bi-door-open me-1"></i>
-                                                        <span th:text="${room.numberRooms != null ? room.numberRooms + ' Available Rooms' : '0 Available Rooms'}">9 Available Rooms</span>
-                                                    </span>
-                                                </div>
-                                                
-                                                <!-- Mô tả phòng -->
-                                                <p class="text-muted mb-2 small" th:text="${room.description}">Phòng tiêu chuẩn có view sân vườn yên tĩnh.</p>
-
-                                                <!-- Specs -->
-                                                <div class="d-flex flex-wrap gap-2">
-                                                    <span class="badge-specs">
-                                                        <i class="bi bi-arrows-angle-expand me-1"></i>
-                                                        <span th:text="${room.acreage} + ' m²'">25.0 m²</span>
-                                                    </span>
-                                                    <span class="badge-specs">
-                                                        <i class="bi bi-people me-1"></i>
-                                                        <span th:text="${room.person} + ' guest(s)'">2 guest(s)</span>
-                                                    </span>
-                                                    <span class="badge-specs">
-                                                        <i class="bi bi-door-closed me-1"></i>
-                                                        <span th:text="${room.bed} + ' bed(s)'">1 bed(s)</span>
-                                                    </span>
-                                                    <span class="badge-specs">
-                                                        <i class="bi bi-window me-1"></i>
-                                                        <span th:text="${room.window} + ' window(s)'">1 window(s)</span>
-                                                    </span>
+                                            <!-- Ảnh phòng -->
+                                            <div class="col-12 col-md-4">
+                                                <div class="position-relative ratio ratio-16x9 rounded overflow-hidden shadow-sm"
+                                                    style="min-height: 130px;">
+                                                    <img th:if="${room.imgUrl != null and !room.imgUrl.isEmpty()}"
+                                                        th:src="${room.imgUrl}" alt="Room Image"
+                                                        class="w-100 h-100 object-fit-cover">
+                                                    <div th:if="${room.imgUrl == null or room.imgUrl.isEmpty()}"
+                                                        class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
+                                                        <i class="bi bi-image text-muted fs-3"></i>
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            <!-- Total Price -->
-                                            <div class="mt-3">
-                                                <div class="text-muted small text-uppercase fw-semibold booking-price-label">Total Price</div>
-                                                <div class="d-flex align-items-baseline gap-1">
-                                                    <span class="fw-bold text-gold booking-price-amount" th:text="${#numbers.formatDecimal(roomPricesMap.get(room.id), 0, 'COMMA', 0, 'POINT')}">1,100,000</span>
-                                                    <span class="text-muted small booking-price-night" th:text="${roomNightsMap.get(room.id) + ' night' + (roomNightsMap.get(room.id) > 1 ? 's' : '')}">1 night</span>
+                                            <!-- Thông tin chi tiết phòng -->
+                                            <div class="col-12 col-md-8 d-flex flex-column justify-content-between">
+                                                <div>
+                                                    <!-- Header & Available badge -->
+                                                    <div
+                                                        class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                                                        <h4 class="fw-bold mb-0 booking-room-type-title"
+                                                            th:text="${room.type}">Standard Garden Room</h4>
+                                                        <!-- Badge số phòng trống ở góc phải -->
+                                                        <span
+                                                            class="badge bg-navy text-white px-2 py-1 fs-7 rounded-pill booking-available-badge">
+                                                            <i class="bi bi-door-open me-1"></i>
+                                                            <span
+                                                                th:text="${room.numberRooms != null ? room.numberRooms + ' Available Rooms' : '0 Available Rooms'}">9
+                                                                Available Rooms</span>
+                                                        </span>
+                                                    </div>
+
+                                                    <!-- Mô tả phòng -->
+                                                    <p class="text-muted mb-2 small" th:text="${room.description}">Phòng
+                                                        tiêu chuẩn có view sân vườn yên tĩnh.</p>
+
+                                                    <!-- Specs -->
+                                                    <div class="d-flex flex-wrap gap-2">
+                                                        <span class="badge-specs">
+                                                            <i class="bi bi-arrows-angle-expand me-1"></i>
+                                                            <span th:text="${room.acreage} + ' m²'">25.0 m²</span>
+                                                        </span>
+                                                        <span class="badge-specs">
+                                                            <i class="bi bi-people me-1"></i>
+                                                            <span th:text="${room.person} + ' guest(s)'">2
+                                                                guest(s)</span>
+                                                        </span>
+                                                        <span class="badge-specs">
+                                                            <i class="bi bi-door-closed me-1"></i>
+                                                            <span th:text="${room.bed} + ' bed(s)'">1 bed(s)</span>
+                                                        </span>
+                                                        <span class="badge-specs">
+                                                            <i class="bi bi-window me-1"></i>
+                                                            <span th:text="${room.window} + ' window(s)'">1
+                                                                window(s)</span>
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Total Price -->
+                                                <div class="mt-3">
+                                                    <div
+                                                        class="text-muted small text-uppercase fw-semibold booking-price-label">
+                                                        Total Price</div>
+                                                    <div class="d-flex align-items-baseline gap-1">
+                                                        <span class="fw-bold text-gold booking-price-amount"
+                                                            th:text="${#numbers.formatDecimal(roomPricesMap.get(room.id), 0, 'COMMA', 0, 'POINT')}">1,100,000</span>
+                                                        <span class="text-muted fw-semibold" style="font-size: 0.9rem;">VND / </span>
+                                                        <span class="text-muted small booking-price-night"
+                                                            th:text="${roomNightsMap.get(room.id) + ' night' + (roomNightsMap.get(room.id) > 1 ? 's' : '')}">1
+                                                            night</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -169,44 +209,55 @@
                     <!-- RIGHT COLUMN: Stay Dates & Order Summary -->
                     <div class="col-12 col-lg-4">
                         <div class="sticky-summary d-flex flex-column gap-4">
-                            
+
                             <!-- Information Card (Read-only Profile) -->
-                            <div class="booking-card p-4">
+                            <div class="card border-0 shadow-sm p-4">
                                 <h4 class="section-header text-gold">Information</h4>
                                 <div class="mb-3">
                                     <label class="form-label small fw-bold text-uppercase text-muted">Full Name</label>
-                                    <input type="text" class="form-control bg-light" th:value="${customer != null ? customer.fullName : ''}" readonly disabled>
+                                    <input type="text" class="form-control bg-light"
+                                        th:value="${customer != null ? customer.fullName : ''}" readonly disabled>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label small fw-bold text-uppercase text-muted">Phone Number</label>
-                                    <input type="text" class="form-control bg-light" th:value="${customer != null ? customer.phone : ''}" readonly disabled>
+                                    <label class="form-label small fw-bold text-uppercase text-muted">Phone
+                                        Number</label>
+                                    <input type="text" class="form-control bg-light"
+                                        th:value="${customer != null ? customer.phone : ''}" readonly disabled>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label small fw-bold text-uppercase text-muted">Address</label>
-                                    <input type="text" class="form-control bg-light" th:value="${customer != null ? customer.fullAddress : ''}" readonly disabled>
+                                    <input type="text" class="form-control bg-light"
+                                        th:value="${customer != null ? customer.fullAddress : ''}" readonly disabled>
                                 </div>
                             </div>
 
                             <!-- Invoice Summary -->
-                            <div class="booking-card p-4 gold-border-top">
+                            <div class="card border-0 shadow-sm p-4 gold-border-top">
                                 <h4 class="section-header">Order Summary</h4>
-                                
+
                                 <div class="d-flex flex-column gap-2 mb-3">
                                     <div class="d-flex justify-content-between">
                                         <span class="text-muted">Rooms Selected</span>
-                                        <strong class="text-dark" th:text="${selectedRoomIds != null ? selectedRoomIds.size() : 0} + ' Room(s)'">0 Room(s)</strong>
+                                        <strong class="text-dark"
+                                            th:text="${quantities != null ? #aggregates.sum(quantities) : 0} + ' Room(s)'">0
+                                            Room(s)</strong>
                                     </div>
                                     <div class="d-flex justify-content-between">
                                         <span class="text-muted">Subtotal</span>
-                                        <span class="fw-semibold" th:text="${#numbers.formatInteger(subtotal, 0, 'COMMA')} + ' VND'">0 VND</span>
+                                        <span class="fw-semibold"
+                                            th:text="${#numbers.formatInteger(subtotal, 0, 'COMMA')} + ' VND'">0
+                                            VND</span>
                                     </div>
                                     <div class="d-flex justify-content-between">
                                         <span class="text-muted">VAT (10%)</span>
-                                        <span class="text-muted" th:text="${#numbers.formatInteger(tax, 0, 'COMMA')} + ' VND'">0 VND</span>
+                                        <span class="text-muted"
+                                            th:text="${#numbers.formatInteger(tax, 0, 'COMMA')} + ' VND'">0 VND</span>
                                     </div>
                                     <div class="d-flex justify-content-between">
                                         <span class="text-muted">Service Fee</span>
-                                        <span class="text-muted" th:text="${#numbers.formatInteger(serviceFee, 0, 'COMMA')} + ' VND'">0 VND</span>
+                                        <span class="text-muted"
+                                            th:text="${#numbers.formatInteger(serviceFee, 0, 'COMMA')} + ' VND'">0
+                                            VND</span>
                                     </div>
                                 </div>
 
@@ -214,10 +265,13 @@
 
                                 <div class="d-flex justify-content-between align-items-center mb-4">
                                     <span class="fw-bold fs-5" style="color: var(--navy-primary);">Total Amount</span>
-                                    <strong class="fs-4 text-primary" style="color: var(--navy-primary) !important;" th:text="${#numbers.formatInteger(grandTotal, 0, 'COMMA')} + ' VND'">0 VND</strong>
+                                    <strong class="fs-4 text-primary" style="color: var(--navy-primary) !important;"
+                                        th:text="${#numbers.formatInteger(grandTotal, 0, 'COMMA')} + ' VND'">0
+                                        VND</strong>
                                 </div>
 
-                                <button type="submit" class="btn-confirm-booking" th:formaction="@{/booking/qr-payment}">
+                                <button type="submit" class="btn btn-gold w-100 py-3 fw-bold fs-5 shadow-sm text-center"
+                                    th:formaction="@{/booking/qr-payment}">
                                     Confirm Reservation & Pay
                                 </button>
                             </div>
@@ -240,4 +294,5 @@
     <!-- Booking Filter JS -->
     <script th:src="@{/assets/js/booking-filter.js}"></script>
 </body>
+
 </html>

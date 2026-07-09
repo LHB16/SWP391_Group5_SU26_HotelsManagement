@@ -60,15 +60,15 @@
 
             <!-- ===== HOTEL INFORMATION ===== -->
             <div class="col-12">
-                <div class="card border-0 shadow-sm" style="border-radius:16px; overflow:hidden;">
+                <div class="card border-0 shadow-sm card-custom-rounded">
                     <div class="row g-0">
                         <!-- Hotel Image -->
-                        <div class="col-12 col-md-4" style="min-height: 250px;">
+                        <div class="col-12 col-md-4 hotel-detail-img-container">
                             <img th:if="${hotel.imageUrl != null and !hotel.imageUrl.isEmpty()}"
                                  th:src="@{${hotel.imageUrl}}" th:alt="${hotel.name}"
-                                 class="w-100 h-100 object-fit-cover" style="min-height: 250px;" />
+                                 class="w-100 h-100 object-fit-cover hotel-detail-img-container" />
                             <div th:if="${hotel.imageUrl == null or hotel.imageUrl.isEmpty()}"
-                                 class="w-100 h-100 d-flex align-items-center justify-content-center bg-light" style="min-height: 250px;">
+                                 class="w-100 h-100 d-flex align-items-center justify-content-center bg-light hotel-detail-img-container">
                                 <i class="bi bi-image text-muted fs-1"></i>
                             </div>
                         </div>
@@ -103,7 +103,7 @@
 
                                 <div class="mt-3 d-flex gap-3 flex-wrap">
                                     <span class="badge bg-light text-dark px-3 py-2">
-                                        <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                        <i class="bi me-1" th:classappend="${hotel.active} ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'"></i>
                                         <span th:text="${hotel.active} ? 'Active' : 'Inactive'">Active</span>
                                     </span>
                                     <span class="badge bg-light text-dark px-3 py-2">
@@ -138,9 +138,9 @@
 
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h4 class="fw-bold text-dark mb-0">
-                        <i class="bi bi-door-open me-2" style="color: var(--gold);"></i>
+                        <i class="bi bi-door-open me-2 text-gold"></i>
                         Rooms in this Hotel
-                        <span class="ms-2 badge rounded-pill" style="background-color: #ede9fe; color: #4f46e5; font-size: 0.78rem; font-weight: 600;"
+                        <span class="ms-2 badge rounded-pill badge-room-count"
                               th:text="${rooms != null ? rooms.size() : 0}">0</span>
                     </h4>
                     <a th:href="@{/hotels/{id}/rooms/new(id=${hotel.id})}" class="btn btn-gold btn-sm">
@@ -202,26 +202,26 @@
                                         <!-- Bootstrap Delete Modal -->
                                         <div class="modal fade" th:id="'deleteModalRoom-' + ${room.id}" tabindex="-1" aria-hidden="true">
                                             <div class="modal-dialog modal-dialog-centered">
-                                                <div class="modal-content" style="border-radius: 16px; border: none; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+                                                <div class="modal-content modal-content-rounded">
                                                     <div class="modal-header border-0 pt-4 pb-0 justify-content-center">
                                                         <div class="text-center">
-                                                            <i class="bi bi-exclamation-triangle" style="font-size: 3rem; color: var(--gold);"></i>
+                                                            <i class="bi bi-exclamation-triangle icon-warning-large text-gold"></i>
                                                         </div>
                                                     </div>
                                                     <div class="modal-body text-center px-4 py-3">
-                                                        <h4 class="fw-bold text-dark mb-3" style="font-family: 'Playfair Display', serif;">Confirm Deletion</h4>
-                                                        <p class="text-muted mb-0" style="font-size: 0.95rem; line-height: 1.6;">
-                                                            Are you sure you want to delete room <strong style="color:var(--navy-primary);" th:text="'\'' + ${room.type} + '\''">Room Type</strong> from <strong style="color:var(--gold-dark);" th:text="'\'' + ${hotel.name} + '\''">Hotel Name</strong>?
+                                                        <h4 class="fw-bold text-dark mb-3 modal-title-serif">Confirm Deletion</h4>
+                                                        <p class="text-muted mb-0 modal-text-desc">
+                                                            Are you sure you want to delete room <strong class="text-navy-primary" th:text="'\'' + ${room.type} + '\''">Room Type</strong> from <strong class="text-gold-dark" th:text="'\'' + ${hotel.name} + '\''">Hotel Name</strong>?
                                                         </p>
                                                     </div>
                                                     <div class="modal-footer border-0 pb-4 pt-2 d-flex gap-3 justify-content-center">
-                                                        <button type="button" class="btn btn-light px-4 py-2 rounded-3 border fw-semibold text-secondary" 
-                                                                data-bs-dismiss="modal" style="font-size: 0.9rem;">
+                                                        <button type="button" class="btn btn-light px-4 py-2 rounded-3 border fw-semibold text-secondary font-size-9" 
+                                                                data-bs-dismiss="modal">
                                                             No, Keep It
                                                         </button>
                                                         <form th:action="@{/owner/hotels/{id}/rooms/{rid}/delete(id=${hotel.id}, rid=${room.id})}"
                                                               method="post" class="d-inline">
-                                                            <button type="submit" class="btn px-4 py-2 rounded-3 fw-semibold text-white" style="background-color: var(--navy-primary); font-size: 0.9rem;">
+                                                            <button type="submit" class="btn btn-delete-modal px-4 py-2 rounded-3 fw-semibold text-white">
                                                                 Yes, Delete
                                                             </button>
                                                         </form>

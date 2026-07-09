@@ -280,7 +280,7 @@ public class HotelController {
             @RequestParam("description") String description,
             @RequestParam(value = "ownerId", required = false) Integer ownerId,
             @RequestParam(value = "rating", required = false) Double rating,
-            @RequestParam("active") boolean active,
+            @RequestParam(value = "active", required = false, defaultValue = "false") boolean active,
             @RequestParam("imageFile") MultipartFile imageFile,
             @RequestParam(value = "businessRegistrationDoc", required = false) MultipartFile businessRegistrationDoc,
             @RequestParam(value = "landCertificateDoc", required = false) MultipartFile landCertificateDoc,
@@ -566,7 +566,7 @@ public class HotelController {
             @RequestParam(value = "district", required = false) String district,
             @RequestParam("description") String description,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
-            @RequestParam("active") boolean active,
+            @RequestParam(value = "active", required = false, defaultValue = "false") boolean active,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
 
