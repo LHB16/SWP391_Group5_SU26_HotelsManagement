@@ -21,5 +21,5 @@ public interface HotelOwnerRepository extends JpaRepository<HotelOwner, Integer>
     
     long countByVerificationStatus(String verificationStatus);
     
-    Page<HotelOwner> findAllByOrderByVerificationStatusDesc(Pageable pageable);
+    Page<HotelOwner> findAllByOrderByPendingPriorityAsc(Pageable pageable);
 }
