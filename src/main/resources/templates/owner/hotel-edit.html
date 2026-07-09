@@ -89,11 +89,11 @@
                             <!-- Description -->
                             <div class="mb-4">
                                 <label class="form-label-custom" for="hotelDescription">
-                                    Description
+                                    Description <span class="text-danger">*</span>
                                 </label>
                                 <textarea name="description" id="hotelDescription" class="fc" rows="5"
                                           th:text="${hotel.description}"
-                                          style="resize:vertical;"></textarea>
+                                          style="resize:vertical;" required></textarea>
                                 <div class="form-text text-muted">Provide detailed information about your hotel</div>
                             </div>
 
