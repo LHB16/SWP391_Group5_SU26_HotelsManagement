@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head th:replace="~{fragment/frag :: head}"></head>
+
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragment/frag :: navBar}"></nav>
+
+<!-- ==================== BREADCRUMB HERO ==================== -->
+<section class="room-hero py-4" style="background: linear-gradient(135deg, var(--hotel-navy) 0%, #142038 60%, #1a2d4a 100%); color: #fff;">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <a th:href="@{/owner/dashboard(tab='hotels')}" class="bc-link">My Hotels</a>
+            <span class="bc-sep">/</span>
+            <a th:href="@{/owner/hotels/{id}(id=${hotel.id})}" 
+               class="bc-link" th:text="${hotel.name}">Hotel</a>
+            <span class="bc-sep">/</span>
+            <span class="bc-active" th:text="${room.roomType} + ' Detail'">Room Detail</span>
+        </nav>
+        <h1 class="room-hero-title mb-1" th:text="${room.roomType}">Room Type</h1>
+        <p class="room-hero-subtitle text-muted mb-0" style="color: rgba(255,255,255,0.65) !important;">
+            <i class="bi bi-geo-alt me-1"></i>
+            <span th:text="${hotel.name} + ' · ' + ${hotel.address}">Hotel Name & Address</span>
+        </p>
+        <div class="hero-divider mt-3" style="width: 60px; height: 3px; background: var(--gold); border-radius: 3px;"></div>
+    </div>
+</section>
+
+<!-- ==================== MAIN CONTENT ==================== -->
+<main class="flex-grow-1 py-5 bg-cream">
+    <div class="container">
+        <div class="row justify-content-center">
+            
+            <!-- ===== ONLY ONE CENTERED COLUMN: Media, Description, Facilities ===== -->
+            <div class="col-12 col-lg-8 mx-auto">
+                
+                <!-- Room Image -->
+                <div class="room-detail-img-container mb-4 shadow-sm" style="border-radius:18px; overflow:hidden; background:#f1f5f9; height:420px;">
+                    <img th:if="${room.imgUrl != null and !room.imgUrl.isEmpty()}"
+                         th:src="${room.imgUrl}" th:alt="${room.roomType}"
+                         class="w-100 h-100 object-fit-cover" />
+                    <div th:if="${room.imgUrl == null or room.imgUrl.isEmpty()}"
+                         class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light">
+                         <i class="bi bi-image text-muted fs-1 mb-2"></i>
+                         <span class="text-muted small">No image available for this room</span>
+                    </div>
+                </div>
+
+                <!-- Specs row inside main content for Owner -->
+                <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius:16px;">
+                    <h5 class="fw-bold mb-3 text-navy" style="color: var(--navy); font-family: 'Playfair Display', serif;">Room Specifications</h5>
+                    <div class="row g-3">
+                        <div class="col-6 col-sm-3">
+                            <div class="p-3 rounded text-center" style="background:#f8fafc; border: 1px solid #f1f5f9;">
+                                <i class="bi bi-arrows-fullscreen text-gold fs-4 mb-1 d-block"></i>
+                                <span class="text-muted d-block small">Area</span>
+                                <strong class="text-navy" th:text="${room.acreage + ' m²'}">25 m²</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <div class="p-3 rounded text-center" style="background:#f8fafc; border: 1px solid #f1f5f9;">
+                                <i class="bi bi-people text-gold fs-4 mb-1 d-block"></i>
+                                <span class="text-muted d-block small">Max Capacity</span>
+                                <strong class="text-navy" th:text="${room.person + ' guest(s)'}">2 guests</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <div class="p-3 rounded text-center" style="background:#f8fafc; border: 1px solid #f1f5f9;">
+                                <i class="bi bi-door-closed text-gold fs-4 mb-1 d-block"></i>
+                                <span class="text-muted d-block small">Beds</span>
+                                <strong class="text-navy" th:text="${room.bed + ' bed(s)'}">1 bed</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <div class="p-3 rounded text-center" style="background:#f8fafc; border: 1px solid #f1f5f9;">
+                                <i class="bi bi-grid-3x3-gap text-gold fs-4 mb-1 d-block"></i>
+                                <span class="text-muted d-block small">Windows</span>
+                                <strong class="text-navy" th:text="${room.numWindow + ' window(s)'}">2 windows</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius:16px;">
+                    <h5 class="fw-bold mb-3 text-navy" style="color: var(--navy); font-family: 'Playfair Display', serif;">Room Overview</h5>
+                    <p class="room-detail-desc text-muted mb-0" style="line-height: 1.7; font-size: 0.92rem;"
+                       th:text="${room.description != null and !room.description.isEmpty()
+                                ? room.description
+                                : 'This luxurious room is meticulously designed to offer a premium blend of elegance, comfort, and state-of-the-art conveniences. Perfectly suitable for both leisure and business travelers seeking a memorable stay.'}">
+                    </p>
+                </div>
+
+                <!-- Facilities & Amenities Section -->
+                <div th:if="${room.facility != null}" class="card border-0 shadow-sm p-4 mb-4" style="border-radius:16px;">
+                    <h5 class="fw-bold mb-4 text-navy" style="color: var(--navy); font-family: 'Playfair Display', serif;">Amenities & Facilities</h5>
+                    
+                    <!-- Bathroom Amenities -->
+                    <div class="room-detail-feature-section mb-4">
+                        <div class="room-detail-feature-title mb-3">
+                            <i class="bi bi-droplet text-gold me-2"></i>
+                            <span class="fw-semibold">Bathroom Amenities</span>
+                        </div>
+                        <div class="room-detail-checklist-grid">
+                            <div th:if="${room.facility.freeToiletries}" class="room-detail-check-item">
+                                <i class="bi bi-check-lg rdm-check"></i> Free toiletries
+                            </div>
+                            <div th:if="${room.facility.shower}" class="room-detail-check-item">
+                                <i class="bi bi-check-lg rdm-check"></i> Shower
+                            </div>
+                            <div th:if="${room.facility.bathrobe}" class="room-detail-check-item">
+                                <i class="bi bi-check-lg rdm-check"></i> Bathrobe
+                            </div>
+                            <div th:if="${room.facility.toilet}" class="room-detail-check-item">
+                                <i class="bi bi-check-lg rdm-check"></i> Toilet
+                            </div>
+                            <div th:if="${room.facility.towels}" class="room-detail-check-item">
+                                <i class="bi bi-check-lg rdm-check"></i> Towels
+                            </div>
+                            <div th:if="${room.facility.slippers}" class="room-detail-check-item">
+                                <i class="bi bi-check-lg rdm-check"></i> Slippers
+                            </div>
+                            <div th:if="${room.facility.hairdryer}" class="room-detail-check-item">
+                                <i class="bi bi-check-lg rdm-check"></i> Hairdryer
+                            </div>
+                            <div th:if="${room.facility.toiletPaper}" class="room-detail-check-item">
+                                <i class="bi bi-check-lg rdm-check"></i> Toilet paper
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="fdivider my-3" style="height:1px; background:#e2e8f0;"></div>
+
+                    <!-- Room Amenities -->
+                    <div class="room-detail-feature-section mb-4">
+                        <div class="room-detail-feature-title mb-3">
+                            <i class="bi bi-house-door text-gold me-2"></i>
+                            <span class="fw-semibold">Room Amenities</span>
+                        </div>
+                        <div class="room-detail-checklist-grid">
+                            <div th:if="${room.facility.airConditioning}" class="room-detail-check-item">
+                                <i class="bi bi-check-lg rdm-check"></i> Air conditioning
+                            </div>
+                            <div th:if="${room.facility.safetyDepositBox}" class="room-detail-check-item">
+                                <i class="bi bi-check-lg rdm-check"></i> Safety deposit box
+                            </div>
+                            <div th:if="${room.facility.desk}" class="room-detail-check-item">
+                                <i class="bi bi-check-lg rdm-check"></i> Desk
+                            </div>
+                            <div th:if="${room.facility.television}" class="room-detail-check-item">
+                                <i class="bi bi-check-lg rdm-check"></i> Television
+                            </div>
+                            <div th:if="${room.facility.telephone}" class="room-detail-check-item">
+                                <i class="bi bi-check-lg rdm-check"></i> Telephone
+                            </div>
+                            <div th:if="${room.facility.iron}" class="room-detail-check-item">
+                                <i class="bi bi-check-lg rdm-check"></i> Iron
+                            </div>
+                            <div th:if="${room.facility.electricKettle}" class="room-detail-check-item">
+                                <i class="bi bi-check-lg rdm-check"></i> Electric kettle
+                            </div>
+                            <div th:if="${room.facility.cableChannels}" class="room-detail-check-item">
+                                <i class="bi bi-check-lg rdm-check"></i> Cable channels
+                            </div>
+                            <div th:if="${room.facility.wakeUpService}" class="room-detail-check-item">
+                                <i class="bi bi-check-lg rdm-check"></i> Wake-up service
+                            </div>
+                            <div th:if="${room.facility.wardrobeCloset}" class="room-detail-check-item">
+                                <i class="bi bi-check-lg rdm-check"></i> Wardrobe / Closet
+                            </div>
+                            <div th:if="${room.facility.clothesRack}" class="room-detail-check-item">
+                                <i class="bi bi-check-lg rdm-check"></i> Clothes rack
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Extras -->
+                    <div th:if="${room.facility.freeBottledWater > 0}" class="room-detail-feature-section">
+                        <div class="fdivider my-3" style="height:1px; background:#e2e8f0;"></div>
+                        <div class="room-detail-feature-title mb-3">
+                            <i class="bi bi-cup-straw text-gold me-2"></i>
+                            <span class="fw-semibold">Extras</span>
+                        </div>
+                        <div class="room-detail-checklist-grid">
+                            <div class="room-detail-check-item">
+                                <i class="bi bi-check-lg rdm-check"></i> 
+                                <span th:text="${'Free Bottled Water: ' + room.facility.freeBottledWater + ' bottle(s)'}">Free Bottled Water</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Back button for Owner -->
+                <div class="text-center mt-4">
+                    <a th:href="@{/owner/hotels/{id}(id=${hotel.id})}" class="btn btn-outline-secondary px-4 py-2 rounded-pill">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Hotel Detail
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragment/frag :: footer}"></footer>
+<div th:replace="~{fragment/frag :: scripts}"></div>
+</body>
+</html>

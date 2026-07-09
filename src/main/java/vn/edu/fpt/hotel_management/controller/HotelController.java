@@ -172,6 +172,19 @@ public class HotelController {
             }).collect(java.util.stream.Collectors.toList());
         }
 
+        // Nếu checkin hoặc checkout chưa có, gán mặc định là hôm nay và ngày mai
+        if (checkin == null || checkin.trim().isEmpty()) {
+            checkin = java.time.LocalDate.now().toString();
+        }
+        if (checkout == null || checkout.trim().isEmpty()) {
+            checkout = java.time.LocalDate.now().plusDays(1).toString();
+        }
+
+        // Lưu bộ lọc checkin/checkout của list hotel vào session
+        session.setAttribute("hotelCheckinFilter", checkin);
+        session.setAttribute("hotelCheckoutFilter", checkout);
+
+
         long nights = 1;
         boolean isFiltered = false;
         java.util.Map<Integer, BigDecimal> hotelPricesMap = new java.util.HashMap<>();
@@ -213,6 +226,7 @@ public class HotelController {
             }
         }
 
+
         model.addAttribute("hotels", hotels);
         model.addAttribute("hotelPricesMap", hotelPricesMap);
         model.addAttribute("nights", nights);
@@ -222,7 +236,10 @@ public class HotelController {
         model.addAttribute("maxPrice", resolvedMaxPrice);
         model.addAttribute("checkin", checkin);
         model.addAttribute("checkout", checkout);
+        model.addAttribute("today", java.time.LocalDate.now().toString());
+        model.addAttribute("minCheckout", java.time.LocalDate.parse(checkin).plusDays(1).toString());
         model.addAttribute("totalResults", hotels.size());
+
         model.addAttribute("user", session.getAttribute("loggedInUser"));
         model.addAttribute("today", java.time.LocalDate.now().toString());
 
@@ -231,6 +248,248 @@ public class HotelController {
         model.addAttribute("selectedRoomFacilities", roomFacilities != null ? roomFacilities : List.of());
 
         return "hotel/hotel-list";
+    }
+
+    @GetMapping("/hotels/new")
+    public String showCreateHotelForm(Model model, HttpSession session) {
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+
+        if (!"ADMIN".equals(loggedInUser.getRole()) && !"HOTEL_OWNER".equals(loggedInUser.getRole())) {
+            return "redirect:/home";
+        }
+
+        model.addAttribute("hotel", new Hotel());
+        model.addAttribute("user", loggedInUser);
+
+        if ("ADMIN".equals(loggedInUser.getRole())) {
+            model.addAttribute("owners", hotelOwnerRepository.findAll());
+        }
+
+        return "hotel/hotel-create";
+    }
+
+    @PostMapping("/hotels/new")
+    public String createHotel(
+            @RequestParam("name") String name,
+            @RequestParam("address") String address,
+            @RequestParam("city") String city,
+            @RequestParam(value = "district", required = false) String district,
+            @RequestParam("description") String description,
+            @RequestParam(value = "ownerId", required = false) Integer ownerId,
+            @RequestParam(value = "rating", required = false) Double rating,
+            @RequestParam(value = "active", required = false, defaultValue = "false") boolean active,
+            @RequestParam("imageFile") MultipartFile imageFile,
+            @RequestParam(value = "businessRegistrationDoc", required = false) MultipartFile businessRegistrationDoc,
+            @RequestParam(value = "landCertificateDoc", required = false) MultipartFile landCertificateDoc,
+            @RequestParam(value = "rentalContractDoc", required = false) MultipartFile rentalContractDoc,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+
+        if (description == null || description.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Hotel description is required!");
+            return "redirect:/hotels/new";
+        }
+
+        if (imageFile == null || imageFile.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Hotel image is required!");
+            return "redirect:/hotels/new";
+        }
+
+        String imageContentType = imageFile.getContentType();
+        if (imageContentType == null || !imageContentType.startsWith("image/")) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Hotel image must be an image file (JPG, PNG, WEBP, etc.)!");
+            return "redirect:/hotels/new";
+        }
+
+        if (businessRegistrationDoc != null && !businessRegistrationDoc.isEmpty()) {
+            String bizContentType = businessRegistrationDoc.getContentType();
+            if (bizContentType == null || !bizContentType.equals("application/pdf")) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Business Registration must be a PDF file!");
+                return "redirect:/hotels/new";
+            }
+        }
+
+        if (landCertificateDoc != null && !landCertificateDoc.isEmpty()) {
+            String landContentType = landCertificateDoc.getContentType();
+            if (landContentType == null || !landContentType.equals("application/pdf")) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Land Certificate must be a PDF file!");
+                return "redirect:/hotels/new";
+            }
+        }
+
+        if (rentalContractDoc != null && !rentalContractDoc.isEmpty()) {
+            String rentalContentType = rentalContractDoc.getContentType();
+            if (rentalContentType == null || !rentalContentType.equals("application/pdf")) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Rental Contract must be a PDF file!");
+                return "redirect:/hotels/new";
+            }
+        }
+
+        String imageUrl = null;
+        try {
+            String originalFilename = imageFile.getOriginalFilename();
+            String safeFilename = System.currentTimeMillis() + "_"
+                    + (originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_") : "hotel.jpg");
+            Path uploadPath = resolveStaticDir(HOTEL_IMAGE_SUBDIR);
+            Path targetFile = uploadPath.resolve(safeFilename);
+            Files.copy(imageFile.getInputStream(),
+                    targetFile,
+                    StandardCopyOption.REPLACE_EXISTING);
+            imageUrl = HOTEL_IMAGE_URL_PREFIX + safeFilename;
+
+            Path classesPath = Paths.get(System.getProperty("user.dir"), "target", "classes", "static", HOTEL_IMAGE_SUBDIR).toAbsolutePath().normalize();
+            if (Files.exists(Paths.get(System.getProperty("user.dir"), "target", "classes", "static"))) {
+                if (!Files.exists(classesPath)) {
+                    Files.createDirectories(classesPath);
+                }
+                Files.copy(targetFile, classesPath.resolve(safeFilename), StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Image upload failed: " + e.getMessage());
+            return "redirect:/hotels/new";
+        }
+
+        Hotel hotel = new Hotel();
+        hotel.setName(name);
+        hotel.setAddress(address);
+        hotel.setCity(city);
+        hotel.setDistrict(district);
+        hotel.setDescription(description);
+        hotel.setImageUrl(imageUrl);
+        hotel.setActive(active);
+
+        HotelOwner owner = null;
+
+        if ("ADMIN".equals(loggedInUser.getRole()) && ownerId != null) {
+            owner = hotelOwnerRepository.findById(ownerId).orElse(null);
+        } else if ("HOTEL_OWNER".equals(loggedInUser.getRole())) {
+            owner = hotelOwnerRepository.findByUserAccount(loggedInUser).orElse(null);
+        }
+
+        if (owner == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Owner not found!");
+            return "redirect:/hotels/new";
+        }
+
+        hotel.setOwner(owner);
+
+        if ("ADMIN".equals(loggedInUser.getRole())) {
+            hotel.setRating(rating != null ? rating : 0.0);
+        } else {
+            hotel.setRating(0.0);
+        }
+
+        hotel.setTotalReviews(0);
+        hotel.setApprovalStatus("PENDING");
+
+        try {
+            hotelRepository.save(hotel);
+
+            HotelVerificationDocument doc = new HotelVerificationDocument();
+            doc.setHotel(hotel);
+            doc.setUploadStatus("PENDING");
+
+            if (businessRegistrationDoc != null && !businessRegistrationDoc.isEmpty()) {
+                try {
+                    String path = saveUploadedFile(businessRegistrationDoc, "hotel_docs");
+                    doc.setBusinessRegistrationDoc(path);
+                } catch (IOException e) {
+                    redirectAttributes.addFlashAttribute("errorMessage",
+                            "Failed to upload Business Registration: " + e.getMessage());
+                    return "redirect:/hotels/new";
+                }
+            }
+
+            if (landCertificateDoc != null && !landCertificateDoc.isEmpty()) {
+                try {
+                    String path = saveUploadedFile(landCertificateDoc, "hotel_docs");
+                    doc.setLandCertificateDoc(path);
+                } catch (IOException e) {
+                    redirectAttributes.addFlashAttribute("errorMessage",
+                            "Failed to upload Land Certificate: " + e.getMessage());
+                    return "redirect:/hotels/new";
+                }
+            }
+
+            if (rentalContractDoc != null && !rentalContractDoc.isEmpty()) {
+                try {
+                    String path = saveUploadedFile(rentalContractDoc, "hotel_docs");
+                    doc.setRentalContractDoc(path);
+                } catch (IOException e) {
+                    redirectAttributes.addFlashAttribute("errorMessage",
+                            "Failed to upload Rental Contract: " + e.getMessage());
+                    return "redirect:/hotels/new";
+                }
+            }
+
+            hotelVerificationDocumentRepository.save(doc);
+
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Hotel \"" + name + "\" added successfully! Documents submitted for verification.");
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to save hotel: " + e.getMessage());
+            return "redirect:/hotels/new";
+        }
+
+        if ("ADMIN".equals(loggedInUser.getRole())) {
+            return "redirect:/admin/dashboard";
+        } else {
+            return "redirect:/owner/dashboard?tab=hotels";
+        }
+    }
+
+    @GetMapping("/owner/hotels")
+    public String showOwnerHotelsPage(HttpSession session, Model model) {
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+        if (!"HOTEL_OWNER".equals(loggedInUser.getRole())) {
+            return "redirect:/home";
+        }
+
+        HotelOwner owner = hotelOwnerRepository.findByUserAccount(loggedInUser).orElse(null);
+        List<Hotel> hotels = new ArrayList<>();
+
+        if (owner != null) {
+            hotels = hotelRepository.findByOwnerId(owner.getId());
+        }
+
+        model.addAttribute("hotels", hotels);
+        model.addAttribute("user", loggedInUser);
+        model.addAttribute("hasHotels", hotels != null && !hotels.isEmpty());
+
+        return "owner/hotel-list";
+    }
+
+    @GetMapping("/owner/hotels/new")
+    public String showOwnerCreateHotelForm(Model model, HttpSession session) {
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+        if (!"HOTEL_OWNER".equals(loggedInUser.getRole())) {
+            return "redirect:/home";
+        }
+
+        if (!ownerService.isOwnerApproved(loggedInUser)) {
+            session.setAttribute("errorMessage",
+                    "Your account is pending admin approval. You cannot add hotels yet.");
+            return "redirect:/owner/dashboard";
+        }
+
+        model.addAttribute("hotel", new Hotel());
+        model.addAttribute("user", loggedInUser);
+        return "owner/hotel-create";
     }
 
     @GetMapping("/owner/hotels/{id}")
@@ -258,6 +517,8 @@ public class HotelController {
                 .orElseThrow(() -> new RuntimeException("Hotel not found or you don't have permission!"));
 
         model.addAttribute("hotel", hotel);
+        List<Room> rooms = roomRepository.findByHotelId(hotelId);
+        model.addAttribute("rooms", rooms);
         model.addAttribute("user", loggedInUser);
         return "owner/hotel-detail";
     }
@@ -305,7 +566,7 @@ public class HotelController {
             @RequestParam(value = "district", required = false) String district,
             @RequestParam("description") String description,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
-            @RequestParam("active") boolean active,
+            @RequestParam(value = "active", required = false, defaultValue = "false") boolean active,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
 
@@ -431,7 +692,7 @@ public class HotelController {
             redirectAttributes.addFlashAttribute("errorMessage", "Failed to delete hotel: " + e.getMessage());
         }
 
-        return "redirect:/owner/dashboard?tab=hotels";
+        return "redirect:/owner/hotels";
     }
 
     private boolean isHolidayOrWeekend(java.time.LocalDate date) {

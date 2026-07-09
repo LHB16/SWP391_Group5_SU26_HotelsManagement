@@ -48,11 +48,11 @@
                     <div class="bd-hotel-details">
                         <h2 class="bd-hotel-name" th:text="${hotel.name}">Hotel Name</h2>
                         <div class="bd-hotel-meta">
-                            <span th:text="${#temporals.format(booking.checkInDate, 'MMM dd')} + ' – ' + ${#temporals.format(booking.checkOutDate, 'MMM dd')}">Apr 15 – Apr 17</span>
+                            <span th:text="${#temporals.format(booking.checkInDate, 'dd/MM/yyyy')} + ' – ' + ${#temporals.format(booking.checkOutDate, 'dd/MM/yyyy')}">Apr 15 – Apr 17</span>
                             &nbsp;·&nbsp;
                             <span th:text="${room.type}">Samal</span>
                             &nbsp;·&nbsp;
-                            <span th:if="${booking.status == 'PENDING'}">Unpaid</span>
+                            <span th:if="${booking.status == 'PENDING'}">Pending</span>
                             <span th:unless="${booking.status == 'PENDING'}" th:text="${cancelable ? 'Free cancellation' : 'Non-refundable'}">Free cancellation</span>
                         </div>
                         
@@ -66,7 +66,7 @@
                             <th:block th:unless="${booking.status == 'PENDING'}">
                                 <!-- Trạng thái thanh toán khác -->
                                 <span th:if="${booking.status == 'CONFIRMED'}" class="bd-status-label bd-status-confirmed">Confirmed</span>
-                                <span th:if="${booking.status == 'DONE'}" class="bd-status-label bd-status-done">Completed</span>
+                                <span th:if="${booking.status == 'DONE' or booking.status == 'COMPLETED'}" class="bd-status-label bd-status-done">Completed</span>
                                 <span th:if="${booking.status == 'CANCELLED'}" class="bd-status-label bd-status-cancelled">Cancelled</span>
                             </th:block>
                         </div>

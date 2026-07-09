@@ -11,7 +11,7 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_account_id", nullable = false, unique = true)
     private User userAccount;
 
@@ -77,6 +77,22 @@ public class Customer {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getFullAddress() {
+        StringBuilder sb = new StringBuilder();
+        if (address != null && !address.trim().isEmpty()) {
+            sb.append(address.trim());
+        }
+        if (city != null && !city.trim().isEmpty()) {
+            if (sb.length() > 0) sb.append(", ");
+            sb.append(city.trim());
+        }
+        if (country != null && !country.trim().isEmpty()) {
+            if (sb.length() > 0) sb.append(", ");
+            sb.append(country.trim());
+        }
+        return sb.toString();
     }
 
     public String getCity() {

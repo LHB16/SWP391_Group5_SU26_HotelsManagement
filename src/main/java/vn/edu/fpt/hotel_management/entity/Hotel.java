@@ -33,7 +33,7 @@ public class Hotel {
     @Column(name = "description", columnDefinition = "NVARCHAR(MAX)")
     private String description;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "decimal(2,1) default 0.0")
     private double rating;
 
     @Column(name = "total_reviews", nullable = false)

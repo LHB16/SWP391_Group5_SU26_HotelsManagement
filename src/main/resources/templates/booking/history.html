@@ -31,20 +31,10 @@
                                     <label class="bh-filter-label" for="filterStatus">STATUS</label>
                                     <select name="status" id="filterStatus" class="bh-filter-select">
                                         <option value="" th:selected="${selectedStatus == ''}">All Statuses</option>
-                                        <option value="PENDING" th:selected="${selectedStatus == 'PENDING'}">Unpaid</option>
-                                        <option value="CONFIRMED" th:selected="${selectedStatus == 'CONFIRMED'}">Pending</option>
-                                        <option value="DONE" th:selected="${selectedStatus == 'DONE'}">Done</option>
+                                        <option value="PENDING" th:selected="${selectedStatus == 'PENDING'}">Pending</option>
+                                        <option value="CONFIRMED" th:selected="${selectedStatus == 'CONFIRMED'}">Confirmed</option>
+                                        <option value="COMPLETED" th:selected="${selectedStatus == 'COMPLETED' or selectedStatus == 'DONE'}">Completed</option>
                                         <option value="CANCELLED" th:selected="${selectedStatus == 'CANCELLED'}">Cancelled</option>
-                                    </select>
-                                </div>
-
-                                <!-- Lọc theo loại phòng -->
-                                <div class="bh-filter-group">
-                                    <label class="bh-filter-label" for="filterRoomType">ROOM TYPE</label>
-                                    <select name="roomType" id="filterRoomType" class="bh-filter-select">
-                                        <option value="" th:selected="${selectedRoomType == ''}">All Types</option>
-                                        <option th:each="rt : ${allRoomTypes}" th:value="${rt}" th:text="${rt}"
-                                                th:selected="${rt == selectedRoomType}"></option>
                                     </select>
                                 </div>
 
@@ -131,9 +121,17 @@
                                             <!-- Tên loại phòng -->
                                             <div class="bh-card-room-type" th:text="${booking.room.type}">Room Type</div>
                                             
+                                            <!-- Trạng thái đặt phòng -->
+                                            <div class="bh-card-status-wrapper" style="margin-top: 4px; margin-bottom: 6px;">
+                                                <span th:if="${booking.status == 'PENDING'}" class="bd-status-label bd-status-pending" style="background: #fef3c7; color: #d97706; font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600;">Pending</span>
+                                                <span th:if="${booking.status == 'CONFIRMED'}" class="bd-status-label bd-status-confirmed" style="font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600;">Confirmed</span>
+                                                <span th:if="${booking.status == 'DONE' or booking.status == 'COMPLETED'}" class="bd-status-label bd-status-done" style="font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600;">Completed</span>
+                                                <span th:if="${booking.status == 'CANCELLED'}" class="bd-status-label bd-status-cancelled" style="font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600;">Cancelled</span>
+                                            </div>
+                                            
                                             <!-- Khoảng thời gian và số lượt booking (như hình: Apr 15 - Apr 17 · 1 night) -->
                                             <div class="bh-card-meta-text">
-                                                <span th:text="${#temporals.format(booking.checkInDate, 'MMM dd')} + ' – ' + ${#temporals.format(booking.checkOutDate, 'MMM dd')}">Apr 15 – Apr 17</span>
+                                                <span th:text="${#temporals.format(booking.checkInDate, 'dd/MM/yyyy')} + ' – ' + ${#temporals.format(booking.checkOutDate, 'dd/MM/yyyy')}">Apr 15 – Apr 17</span>
                                                 &nbsp;·&nbsp;
                                                 <span th:text="${booking.checkInDate != null and booking.checkOutDate != null ?
                                                                  T(java.time.temporal.ChronoUnit).DAYS.between(booking.checkInDate, booking.checkOutDate) : '-'} + ' night' + ${booking.checkInDate != null and booking.checkOutDate != null and T(java.time.temporal.ChronoUnit).DAYS.between(booking.checkInDate, booking.checkOutDate) != 1 ? 's' : ''}">1 booking</span>

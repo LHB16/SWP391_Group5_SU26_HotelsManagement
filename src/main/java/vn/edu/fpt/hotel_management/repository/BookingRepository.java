@@ -15,6 +15,8 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     
     List<Booking> findAllByOrderByCreatedAtDesc();
 
+    List<Booking> findByStatusInOrderByCreatedAtDesc(List<String> statuses);
+
     // Magic Method lấy danh sách booking của khách hàng và sắp xếp giảm dần theo thời gian tạo
     Page<Booking> findByCustomerIdOrderByCreatedAtDesc(int customerId, Pageable pageable);
 
@@ -42,5 +44,12 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
             @Param("customerId") int customerId,
             @Param("hotelId") int hotelId,
             @Param("statuses") List<String> statuses
+    );
+
+    long countByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
+            int roomId,
+            String status,
+            java.time.LocalDate checkout,
+            java.time.LocalDate checkin
     );
 }

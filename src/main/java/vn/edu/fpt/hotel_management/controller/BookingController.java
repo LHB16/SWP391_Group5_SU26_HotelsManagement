@@ -580,10 +580,23 @@ public class BookingController {
             @RequestParam(name = "roomIds", required = false) List<Integer> roomIds,
             @RequestParam(name = "checkin", required = false) String checkin,
             @RequestParam(name = "checkout", required = false) String checkout,
+            @RequestParam(name = "checkins", required = false) List<String> checkins,
+            @RequestParam(name = "checkouts", required = false) List<String> checkouts,
+            @RequestParam(name = "quantities", required = false) List<Integer> quantities,
             HttpSession session, 
             Model model,
             org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
         
+        // Kiểm tra đăng nhập và vai trò (chỉ CUSTOMER đã đăng nhập mới được vào)
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+        if (!"CUSTOMER".equalsIgnoreCase(loggedInUser.getRole())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Only customers are allowed to access booking page.");
+            return "redirect:/home";
+        }
+
         // Kiểm tra khách sạn bị vô hiệu hóa trước khi xử lý
         if (hotelId != null) {
             Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
@@ -615,11 +628,10 @@ public class BookingController {
             }
         }
 
-        // Lấy thông tin user đăng nhập từ Session (nếu có)
-        User loggedInUser = (User) session.getAttribute("loggedInUser");
-        if (loggedInUser != null) {
-            model.addAttribute("user", loggedInUser);
-        }
+        // Lấy thông tin user đăng nhập từ Session
+        model.addAttribute("user", loggedInUser);
+        Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
+        model.addAttribute("customer", customer);
 
         // Lấy danh sách các phòng (chỉ lấy phòng được chọn nếu roomId hoặc roomIds có giá trị)
         List<Room> rooms = new ArrayList<>();
@@ -658,38 +670,24 @@ public class BookingController {
         }
         model.addAttribute("rooms", rooms);
 
-        // Lấy danh sách khách sạn để map ID sang tên khách sạn dễ hiển thị
+        // Lấy danh sách khách sạn để map ID sang tên khách sạn dễ hiển thị và địa chỉ đầy đủ
         List<Hotel> hotels = hotelRepository.findAll();
         Map<Integer, String> hotelMap = new HashMap<>();
+        Map<Integer, String> hotelAddressMap = new HashMap<>();
         for (Hotel hotel : hotels) {
             hotelMap.put(hotel.getId(), hotel.getName());
+            String fullAddr = hotel.getAddress();
+            if (hotel.getDistrict() != null && !hotel.getDistrict().trim().isEmpty()) {
+                fullAddr += ", " + hotel.getDistrict().trim();
+            }
+            if (hotel.getCity() != null && !hotel.getCity().trim().isEmpty()) {
+                fullAddr += ", " + hotel.getCity().trim();
+            }
+            hotelAddressMap.put(hotel.getId(), fullAddr);
         }
         model.addAttribute("hotelMap", hotelMap);
+        model.addAttribute("hotelAddressMap", hotelAddressMap);
         
-        // Tính toán số đêm dựa trên ngày check-in và check-out
-        long nights = 1;
-        if (checkin != null && checkout != null && !checkin.trim().isEmpty() && !checkout.trim().isEmpty()) {
-            try {
-                java.time.LocalDate d1 = java.time.LocalDate.parse(checkin);
-                java.time.LocalDate d2 = java.time.LocalDate.parse(checkout);
-                if (d2.isAfter(d1)) {
-                    nights = java.time.temporal.ChronoUnit.DAYS.between(d1, d2);
-                } else {
-                    d2 = d1.plusDays(1);
-                    checkout = d2.toString();
-                    nights = 1;
-                }
-            } catch (Exception e) {
-                // Parse error, defaults will be handled below
-            }
-        } else {
-            java.time.LocalDate today = java.time.LocalDate.now();
-            java.time.LocalDate tomorrow = today.plusDays(1);
-            checkin = today.toString();
-            checkout = tomorrow.toString();
-            nights = 1;
-        }
-
         // Chuẩn bị danh sách phòng được chọn
         List<Integer> selectedRoomIds = new ArrayList<>();
         if (roomIds != null) {
@@ -699,51 +697,85 @@ public class BookingController {
             selectedRoomIds.add(roomId);
         }
 
+        // Đồng bộ checkins, checkouts, quantities theo selectedRoomIds
+        List<String> finalCheckins = new ArrayList<>();
+        List<String> finalCheckouts = new ArrayList<>();
+        List<Integer> finalQuantities = new ArrayList<>();
+        
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.LocalDate tomorrow = today.plusDays(1);
+        
+        for (int i = 0; i < selectedRoomIds.size(); i++) {
+            String ci = null;
+            if (checkins != null && checkins.size() > i) {
+                ci = checkins.get(i);
+            }
+            if (ci == null || ci.trim().isEmpty()) {
+                ci = (checkin != null && !checkin.trim().isEmpty()) ? checkin : today.toString();
+            }
+            finalCheckins.add(ci);
+            
+            String co = null;
+            if (checkouts != null && checkouts.size() > i) {
+                co = checkouts.get(i);
+            }
+            if (co == null || co.trim().isEmpty()) {
+                co = (checkout != null && !checkout.trim().isEmpty()) ? checkout : tomorrow.toString();
+            }
+            finalCheckouts.add(co);
+            
+            Integer qty = 1;
+            if (quantities != null && quantities.size() > i) {
+                qty = quantities.get(i);
+            }
+            if (qty == null || qty < 1) {
+                qty = 1;
+            }
+            finalQuantities.add(qty);
+        }
+
         // Tính toán chi phí bằng Java có tăng 20% vào ngày lễ/cuối tuần
         BigDecimal subtotal = BigDecimal.ZERO;
         Map<Integer, BigDecimal> roomPricesMap = new java.util.HashMap<>();
-        if (checkin != null && checkout != null && !checkin.trim().isEmpty() && !checkout.trim().isEmpty()) {
-            try {
-                java.time.LocalDate d1 = java.time.LocalDate.parse(checkin.trim());
-                java.time.LocalDate d2 = java.time.LocalDate.parse(checkout.trim());
-                
-                // Tính giá thực tế (tổng tiền) cho tất cả các phòng hiển thị
-                for (Room r : rooms) {
-                    BigDecimal actualSubtotal = calculateRoomSubtotal(r.getPrice(), d1, d2);
-                    roomPricesMap.put(r.getId(), actualSubtotal);
-                }
+        Map<Integer, BigDecimal> roomSinglePricesMap = new java.util.HashMap<>();
+        Map<Integer, Long> roomNightsMap = new java.util.HashMap<>();
 
-                // Cộng dồn subtotal cho các phòng được chọn
-                for (Integer rId : selectedRoomIds) {
-                    Room r = roomRepository.findById(rId).orElse(null);
-                    if (r != null) {
-                        subtotal = subtotal.add(calculateRoomSubtotal(r.getPrice(), d1, d2));
+        for (int i = 0; i < selectedRoomIds.size(); i++) {
+            Integer rId = selectedRoomIds.get(i);
+            Room r = roomRepository.findById(rId).orElse(null);
+            if (r != null) {
+                String ci = finalCheckins.get(i);
+                String co = finalCheckouts.get(i);
+                Integer qty = finalQuantities.get(i);
+                
+                long nights = 1;
+                try {
+                    java.time.LocalDate d1 = java.time.LocalDate.parse(ci.trim());
+                    java.time.LocalDate d2 = java.time.LocalDate.parse(co.trim());
+                    if (d2.isAfter(d1)) {
+                        nights = java.time.temporal.ChronoUnit.DAYS.between(d1, d2);
                     }
+                } catch (Exception e) {}
+                
+                BigDecimal singleRoomSubtotal = BigDecimal.ZERO;
+                try {
+                    singleRoomSubtotal = calculateRoomSubtotal(r.getPrice(), java.time.LocalDate.parse(ci.trim()), java.time.LocalDate.parse(co.trim()));
+                } catch (Exception e) {
+                    singleRoomSubtotal = r.getPrice().multiply(BigDecimal.valueOf(nights));
                 }
-            } catch (Exception e) {
-                System.err.println("BookingController subtotal date parse error: " + e.getMessage());
-                for (Room r : rooms) {
-                    roomPricesMap.put(r.getId(), r.getPrice().multiply(BigDecimal.valueOf(nights)));
-                }
-                for (Integer rId : selectedRoomIds) {
-                    Room r = roomRepository.findById(rId).orElse(null);
-                    if (r != null) {
-                        subtotal = subtotal.add(r.getPrice().multiply(BigDecimal.valueOf(nights)));
-                    }
-                }
-            }
-        } else {
-            for (Room r : rooms) {
-                roomPricesMap.put(r.getId(), r.getPrice().multiply(BigDecimal.valueOf(nights)));
-            }
-            for (Integer rId : selectedRoomIds) {
-                Room r = roomRepository.findById(rId).orElse(null);
-                if (r != null) {
-                    subtotal = subtotal.add(r.getPrice().multiply(BigDecimal.valueOf(nights)));
-                }
+                
+                BigDecimal totalRoomSubtotal = singleRoomSubtotal.multiply(BigDecimal.valueOf(qty));
+                
+                roomPricesMap.put(rId, totalRoomSubtotal);
+                roomSinglePricesMap.put(rId, singleRoomSubtotal);
+                roomNightsMap.put(rId, nights);
+                subtotal = subtotal.add(totalRoomSubtotal);
             }
         }
+        
         model.addAttribute("roomPricesMap", roomPricesMap);
+        model.addAttribute("roomSinglePricesMap", roomSinglePricesMap);
+        model.addAttribute("roomNightsMap", roomNightsMap);
 
         BigDecimal serviceFee = subtotal.compareTo(BigDecimal.ZERO) > 0 ? BigDecimal.valueOf(50000) : BigDecimal.ZERO;
         BigDecimal tax = subtotal.multiply(BigDecimal.valueOf(0.1)).setScale(0, java.math.RoundingMode.HALF_UP);
@@ -751,9 +783,11 @@ public class BookingController {
 
         // Truyền các giá trị tính toán vào model
         model.addAttribute("today", java.time.LocalDate.now().toString());
-        model.addAttribute("checkin", checkin);
-        model.addAttribute("checkout", checkout);
-        model.addAttribute("nights", nights);
+        model.addAttribute("checkin", checkin != null ? checkin : today.toString());
+        model.addAttribute("checkout", checkout != null ? checkout : tomorrow.toString());
+        model.addAttribute("checkins", finalCheckins);
+        model.addAttribute("checkouts", finalCheckouts);
+        model.addAttribute("quantities", finalQuantities);
         model.addAttribute("selectedRoomIds", selectedRoomIds);
         model.addAttribute("subtotal", subtotal);
         model.addAttribute("tax", tax);

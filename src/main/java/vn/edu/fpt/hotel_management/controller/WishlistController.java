@@ -14,6 +14,7 @@ import vn.edu.fpt.hotel_management.repository.WishlistRepository;
 import vn.edu.fpt.hotel_management.repository.CustomerRepository;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 import vn.edu.fpt.hotel_management.entity.Hotel;
+import vn.edu.fpt.hotel_management.repository.BookingRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -30,15 +31,18 @@ public class WishlistController {
     private final RoomRepository roomRepository;
     private final CustomerRepository customerRepository;
     private final HotelRepository hotelRepository;
+    private final BookingRepository bookingRepository;
 
     public WishlistController(WishlistRepository wishlistRepository,
                               RoomRepository roomRepository,
                               CustomerRepository customerRepository,
-                              HotelRepository hotelRepository) {
+                              HotelRepository hotelRepository,
+                              BookingRepository bookingRepository) {
         this.wishlistRepository = wishlistRepository;
         this.roomRepository = roomRepository;
         this.customerRepository = customerRepository;
         this.hotelRepository = hotelRepository;
+        this.bookingRepository = bookingRepository;
     }
 
     @GetMapping("/wishlist")
@@ -69,11 +73,24 @@ public class WishlistController {
         Map<Integer, BigDecimal> wishlistPricesMap = new HashMap<>();
         Map<Integer, Long> wishlistNightsMap = new HashMap<>();
         Map<Integer, Boolean> wishlistFilteredMap = new HashMap<>();
+        Map<Integer, Integer> wishlistAvailableRoomsMap = new HashMap<>();
 
         for (Wishlist wl : wishlists) {
             Room room = wl.getRoom();
             LocalDate d1 = wl.getCheckInDate();
             LocalDate d2 = wl.getCheckOutDate();
+
+            LocalDate checkin = d1 != null ? d1 : LocalDate.now();
+            LocalDate checkout = d2 != null && d2.isAfter(checkin) ? d2 : checkin.plusDays(1);
+            long bookedCount = bookingRepository.countByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
+                    room.getId(),
+                    "CONFIRMED",
+                    checkout,
+                    checkin
+            );
+            int available = room.getNumberRooms() - (int) bookedCount;
+            if (available < 0) available = 0;
+            wishlistAvailableRoomsMap.put(wl.getId(), available);
 
             if (d1 != null && d2 != null && d2.isAfter(d1)) {
                 long nights = ChronoUnit.DAYS.between(d1, d2);
@@ -89,11 +106,22 @@ public class WishlistController {
             }
         }
 
+        // Map tên khách sạn cho từng wishlist item
+        Map<Integer, String> wishlistHotelNamesMap = new HashMap<>();
+        for (Wishlist wl : wishlists) {
+            Hotel hotel = hotelRepository.findById(wl.getRoom().getHotelId()).orElse(null);
+            wishlistHotelNamesMap.put(wl.getId(), hotel != null ? hotel.getName() : "");
+        }
+
         model.addAttribute("wishlists", wishlists);
         model.addAttribute("wishlistPricesMap", wishlistPricesMap);
         model.addAttribute("wishlistNightsMap", wishlistNightsMap);
         model.addAttribute("wishlistFilteredMap", wishlistFilteredMap);
+        model.addAttribute("wishlistAvailableRoomsMap", wishlistAvailableRoomsMap);
+        model.addAttribute("wishlistHotelNamesMap", wishlistHotelNamesMap);
         model.addAttribute("user", loggedInUser);
+        model.addAttribute("todayDate", LocalDate.now().toString());
+        model.addAttribute("tomorrowDate", LocalDate.now().plusDays(1).toString());
 
         return "hotel/wishlist";
     }
@@ -128,15 +156,23 @@ public class WishlistController {
             if (existing.isPresent()) {
                 wishlistRepository.delete(existing.get());
             } else {
-                LocalDate inDate = null;
-                LocalDate outDate = null;
+                // Nếu không có filter, mặc định là hôm nay và ngày mai
+                LocalDate inDate = LocalDate.now();
+                LocalDate outDate = LocalDate.now().plusDays(1);
                 if (checkin != null && !checkin.trim().isEmpty() && checkout != null && !checkout.trim().isEmpty()) {
                     try {
                         inDate = LocalDate.parse(checkin.trim());
                         outDate = LocalDate.parse(checkout.trim());
                     } catch (Exception e) {
-                        // ignore
+                        // keep defaults
                     }
+                }
+                // Cập nhật checkin/checkout URL params để redirect đúng filter
+                if (checkin == null || checkin.trim().isEmpty()) {
+                    checkin = inDate.toString();
+                }
+                if (checkout == null || checkout.trim().isEmpty()) {
+                    checkout = outDate.toString();
                 }
                 Wishlist wl = new Wishlist(customer, room, inDate, outDate);
                 wishlistRepository.save(wl);

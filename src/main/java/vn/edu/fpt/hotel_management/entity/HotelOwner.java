@@ -11,7 +11,7 @@ public class HotelOwner {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_account_id", nullable = false, unique = true)
     private User userAccount;
 
@@ -42,8 +42,13 @@ public class HotelOwner {
     @Column(name = "id_card_document")
     private String idCardDocument;
 
+    @org.hibernate.annotations.Formula("(CASE WHEN {alias}.verification_status = 'PENDING' OR (SELECT COUNT(*) FROM hotel h WHERE h.owner_id = {alias}.id AND h.approval_status = 'PENDING') > 0 THEN 0 ELSE 1 END)")
+    private int pendingPriority;
+
     public HotelOwner() {
     }
+
+    public int getPendingPriority() { return pendingPriority; }
 
     // Getters and Setters
     public int getId() { return id; }
