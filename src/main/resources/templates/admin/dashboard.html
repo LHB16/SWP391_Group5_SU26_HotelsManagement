@@ -6,6 +6,26 @@
     <th:block th:replace="~{fragment/frag :: head}"></th:block>
     <!-- Lucide Icons library -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .ra-btn-detail {
+            background-color: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .ra-btn-detail:hover {
+            background-color: #cbd5e1;
+            color: #1e293b;
+        }
+    </style>
 </head>
 
 <body class="d-flex flex-column h-100">
@@ -52,6 +72,15 @@
                         <a th:href="@{/admin/dashboard(tab='customerReviewPanel')}" class="sidebar-link" th:classappend="${tab == 'customerReviewPanel'} ? 'active' : ''">
                             <i data-lucide="star" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
                             <span>Customer Reviews</span>
+                        </a>
+                        <a th:href="@{/admin/dashboard(tab='refundPanel')}" class="sidebar-link d-flex align-items-center justify-content-between" th:classappend="${tab == 'refundPanel'} ? 'active' : ''" style="width: 100%; text-decoration: none;">
+                            <div class="d-flex align-items-center gap-2">
+                                <i data-lucide="arrow-left-right" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
+                                <span>Refund Requests</span>
+                            </div>
+                            <span th:if="${pendingRefundCount != null && pendingRefundCount > 0}" 
+                                  class="badge-pending badge-pending-sidebar" 
+                                  th:text="${pendingRefundCount}">0</span>
                         </a>
                     </div>
                 </div>
@@ -701,9 +730,227 @@
                     </div>
                 </div>
 
-            </div>
+                <!-- PANEL 8: REFUND REQUESTS -->
+                <div id="refundPanel" class="tab-panel" th:classappend="${tab == 'refundPanel'} ? 'active' : ''">
+                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                        <div>
+                            <h1 class="fw-bold text-dark m-0">Admin Dashboard</h1>
+                            <p class="text-muted m-0 mt-1">Review refund requests submitted by customers after booking cancellation.</p>
+                        </div>
+                    </div>
 
-        </div>
+                    <div class="dashboard-section">
+                        <div class="customer-layout-single">
+                            
+                            <div class="customer-list-box-full">
+                                <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                                    <i data-lucide="arrow-left-right" style="stroke-width: 1.5; width: 18px; height: 18px; color: #4f46e5;"></i>
+                                    Refund Requests List
+                                </h5>
+
+                                <!-- Thống kê số lượng (Stats counters) -->
+                                <div class="row g-3 mb-4" th:if="${tab == 'refundPanel'}">
+                                    <div class="col-md-4">
+                                        <div class="ra-stat-card ra-stat-pending p-3 bg-light rounded-3 shadow-sm d-flex align-items-center gap-3">
+                                            <div class="ra-stat-icon text-warning">
+                                                <i data-lucide="clock" style="stroke-width: 1.5; width: 22px; height: 22px;"></i>
+                                            </div>
+                                            <div class="ra-stat-body">
+                                                <div class="ra-stat-num fw-bold text-dark" th:text="${pendingCount}">0</div>
+                                                <div class="ra-stat-label text-muted small">Pending</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="ra-stat-card ra-stat-processed p-3 bg-light rounded-3 shadow-sm d-flex align-items-center gap-3">
+                                            <div class="ra-stat-icon text-success">
+                                                <i data-lucide="check-circle" style="stroke-width: 1.5; width: 22px; height: 22px;"></i>
+                                            </div>
+                                            <div class="ra-stat-body">
+                                                <div class="ra-stat-num fw-bold text-dark" th:text="${processedCount}">0</div>
+                                                <div class="ra-stat-label text-muted small">Processed</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="ra-stat-card ra-stat-rejected p-3 bg-light rounded-3 shadow-sm d-flex align-items-center gap-3">
+                                            <div class="ra-stat-icon text-danger">
+                                                <i data-lucide="x-circle" style="stroke-width: 1.5; width: 22px; height: 22px;"></i>
+                                            </div>
+                                            <div class="ra-stat-body">
+                                                <div class="ra-stat-num fw-bold text-dark" th:text="${rejectedCount}">0</div>
+                                                <div class="ra-stat-label text-muted small">Rejected</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Bộ lọc trạng thái và Search Form -->
+                                <div th:if="${tab == 'refundPanel'}">
+                                    <div class="ra-filter-bar mb-3 d-flex gap-2 flex-wrap">
+                                        <a th:href="@{/admin/dashboard(tab='refundPanel', status='ALL', searchQuery=${searchQuery}, searchType=${searchType})}" class="btn btn-sm"
+                                           th:classappend="${filterStatus == 'ALL'} ? 'btn-primary text-white' : 'btn-outline-secondary'" style="border-radius: 6px;">
+                                            All
+                                        </a>
+                                        <a th:href="@{/admin/dashboard(tab='refundPanel', status='PENDING', searchQuery=${searchQuery}, searchType=${searchType})}" class="btn btn-sm"
+                                           th:classappend="${filterStatus == 'PENDING'} ? 'btn-primary text-white' : 'btn-outline-secondary'" style="border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                                            <i data-lucide="clock" style="width: 14px; height: 14px;"></i>
+                                            Pending
+                                        </a>
+                                        <a th:href="@{/admin/dashboard(tab='refundPanel', status='PROCESSED', searchQuery=${searchQuery}, searchType=${searchType})}" class="btn btn-sm"
+                                           th:classappend="${filterStatus == 'PROCESSED'} ? 'btn-primary text-white' : 'btn-outline-secondary'" style="border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                                            <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i>
+                                            Processed
+                                        </a>
+                                        <a th:href="@{/admin/dashboard(tab='refundPanel', status='REJECTED', searchQuery=${searchQuery}, searchType=${searchType})}" class="btn btn-sm"
+                                           th:classappend="${filterStatus == 'REJECTED'} ? 'btn-primary text-white' : 'btn-outline-secondary'" style="border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                                            <i data-lucide="x-circle" style="width: 14px; height: 14px;"></i>
+                                            Rejected
+                                        </a>
+                                    </div>
+
+                                    <!-- Search & Filter Form -->
+                                    <form th:action="@{/admin/dashboard}" method="get" class="mb-4">
+                                        <input type="hidden" name="tab" value="refundPanel" />
+                                        <input type="hidden" name="status" th:value="${filterStatus}" />
+                                        <div class="row g-2">
+                                            <div class="col-md-3">
+                                                <select name="searchType" class="form-select filter-select w-100" style="height: 100%; min-height: 42px;">
+                                                    <option value="fullName" th:selected="${searchType == 'fullName'}">Customer Name</option>
+                                                    <option value="email" th:selected="${searchType == 'email'}">Email Address</option>
+                                                    <option value="id" th:selected="${searchType == 'id'}">Refund ID</option>
+                                                    <option value="bookingId" th:selected="${searchType == 'bookingId'}">Booking ID</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-7">
+                                                <input type="text" name="searchQuery" class="form-control filter-select w-100" 
+                                                       placeholder="Search query..." th:value="${searchQuery}" style="height: 100%; min-height: 42px;" />
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button type="submit" class="btn btn-primary w-100 text-white" style="min-height: 42px; border-radius: 8px; font-weight: 600; background-color: #4f46e5; border-color: #4f46e5;">
+                                                    Search
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 text-end" th:if="${searchQuery != null && !searchQuery.isEmpty()}">
+                                            <a th:href="@{/admin/dashboard(tab='refundPanel', status=${filterStatus})}" class="text-muted small" style="text-decoration: underline;">Clear search filter</a>
+                                        </div>
+                                    </form>
+
+                                    <!-- Flash messages -->
+                                    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show border-0 mb-3" style="border-radius: 10px;">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i data-lucide="check-circle" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
+                                            <span th:text="${successMessage}">Success</span>
+                                        </div>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show border-0 mb-3" style="border-radius: 10px;">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i data-lucide="alert-circle" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
+                                            <span th:text="${errorMessage}">Error</span>
+                                        </div>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+
+                                    <!-- Bảng danh sách -->
+                                    <div class="table-responsive bg-white rounded-3 shadow-sm p-3" th:if="${refunds != null and !#lists.isEmpty(refunds)}">
+                                        <div class="mb-3 text-muted small">
+                                            <strong th:text="${totalCount}">0</strong> refund request(s) found
+                                        </div>
+                                        <table class="table align-middle table-hover mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Refund ID</th>
+                                                    <th>Customer</th>
+                                                    <th>Amount</th>
+                                                    <th>Requested At</th>
+                                                    <th>Processed At</th>
+                                                    <th>Status</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr th:each="refund : ${refunds}">
+                                                    <td>
+                                                        <span class="badge bg-secondary-subtle text-secondary" th:text="'#' + ${refund.id}">#1</span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="fw-bold text-dark" th:text="${refund.booking.customer.fullName}">John Doe</div>
+                                                        <small class="text-muted" th:text="${refund.booking.customer.email}">john@example.com</small>
+                                                    </td>
+                                                    <td>
+                                                        <span class="fw-bold text-dark" th:text="${#numbers.formatInteger(refund.refundAmount, 3, 'COMMA') + ' VND'}">0 VND</span>
+                                                    </td>
+                                                    <td>
+                                                        <span th:text="${refund.requestedAt != null ? #temporals.format(refund.requestedAt, 'HH:mm dd/MM/yyyy') : '-'}">-</span>
+                                                    </td>
+                                                    <td>
+                                                        <span th:text="${refund.processedAt != null ? #temporals.format(refund.processedAt, 'HH:mm dd/MM/yyyy') : '-'}">-</span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge" 
+                                                              th:classappend="${refund.status == 'PENDING'} ? 'bg-warning text-dark' :
+                                                                             (${refund.status == 'PROCESSED'} ? 'bg-success text-white' : 'bg-danger text-white')"
+                                                              th:text="${refund.status}">PENDING</span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <button type="button" class="ra-btn-detail"
+                                                                    th:attr="data-refund-id=${refund.id},
+                                                                             data-booking-id=${refund.booking.id},
+                                                                             data-customer-name=${refund.booking.customer.fullName},
+                                                                             data-customer-email=${refund.booking.customer.email},
+                                                                             data-amount=${#numbers.formatInteger(refund.refundAmount, 3, 'COMMA') + ' VND'},
+                                                                             data-date=${refund.requestedAt != null ? #temporals.format(refund.requestedAt, 'HH:mm dd/MM/yyyy') : '-'},
+                                                                             data-bank-name=${refund.bankName},
+                                                                             data-account-number=${refund.accountNumber},
+                                                                             data-account-holder=${refund.accountHolder},
+                                                                             data-reason=${refund.cancellationReason},
+                                                                             data-status=${refund.status},
+                                                                             data-processed-at=${refund.processedAt != null ? #temporals.format(refund.processedAt, 'HH:mm dd/MM/yyyy') : '-'},
+                                                                             data-admin-note=${refund.note}"
+                                                                    onclick="openDetailModal(this)">
+                                                                <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                                                                Detail
+                                                            </button>
+                                                            <!-- Chỉ hiện nút action khi PENDING -->
+                                                            <div th:if="${refund.status == 'PENDING'}" class="d-flex gap-1">
+                                                                <button type="button" class="btn btn-sm btn-success text-white px-2 py-1"
+                                                                        th:data-refund-id="${refund.id}"
+                                                                        th:data-customer="${refund.booking.customer.fullName}"
+                                                                        th:data-amount="${#numbers.formatInteger(refund.refundAmount, 3, 'COMMA') + ' VND'}"
+                                                                        onclick="openApproveModal(this)" style="background-color: #10b981; font-size: 0.8rem; border-radius: 6px;">
+                                                                    <i data-lucide="check" style="width: 13px; height: 13px;"></i>
+                                                                    Approve
+                                                                </button>
+                                                                <button type="button" class="btn btn-sm btn-danger text-white px-2 py-1"
+                                                                        th:data-refund-id="${refund.id}"
+                                                                        onclick="openRejectModal(this)" style="background-color: #ef4444; font-size: 0.8rem; border-radius: 6px;">
+                                                                    <i data-lucide="x" style="width: 13px; height: 13px;"></i>
+                                                                    Reject
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- Empty State -->
+                                    <div class="text-center text-muted py-5 border border-dashed rounded-3 bg-light" th:if="${refunds == null or #lists.isEmpty(refunds)}">
+                                        <i data-lucide="inbox" class="text-muted mb-2" style="width: 36px; height: 36px; stroke-width: 1.5;"></i>
+                                        <div>No refund requests found.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
     </main>
 
     <!-- Safely inject lists into javascript context -->
@@ -713,6 +960,161 @@
         /*]]>*/
     </script>
 
+    <!-- Modal View Detail -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow border-0" style="border-radius: 14px;">
+                <div class="modal-header border-bottom-0 pt-4 px-4 pb-0">
+                    <h5 class="modal-title fw-bold" style="color: #0f172a;">Refund Request Detail</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="ra-detail-section mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-muted small fw-bold text-uppercase">General Info</span>
+                            <span id="detailStatusBadge" class="badge">PENDING</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <span class="text-muted small d-block">Refund ID</span>
+                                <strong id="detailRefundId" class="text-dark">-</strong>
+                            </div>
+                            <div class="col-6">
+                                <span class="text-muted small d-block">Booking ID</span>
+                                <strong id="detailBookingId" class="text-dark">-</strong>
+                            </div>
+                            <div class="col-12">
+                                <span class="text-muted small d-block">Customer</span>
+                                <strong id="detailCustomerName" class="text-dark">-</strong>
+                                <span id="detailCustomerEmail" class="d-block text-muted small">-</span>
+                            </div>
+                            <div class="col-6">
+                                <span class="text-muted small d-block">Amount</span>
+                                <strong id="detailAmount" style="color: #047857; font-size: 1.1rem;">-</strong>
+                            </div>
+                            <div class="col-6">
+                                <span class="text-muted small d-block">Requested At</span>
+                                <span id="detailRequestedAt" class="text-dark">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ra-detail-section mb-4 p-3 bg-light rounded-3">
+                        <span class="text-muted small fw-bold text-uppercase d-block mb-2" style="font-size: 11px;">Bank Account Information</span>
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <span class="text-muted small">Bank Name:</span>
+                                <strong id="detailBankName" class="text-dark float-end">-</strong>
+                            </div>
+                            <div class="col-12">
+                                <span class="text-muted small">Account Number:</span>
+                                <strong id="detailAccountNumber" class="text-dark float-end">-</strong>
+                            </div>
+                            <div class="col-12">
+                                <span class="text-muted small">Account Holder:</span>
+                                <strong id="detailAccountHolder" class="text-dark float-end">-</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ra-detail-section mb-4">
+                        <span class="text-muted small fw-bold text-uppercase d-block mb-1">Cancellation Reason</span>
+                        <p id="detailCancellationReason" class="text-dark mb-0 p-2 border rounded bg-white small" style="min-height: 50px; white-space: pre-wrap;">-</p>
+                    </div>
+
+                    <div id="detailProcessedSection" class="ra-detail-section mb-4" style="display: none;">
+                        <span class="text-muted small fw-bold text-uppercase d-block mb-1">Processed Info</span>
+                        <div class="p-3 border rounded-3 bg-light">
+                            <div class="mb-2">
+                                <span class="text-muted small">Processed At:</span>
+                                <strong id="detailProcessedAt" class="text-dark float-end">-</strong>
+                            </div>
+                            <div>
+                                <span class="text-muted small">Admin Note / Reason:</span>
+                                <p id="detailAdminNote" class="text-dark mb-0 mt-1 small" style="white-space: pre-wrap;">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 px-4 pb-4 d-flex gap-2">
+                    <button type="button" class="btn btn-secondary w-100 m-0" data-bs-dismiss="modal" style="border-radius: 8px; font-weight: 600; padding: 10px;">Close</button>
+                    <div id="detailActionButtons" class="d-flex gap-2 w-100 m-0" style="display: none !important;">
+                        <button type="button" class="btn btn-danger w-50" id="detailRejectBtn" onclick="triggerRejectFromDetail()" style="border-radius: 8px; font-weight: 600; padding: 10px;">Reject</button>
+                        <button type="button" class="btn btn-success w-50 text-white" id="detailApproveBtn" onclick="triggerApproveFromDetail()" style="background-color: #10b981; border-radius: 8px; font-weight: 600; padding: 10px;">Approve</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Approve -->
+    <div class="modal fade" id="approveModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow border-0" style="border-radius: 14px;">
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3" style="color: #10b981; font-size: 54px;">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <h4 class="fw-bold mb-2" style="color: #0f172a;">Approve Refund?</h4>
+                    <p class="text-muted mb-1">You are about to mark this refund as <strong>Processed</strong>:</p>
+                    <div class="ra-modal-info mb-3">
+                        <div id="approveCustomerName" class="fw-bold">-</div>
+                        <div id="approveAmount" style="font-size: 1.2rem; font-weight: 700; color: #047857;">-</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-start d-block small fw-bold text-muted">Note (optional)</label>
+                        <textarea id="approveNote" class="form-control" rows="2" placeholder="e.g. Transferred on 01/07/2026"></textarea>
+                    </div>
+                    <form id="approveForm" method="post">
+                        <input type="hidden" name="newStatus" value="PROCESSED"/>
+                        <input type="hidden" id="approveNoteHidden" name="note"/>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-light w-50" data-bs-dismiss="modal" style="border-radius: 8px; font-weight: 600; padding: 10px;">
+                                Cancel
+                            </button>
+                            <button type="button" class="btn text-white w-50" onclick="submitApprove()"
+                                    style="background-color: #10b981; border-radius: 8px; font-weight: 600; padding: 10px;">
+                                <i class="bi bi-check-lg"></i> Confirm Approve
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Reject -->
+    <div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow border-0" style="border-radius: 14px;">
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3" style="color: #ef4444; font-size: 54px;">
+                        <i class="bi bi-x-circle"></i>
+                    </div>
+                    <h4 class="fw-bold mb-2" style="color: #0f172a;">Reject Refund?</h4>
+                    <p class="text-muted mb-3">This refund request will be marked as <strong>Rejected</strong>. Please provide a reason.</p>
+                    <div class="mb-3">
+                        <label class="form-label text-start d-block small fw-bold text-muted">Reason for rejection <span style="color: red;">*</span></label>
+                        <textarea id="rejectNote" class="form-control" rows="2" placeholder="e.g. Invalid account information provided"></textarea>
+                    </div>
+                    <form id="rejectForm" method="post">
+                        <input type="hidden" name="newStatus" value="REJECTED"/>
+                        <input type="hidden" id="rejectNoteHidden" name="note"/>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-light w-50" data-bs-dismiss="modal" style="border-radius: 8px; font-weight: 600; padding: 10px;">
+                                Cancel
+                            </button>
+                            <button type="button" class="btn text-white w-50" onclick="submitReject()"
+                                    style="background-color: #ef4444; border-radius: 8px; font-weight: 600; padding: 10px;">
+                                <i class="bi bi-x-lg"></i> Confirm Reject
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Use system footer -->
     <footer th:replace="~{fragment/frag :: footer}"></footer>
 
@@ -721,6 +1123,140 @@
 
     <!-- Connect custom interactive JS file -->
     <script th:src="@{/assets/js/dashboard.js}"></script>
+
+    <!-- Script for Refund Panel -->
+    <script type="text/javascript">
+        // Biến toàn cục lưu thông tin yêu cầu đang xem chi tiết để chuyển sang modal xử lý nhanh
+        var activeRefundId = null;
+        var activeCustomer = null;
+        var activeAmount = null;
+
+        // Mở modal Chi tiết
+        function openDetailModal(btn) {
+            activeRefundId = btn.getAttribute('data-refund-id');
+            activeCustomer = btn.getAttribute('data-customer-name');
+            activeAmount   = btn.getAttribute('data-amount');
+
+            var bookingId  = btn.getAttribute('data-booking-id');
+            var email      = btn.getAttribute('data-customer-email');
+            var bankName   = btn.getAttribute('data-bank-name');
+            var accNum     = btn.getAttribute('data-account-number');
+            var accHolder  = btn.getAttribute('data-account-holder');
+            var reqDate    = btn.getAttribute('data-date');
+            var status     = btn.getAttribute('data-status');
+            var reason     = btn.getAttribute('data-reason');
+            var procDate   = btn.getAttribute('data-processed-at');
+            var note       = btn.getAttribute('data-admin-note');
+
+            // Gán dữ liệu vào modal
+            document.getElementById('detailRefundId').textContent = '#' + activeRefundId;
+            document.getElementById('detailBookingId').textContent = 'Booking #' + bookingId;
+            document.getElementById('detailCustomerName').textContent = activeCustomer;
+            document.getElementById('detailCustomerEmail').textContent = email;
+            document.getElementById('detailAmount').textContent = activeAmount;
+            document.getElementById('detailRequestedAt').textContent = reqDate;
+            document.getElementById('detailBankName').textContent = bankName ? bankName : '-';
+            document.getElementById('detailAccountNumber').textContent = accNum ? accNum : '-';
+            document.getElementById('detailAccountHolder').textContent = accHolder ? accHolder : '-';
+            document.getElementById('detailCancellationReason').textContent = reason ? reason : 'No reason provided.';
+
+            // Trạng thái badge
+            var statusBadge = document.getElementById('detailStatusBadge');
+            statusBadge.textContent = status;
+            statusBadge.className = 'badge';
+            if (status === 'PENDING') {
+                statusBadge.classList.add('bg-warning', 'text-dark');
+                document.getElementById('detailProcessedSection').style.display = 'none';
+                document.getElementById('detailActionButtons').setAttribute('style', 'display: flex !important;');
+            } else if (status === 'PROCESSED') {
+                statusBadge.classList.add('bg-success', 'text-white');
+                document.getElementById('detailProcessedAt').textContent = procDate;
+                document.getElementById('detailAdminNote').textContent = note ? note : 'No notes.';
+                document.getElementById('detailProcessedSection').style.display = 'block';
+                document.getElementById('detailActionButtons').setAttribute('style', 'display: none !important;');
+            } else {
+                statusBadge.classList.add('bg-danger', 'text-white');
+                document.getElementById('detailProcessedAt').textContent = procDate;
+                document.getElementById('detailAdminNote').textContent = note ? note : 'No notes.';
+                document.getElementById('detailProcessedSection').style.display = 'block';
+                document.getElementById('detailActionButtons').setAttribute('style', 'display: none !important;');
+            }
+
+            new bootstrap.Modal(document.getElementById('detailModal')).show();
+        }
+
+        function triggerApproveFromDetail() {
+            // Đóng detail modal
+            var detailModalEl = document.getElementById('detailModal');
+            bootstrap.Modal.getInstance(detailModalEl).hide();
+
+            // Mở modal Approve với dữ liệu đã lưu
+            document.getElementById('approveCustomerName').textContent = activeCustomer;
+            document.getElementById('approveAmount').textContent = activeAmount;
+            document.getElementById('approveForm').action = '/admin/refunds/' + activeRefundId + '/update';
+            document.getElementById('approveNote').value = '';
+
+            setTimeout(function() {
+                new bootstrap.Modal(document.getElementById('approveModal')).show();
+            }, 350);
+        }
+
+        function triggerRejectFromDetail() {
+            // Đóng detail modal
+            var detailModalEl = document.getElementById('detailModal');
+            bootstrap.Modal.getInstance(detailModalEl).hide();
+
+            // Mở modal Reject với dữ liệu đã lưu
+            document.getElementById('rejectForm').action = '/admin/refunds/' + activeRefundId + '/update';
+            document.getElementById('rejectNote').value = '';
+
+            setTimeout(function() {
+                new bootstrap.Modal(document.getElementById('rejectModal')).show();
+            }, 350);
+        }
+
+        // Mở modal Approve trực tiếp từ bảng chính
+        function openApproveModal(btn) {
+            var refundId = btn.getAttribute('data-refund-id');
+            var customer = btn.getAttribute('data-customer');
+            var amount   = btn.getAttribute('data-amount');
+
+            document.getElementById('approveCustomerName').textContent = customer;
+            document.getElementById('approveAmount').textContent = amount;
+            document.getElementById('approveForm').action = '/admin/refunds/' + refundId + '/update';
+            document.getElementById('approveNote').value = '';
+
+            new bootstrap.Modal(document.getElementById('approveModal')).show();
+        }
+
+        function submitApprove() {
+            document.getElementById('approveNoteHidden').value = document.getElementById('approveNote').value;
+            document.getElementById('approveForm').submit();
+        }
+
+        // Mở modal Reject trực tiếp từ bảng chính
+        function openRejectModal(btn) {
+            var refundId = btn.getAttribute('data-refund-id');
+            document.getElementById('rejectForm').action = '/admin/refunds/' + refundId + '/update';
+            document.getElementById('rejectNote').value = '';
+
+            new bootstrap.Modal(document.getElementById('rejectModal')).show();
+        }
+
+        function submitReject() {
+            var note = document.getElementById('rejectNote').value.trim();
+            if (!note) {
+                alert('Please provide a reason for rejection.');
+                return;
+            }
+            document.getElementById('rejectNoteHidden').value = note;
+            document.getElementById('rejectForm').submit();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            lucide.createIcons();
+        });
+    </script>
 </body>
 
 </html>

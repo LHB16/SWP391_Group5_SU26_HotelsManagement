@@ -20,6 +20,7 @@ import vn.edu.fpt.hotel_management.entity.HotelOwner;
 import vn.edu.fpt.hotel_management.entity.HotelVerificationDocument;
 import vn.edu.fpt.hotel_management.entity.FeedbackReply;
 import vn.edu.fpt.hotel_management.entity.Review;
+import vn.edu.fpt.hotel_management.entity.Refund;
 import vn.edu.fpt.hotel_management.repository.BookingRepository;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 import vn.edu.fpt.hotel_management.repository.UserRepository;
@@ -28,6 +29,7 @@ import vn.edu.fpt.hotel_management.repository.HotelOwnerRepository;
 import vn.edu.fpt.hotel_management.repository.HotelVerificationDocumentRepository;
 import vn.edu.fpt.hotel_management.repository.FeedbackReplyRepository;
 import vn.edu.fpt.hotel_management.repository.ReviewRepository;
+import vn.edu.fpt.hotel_management.repository.RefundRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -61,12 +63,16 @@ public class AdminDashboardController {
     @Autowired
     private ReviewRepository reviewRepository;
 
+    @Autowired
+    private RefundRepository refundRepository;
+
     @GetMapping("/admin/dashboard")
     public String showAdminDashboard(
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "tab", defaultValue = "revenuePanel") String tab,
             @RequestParam(value = "searchQuery", required = false) String searchQuery,
             @RequestParam(value = "searchType", defaultValue = "username") String searchType,
+            @RequestParam(value = "status", required = false) String status,
             HttpSession session, 
             Model model) {
             
@@ -88,6 +94,10 @@ public class AdminDashboardController {
         long pendingHotels = hotelRepository.countByApprovalStatus("PENDING");
         long totalPendingCount = pendingOwners + pendingHotels;
         model.addAttribute("totalPendingCount", totalPendingCount);
+
+        // Tính tổng số lượng yêu cầu hoàn tiền đang chờ duyệt
+        long pendingRefundCount = refundRepository.findByStatusOrderByRequestedAtAsc("PENDING").size();
+        model.addAttribute("pendingRefundCount", pendingRefundCount);
 
         // Khởi tạo các Pageable và biến chứa dữ liệu cần thiết
         Pageable defaultCustomerPageable = PageRequest.of(page, 5, Sort.by("userAccount.username").ascending());
@@ -244,6 +254,51 @@ public class AdminDashboardController {
         model.addAttribute("customerReviews", customerReviewPage.getContent());
         model.addAttribute("customerReviewCurrentPage", "customerReviewPanel".equals(tab) ? page : 0);
         model.addAttribute("customerReviewTotalPages", customerReviewPage.getTotalPages());
+
+        // --- Tab 8: refundPanel (Quản lý hoàn tiền) ---
+        List<Refund> refunds = Collections.emptyList();
+        long pendingCount = 0;
+        long processedCount = 0;
+        long rejectedCount = 0;
+        if ("refundPanel".equals(tab)) {
+            String filterStatus = (status != null && !status.isBlank()) ? status.toUpperCase() : "ALL";
+            if (!"ALL".equals(filterStatus)) {
+                refunds = refundRepository.findByStatusOrderByRequestedAtAsc(filterStatus);
+            } else {
+                refunds = refundRepository.findAllByOrderByRequestedAtAsc();
+            }
+
+            // Lọc theo searchQuery
+            if (searchQuery != null && !searchQuery.isBlank()) {
+                String query = searchQuery.trim().toLowerCase();
+                refunds = refunds.stream().filter(r -> {
+                    if ("fullName".equals(searchType)) {
+                        return r.getBooking().getCustomer().getFullName() != null &&
+                               r.getBooking().getCustomer().getFullName().toLowerCase().contains(query);
+                    } else if ("email".equals(searchType)) {
+                        return r.getBooking().getCustomer().getEmail() != null &&
+                               r.getBooking().getCustomer().getEmail().toLowerCase().contains(query);
+                    } else if ("id".equals(searchType)) {
+                        return String.valueOf(r.getId()).contains(query);
+                    } else if ("bookingId".equals(searchType)) {
+                        return String.valueOf(r.getBooking().getId()).contains(query);
+                    }
+                    return false;
+                }).collect(Collectors.toList());
+            }
+
+            // Đếm số lượng
+            pendingCount   = refundRepository.findByStatusOrderByRequestedAtAsc("PENDING").size();
+            processedCount = refundRepository.findByStatusOrderByRequestedAtAsc("PROCESSED").size();
+            rejectedCount  = refundRepository.findByStatusOrderByRequestedAtAsc("REJECTED").size();
+            
+            model.addAttribute("refunds", refunds);
+            model.addAttribute("filterStatus", filterStatus);
+            model.addAttribute("pendingCount", pendingCount);
+            model.addAttribute("processedCount", processedCount);
+            model.addAttribute("rejectedCount", rejectedCount);
+            model.addAttribute("totalCount", refunds.size());
+        }
 
         // --- Lưu lại thông tin search nếu có ---
         if (searchQuery != null && !searchQuery.trim().isEmpty()) {

@@ -11,7 +11,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.hotel_management.entity.Refund;
 import vn.edu.fpt.hotel_management.entity.User;
+import vn.edu.fpt.hotel_management.entity.Booking;
+import vn.edu.fpt.hotel_management.entity.Payment;
 import vn.edu.fpt.hotel_management.repository.RefundRepository;
+import vn.edu.fpt.hotel_management.repository.PaymentRepository;
+import vn.edu.fpt.hotel_management.repository.HotelOwnerRepository;
+import vn.edu.fpt.hotel_management.repository.HotelRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,41 +27,25 @@ public class RefundAdminController {
     @Autowired
     private RefundRepository refundRepository;
 
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+    @Autowired
+    private HotelOwnerRepository hotelOwnerRepository;
+
+    @Autowired
+    private HotelRepository hotelRepository;
+
     /**
      * Trang quản lý hoàn tiền cho Admin — hiển thị tất cả yêu cầu, có lọc theo trạng thái
      */
     @GetMapping("/admin/refunds")
-    public String showRefundManagement(
-            @RequestParam(value = "status", required = false) String status,
-            HttpSession session,
-            Model model) {
-
+    public String showRefundManagement(HttpSession session) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null || !"ADMIN".equals(loggedInUser.getRole())) {
             return "redirect:/login";
         }
-
-        List<Refund> refunds;
-        if (status != null && !status.isBlank() && !status.equalsIgnoreCase("ALL")) {
-            refunds = refundRepository.findByStatusOrderByRequestedAtDesc(status.toUpperCase());
-        } else {
-            refunds = refundRepository.findAllByOrderByRequestedAtDesc();
-        }
-
-        // Đếm số lượng theo từng trạng thái
-        long pendingCount   = refundRepository.findByStatusOrderByRequestedAtDesc("PENDING").size();
-        long processedCount = refundRepository.findByStatusOrderByRequestedAtDesc("PROCESSED").size();
-        long rejectedCount  = refundRepository.findByStatusOrderByRequestedAtDesc("REJECTED").size();
-
-        model.addAttribute("user", loggedInUser);
-        model.addAttribute("refunds", refunds);
-        model.addAttribute("filterStatus", status != null ? status.toUpperCase() : "ALL");
-        model.addAttribute("pendingCount", pendingCount);
-        model.addAttribute("processedCount", processedCount);
-        model.addAttribute("rejectedCount", rejectedCount);
-        model.addAttribute("totalCount", refunds.size());
-
-        return "admin/refund-management";
+        return "redirect:/admin/dashboard?tab=refundPanel";
     }
 
     /**
@@ -78,19 +67,19 @@ public class RefundAdminController {
         Refund refund = refundRepository.findById(refundId).orElse(null);
         if (refund == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Refund request not found.");
-            return "redirect:/admin/refunds";
+            return "redirect:/admin/dashboard?tab=refundPanel";
         }
 
         // Chỉ cho phép cập nhật nếu còn PENDING
         if (!"PENDING".equalsIgnoreCase(refund.getStatus())) {
             redirectAttributes.addFlashAttribute("errorMessage", "This refund request has already been processed.");
-            return "redirect:/admin/refunds";
+            return "redirect:/admin/dashboard?tab=refundPanel";
         }
 
         String normalizedStatus = newStatus.toUpperCase();
         if (!normalizedStatus.equals("PROCESSED") && !normalizedStatus.equals("REJECTED")) {
             redirectAttributes.addFlashAttribute("errorMessage", "Invalid status value.");
-            return "redirect:/admin/refunds";
+            return "redirect:/admin/dashboard?tab=refundPanel";
         }
 
         refund.setStatus(normalizedStatus);
@@ -98,10 +87,24 @@ public class RefundAdminController {
         refund.setProcessedAt(LocalDateTime.now());
         refundRepository.save(refund);
 
+        // Cập nhật trạng thái Payment liên quan dựa trên quyết định duyệt/từ chối của Admin
+        Booking booking = refund.getBooking();
+        if (booking != null) {
+            Payment payment = paymentRepository.findByBookingId(booking.getId()).orElse(null);
+            if (payment != null) {
+                if ("PROCESSED".equals(normalizedStatus)) {
+                    payment.setStatus("REFUNDED");
+                } else if ("REJECTED".equals(normalizedStatus)) {
+                    payment.setStatus("PAID");
+                }
+                paymentRepository.save(payment);
+            }
+        }
+
         String message = normalizedStatus.equals("PROCESSED")
                 ? "Refund #" + refundId + " marked as Processed successfully."
                 : "Refund #" + refundId + " has been Rejected.";
         redirectAttributes.addFlashAttribute("successMessage", message);
-        return "redirect:/admin/refunds";
+        return "redirect:/admin/dashboard?tab=refundPanel";
     }
 }
