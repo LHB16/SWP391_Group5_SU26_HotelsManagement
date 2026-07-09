@@ -238,9 +238,7 @@
                                 <div class="d-flex flex-column gap-2 mb-3">
                                     <div class="d-flex justify-content-between">
                                         <span class="text-muted">Rooms Selected</span>
-                                        <strong class="text-dark"
-                                            th:text="${quantities != null ? #aggregates.sum(quantities) : 0} + ' Room(s)'">0
-                                            Room(s)</strong>
+                                        <strong class="text-dark" th:text="${(quantities != null and !quantities.isEmpty()) ? #aggregates.sum(quantities) : 0} + ' Room(s)'">0 Room(s)</strong>
                                     </div>
                                     <div class="d-flex justify-content-between">
                                         <span class="text-muted">Subtotal</span>

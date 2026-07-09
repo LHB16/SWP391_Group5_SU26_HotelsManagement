@@ -18792,7 +18792,7 @@ h6,
   justify-content: center;
   gap: 8px;
   padding: 10px;
-  background-color: var(--hotel-navy);
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
   color: #ffffff;
   border: none;
   border-radius: 8px;
@@ -18803,7 +18803,9 @@ h6,
 }
 
 .bh-filter-btn-search:hover {
-  background-color: var(--hotel-gold);
+  background: linear-gradient(135deg, var(--gold-dark) 0%, #96713e 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(201, 169, 110, 0.35);
 }
 
 .bh-filter-btn-clear {
