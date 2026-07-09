@@ -3,6 +3,7 @@ package vn.edu.fpt.hotel_management.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import vn.edu.fpt.hotel_management.entity.HotelOwner;
 import vn.edu.fpt.hotel_management.entity.User;
 
@@ -19,4 +20,6 @@ public interface HotelOwnerRepository extends JpaRepository<HotelOwner, Integer>
     Page<HotelOwner> findById(int id, Pageable pageable);
     
     long countByVerificationStatus(String verificationStatus);
+    
+    Page<HotelOwner> findAllByOrderByPendingPriorityAsc(Pageable pageable);
 }

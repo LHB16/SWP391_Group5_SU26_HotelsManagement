@@ -40,8 +40,7 @@
                                 <span>Hotel Owner Accounts</span>
                             </div>
                             <span th:if="${totalPendingCount != null && totalPendingCount > 0}" 
-                                  class="badge bg-danger rounded-pill px-2 py-1" 
-                                  style="font-size: 0.75rem; font-weight: 700; color: #fff;" 
+                                  class="badge-pending badge-pending-sidebar" 
                                   th:text="${totalPendingCount}">0</span>
                         </button>
 
@@ -335,8 +334,7 @@
                                                 <div class="fw-bold text-dark mb-0.5 d-flex align-items-center gap-2">
                                                     <span th:text="${o.fullName}">Owner Name</span>
                                                     <span th:if="${ownerPendingCounts != null && ownerPendingCounts[o.id] != null && ownerPendingCounts[o.id] > 0}" 
-                                                          class="badge bg-warning text-dark rounded-pill px-2 py-0.5" 
-                                                          style="font-size: 0.72rem; font-weight: 700;" 
+                                                          class="badge-pending badge-pending-owner" 
                                                           th:text="${ownerPendingCounts[o.id]}">1</span>
                                                 </div>
                                                 <small class="text-muted" th:text="'Email: ' + ${o.userAccount.email} + ' | Phone: ' + ${o.phone}">Email: name@example.com | Phone: 0123456789</small>

@@ -145,7 +145,7 @@ public class AdminDashboardController {
             }
         } else {
             Pageable ownerPageable = "hotelOwnerAccounts".equals(tab) ? defaultOwnerPageable : PageRequest.of(0, 5, Sort.by("userAccount.username").ascending());
-            ownerPage = hotelOwnerRepository.findAll(ownerPageable);
+            ownerPage = hotelOwnerRepository.findAllByOrderByPendingPriorityAsc(ownerPageable);
         }
         List<HotelOwner> ownerList = ownerPage.getContent();
         Map<Integer, Long> ownerPendingCounts = new HashMap<>();
