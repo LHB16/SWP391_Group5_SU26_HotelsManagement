@@ -22467,3 +22467,24 @@ h6,
     padding: 0.15rem 0.5rem;
   }
 }
+
+/* Badges pending count custom styles */
+.badge-pending {
+  background-color: #ef4444 !important; /* bg-danger */
+  color: #ffffff !important;
+  font-weight: 700;
+  border-radius: 9999px; /* rounded-pill */
+  line-height: 1;
+  display: inline-block;
+  text-align: center;
+}
+
+.badge-pending-sidebar {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem; /* px-2 py-1 equivalent */
+}
+
+.badge-pending-owner {
+  font-size: 0.72rem;
+  padding: 0.125rem 0.5rem; /* px-2 py-0.5 equivalent */
+}

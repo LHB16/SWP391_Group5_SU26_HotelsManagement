@@ -3,6 +3,7 @@ package vn.edu.fpt.hotel_management.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import vn.edu.fpt.hotel_management.entity.HotelOwner;
 import vn.edu.fpt.hotel_management.entity.User;
 
@@ -19,4 +20,11 @@ public interface HotelOwnerRepository extends JpaRepository<HotelOwner, Integer>
     Page<HotelOwner> findById(int id, Pageable pageable);
     
     long countByVerificationStatus(String verificationStatus);
+
+    @Query("SELECT o FROM HotelOwner o ORDER BY " +
+           "CASE WHEN o.verificationStatus = 'PENDING' " +
+           "OR (SELECT COUNT(h) FROM Hotel h WHERE h.owner = o AND h.approvalStatus = 'PENDING') > 0 " +
+           "THEN 0 ELSE 1 END ASC, " +
+           "o.userAccount.username ASC")
+    Page<HotelOwner> findAllSortedByPendingFirst(Pageable pageable);
 }
