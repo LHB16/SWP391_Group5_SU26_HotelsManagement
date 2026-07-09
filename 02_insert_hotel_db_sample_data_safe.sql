@@ -77,43 +77,43 @@ BEGIN TRY
     -- =====================================================
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'admin1')
         INSERT INTO user_accounts (email, username, password, role, enabled, otp, otp_expiry, otp_type)
-        VALUES (N'admin1@hotelbooking.test', N'admin1', N'123456', N'ADMIN', 1, NULL, NULL, NULL);
+        VALUES (N'admin1@hotelbooking.test', N'admin1', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'ADMIN', 1, NULL, NULL, NULL);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'admin2')
         INSERT INTO user_accounts (email, username, password, role, enabled, otp, otp_expiry, otp_type)
-        VALUES (N'admin2@hotelbooking.test', N'admin2', N'123456', N'ADMIN', 1, NULL, NULL, NULL);
+        VALUES (N'admin2@hotelbooking.test', N'admin2', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'ADMIN', 1, NULL, NULL, NULL);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'owner_thaodiem')
         INSERT INTO user_accounts (email, username, password, role, enabled, otp, otp_expiry, otp_type)
-        VALUES (N'owner.thaodiem@hotelbooking.test', N'owner_thaodiem', N'123456', N'HOTEL_OWNER', 1, NULL, NULL, NULL);
+        VALUES (N'owner.thaodiem@hotelbooking.test', N'owner_thaodiem', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'HOTEL_OWNER', 1, NULL, NULL, NULL);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'owner_sunhotel')
         INSERT INTO user_accounts (email, username, password, role, enabled, otp, otp_expiry, otp_type)
-        VALUES (N'owner.sunhotel@hotelbooking.test', N'owner_sunhotel', N'123456', N'HOTEL_OWNER', 1, NULL, NULL, NULL);
+        VALUES (N'owner.sunhotel@hotelbooking.test', N'owner_sunhotel', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'HOTEL_OWNER', 1, NULL, NULL, NULL);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'owner_rose')
         INSERT INTO user_accounts (email, username, password, role, enabled, otp, otp_expiry, otp_type)
-        VALUES (N'owner.rose@hotelbooking.test', N'owner_rose', N'123456', N'HOTEL_OWNER', 1, NULL, NULL, NULL);
+        VALUES (N'owner.rose@hotelbooking.test', N'owner_rose', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'HOTEL_OWNER', 1, NULL, NULL, NULL);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'customer_binh')
         INSERT INTO user_accounts (email, username, password, role, enabled, otp, otp_expiry, otp_type)
-        VALUES (N'binh.customer@hotelbooking.test', N'customer_binh', N'123456', N'CUSTOMER', 1, NULL, NULL, NULL);
+        VALUES (N'binh.customer@hotelbooking.test', N'customer_binh', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'CUSTOMER', 1, NULL, NULL, NULL);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'customer_lan')
         INSERT INTO user_accounts (email, username, password, role, enabled, otp, otp_expiry, otp_type)
-        VALUES (N'lan.customer@hotelbooking.test', N'customer_lan', N'123456', N'CUSTOMER', 1, N'284910', DATEADD(MINUTE, 10, GETDATE()), N'FORGOT_PASSWORD');
+        VALUES (N'lan.customer@hotelbooking.test', N'customer_lan', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'CUSTOMER', 1, N'284910', DATEADD(MINUTE, 10, GETDATE()), N'FORGOT_PASSWORD');
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'customer_minh')
         INSERT INTO user_accounts (email, username, password, role, enabled, otp, otp_expiry, otp_type)
-        VALUES (N'minh.customer@hotelbooking.test', N'customer_minh', N'123456', N'CUSTOMER', 1, NULL, NULL, NULL);
+        VALUES (N'minh.customer@hotelbooking.test', N'customer_minh', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'CUSTOMER', 1, NULL, NULL, NULL);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'customer_anh')
         INSERT INTO user_accounts (email, username, password, role, enabled, otp, otp_expiry, otp_type)
-        VALUES (N'anh.customer@hotelbooking.test', N'customer_anh', N'123456', N'CUSTOMER', 1, NULL, NULL, NULL);
+        VALUES (N'anh.customer@hotelbooking.test', N'customer_anh', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'CUSTOMER', 1, NULL, NULL, NULL);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'customer_khoa')
         INSERT INTO user_accounts (email, username, password, role, enabled, otp, otp_expiry, otp_type)
-        VALUES (N'khoa.customer@hotelbooking.test', N'customer_khoa', N'123456', N'CUSTOMER', 1, NULL, NULL, NULL);
+        VALUES (N'khoa.customer@hotelbooking.test', N'customer_khoa', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'CUSTOMER', 1, NULL, NULL, NULL);
 
     SELECT @admin1_user_id = id FROM user_accounts WHERE username = N'admin1';
     SELECT @admin2_user_id = id FROM user_accounts WHERE username = N'admin2';
