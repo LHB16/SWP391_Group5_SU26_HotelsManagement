@@ -42,7 +42,7 @@ public class Review {
     private int downvote = 0;
 
     @Column(name = "status")
-    private String status = "PENDING";
+    private String status = "VISIBLE";
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

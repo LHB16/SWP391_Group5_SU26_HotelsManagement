@@ -19,6 +19,7 @@ import vn.edu.fpt.hotel_management.entity.Customer;
 import vn.edu.fpt.hotel_management.entity.HotelOwner;
 import vn.edu.fpt.hotel_management.entity.HotelVerificationDocument;
 import vn.edu.fpt.hotel_management.entity.FeedbackReply;
+import vn.edu.fpt.hotel_management.entity.Review;
 import vn.edu.fpt.hotel_management.repository.BookingRepository;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 import vn.edu.fpt.hotel_management.repository.UserRepository;
@@ -26,6 +27,7 @@ import vn.edu.fpt.hotel_management.repository.CustomerRepository;
 import vn.edu.fpt.hotel_management.repository.HotelOwnerRepository;
 import vn.edu.fpt.hotel_management.repository.HotelVerificationDocumentRepository;
 import vn.edu.fpt.hotel_management.repository.FeedbackReplyRepository;
+import vn.edu.fpt.hotel_management.repository.ReviewRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -55,6 +57,9 @@ public class AdminDashboardController {
 
     @Autowired
     private FeedbackReplyRepository feedbackReplyRepository;
+
+    @Autowired
+    private ReviewRepository reviewRepository;
 
     @GetMapping("/admin/dashboard")
     public String showAdminDashboard(
@@ -89,6 +94,7 @@ public class AdminDashboardController {
         Pageable defaultOwnerPageable = PageRequest.of(page, 5, Sort.by("userAccount.username").ascending());
         Pageable defaultManagedHotelPageable = PageRequest.of(page, 5, Sort.by("id").descending());
         Pageable defaultFeedbackReplyPageable = PageRequest.of(page, 5, Sort.by("id").descending());
+        Pageable defaultReviewPageable = PageRequest.of(page, 5, Sort.by("id").descending());
         Pageable searchPageable = PageRequest.of(page, 5);
 
         // --- Tab 1: revenuePanel (Doanh thu) ---
@@ -229,6 +235,15 @@ public class AdminDashboardController {
         model.addAttribute("feedbackReplies", feedbackReplyPage.getContent());
         model.addAttribute("feedbackReplyCurrentPage", "ownerFeedbackPanel".equals(tab) ? page : 0);
         model.addAttribute("feedbackReplyTotalPages", feedbackReplyPage.getTotalPages());
+
+        // --- Tab 7: customerReviewPanel (Kiểm duyệt đánh giá của Khách hàng) ---
+        Page<Review> customerReviewPage = Page.empty(defaultReviewPageable);
+        if ("customerReviewPanel".equals(tab)) {
+            customerReviewPage = reviewRepository.findByStatusIn(Arrays.asList("PENDING", "HIDDEN"), defaultReviewPageable);
+        }
+        model.addAttribute("customerReviews", customerReviewPage.getContent());
+        model.addAttribute("customerReviewCurrentPage", "customerReviewPanel".equals(tab) ? page : 0);
+        model.addAttribute("customerReviewTotalPages", customerReviewPage.getTotalPages());
 
         // --- Lưu lại thông tin search nếu có ---
         if (searchQuery != null && !searchQuery.trim().isEmpty()) {

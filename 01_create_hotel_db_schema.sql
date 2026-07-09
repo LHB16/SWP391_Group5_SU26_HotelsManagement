@@ -281,6 +281,7 @@ CREATE TABLE refunds (
     refund_amount DECIMAL(38,2) NOT NULL,
     status NVARCHAR(50) NOT NULL CONSTRAINT DF_refunds_status DEFAULT N'PENDING',
     note NVARCHAR(MAX) NULL,
+    cancellation_reason NVARCHAR(1000) NULL,
     requested_at DATETIME2 NOT NULL CONSTRAINT DF_refunds_requested_at DEFAULT GETDATE(),
     processed_at DATETIME2 NULL,
     CONSTRAINT CK_refunds_refund_amount CHECK (refund_amount >= 0),
@@ -341,6 +342,17 @@ CREATE TABLE feedback_replies (
     content NVARCHAR(1000) NULL,
     created_at DATETIME2 NOT NULL CONSTRAINT DF_feedback_replies_created_at DEFAULT GETDATE(),
     updated_at DATETIME2 NOT NULL CONSTRAINT DF_feedback_replies_updated_at DEFAULT GETDATE()
+);
+GO
+
+CREATE TABLE feedback_votes (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    feedback_id INT NOT NULL,
+    customer_id INT NOT NULL,
+    vote_type NVARCHAR(10) NOT NULL, -- 'UPVOTE' hoặc 'DOWNVOTE'
+    created_at DATETIME2 NOT NULL CONSTRAINT DF_feedback_votes_created_at DEFAULT GETDATE(),
+    CONSTRAINT UQ_feedback_customer_vote UNIQUE (feedback_id, customer_id),
+    CONSTRAINT CK_feedback_votes_type CHECK (vote_type IN (N'UPVOTE', N'DOWNVOTE'))
 );
 GO
 
@@ -504,6 +516,18 @@ FOREIGN KEY (hotel_id) REFERENCES hotel(id)
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 GO
 
+ALTER TABLE feedback_votes
+ADD CONSTRAINT FK_feedback_votes_feedback
+FOREIGN KEY (feedback_id) REFERENCES feedback(id)
+ON DELETE CASCADE ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE feedback_votes
+ADD CONSTRAINT FK_feedback_votes_customers
+FOREIGN KEY (customer_id) REFERENCES customers(id)
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
+
 -- =====================================================
 -- 7. INDEXES FOR SEARCHING / TESTING
 -- =====================================================
@@ -519,6 +543,7 @@ CREATE INDEX IX_bookings_status ON bookings(status);
 CREATE INDEX IX_payments_booking_id ON payments(booking_id);
 CREATE INDEX IX_refunds_booking_id ON refunds(booking_id);
 CREATE INDEX IX_feedback_hotel_id ON feedback(hotel_id);
+CREATE INDEX IX_feedback_votes_feedback_id ON feedback_votes(feedback_id);
 CREATE INDEX IX_messages_sender_receiver ON messages(sender_id, receiver_id);
 GO
 

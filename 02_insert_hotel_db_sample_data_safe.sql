@@ -645,6 +645,40 @@ BEGIN TRY
         INSERT INTO feedback_replies (feedback_id, owner_id, hotel_id, content)
         VALUES (@feedback4_id, @owner3_id, @hotel3_id, N'Rose Boutique rất cảm ơn đánh giá của bạn và mong được đón tiếp bạn lần sau.');
 
+    -- Thêm feedback PENDING và HIDDEN để kiểm duyệt
+    IF NOT EXISTS (SELECT 1 FROM feedback WHERE customer_id = @customer2_id AND hotel_id = @hotel1_id AND room_id = @room1_id)
+        INSERT INTO feedback (
+            customer_id, hotel_id, room_id, user_full_name, room_type,
+            comment, rating, upvote, downvote, status
+        )
+        VALUES (@customer2_id, @hotel1_id, @room1_id, N'Nguyễn Thị Lan', N'Standard Room', N'Phòng có quá nhiều muỗi và thái độ phục vụ của nhân viên rất tệ!', 1, 0, 0, N'PENDING');
+
+    IF NOT EXISTS (SELECT 1 FROM feedback WHERE customer_id = @customer3_id AND hotel_id = @hotel1_id AND room_id = @room1_id)
+        INSERT INTO feedback (
+            customer_id, hotel_id, room_id, user_full_name, room_type,
+            comment, rating, upvote, downvote, status
+        )
+        VALUES (@customer3_id, @hotel1_id, @room1_id, N'Trần Văn Đạo', N'Standard Room', N'Khách sạn này lừa đảo, quảng cáo sai sự thật!', 1, 0, 0, N'HIDDEN');
+
+    -- =====================================================
+    -- 7.5. FEEDBACK VOTES (SAMPLE DATA)
+    -- =====================================================
+    IF NOT EXISTS (SELECT 1 FROM feedback_votes WHERE feedback_id = @feedback1_id AND customer_id = @customer2_id)
+        INSERT INTO feedback_votes (feedback_id, customer_id, vote_type)
+        VALUES (@feedback1_id, @customer2_id, N'UPVOTE');
+
+    IF NOT EXISTS (SELECT 1 FROM feedback_votes WHERE feedback_id = @feedback1_id AND customer_id = @customer3_id)
+        INSERT INTO feedback_votes (feedback_id, customer_id, vote_type)
+        VALUES (@feedback1_id, @customer3_id, N'UPVOTE');
+
+    IF NOT EXISTS (SELECT 1 FROM feedback_votes WHERE feedback_id = @feedback2_id AND customer_id = @customer1_id)
+        INSERT INTO feedback_votes (feedback_id, customer_id, vote_type)
+        VALUES (@feedback2_id, @customer1_id, N'UPVOTE');
+
+    IF NOT EXISTS (SELECT 1 FROM feedback_votes WHERE feedback_id = @feedback3_id AND customer_id = @customer1_id)
+        INSERT INTO feedback_votes (feedback_id, customer_id, vote_type)
+        VALUES (@feedback3_id, @customer1_id, N'DOWNVOTE');
+
     -- =====================================================
     -- 8. WISHLISTS
     -- =====================================================

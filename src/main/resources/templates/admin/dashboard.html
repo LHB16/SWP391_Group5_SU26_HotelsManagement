@@ -48,6 +48,11 @@
                             <i data-lucide="message-square" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
                             <span>Owner Feedbacks</span>
                         </a>
+
+                        <a th:href="@{/admin/dashboard(tab='customerReviewPanel')}" class="sidebar-link" th:classappend="${tab == 'customerReviewPanel'} ? 'active' : ''">
+                            <i data-lucide="star" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
+                            <span>Customer Reviews</span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -588,6 +593,109 @@
                                     
                                     <a th:href="@{/admin/dashboard(page=${feedbackReplyCurrentPage + 1}, tab='ownerFeedbackPanel', searchQuery=${searchQuery})}"
                                        class="page-link-custom" th:classappend="${feedbackReplyCurrentPage + 1 >= feedbackReplyTotalPages} ? 'disabled' : ''">
+                                        <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL 7: CUSTOMER REVIEWS MODERATION -->
+                <div id="customerReviewPanel" class="tab-panel" th:classappend="${tab == 'customerReviewPanel'} ? 'active' : ''">
+                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                        <div>
+                            <h1 class="fw-bold text-dark m-0">Admin Dashboard</h1>
+                            <p class="text-muted m-0 mt-1">Approve or hide customer reviews containing sensitive content or negative ratings.</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-section">
+                        <div class="customer-layout-single">
+                            
+                            <div class="customer-list-box-full">
+                                <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                                    <i data-lucide="star" style="stroke-width: 1.5; width: 18px; height: 18px; color: #4f46e5;"></i>
+                                    Customer Reviews Moderation Queue
+                                </h5>
+
+                                <div class="list-group">
+                                    <!-- Loop reviews -->
+                                    <div class="list-group-item border-0 py-4 mb-3 rounded-3 shadow-sm bg-light" th:each="r : ${customerReviews}">
+                                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex align-items-center gap-2 mb-2">
+                                                    <div>
+                                                        <span class="fw-bold text-dark" th:text="${r.userFullName}">Customer Name</span>
+                                                        <span class="text-muted small" th:text="' reviewed for ' + ${r.hotel.name} + ' (' + ${r.roomType} + ')'"> reviewed for Hotel Name</span>
+                                                        <span th:if="${r.status == 'PENDING'}" class="badge bg-warning text-dark ms-2" style="font-size: 0.75rem; border-radius: 4px; padding: 2px 6px;">PENDING</span>
+                                                        <span th:if="${r.status == 'HIDDEN'}" class="badge bg-secondary text-white ms-2" style="font-size: 0.75rem; border-radius: 4px; padding: 2px 6px;">HIDDEN</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="p-3 mb-2 bg-white rounded-3 border" style="font-size: 0.95rem;">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <div class="text-warning fw-bold">
+                                                            <span th:each="star : ${#numbers.sequence(1, 5)}" th:text="${star <= r.rating ? '★' : '☆'}">★</span>
+                                                            <span class="ms-1 text-dark" th:text="'(' + ${r.rating} + '/5)'">(5/5)</span>
+                                                        </div>
+                                                        <div class="text-muted small" th:text="${#temporals.format(r.createdAt, 'yyyy-MM-dd HH:mm')}">Date</div>
+                                                    </div>
+                                                    <div class="text-dark" th:text="${r.comment}">Review Comment</div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="d-flex flex-column gap-2" style="min-width: 150px;">
+                                                <!-- Action Buttons -->
+                                                <form th:action="@{/admin/reviews/{rid}/status(rid=${r.id})}" method="post">
+                                                    <input type="hidden" name="status" value="VISIBLE" />
+                                                    <input type="hidden" name="page" th:value="${customerReviewCurrentPage}" />
+                                                    <button type="submit" class="btn btn-success btn-sm w-100 border-0 d-flex align-items-center justify-content-center gap-1" style="background-color: #10b981; border-radius: 6px; padding: 6px 12px; font-weight: 500; color: white;">
+                                                        <i data-lucide="check" style="width: 14px; height: 14px; stroke-width: 1.5;"></i>
+                                                        <span>Approve (Show)</span>
+                                                    </button>
+                                                </form>
+
+                                                <form th:action="@{/admin/reviews/{rid}/status(rid=${r.id})}" method="post" th:if="${r.status != 'HIDDEN'}">
+                                                    <input type="hidden" name="status" value="HIDDEN" />
+                                                    <input type="hidden" name="page" th:value="${customerReviewCurrentPage}" />
+                                                    <button type="submit" class="btn btn-warning btn-sm w-100 border-0 d-flex align-items-center justify-content-center gap-1" style="background-color: #f59e0b; border-radius: 6px; padding: 6px 12px; font-weight: 500; color: white;">
+                                                        <i data-lucide="eye-off" style="width: 14px; height: 14px; stroke-width: 1.5;"></i>
+                                                        <span>Hide Review</span>
+                                                    </button>
+                                                </form>
+
+                                                <a th:href="@{/hotels/{id}/rooms(id=${r.hotel.id})}" class="btn btn-outline-primary btn-sm w-100 d-flex align-items-center justify-content-center gap-1" style="border-radius: 6px; padding: 6px 12px; font-weight: 500; border-color: #4f46e5; color: #4f46e5;">
+                                                    <i data-lucide="external-link" style="width: 14px; height: 14px; stroke-width: 1.5;"></i>
+                                                    <span>View Context</span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Empty State -->
+                                    <div class="text-center text-muted py-5 border border-dashed rounded-3 bg-light" th:if="${#lists.isEmpty(customerReviews)}">
+                                        <i data-lucide="star" class="text-muted mb-2" style="width: 36px; height: 36px; stroke-width: 1.5; color: #64748b;"></i>
+                                        <div>No pending or hidden reviews found. All clean!</div>
+                                    </div>
+                                </div>
+
+                                <!-- Pagination -->
+                                <div class="pagination-container" th:if="${customerReviewTotalPages > 1}">
+                                    <a th:href="@{/admin/dashboard(page=${customerReviewCurrentPage - 1}, tab='customerReviewPanel')}"
+                                       class="page-link-custom" th:classappend="${customerReviewCurrentPage == 0} ? 'disabled' : ''">
+                                        <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>
+                                    </a>
+                                    
+                                    <th:block th:each="i : ${#numbers.sequence(0, customerReviewTotalPages - 1)}">
+                                        <a th:href="@{/admin/dashboard(page=${i}, tab='customerReviewPanel')}"
+                                           class="page-link-custom" th:classappend="${customerReviewCurrentPage == i} ? 'active' : ''"
+                                           th:text="${i + 1}">1</a>
+                                    </th:block>
+                                    
+                                    <a th:href="@{/admin/dashboard(page=${customerReviewCurrentPage + 1}, tab='customerReviewPanel')}"
+                                       class="page-link-custom" th:classappend="${customerReviewCurrentPage + 1 >= customerReviewTotalPages} ? 'disabled' : ''">
                                         <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
                                     </a>
                                 </div>
