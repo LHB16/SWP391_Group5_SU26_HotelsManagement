@@ -82,8 +82,8 @@
                         <div class="text-center">
                             <h6 class="fw-bold mb-2 customer-support-title">Customer Support</h6>
                             <p class="text-muted mb-3 customer-support-desc">Have questions about rooms or services? Chat directly with the hotel owner!</p>
-                            <a th:href="@{/customer/chat(hotelId=${hotel.id})}" class="btn w-100 btn-sm customer-support-btn">
-                                <i class="bi bi-chat-left-dots-fill me-1"></i>
+                            <a th:href="${user != null and user.role == 'HOTEL_OWNER'} ? 'javascript:void(0)' : @{/customer/chat(hotelId=${hotel.id})}" class="btn btn-outline-gold w-100 btn-sm customer-support-btn">
+                                <i data-lucide="message-square" class="me-1" style="width: 14px; height: 14px; stroke-width: 1.5; vertical-align: middle;"></i>
                                 Chat with Owner
                             </a>
                         </div>
@@ -206,7 +206,7 @@
                                         Room detail
                                     </a>
                                     <!-- Booking Link -->
-                                    <a th:href="@{/booking(hotelId=${hotel.id}, roomId=${room.id}, checkin=${checkin}, checkout=${checkout})}"
+                                    <a th:href="${user != null and user.role == 'HOTEL_OWNER'} ? 'javascript:void(0)' : @{/booking(hotelId=${hotel.id}, roomId=${room.id}, checkin=${checkin}, checkout=${checkout})}"
                                        class="btn btn-gold btn-sm"
                                        th:id="${'booking-btn-' + room.id}">
                                         Booking

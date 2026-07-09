@@ -96,6 +96,15 @@ public class BookingController {
                     }
                 }
             }
+
+            // Tự động chuyển sang COMPLETED nếu đã qua 12h trưa ngày checkout
+            if ("CONFIRMED".equals(b.getStatus())) {
+                if (b.getCheckOutDate() != null && b.getCheckOutDate().atTime(12, 0).isBefore(java.time.LocalDateTime.now())) {
+                    b.setStatus("COMPLETED");
+                    b.setUpdatedAt(java.time.LocalDateTime.now());
+                    bookingRepository.save(b);
+                }
+            }
         }
 
         // Chuẩn bị tham số lọc và gọi Magic Method từ Repository
@@ -186,7 +195,7 @@ public class BookingController {
                 Payment p = paymentRepository.findByBookingId(b.getId()).orElse(null);
                 boolean alreadySubmitted = refundRepository.existsByBookingId(b.getId());
                 // Kiểm tra điều kiện hoàn tiền
-                boolean eligible = (p != null && "REFUNDED".equalsIgnoreCase(p.getStatus())) && !alreadySubmitted;
+                boolean eligible = (p != null && "PAID".equalsIgnoreCase(p.getStatus())) && !alreadySubmitted;
                 refundEligibleMap.put(b.getId(), eligible);
                 refundSubmittedMap.put(b.getId(), alreadySubmitted);
             }
@@ -528,9 +537,7 @@ public class BookingController {
         bookingRepository.save(booking);
         session.removeAttribute("cancelReason_" + bookingId); // dọn dẹp session
 
-        // Cập nhật payment thành REFUNDED
-        p.setStatus("REFUNDED");
-        paymentRepository.save(p);
+        // Trạng thái thanh toán vẫn giữ là PAID, chỉ chuyển sang REFUNDED khi Admin Approve hoàn tiền thành công
 
         // Hoàn tiền 100%
         java.math.BigDecimal refundAmount = booking.getTotalPrice()
