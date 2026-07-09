@@ -4,7 +4,6 @@
 <head>
     <th:block th:replace="~{fragment/frag :: head}"></th:block>
     <link th:href="@{/assets/css/dashboard.css}" rel="stylesheet"/>
-    <link th:href="@{/assets/css/promotion.css}" rel="stylesheet"/>
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
@@ -15,26 +14,22 @@
 <main class="flex-shrink-0 dashboard-container container-fluid">
     <div class="row">
 
-        <!-- Sidebar -->
+        <!-- ==================== SIDEBAR ==================== -->
         <div class="col-lg-3 col-md-4 mb-4">
             <div class="sidebar-box">
                 <div class="px-3 mb-4 text-muted text-uppercase small font-weight-bold">
                     Owner Navigation
                 </div>
                 <div class="sidebar-nav">
-                    <button class="sidebar-link" th:classappend="${tab == 'overview'} ? 'active' : ''" data-tab="overview">
-                        <i data-lucide="layout-dashboard" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
-                        <span>Dashboard</span>
-                    </button>
-                    <button class="sidebar-link" th:classappend="${tab == 'bookings'} ? 'active' : ''" data-tab="bookings">
+                    <button class="sidebar-link active" data-tab="bookings">
                         <i data-lucide="calendar-check" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
                         <span>Bookings</span>
                     </button>
-                    <button class="sidebar-link" th:classappend="${tab == 'hotels'} ? 'active' : ''" data-tab="hotels">
+                    <button class="sidebar-link" data-tab="hotels">
                         <i data-lucide="hotel" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
                         <span>My Hotels</span>
                     </button>
-                    <button class="sidebar-link" th:classappend="${tab == 'promotions'} ? 'active' : ''" data-tab="promotions">
+                    <button class="sidebar-link" data-tab="promotions">
                         <i data-lucide="percent" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
                         <span>Promotions</span>
                     </button>
@@ -45,179 +40,23 @@
                 </div>
             </div>
         </div>
-
-        <!-- Content -->
+        <!-- ==================== CONTENT ==================== -->
         <div class="col-lg-9 col-md-8">
 
-            <!-- ========================================================= -->
-            <!-- PANEL 1: OVERVIEW -->
-            <!-- ========================================================= -->
-            <div id="overview" class="tab-panel" th:classappend="${tab == 'overview'} ? 'active' : ''">
 
-                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+            <!-- ========================================================= -->
+            <!-- PANEL 1: BOOKINGS -->
+            <!-- ========================================================= -->
+            <div id="bookings" class="tab-panel active">
+
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3 flex-wrap gap-2">
                     <div>
-                        <h1 class="fw-bold text-dark m-0">Owner Dashboard</h1>
-                        <p class="text-muted m-0 mt-1">
-                            Welcome back, <strong th:text="${owner.fullName}">Owner</strong>!
-                        </p>
+                        <h1 class="fw-bold text-dark m-0" style="font-family: 'Playfair Display', serif; font-size: 1.6rem;">Bookings Management</h1>
+                        <p class="text-muted m-0 mt-1" style="font-size: 0.9rem;">View and manage all bookings for your hotels</p>
                     </div>
-                    <div class="text-muted">
-                        <i data-lucide="calendar" class="me-1" style="width: 16px; height: 16px;"></i>
-                        <span id="currentDateTime"></span>
-                    </div>
-                </div>
-
-                <!-- Flash Messages -->
-                <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
-                    <i data-lucide="check-circle"></i>
-                    <span th:text="${successMessage}"></span>
-                </div>
-                <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
-                    <i data-lucide="alert-circle"></i>
-                    <span th:text="${errorMessage}"></span>
-                </div>
-
-                <div th:if="${verificationStatus == 'PENDING'}" class="pending-verification-card mb-4">
-                    <div class="pending-verification-inner">
-                        <div class="pending-verification-icon">
-                            <i data-lucide="clock" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
-                        </div>
-                        <div class="pending-verification-content">
-                            <h4 class="pending-verification-title">Account Pending Verification</h4>
-                            <p class="pending-verification-text">
-                                Your hotel owner account is being reviewed by the admin.
-                                You will be able to manage your hotels and rooms once your account is approved.
-                            </p>
-                            <div class="pending-verification-status">
-                                <span class="badge-status badge-status-warning">
-                                    <i data-lucide="hourglass" style="width: 14px; height: 14px;"></i>
-                                    Status: PENDING
-                                </span>
-                                <span class="pending-verification-email">
-                                    <i data-lucide="mail" style="width: 14px; height: 14px;"></i>
-                                    Check your email for approval notification
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div th:if="${verificationStatus == 'REJECTED'}" class="rejected-verification-card mb-4">
-                    <div class="rejected-verification-inner">
-                        <div class="rejected-verification-icon">
-                            <i data-lucide="x-circle" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
-                        </div>
-                        <div class="rejected-verification-content">
-                            <h4 class="rejected-verification-title">Account Rejected</h4>
-                            <p class="rejected-verification-text">
-                                Your account registration has been rejected by the admin.
-                            </p>
-                            <div th:if="${owner.rejectionReason != null}" class="rejected-verification-reason">
-                                <strong>Reason:</strong> <span th:text="${owner.rejectionReason}"></span>
-                            </div>
-                            <div class="rejected-verification-actions mt-3">
-                                <a th:href="@{/logout}" class="btn btn-danger btn-sm">
-                                    <i data-lucide="log-out" style="width: 14px; height: 14px;"></i>
-                                    Logout &amp; Try Again
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div th:if="${verificationStatus == 'APPROVED'}">
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-3">
-                            <div class="stat-card card-hotels">
-                                <div class="stat-icon"><i data-lucide="hotel" style="stroke-width: 1.5;"></i></div>
-                                <div class="stat-value" th:text="${totalHotels}">0</div>
-                                <div class="stat-label">Total Hotels</div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="stat-card card-rooms">
-                                <div class="stat-icon"><i data-lucide="door-open" style="stroke-width: 1.5;"></i></div>
-                                <div class="stat-value" th:text="${totalRooms}">0</div>
-                                <div class="stat-label">Total Rooms</div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="stat-card card-bookings">
-                                <div class="stat-icon"><i data-lucide="calendar-check" style="stroke-width: 1.5;"></i></div>
-                                <div class="stat-value" th:text="${totalBookings}">0</div>
-                                <div class="stat-label">Total Bookings</div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="stat-card card-revenue">
-                                <div class="stat-icon"><i data-lucide="dollar-sign" style="stroke-width: 1.5;"></i></div>
-                                <div class="stat-value" th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</div>
-                                <div class="stat-label">Total Revenue</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="dashboard-section">
-                        <h2 class="section-title">
-                            <i data-lucide="clock" style="stroke-width: 1.5; color: #4f46e5;"></i>
-                            Recent Bookings
-                        </h2>
-                        <div class="custom-table-container">
-                            <table class="custom-table">
-                                <thead>
-                                <tr>
-                                    <th>Booking ID</th>
-                                    <th>Customer</th>
-                                    <th>Hotel</th>
-                                    <th>Room Type</th>
-                                    <th>Check-in</th>
-                                    <th>Total</th>
-                                    <th>Status</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr th:each="b : ${recentBookings}">
-                                    <td><strong th:text="'#' + ${b.bookingId}">#1</strong></td>
-                                    <td th:text="${b.customerName}">Customer</td>
-                                    <td th:text="${b.hotelName}">Hotel</td>
-                                    <td th:text="${b.roomType}">Room Type</td>
-                                    <td th:text="${b.checkInDate}">Date</td>
-                                    <td>
-                                        <strong class="text-success"
-                                                th:text="${#numbers.formatDecimal(b.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' VND'">
-                                            0 VND
-                                        </strong>
-                                    </td>
-                                    <td>
-                                        <span class="badge-status"
-                                              th:classappend="${b.bookingStatus == 'CONFIRMED'} ? 'badge-status-success' :
-                                                             (${b.bookingStatus == 'PENDING'} ? 'badge-status-warning' :
-                                                             (${b.bookingStatus == 'CANCELLED'} ? 'badge-status-danger' : 'badge-status-neutral'))"
-                                              th:text="${b.bookingStatus}">STATUS</span>
-                                    </td>
-                                </tr>
-                                <tr th:if="${#lists.isEmpty(recentBookings)}">
-                                    <td colspan="7" class="text-center text-muted py-5">
-                                        <i data-lucide="inbox" class="d-block mx-auto mb-2" style="width: 40px; height: 40px; opacity: 0.4;"></i>
-                                        No bookings found for your hotels.
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ========================================================= -->
-            <!-- PANEL 2: BOOKINGS -->
-            <!-- ========================================================= -->
-            <div id="bookings" class="tab-panel" th:classappend="${tab == 'bookings'} ? 'active' : ''">
-
-                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-                    <div>
-                        <h1 class="fw-bold text-dark m-0">Bookings Management</h1>
-                        <p class="text-muted m-0 mt-1">View and manage all bookings for your hotels</p>
+                    <div class="text-muted d-flex align-items-center gap-2" style="font-size: 0.85rem;" th:if="${verificationStatus == 'APPROVED'}">
+                        <i data-lucide="calendar-check" style="width: 18px; height: 18px;"></i>
+                        <span><strong th:text="${totalBookings}">0</strong> bookings</span>
                     </div>
                 </div>
 
@@ -260,6 +99,52 @@
                             <i data-lucide="list" style="stroke-width: 1.5; color: #4f46e5;"></i>
                             All Bookings
                         </h2>
+
+                        <!-- Filter Row -->
+                        <div class="row g-3 mb-3 align-items-end">
+                            <div class="col-12 col-md-3">
+                                <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Search Customer</label>
+                                <input type="text" id="bookingSearchInput" class="form-control form-control-sm"
+                                       placeholder="Search customer name..." oninput="applyBookingFilters()" />
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Hotel</label>
+                                <select id="bookingHotelFilter" class="form-select form-select-sm" onchange="applyBookingFilters()">
+                                    <option value="all">All Hotels</option>
+                                    <option th:each="hotel : ${approvedHotels}" th:value="${hotel.id}" th:text="${hotel.name}"></option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Status</label>
+                                <select id="bookingStatusFilter" class="form-select form-select-sm" onchange="applyBookingFilters()">
+                                    <option value="all">All Status</option>
+                                    <option value="CONFIRMED">Confirmed</option>
+                                    <option value="PENDING">Pending</option>
+                                    <option value="COMPLETED">Completed</option>
+                                    <option value="CANCELLED">Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Check-in</label>
+                                <input type="date" id="bookingCheckinFilter" class="form-control form-control-sm"
+                                       onchange="applyBookingFilters()"
+                                       onselectstart="return false"
+                                       unselectable="on" />
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Check-out</label>
+                                <input type="date" id="bookingCheckoutFilter" class="form-control form-control-sm"
+                                       onchange="applyBookingFilters()"
+                                       onselectstart="return false"
+                                       unselectable="on" />
+                            </div>
+                            <div class="col-12 col-md-1">
+                                <button class="btn btn-outline-secondary btn-sm w-100" onclick="clearBookingFilters()" style="font-size: 0.75rem;">
+                                    <i data-lucide="x" style="width: 14px; height: 14px;"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="custom-table-container">
                             <table class="custom-table">
                                 <thead>
@@ -275,7 +160,7 @@
                                     <th>Payment</th>
                                 </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="bookingTableBody">
                                 <tr th:each="b : ${recentBookings}">
                                     <td><strong th:text="'#' + ${b.bookingId}">#1</strong></td>
                                     <td th:text="${b.customerName}">Customer</td>
@@ -289,18 +174,23 @@
                                             0 VND
                                         </strong>
                                     </td>
-                                    <td>
-                                        <span class="badge-status"
-                                              th:classappend="${b.bookingStatus == 'CONFIRMED'} ? 'badge-status-success' :
-                                                             (${b.bookingStatus == 'PENDING'} ? 'badge-status-warning' :
-                                                             (${b.bookingStatus == 'CANCELLED'} ? 'badge-status-danger' : 'badge-status-neutral'))"
-                                              th:text="${b.bookingStatus}">STATUS</span>
+                                    <td style="padding: 8px 10px; white-space: nowrap; text-align: center;">
+    <span class="booking-status-badge"
+          style="display: inline-block; min-width: 95px; padding: 5px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; text-align: center; letter-spacing: 0.03em; border: 1px solid;"
+          th:classappend="${b.bookingStatus == 'CONFIRMED'} ? 'bg-success-light text-success border-success' :
+                         (${b.bookingStatus == 'COMPLETED'} ? 'bg-info-light text-info border-info' :
+                         (${b.bookingStatus == 'PENDING'} ? 'bg-warning-light text-warning border-warning' :
+                         (${b.bookingStatus == 'CANCELLED'} ? 'bg-danger-light text-danger border-danger' : 'bg-light-secondary text-secondary border-secondary')))"
+          th:text="${b.bookingStatus}">STATUS</span>
                                     </td>
-                                    <td>
-                                        <span class="badge-status"
-                                              th:classappend="${b.paymentStatus == 'PAID'} ? 'badge-status-success' :
-                                                             (${b.paymentStatus == 'PENDING'} ? 'badge-status-warning' : 'badge-status-danger')"
-                                              th:text="${b.paymentStatus}">PAYMENT</span>
+                                    <td style="padding: 8px 10px; white-space: nowrap; text-align: center;">
+    <span class="payment-status-badge"
+          style="display: inline-block; min-width: 95px; padding: 5px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; text-align: center; letter-spacing: 0.03em; border: 1px solid;"
+          th:classappend="${b.paymentStatus == 'PAID'} ? 'bg-success-light text-success border-success' :
+                         (${b.paymentStatus == 'PENDING'} ? 'bg-warning-light text-warning border-warning' :
+                         (${b.paymentStatus == 'FAILED'} ? 'bg-danger-light text-danger border-danger' :
+                         (${b.paymentStatus == 'REFUNDED'} ? 'bg-info-light text-info border-info' : 'bg-light-secondary text-secondary border-secondary')))"
+          th:text="${b.paymentStatus}">PAYMENT</span>
                                     </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(recentBookings)}">
@@ -317,22 +207,22 @@
             </div>
 
             <!-- ========================================================= -->
-            <!-- PANEL 3: MY HOTELS -->
+            <!-- PANEL 2: MY HOTELS -->
             <!-- ========================================================= -->
             <div id="hotels" class="tab-panel" th:classappend="${tab == 'hotels'} ? 'active' : ''">
 
                 <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3 flex-wrap gap-2">
                     <div>
-                        <h1 class="fw-bold text-dark m-0">My Hotels</h1>
-                        <p class="text-muted m-0 mt-1">Manage your hotel properties</p>
+                        <h1 class="fw-bold text-dark m-0" style="font-family: 'Playfair Display', serif; font-size: 1.6rem;">My Hotels</h1>
+                        <p class="text-muted m-0 mt-1" style="font-size: 0.9rem;">Manage your hotel properties</p>
                     </div>
                     <div class="d-flex align-items-center gap-3">
-                        <span class="text-muted small">
+                        <span class="text-muted small" th:if="${verificationStatus == 'APPROVED'}">
                             <i data-lucide="hotel" style="width: 16px; height: 16px;"></i>
                             <strong th:text="${totalHotels}">0</strong> hotels
                         </span>
                         <button class="btn-gold" onclick="openAddHotelModal()"
-                                th:disabled="${verificationStatus != 'APPROVED'}">
+                                th:if="${verificationStatus == 'APPROVED'}">
                             <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
                             Add New Hotel
                         </button>
@@ -432,7 +322,7 @@
                                 </div>
 
                                 <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                    <div class="d-flex gap-2" th:if="${hotel.approvalStatus == 'APPROVED'}">
+                                    <div class="d-flex gap-2">
                                         <a th:href="@{/hotels/{id}/rooms#reviews(id=${hotel.id})}"
                                            class="btn btn-sm btn-outline-info">
                                             <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
@@ -440,20 +330,19 @@
                                         </a>
                                         <a th:href="@{/owner/hotels/{id}(id=${hotel.id})}"
                                            class="btn btn-sm btn-outline-primary">
-                                            <i data-lucide="info" style="width: 14px; height: 14px;"></i>
-                                            Detail
+                                            <i data-lucide="door-open" style="width: 14px; height: 14px;"></i>
+                                            Rooms
                                         </a>
                                     </div>
-                                    <form th:action="@{/owner/dashboard/delete-hotel}"
-                                          method="post"
-                                          onsubmit="return confirm('Delete this hotel? This action cannot be undone!');"
-                                          th:classappend="${hotel.approvalStatus != 'APPROVED'} ? 'ms-auto' : ''">
-                                        <input type="hidden" name="hotelId" th:value="${hotel.id}" />
-                                        <button type="submit" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1">
+                                    <div class="d-flex gap-2">
+                                        <a th:href="@{/owner/hotels/{id}/edit(id=${hotel.id})}"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i data-lucide="pencil" style="width: 14px; height: 14px;"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" th:data-bs-target="'#deleteModalHotel-' + ${hotel.id}">
                                             <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
-                                            Delete
                                         </button>
-                                    </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -470,19 +359,24 @@
                     </div>
                 </div>
             </div>
+
             <!-- ========================================================= -->
-            <!-- PANEL 4: PROMOTIONS -->
+            <!-- PANEL 3: PROMOTIONS -->
             <!-- ========================================================= -->
             <div id="promotions" class="tab-panel" th:classappend="${tab == 'promotions'} ? 'active' : ''">
 
                 <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3 flex-wrap gap-2">
                     <div>
-                        <h1 class="fw-bold text-dark m-0">Promotions Management</h1>
-                        <p class="text-muted m-0 mt-1">Create and manage special offers for your hotels</p>
+                        <h1 class="fw-bold text-dark m-0" style="font-family: 'Playfair Display', serif; font-size: 1.6rem;">Promotions Management</h1>
+                        <p class="text-muted m-0 mt-1" style="font-size: 0.9rem;">Create and manage special offers for your hotels</p>
                     </div>
                     <div class="d-flex align-items-center gap-3">
+            <span class="text-muted small" th:if="${verificationStatus == 'APPROVED'}">
+                <i data-lucide="percent" style="width: 16px; height: 16px;"></i>
+                <strong id="totalPromotionsCount">0</strong> promotions
+            </span>
                         <button class="btn-gold" onclick="openAddPromotionModal()"
-                                th:disabled="${verificationStatus != 'APPROVED'}">
+                                th:if="${verificationStatus == 'APPROVED'}">
                             <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
                             Add Promotion
                         </button>
@@ -535,50 +429,75 @@
 
                     <div th:if="${not #lists.isEmpty(approvedHotels)}">
 
-                        <!-- Dropdown chọn khách sạn -->
-                        <div class="mb-4">
-                            <div class="row g-2 align-items-end">
-                                <div class="col-md-4">
-                                    <label class="form-label fw-semibold mb-1">Select Hotel</label>
-                                    <select id="hotelFilterSelect" class="form-select" onchange="filterPromotionsByHotel(this.value)">
+                        <div class="dashboard-section">
+                            <h2 class="section-title">
+                                <i data-lucide="percent" style="stroke-width: 1.5; color: #4f46e5;"></i>
+                                All Promotions
+                            </h2>
+
+                            <!-- Filter Row -->
+                            <div class="row g-3 mb-3 align-items-end">
+                                <div class="col-12 col-md-3">
+                                    <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Search Promotion</label>
+                                    <input type="text" id="promotionSearchInput" class="form-control form-control-sm"
+                                           placeholder="Search promotion name..." oninput="applyPromotionFilters()" />
+                                </div>
+                                <div class="col-6 col-md-2">
+                                    <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Hotel</label>
+                                    <select id="hotelFilterSelect" class="form-select form-select-sm" onchange="applyPromotionFilters()">
                                         <option value="all">All Hotels</option>
                                         <option th:each="hotel : ${approvedHotels}" th:value="${hotel.id}" th:text="${hotel.name}"></option>
                                     </select>
                                 </div>
+                                <div class="col-6 col-md-2">
+                                    <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Status</label>
+                                    <select id="promotionStatusFilter" class="form-select form-select-sm" onchange="applyPromotionFilters()">
+                                        <option value="all">All Status</option>
+                                        <option value="ACTIVE">Active</option>
+                                        <option value="INACTIVE">Inactive</option>
+                                        <option value="EXPIRED">Expired</option>
+                                    </select>
+                                </div>
+                                <div class="col-6 col-md-2">
+                                    <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Start Date</label>
+                                    <input type="date" id="promoStartDateFilter" class="form-control form-control-sm"
+                                           onchange="applyPromotionFilters()" />
+                                </div>
+                                <div class="col-6 col-md-2">
+                                    <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">End Date</label>
+                                    <input type="date" id="promoEndDateFilter" class="form-control form-control-sm"
+                                           onchange="applyPromotionFilters()" />
+                                </div>
+                                <div class="col-12 col-md-1">
+                                    <button class="btn btn-outline-secondary btn-sm w-100" onclick="clearPromotionFilters()" style="font-size: 0.75rem;">
+                                        <i data-lucide="x" style="width: 14px; height: 14px;"></i> Clear
+                                    </button>
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Filter buttons -->
-                        <div class="mb-3">
-                            <div class="btn-group btn-group-sm" role="group">
-                                <button type="button" class="promo-filter-btn active" onclick="filterPromotions(this, 'all')">All</button>
-                                <button type="button" class="promo-filter-btn" onclick="filterPromotions(this, 'ACTIVE')">Active</button>
-                                <button type="button" class="promo-filter-btn" onclick="filterPromotions(this, 'EXPIRED')">Expired</button>
-                                <button type="button" class="promo-filter-btn" onclick="filterPromotions(this, 'INACTIVE')">Inactive</button>
+                            <!-- Promotion Table -->
+                            <div class="custom-table-container">
+                                <table class="custom-table">
+                                    <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Discount</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Status</th>
+                                        <th style="text-align: center;">Actions</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="promotionTableBody">
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">
+                                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                            Loading promotions...
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
                             </div>
-                        </div>
-
-                        <!-- Promotion Table -->
-                        <div class="table-responsive">
-                            <table class="table table-hover" style="border-radius: 12px; overflow: hidden; border: 1px solid #f1f5f9;">
-                                <thead style="background-color: #f8fafc;">
-                                <tr>
-                                    <th style="padding: 12px 16px; font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Title</th>
-                                    <th style="padding: 12px 16px; font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Discount</th>
-                                    <th style="padding: 12px 16px; font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Period</th>
-                                    <th style="padding: 12px 16px; font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Status</th>
-                                    <th style="padding: 12px 16px; font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; text-align: center;">Actions</th>
-                                </tr>
-                                </thead>
-                                <tbody id="promotionTableBody">
-                                <tr>
-                                    <td colspan="5" class="text-center text-muted py-4">
-                                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                                        Loading promotions...
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
                         </div>
                     </div>
 
@@ -663,7 +582,7 @@
                         <div class="col-12">
                             <label class="form-label fw-semibold">Hotel Image <span class="text-danger">*</span></label>
                             <input type="file" name="imageFile" class="form-control" accept="image/jpeg,image/png,image/webp,image/jpg" required />
-                            <small class="text-muted">JPG, PNG, WEBP </small>
+                            <small class="text-muted">JPG, PNG, WEBP · Max 10MB</small>
                             <div class="mt-2" id="hotelImagePreview"></div>
                         </div>
 
@@ -683,21 +602,21 @@
                         <div class="col-12">
                             <label class="form-label fw-semibold">Business Registration <span class="text-danger">*</span></label>
                             <input type="file" name="businessRegistrationDoc" class="form-control" accept="application/pdf" required />
-                            <small class="text-muted">PDF only </small>
+                            <small class="text-muted">PDF only - Max 10MB</small>
                             <div class="mt-2" id="businessRegistrationPreview"></div>
                         </div>
 
                         <div class="col-12">
                             <label class="form-label fw-semibold">Land Certificate <span class="text-danger">*</span></label>
                             <input type="file" name="landCertificateDoc" class="form-control" accept="application/pdf" required />
-                            <small class="text-muted">PDF only</small>
+                            <small class="text-muted">PDF only - Max 10MB</small>
                             <div class="mt-2" id="landCertificatePreview"></div>
                         </div>
 
                         <div class="col-12">
                             <label class="form-label fw-semibold">Rental Contract</label>
                             <input type="file" name="rentalContractDoc" class="form-control" accept="application/pdf" />
-                            <small class="text-muted">PDF only</small>
+                            <small class="text-muted">PDF only - Max 10MB</small>
                             <div class="mt-2" id="rentalContractPreview"></div>
                         </div>
 
@@ -808,6 +727,7 @@
         </div>
     </div>
 </div>
+
 <!-- ========================================================= -->
 <!-- MODAL: Edit Promotion -->
 <!-- ========================================================= -->
@@ -882,9 +802,83 @@
     </div>
 </div>
 
+<!-- ========================================================= -->
+<!-- MODAL: DELETE HOTEL -->
+<!-- ========================================================= -->
+<div th:each="hotel : ${hotels}">
+    <div class="modal fade" th:id="'deleteModalHotel-' + ${hotel.id}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal-content-rounded">
+                <div class="modal-header border-0 pt-4 pb-0 justify-content-center">
+                    <div class="text-center">
+                        <i class="bi bi-exclamation-triangle icon-warning-large text-gold"></i>
+                    </div>
+                </div>
+                <div class="modal-body text-center px-4 py-3">
+                    <h4 class="fw-bold text-dark mb-3 modal-title-serif">Confirm Deletion</h4>
+                    <p class="text-muted mb-0 modal-text-desc">
+                        Are you sure you want to delete hotel <strong class="text-navy-primary" th:text="'\'' + ${hotel.name} + '\''">Hotel Name</strong>?
+                        <br>
+                        <span class="text-danger small">This action cannot be undone! All rooms and data will be permanently removed.</span>
+                    </p>
+                </div>
+                <div class="modal-footer border-0 pb-4 pt-2 d-flex gap-3 justify-content-center">
+                    <button type="button" class="btn btn-light px-4 py-2 rounded-3 border fw-semibold text-secondary font-size-9" data-bs-dismiss="modal">
+                        No, Keep It
+                    </button>
+                    <form th:action="@{/owner/dashboard/delete-hotel}" method="post" class="d-inline">
+                        <input type="hidden" name="hotelId" th:value="${hotel.id}" />
+                        <button type="submit" class="btn btn-delete-modal px-4 py-2 rounded-3 fw-semibold text-white">
+                            Yes, Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================= -->
+<!-- MODAL: DELETE PROMOTION - THÊM MỚI (GIỐNG DELETE HOTEL) -->
+<!-- ========================================================= -->
+<div th:each="promo : ${allPromotions}">
+    <div class="modal fade" th:id="'deleteModalPromo-' + ${promo.id}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal-content-rounded">
+                <div class="modal-header border-0 pt-4 pb-0 justify-content-center">
+                    <div class="text-center">
+                        <i class="bi bi-exclamation-triangle icon-warning-large text-gold"></i>
+                    </div>
+                </div>
+                <div class="modal-body text-center px-4 py-3">
+                    <h4 class="fw-bold text-dark mb-3 modal-title-serif">Confirm Deletion</h4>
+                    <p class="text-muted mb-0 modal-text-desc">
+                        Are you sure you want to delete promotion <strong class="text-navy-primary" th:text="'\'' + ${promo.title} + '\''">Promotion Title</strong>?
+                        <br>
+                        <span class="text-danger small">This action cannot be undone!</span>
+                    </p>
+                </div>
+                <div class="modal-footer border-0 pb-4 pt-2 d-flex gap-3 justify-content-center">
+                    <button type="button" class="btn btn-light px-4 py-2 rounded-3 border fw-semibold text-secondary font-size-9" data-bs-dismiss="modal">
+                        No, Keep It
+                    </button>
+                    <form th:action="@{/owner/promotions/delete}" method="post" class="d-inline">
+                        <input type="hidden" name="promotionId" th:value="${promo.id}" />
+                        <input type="hidden" name="hotelId" th:value="${promo.hotel.id}" />
+                        <button type="submit" class="btn btn-delete-modal px-4 py-2 rounded-3 fw-semibold text-white">
+                            Yes, Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <footer th:replace="~{fragment/frag :: footer}"></footer>
 <th:block th:replace="~{fragment/frag :: scripts}"></th:block>
 <script th:src="@{/assets/js/owner-dashboard.js}"></script>
 <script th:src="@{/assets/js/promotion.js}"></script>
+
 </body>
 </html>

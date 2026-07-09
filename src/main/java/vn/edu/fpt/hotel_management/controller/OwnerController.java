@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,7 @@ public class OwnerController {
     private final BookingRepository bookingRepository;
     private final PaymentRepository paymentRepository;
     private final HotelVerificationDocumentRepository hotelVerificationDocumentRepository;
+    private final RoomFacilityRepository roomFacilityRepository;
     private final OwnerService ownerService;
     private final PromotionService promotionService;
 
@@ -43,6 +45,7 @@ public class OwnerController {
                            BookingRepository bookingRepository,
                            PaymentRepository paymentRepository,
                            HotelVerificationDocumentRepository hotelVerificationDocumentRepository,
+                           RoomFacilityRepository roomFacilityRepository,
                            OwnerService ownerService,
                            PromotionService promotionService) {
         this.hotelOwnerRepository = hotelOwnerRepository;
@@ -51,6 +54,7 @@ public class OwnerController {
         this.bookingRepository = bookingRepository;
         this.paymentRepository = paymentRepository;
         this.hotelVerificationDocumentRepository = hotelVerificationDocumentRepository;
+        this.roomFacilityRepository = roomFacilityRepository;
         this.ownerService = ownerService;
         this.promotionService = promotionService;
     }
@@ -84,6 +88,11 @@ public class OwnerController {
     @GetMapping("/dashboard")
     public String dashboard(
             @RequestParam(value = "tab", defaultValue = "overview") String tab,
+            @RequestParam(value = "searchCustomer", required = false) String searchCustomer,
+            @RequestParam(value = "filterHotel", required = false) Integer filterHotel,
+            @RequestParam(value = "filterStatus", required = false) String filterStatus,
+            @RequestParam(value = "filterCheckin", required = false) String filterCheckin,
+            @RequestParam(value = "filterCheckout", required = false) String filterCheckout,
             HttpSession session,
             Model model) {
 
@@ -114,14 +123,12 @@ public class OwnerController {
             model.addAttribute("recentBookings", Collections.emptyList());
             model.addAttribute("hotels", Collections.emptyList());
             model.addAttribute("roomCountMap", Collections.emptyMap());
-            model.addAttribute("promotionsByHotel", Collections.emptyMap());
-            model.addAttribute("totalPromotions", 0);
             model.addAttribute("approvedHotels", Collections.emptyList());
+            model.addAttribute("totalPromotions", 0);
             return "owner/dashboard";
         }
 
         List<Hotel> allHotels = hotelRepository.findByOwnerId(owner.getId());
-
         List<Hotel> approvedHotels = allHotels.stream()
                 .filter(h -> "APPROVED".equals(h.getApprovalStatus()))
                 .collect(Collectors.toList());
@@ -136,16 +143,42 @@ public class OwnerController {
 
         long totalHotels = allHotels.size();
         long totalRooms = roomCountMap.values().stream().mapToInt(Integer::intValue).sum();
-        long totalBookings = 0;
+
+        // ===== FILTER BOOKINGS =====
+        LocalDate checkinDate = null;
+        LocalDate checkoutDate = null;
+        try {
+            if (filterCheckin != null && !filterCheckin.isEmpty()) {
+                checkinDate = LocalDate.parse(filterCheckin);
+            }
+            if (filterCheckout != null && !filterCheckout.isEmpty()) {
+                checkoutDate = LocalDate.parse(filterCheckout);
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+
+        List<Booking> filteredBookings;
+        if (hotelIds.isEmpty()) {
+            filteredBookings = new ArrayList<>();
+        } else if (searchCustomer != null && !searchCustomer.trim().isEmpty()) {
+            filteredBookings = bookingRepository.findByHotelIdsAndCustomerName(hotelIds, searchCustomer.trim());
+        } else if (filterHotel != null && filterHotel > 0) {
+            filteredBookings = bookingRepository.findByHotelIds(List.of(filterHotel));
+        } else if (filterStatus != null && !filterStatus.isEmpty() && !filterStatus.equals("all")) {
+            filteredBookings = bookingRepository.findByHotelIdsAndStatus(hotelIds, filterStatus);
+        } else if (checkinDate != null) {
+            filteredBookings = bookingRepository.findByHotelIdsAndCheckInDate(hotelIds, checkinDate);
+        } else if (checkoutDate != null) {
+            filteredBookings = bookingRepository.findByHotelIdsAndCheckOutDate(hotelIds, checkoutDate);
+        } else {
+            filteredBookings = bookingRepository.findByHotelIds(hotelIds);
+        }
+
+        // Calculate total bookings and revenue
+        long totalBookings = filteredBookings.size();
         BigDecimal totalRevenue = BigDecimal.ZERO;
-
-        List<Booking> allBookings = bookingRepository.findAll().stream()
-                .filter(b -> hotelIds.contains(b.getHotel().getId()))
-                .collect(Collectors.toList());
-
-        totalBookings = allBookings.size();
-
-        for (Booking b : allBookings) {
+        for (Booking b : filteredBookings) {
             if (b.getPayment() != null && "PAID".equals(b.getPayment().getStatus())) {
                 if (b.getTotalPrice() != null) {
                     totalRevenue = totalRevenue.add(b.getTotalPrice());
@@ -153,9 +186,10 @@ public class OwnerController {
             }
         }
 
-        List<Booking> recentBookings = allBookings.stream()
+        // Get recent bookings (limit 50)
+        List<Booking> recentBookings = filteredBookings.stream()
                 .sorted((b1, b2) -> b2.getCreatedAt().compareTo(b1.getCreatedAt()))
-                .limit(10)
+                .limit(50)
                 .collect(Collectors.toList());
 
         List<Map<String, Object>> mappedBookings = recentBookings.stream().map(b -> {
@@ -174,6 +208,7 @@ public class OwnerController {
             return map;
         }).collect(Collectors.toList());
 
+        // ===== PROMOTIONS =====
         Map<Integer, List<Promotion>> promotionsByHotel = new HashMap<>();
         int totalPromotions = 0;
         for (Hotel hotel : approvedHotels) {
@@ -192,6 +227,14 @@ public class OwnerController {
         model.addAttribute("roomCountMap", roomCountMap);
         model.addAttribute("promotionsByHotel", promotionsByHotel);
         model.addAttribute("totalPromotions", totalPromotions);
+        model.addAttribute("allPromotions", promotionService.getPromotionsByOwnerId(owner.getId())); // Thêm để dùng cho modal
+
+        // Keep filter values
+        model.addAttribute("searchCustomer", searchCustomer);
+        model.addAttribute("filterHotel", filterHotel);
+        model.addAttribute("filterStatus", filterStatus);
+        model.addAttribute("filterCheckin", filterCheckin);
+        model.addAttribute("filterCheckout", filterCheckout);
 
         return "owner/dashboard";
     }
@@ -398,24 +441,45 @@ public class OwnerController {
 
         try {
             String hotelName = hotel.getName();
+
+            // ===== 1. XÓA PROMOTIONS TRƯỚC =====
+            List<Promotion> promotions = promotionService.getPromotionsByHotelId(hotelId);
+            if (!promotions.isEmpty()) {
+                for (Promotion p : promotions) {
+                    promotionService.deletePromotion(p.getId(), hotelId);
+                }
+            }
+
+            // ===== 2. XÓA HOTEL VERIFICATION DOCUMENTS =====
             List<HotelVerificationDocument> docs = hotelVerificationDocumentRepository.findByHotelId(hotelId);
             if (!docs.isEmpty()) {
                 hotelVerificationDocumentRepository.deleteAll(docs);
                 hotelVerificationDocumentRepository.flush();
             }
 
+            // ===== 3. XÓA ROOMS VÀ ROOM FACILITIES =====
             List<Room> rooms = roomRepository.findByHotelId(hotelId);
             if (!rooms.isEmpty()) {
+                for (Room room : rooms) {
+                    Optional<RoomFacility> facility = roomFacilityRepository.findByRoom(room);
+                    facility.ifPresent(roomFacilityRepository::delete);
+                }
+                roomFacilityRepository.flush();
                 roomRepository.deleteAll(rooms);
                 roomRepository.flush();
             }
 
+            // ===== 4. XÓA HOTEL =====
             hotelRepository.delete(hotel);
+            hotelRepository.flush();
 
             redirectAttributes.addFlashAttribute("successMessage",
                     "Hotel \"" + hotelName + "\" deleted successfully!");
+
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to delete hotel: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Failed to delete hotel: " + e.getMessage());
+            e.printStackTrace();
         }
 
         return "redirect:/owner/dashboard?tab=hotels";

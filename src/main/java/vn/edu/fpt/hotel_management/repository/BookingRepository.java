@@ -7,33 +7,32 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import vn.edu.fpt.hotel_management.entity.Booking;
+import vn.edu.fpt.hotel_management.entity.Room;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Integer> {
-    
+
     List<Booking> findAllByOrderByCreatedAtDesc();
 
     List<Booking> findByStatusInOrderByCreatedAtDesc(List<String> statuses);
 
-    // Magic Method lấy danh sách booking của khách hàng và sắp xếp giảm dần theo thời gian tạo
     Page<Booking> findByCustomerIdOrderByCreatedAtDesc(int customerId, Pageable pageable);
 
-    // Magic Method lấy toàn bộ booking của khách hàng (không phân trang) để filter trong controller
     List<Booking> findByCustomerIdOrderByCreatedAtDesc(int customerId);
 
-    // Magic Method tìm booking đang chờ xử lý (PENDING) dựa trên khách hàng, phòng, thời gian thuê và trạng thái
     List<Booking> findByCustomerIdAndRoomIdAndCheckInDateAndCheckOutDateAndStatusOrderByCreatedAtDesc(
             int customerId,
             int roomId,
-            java.time.LocalDate checkInDate,
-            java.time.LocalDate checkOutDate,
+            LocalDate checkInDate,
+            LocalDate checkOutDate,
             String status
     );
 
     @Query("SELECT DISTINCT b.room FROM Booking b WHERE b.customer.id = :customerId AND b.hotel.id = :hotelId AND b.status IN :statuses")
-    List<vn.edu.fpt.hotel_management.entity.Room> findDistinctRoomsBookedByCustomer(
+    List<Room> findDistinctRoomsBookedByCustomer(
             @Param("customerId") int customerId,
             @Param("hotelId") int hotelId,
             @Param("statuses") List<String> statuses
@@ -49,7 +48,36 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     long countByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
             int roomId,
             String status,
-            java.time.LocalDate checkout,
-            java.time.LocalDate checkin
+            LocalDate checkout,
+            LocalDate checkin
+    );
+
+    // ===== FILTER METHODS FOR BOOKINGS =====
+
+    @Query("SELECT b FROM Booking b WHERE b.hotel.id IN :hotelIds ORDER BY b.createdAt DESC")
+    List<Booking> findByHotelIds(@Param("hotelIds") List<Integer> hotelIds);
+
+    @Query("SELECT b FROM Booking b WHERE b.hotel.id IN :hotelIds AND LOWER(b.customer.fullName) LIKE LOWER(CONCAT('%', :customerName, '%')) ORDER BY b.createdAt DESC")
+    List<Booking> findByHotelIdsAndCustomerName(
+            @Param("hotelIds") List<Integer> hotelIds,
+            @Param("customerName") String customerName
+    );
+
+    @Query("SELECT b FROM Booking b WHERE b.hotel.id IN :hotelIds AND b.status = :status ORDER BY b.createdAt DESC")
+    List<Booking> findByHotelIdsAndStatus(
+            @Param("hotelIds") List<Integer> hotelIds,
+            @Param("status") String status
+    );
+
+    @Query("SELECT b FROM Booking b WHERE b.hotel.id IN :hotelIds AND b.checkInDate = :checkInDate ORDER BY b.createdAt DESC")
+    List<Booking> findByHotelIdsAndCheckInDate(
+            @Param("hotelIds") List<Integer> hotelIds,
+            @Param("checkInDate") LocalDate checkInDate
+    );
+
+    @Query("SELECT b FROM Booking b WHERE b.hotel.id IN :hotelIds AND b.checkOutDate = :checkOutDate ORDER BY b.createdAt DESC")
+    List<Booking> findByHotelIdsAndCheckOutDate(
+            @Param("hotelIds") List<Integer> hotelIds,
+            @Param("checkOutDate") LocalDate checkOutDate
     );
 }

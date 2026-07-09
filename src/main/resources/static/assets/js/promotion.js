@@ -1,265 +1,329 @@
-(function() {
-    'use strict';
+// ============================================================
+// GLOBAL VARIABLES
+// ============================================================
+let allPromotionsData = [];
+let allHotelsData = [];
+let isLoading = false;
 
-    let currentFilter = 'all';
-    let currentHotelId = 'all';
-    let promotionsCache = {};
-    let hotelsCache = [];
-
-    document.addEventListener('DOMContentLoaded', function() {
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
-        loadPromotionsData();
-        setupDatePickers();
-    });
-
-    function loadPromotionsData() {
-        const tbody = document.getElementById('promotionTableBody');
-        if (tbody) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="5" class="text-center text-muted py-4">
-                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                        Loading promotions...
-                    </td>
-                </tr>
-            `;
-        }
-
-        fetch('/owner/promotions/list')
-            .then(response => {
-                if (!response.ok) throw new Error('Failed to fetch');
-                return response.json();
-            })
-            .then(data => {
-                if (data.error) {
-                    console.error('Error:', data.error);
-                    showEmptyState();
-                    return;
-                }
-                hotelsCache = data.hotels || [];
-                promotionsCache = data.promotionsByHotel || {};
-                renderAllPromotions();
-            })
-            .catch(error => {
-                console.error('Error loading promotions:', error);
-                showEmptyState();
-            });
+// ============================================================
+// LOAD PROMOTIONS
+// ============================================================
+function loadPromotions() {
+    if (isLoading) {
+        console.log('Promotions already loading...');
+        return;
     }
 
-    function showEmptyState() {
-        const tbody = document.getElementById('promotionTableBody');
-        if (tbody) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="5" class="text-center text-muted py-4">
-                        <i data-lucide="percent" class="d-block mx-auto mb-2" style="width: 32px; height: 32px; opacity: 0.3;"></i>
-                        No promotions found
-                    </td>
-                </tr>
-            `;
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }
+    isLoading = true;
+    console.log('Loading promotions...');
+
+    const tbody = document.getElementById('promotionTableBody');
+    if (tbody) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    Loading promotions...
+                </td>
+            </tr>
+        `;
     }
 
-    function renderAllPromotions() {
-        const tbody = document.getElementById('promotionTableBody');
-        if (!tbody) return;
+    fetch('/owner/promotions/list')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Promotions loaded successfully');
 
-        let allPromotions = [];
-        for (const [hotelId, promotions] of Object.entries(promotionsCache)) {
-            promotions.forEach(p => {
-                allPromotions.push({
-                    ...p,
-                    hotelId: parseInt(hotelId)
+            if (data.error) {
+                console.error('Error loading promotions:', data.error);
+                showPromotionError(data.error);
+                isLoading = false;
+                return;
+            }
+
+            allPromotionsData = [];
+            allHotelsData = data.hotels || [];
+
+            if (data.promotionsByHotel) {
+                Object.values(data.promotionsByHotel).forEach(promos => {
+                    if (Array.isArray(promos)) {
+                        allPromotionsData = allPromotionsData.concat(promos);
+                    }
                 });
-            });
-        }
+            }
 
-        if (currentHotelId !== 'all') {
-            allPromotions = allPromotions.filter(p => p.hotelId === parseInt(currentHotelId));
-        }
+            console.log(`Loaded ${allPromotionsData.length} promotions from ${allHotelsData.length} hotels`);
 
-        if (currentFilter !== 'all') {
-            allPromotions = allPromotions.filter(p => p.status === currentFilter);
-        }
+            // Update total count
+            const countEl = document.getElementById('totalPromotionsCount');
+            if (countEl) {
+                countEl.textContent = allPromotionsData.length;
+            }
 
-        renderPromotionRows(tbody, allPromotions);
-    }
-
-    function renderPromotionRows(tbody, promotions) {
-        if (!promotions || promotions.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="5" class="text-center text-muted py-4">
-                        <span class="small">No promotions available</span>
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-
-        let html = '';
-        promotions.forEach(promo => {
-            const statusClass = getStatusClass(promo.status);
-            const statusLabel = promo.status || 'UNKNOWN';
-            const hotelId = promo.hotelId || '';
-
-            html += `
-                <tr class="promo-table-row" data-promo-id="${promo.id}" data-hotel-id="${hotelId}">
-                    <td style="padding: 10px 16px;">
-                        <div style="font-weight: 600; color: #0a1628;">${escapeHtml(promo.title || 'Untitled')}</div>
-                        ${promo.description ? `<div style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">${escapeHtml(promo.description.substring(0, 60))}${promo.description.length > 60 ? '...' : ''}</div>` : ''}
-                    </td>
-                    <td style="padding: 10px 16px;">
-                        <span class="promo-discount-badge">-${promo.discountPercent || 0}%</span>
-                    </td>
-                    <td style="padding: 10px 16px; font-size: 0.82rem; color: #475569;">
-                        ${formatDate(promo.startDate)} → ${formatDate(promo.endDate)}
-                    </td>
-                    <td style="padding: 10px 16px;">
-                        <span class="promo-status-badge ${statusClass}">${statusLabel}</span>
-                    </td>
-                    <td style="padding: 10px 16px; text-align: center;">
-                        <button class="promo-action-btn promo-action-btn-edit" 
-                                onclick="editPromotion(${promo.id}, ${hotelId})"
-                                title="Edit Promotion">
-                            <i data-lucide="pencil" style="width: 14px; height: 14px;"></i>
-                        </button>
-                        <form th:action="@{/owner/promotions/delete}" method="post" style="display:inline;" 
-                              onsubmit="return confirm('Are you sure you want to delete this promotion?')">
-                            <input type="hidden" name="promotionId" value="${promo.id}" />
-                            <input type="hidden" name="hotelId" value="${hotelId}" />
-                            <button type="submit" class="promo-action-btn promo-action-btn-delete" title="Delete Promotion">
-                                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-            `;
+            renderPromotions(allPromotionsData);
+            isLoading = false;
+        })
+        .catch(error => {
+            console.error('Error loading promotions:', error);
+            showPromotionError('Failed to load promotions. Please refresh the page.');
+            isLoading = false;
         });
+}
 
-        tbody.innerHTML = html;
+// ============================================================
+// SHOW ERROR
+// ============================================================
+function showPromotionError(message) {
+    const tbody = document.getElementById('promotionTableBody');
+    if (tbody) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-danger py-4">
+                    <i data-lucide="alert-circle" class="d-block mx-auto mb-2" style="width: 32px; height: 32px;"></i>
+                    ${message}
+                </td>
+            </tr>
+        `;
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
+}
 
-    function getStatusClass(status) {
-        switch (status) {
-            case 'ACTIVE': return 'promo-status-active';
-            case 'EXPIRED': return 'promo-status-expired';
-            case 'INACTIVE': return 'promo-status-inactive';
-            default: return 'promo-status-expired';
-        }
+// ============================================================
+// RENDER PROMOTIONS
+// ============================================================
+function renderPromotions(promotions) {
+    const tbody = document.getElementById('promotionTableBody');
+    if (!tbody) return;
+
+    if (!promotions || promotions.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                    <i data-lucide="inbox" class="d-block mx-auto mb-2" style="width: 32px; height: 32px; opacity: 0.4;"></i>
+                    No promotions found.
+                </td>
+            </tr>
+        `;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        return;
     }
 
-    function formatDate(dateStr) {
-        if (!dateStr) return '-';
-        try {
-            const parts = dateStr.split('-');
-            return `${parts[2]}/${parts[1]}/${parts[0]}`;
-        } catch (e) {
-            return dateStr;
+    let html = '';
+    promotions.forEach(promo => {
+        const statusClass = promo.status === 'ACTIVE' ? 'promo-status-active' :
+            promo.status === 'EXPIRED' ? 'promo-status-expired' :
+                'promo-status-inactive';
+
+        let hotelName = '';
+        if (allHotelsData) {
+            const hotel = allHotelsData.find(h => h.id === promo.hotelId);
+            if (hotel) hotelName = hotel.name;
         }
+
+        html += `
+            <tr class="promo-table-row" data-promo-id="${promo.id}">
+                <td>
+                    <strong class="text-dark">${escapeHtml(promo.title)}</strong>
+                    <div class="text-muted small">${escapeHtml(hotelName)}</div>
+                </td>
+                <td><span class="discount-badge">-${promo.discountPercent}%</span></td>
+                <td>${promo.startDate || '-'}</td>
+                <td>${promo.endDate || '-'}</td>
+                <td style="text-align: center;">
+                    <span class="promo-status-badge ${statusClass}">${promo.status}</span>
+                </td>
+                <td>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="promo-action-btn promo-action-btn-edit" 
+                                onclick="openEditPromotionModal(this)" 
+                                data-promo-id="${promo.id}"
+                                data-hotel-id="${promo.hotelId}"
+                                data-title="${escapeHtml(promo.title)}"
+                                data-description="${escapeHtml(promo.description || '')}"
+                                data-discount="${promo.discountPercent}"
+                                data-start="${promo.startDate || ''}"
+                                data-end="${promo.endDate || ''}"
+                                data-status="${promo.status}">
+                            <i data-lucide="pencil" style="width: 14px; height: 14px;"></i>
+                            Edit
+                        </button>
+                        <button type="button" class="promo-action-btn promo-action-btn-delete" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#deleteModalPromo-${promo.id}">
+                            <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                            Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+// ============================================================
+// HELPER: Escape HTML
+// ============================================================
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ============================================================
+// FILTER PROMOTIONS
+// ============================================================
+function applyPromotionFilters() {
+    const searchInput = document.getElementById('promotionSearchInput');
+    const hotelFilter = document.getElementById('hotelFilterSelect');
+    const statusFilter = document.getElementById('promotionStatusFilter');
+    const startDateFilter = document.getElementById('promoStartDateFilter');
+    const endDateFilter = document.getElementById('promoEndDateFilter');
+
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const hotelId = hotelFilter ? hotelFilter.value : 'all';
+    const status = statusFilter ? statusFilter.value : 'all';
+    const startDate = startDateFilter ? startDateFilter.value : '';
+    const endDate = endDateFilter ? endDateFilter.value : '';
+
+    let filtered = allPromotionsData.filter(promo => {
+        if (searchTerm && !promo.title.toLowerCase().includes(searchTerm)) {
+            return false;
+        }
+        if (hotelId !== 'all' && promo.hotelId != hotelId) {
+            return false;
+        }
+        if (status !== 'all' && promo.status !== status) {
+            return false;
+        }
+        if (startDate && promo.startDate && promo.startDate < startDate) {
+            return false;
+        }
+        if (endDate && promo.endDate && promo.endDate > endDate) {
+            return false;
+        }
+        return true;
+    });
+
+    renderPromotions(filtered);
+}
+
+// ============================================================
+// CLEAR PROMOTION FILTERS
+// ============================================================
+function clearPromotionFilters() {
+    const searchInput = document.getElementById('promotionSearchInput');
+    const hotelFilter = document.getElementById('hotelFilterSelect');
+    const statusFilter = document.getElementById('promotionStatusFilter');
+    const startDateFilter = document.getElementById('promoStartDateFilter');
+    const endDateFilter = document.getElementById('promoEndDateFilter');
+
+    if (searchInput) searchInput.value = '';
+    if (hotelFilter) hotelFilter.value = 'all';
+    if (statusFilter) statusFilter.value = 'all';
+    if (startDateFilter) startDateFilter.value = '';
+    if (endDateFilter) endDateFilter.value = '';
+
+    renderPromotions(allPromotionsData);
+}
+
+// ============================================================
+// OPEN EDIT PROMOTION MODAL
+// ============================================================
+function openEditPromotionModal(button) {
+    const promoId = button.getAttribute('data-promo-id');
+    const hotelId = button.getAttribute('data-hotel-id');
+    const title = button.getAttribute('data-title');
+    const description = button.getAttribute('data-description');
+    const discount = button.getAttribute('data-discount');
+    const start = button.getAttribute('data-start');
+    const end = button.getAttribute('data-end');
+    const status = button.getAttribute('data-status');
+
+    document.getElementById('editPromotionId').value = promoId;
+    document.getElementById('editHotelId').value = hotelId;
+    document.getElementById('editTitle').value = title;
+    document.getElementById('editDescription').value = description;
+    document.getElementById('editDiscountPercent').value = discount;
+    document.getElementById('editStartDate').value = start;
+    document.getElementById('editEndDate').value = end;
+    document.getElementById('editStatus').value = status || 'ACTIVE';
+
+    const modal = new bootstrap.Modal(document.getElementById('editPromotionModal'));
+    modal.show();
+}
+
+// ============================================================
+// OPEN ADD PROMOTION MODAL
+// ============================================================
+function openAddPromotionModal() {
+    const modal = new bootstrap.Modal(document.getElementById('addPromotionModal'));
+    modal.show();
+}
+
+// ============================================================
+// SETUP PROMOTION EVENTS
+// ============================================================
+function setupPromotionEvents() {
+    const searchInput = document.getElementById('promotionSearchInput');
+    const hotelFilter = document.getElementById('hotelFilterSelect');
+    const statusFilter = document.getElementById('promotionStatusFilter');
+    const startDateFilter = document.getElementById('promoStartDateFilter');
+    const endDateFilter = document.getElementById('promoEndDateFilter');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', applyPromotionFilters);
+    }
+    if (hotelFilter) {
+        hotelFilter.addEventListener('change', applyPromotionFilters);
+    }
+    if (statusFilter) {
+        statusFilter.addEventListener('change', applyPromotionFilters);
+    }
+    if (startDateFilter) {
+        startDateFilter.addEventListener('change', applyPromotionFilters);
+    }
+    if (endDateFilter) {
+        endDateFilter.addEventListener('change', applyPromotionFilters);
+    }
+}
+
+// ============================================================
+// AUTO-LOAD ON PAGE READY
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📄 Promotion.js loaded');
+
+    // Setup events
+    setupPromotionEvents();
+
+    // Check if promotions tab is active
+    const activeTab = document.querySelector('.tab-panel.active');
+    if (activeTab && activeTab.id === 'promotions') {
+        console.log('Active tab is Promotions - loading data...');
+        loadPromotions();
     }
 
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    window.filterPromotionsByHotel = function(hotelId) {
-        currentHotelId = hotelId;
-        renderAllPromotions();
-    };
-
-    window.filterPromotions = function(btn, filter) {
-        const parent = btn.closest('.btn-group');
-        if (parent) {
-            parent.querySelectorAll('.promo-filter-btn').forEach(b => b.classList.remove('active'));
-        }
-        btn.classList.add('active');
-        currentFilter = filter;
-        renderAllPromotions();
-    };
-
-    window.openAddPromotionModal = function(hotelId) {
-        const modal = document.getElementById('addPromotionModal');
-        if (!modal) return;
-        const form = modal.querySelector('form');
-        if (form) form.reset();
-        if (hotelId) {
-            const select = form.querySelector('select[name="hotelId"]');
-            if (select) select.value = hotelId;
-        }
-        const bsModal = new bootstrap.Modal(modal);
-        bsModal.show();
-    };
-
-    window.editPromotion = function(promoId, hotelId) {
-        fetch(`/owner/promotions/${promoId}`)
-            .then(response => {
-                if (!response.ok) throw new Error('Failed to fetch');
-                return response.json();
-            })
-            .then(data => {
-                if (data.error) {
-                    console.error('Error:', data.error);
-                    return;
-                }
-                document.getElementById('editPromotionId').value = data.id;
-                document.getElementById('editHotelId').value = data.hotelId;
-                document.getElementById('editTitle').value = data.title || '';
-                document.getElementById('editDescription').value = data.description || '';
-                document.getElementById('editDiscountPercent').value = data.discountPercent || '';
-                document.getElementById('editStartDate').value = data.startDate || '';
-                document.getElementById('editEndDate').value = data.endDate || '';
-                document.getElementById('editStatus').value = data.status || 'ACTIVE';
-
-                const modal = document.getElementById('editPromotionModal');
-                if (modal) {
-                    const bsModal = new bootstrap.Modal(modal);
-                    bsModal.show();
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching promotion:', error);
-            });
-    };
-
-    function setupDatePickers() {
-        if (typeof flatpickr !== 'undefined') {
-            const addStartDate = document.querySelector('#addPromotionModal input[name="startDate"]');
-            const addEndDate = document.querySelector('#addPromotionModal input[name="endDate"]');
-            if (addStartDate && addEndDate) {
-                flatpickr(addStartDate, {
-                    dateFormat: "Y-m-d",
-                    minDate: "today",
-                    onChange: function(selectedDates) {
-                        if (selectedDates[0]) {
-                            addEndDate._flatpickr.set('minDate', selectedDates[0]);
-                        }
-                    }
-                });
-                flatpickr(addEndDate, { dateFormat: "Y-m-d", minDate: "today" });
+    // Listen for tab changes
+    const sidebarLinks = document.querySelectorAll('.sidebar-link');
+    sidebarLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            const tab = this.getAttribute('data-tab');
+            if (tab === 'promotions') {
+                console.log('Switching to Promotions tab - loading data...');
+                loadPromotions();
             }
-
-            const editStartDate = document.querySelector('#editPromotionModal input[name="startDate"]');
-            const editEndDate = document.querySelector('#editPromotionModal input[name="endDate"]');
-            if (editStartDate && editEndDate) {
-                flatpickr(editStartDate, {
-                    dateFormat: "Y-m-d",
-                    onChange: function(selectedDates) {
-                        if (selectedDates[0]) {
-                            editEndDate._flatpickr.set('minDate', selectedDates[0]);
-                        }
-                    }
-                });
-                flatpickr(editEndDate, { dateFormat: "Y-m-d" });
-            }
-        }
-    }
-
-})();
+        });
+    });
+});
