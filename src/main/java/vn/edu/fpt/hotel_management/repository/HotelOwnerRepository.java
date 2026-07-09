@@ -20,11 +20,6 @@ public interface HotelOwnerRepository extends JpaRepository<HotelOwner, Integer>
     Page<HotelOwner> findById(int id, Pageable pageable);
     
     long countByVerificationStatus(String verificationStatus);
-
-    @Query("SELECT o FROM HotelOwner o ORDER BY " +
-           "CASE WHEN o.verificationStatus = 'PENDING' " +
-           "OR (SELECT COUNT(h) FROM Hotel h WHERE h.owner = o AND h.approvalStatus = 'PENDING') > 0 " +
-           "THEN 0 ELSE 1 END ASC, " +
-           "o.userAccount.username ASC")
-    Page<HotelOwner> findAllSortedByPendingFirst(Pageable pageable);
+    
+    Page<HotelOwner> findAllByOrderByVerificationStatusDesc(Pageable pageable);
 }
