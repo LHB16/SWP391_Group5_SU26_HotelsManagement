@@ -308,6 +308,7 @@ CREATE TABLE messages (
     sender_id INT NOT NULL,
     receiver_id INT NOT NULL,
     booking_id INT NULL,
+    hotel_id INT NOT NULL,
     content NVARCHAR(MAX) NULL,
     is_read BIT NOT NULL CONSTRAINT DF_messages_is_read DEFAULT 0,
     sent_at DATETIME2 NOT NULL CONSTRAINT DF_messages_sent_at DEFAULT GETDATE()
@@ -512,6 +513,12 @@ GO
 
 ALTER TABLE feedback_replies
 ADD CONSTRAINT FK_feedback_replies_hotel
+FOREIGN KEY (hotel_id) REFERENCES hotel(id)
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE messages
+ADD CONSTRAINT FK_messages_hotel
 FOREIGN KEY (hotel_id) REFERENCES hotel(id)
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 GO

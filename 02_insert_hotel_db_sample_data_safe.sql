@@ -707,28 +707,28 @@ BEGIN TRY
     -- sender_id / receiver_id reference user_accounts.id
     -- =====================================================
     IF NOT EXISTS (SELECT 1 FROM messages WHERE sender_id = @customer1_user_id AND receiver_id = @owner1_user_id AND booking_id = @booking1_id AND content = N'Chào khách sạn, mình có thể check-in sớm lúc 12h không?')
-        INSERT INTO messages (sender_id, receiver_id, booking_id, content, is_read, sent_at)
-        VALUES (@customer1_user_id, @owner1_user_id, @booking1_id, N'Chào khách sạn, mình có thể check-in sớm lúc 12h không?', 1, DATEADD(HOUR, -6, GETDATE()));
+        INSERT INTO messages (sender_id, receiver_id, booking_id, hotel_id, content, is_read, sent_at)
+        VALUES (@customer1_user_id, @owner1_user_id, @booking1_id, @hotel1_id, N'Chào khách sạn, mình có thể check-in sớm lúc 12h không?', 1, DATEADD(HOUR, -6, GETDATE()));
 
     IF NOT EXISTS (SELECT 1 FROM messages WHERE sender_id = @owner1_user_id AND receiver_id = @customer1_user_id AND booking_id = @booking1_id AND content = N'Chào bạn, khách sạn sẽ hỗ trợ nếu phòng sẵn sàng trước giờ check-in.')
-        INSERT INTO messages (sender_id, receiver_id, booking_id, content, is_read, sent_at)
-        VALUES (@owner1_user_id, @customer1_user_id, @booking1_id, N'Chào bạn, khách sạn sẽ hỗ trợ nếu phòng sẵn sàng trước giờ check-in.', 0, DATEADD(HOUR, -5, GETDATE()));
+        INSERT INTO messages (sender_id, receiver_id, booking_id, hotel_id, content, is_read, sent_at)
+        VALUES (@owner1_user_id, @customer1_user_id, @booking1_id, @hotel1_id, N'Chào bạn, khách sạn sẽ hỗ trợ nếu phòng sẵn sàng trước giờ check-in.', 0, DATEADD(HOUR, -5, GETDATE()));
 
     IF NOT EXISTS (SELECT 1 FROM messages WHERE sender_id = @customer2_user_id AND receiver_id = @owner2_user_id AND booking_id = @booking2_id AND content = N'Phòng Deluxe City View có bao gồm bữa sáng không ạ?')
-        INSERT INTO messages (sender_id, receiver_id, booking_id, content, is_read, sent_at)
-        VALUES (@customer2_user_id, @owner2_user_id, @booking2_id, N'Phòng Deluxe City View có bao gồm bữa sáng không ạ?', 1, DATEADD(HOUR, -4, GETDATE()));
+        INSERT INTO messages (sender_id, receiver_id, booking_id, hotel_id, content, is_read, sent_at)
+        VALUES (@customer2_user_id, @owner2_user_id, @booking2_id, @hotel2_id, N'Phòng Deluxe City View có bao gồm bữa sáng không ạ?', 1, DATEADD(HOUR, -4, GETDATE()));
 
     IF NOT EXISTS (SELECT 1 FROM messages WHERE sender_id = @owner2_user_id AND receiver_id = @customer2_user_id AND booking_id = @booking2_id AND content = N'Dạ có, giá phòng đã bao gồm bữa sáng cho 2 khách.')
-        INSERT INTO messages (sender_id, receiver_id, booking_id, content, is_read, sent_at)
-        VALUES (@owner2_user_id, @customer2_user_id, @booking2_id, N'Dạ có, giá phòng đã bao gồm bữa sáng cho 2 khách.', 0, DATEADD(HOUR, -3, GETDATE()));
+        INSERT INTO messages (sender_id, receiver_id, booking_id, hotel_id, content, is_read, sent_at)
+        VALUES (@owner2_user_id, @customer2_user_id, @booking2_id, @hotel2_id, N'Dạ có, giá phòng đã bao gồm bữa sáng cho 2 khách.', 0, DATEADD(HOUR, -3, GETDATE()));
 
     IF NOT EXISTS (SELECT 1 FROM messages WHERE sender_id = @customer3_user_id AND receiver_id = @owner3_user_id AND booking_id = @booking3_id AND content = N'Mình muốn yêu cầu thêm gối cho phòng Suite.')
-        INSERT INTO messages (sender_id, receiver_id, booking_id, content, is_read, sent_at)
-        VALUES (@customer3_user_id, @owner3_user_id, @booking3_id, N'Mình muốn yêu cầu thêm gối cho phòng Suite.', 0, DATEADD(HOUR, -2, GETDATE()));
+        INSERT INTO messages (sender_id, receiver_id, booking_id, hotel_id, content, is_read, sent_at)
+        VALUES (@customer3_user_id, @owner3_user_id, @booking3_id, @hotel3_id, N'Mình muốn yêu cầu thêm gối cho phòng Suite.', 0, DATEADD(HOUR, -2, GETDATE()));
 
     IF NOT EXISTS (SELECT 1 FROM messages WHERE sender_id = @customer5_user_id AND receiver_id = @owner2_user_id AND booking_id = @booking5_id AND content = N'Mình đã thanh toán nhưng hệ thống vẫn hiện pending, nhờ khách sạn kiểm tra giúp.')
-        INSERT INTO messages (sender_id, receiver_id, booking_id, content, is_read, sent_at)
-        VALUES (@customer5_user_id, @owner2_user_id, @booking5_id, N'Mình đã thanh toán nhưng hệ thống vẫn hiện pending, nhờ khách sạn kiểm tra giúp.', 0, DATEADD(HOUR, -1, GETDATE()));
+        INSERT INTO messages (sender_id, receiver_id, booking_id, hotel_id, content, is_read, sent_at)
+        VALUES (@customer5_user_id, @owner2_user_id, @booking5_id, @hotel2_id, N'Mình đã thanh toán nhưng hệ thống vẫn hiện pending, nhờ khách sạn kiểm tra giúp.', 0, DATEADD(HOUR, -1, GETDATE()));
 
     COMMIT TRANSACTION;
 

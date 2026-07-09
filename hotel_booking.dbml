@@ -227,6 +227,7 @@ Table messages {
   sender_id INT [note: 'Khóa ngoại liên kết đến tài khoản người gửi.']
   receiver_id INT [note: 'Khóa ngoại liên kết đến tài khoản người nhận.']
   booking_id INT [note: 'Khóa ngoại liên kết đến bảng bookings.']
+  hotel_id INT [note: 'Khóa ngoại liên kết đến bảng hotel.']
   content NVARCHAR(MAX)
   is_read BIT
   sent_at DATETIME2
@@ -320,6 +321,7 @@ Ref: wishlists.room_id > room.id
 Ref: messages.sender_id > user_accounts.id
 Ref: messages.receiver_id > user_accounts.id
 Ref: messages.booking_id > bookings.id
+Ref: messages.hotel_id > hotel.id
 Ref: feedback.customer_id > customers.id
 Ref: feedback.hotel_id > hotel.id
 Ref: feedback.room_id > room.id
