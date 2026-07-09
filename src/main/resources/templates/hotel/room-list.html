@@ -302,8 +302,10 @@
                                             <div class="d-flex align-items-center justify-content-between">
                                                 <div class="d-flex align-items-center gap-2">
                                                     <div class="review-user-name" th:text="${review.userFullName}">User Name</div>
-                                                    <span th:if="${review.status == 'PENDING'}" class="badge bg-warning text-dark" style="font-size: 0.7rem; border-radius: 4px; padding: 2px 6px;">PENDING</span>
-                                                    <span th:if="${review.status == 'HIDDEN'}" class="badge bg-secondary text-white" style="font-size: 0.7rem; border-radius: 4px; padding: 2px 6px;">HIDDEN</span>
+                                                    <span class="status-badge-container" th:data-review-id="${review.id}">
+                                                        <span th:if="${review.status == 'PENDING'}" class="badge bg-warning text-dark" style="font-size: 0.7rem; border-radius: 4px; padding: 2px 6px;">PENDING</span>
+                                                        <span th:if="${review.status == 'HIDDEN'}" class="badge bg-secondary text-white" style="font-size: 0.7rem; border-radius: 4px; padding: 2px 6px;">HIDDEN</span>
+                                                    </span>
                                                 </div>
                                                 <div class="review-date"
                                                     th:text="${#temporals.format(review.createdAt, 'dd-MM-yyyy HH:mm')}">Date</div>
@@ -435,9 +437,6 @@
                                                         </form>
                                                     </div>
                                                 </div>
-                                            </div>             </form>
-                                                    </div>
-                                                </div>
                                             </div>
 
                                             <!-- Nút Reply (Chỉ hiển thị cho chủ khách sạn và khi chưa phản hồi) -->
@@ -471,12 +470,10 @@
                                             <!-- Delete & Moderation Action (ADMIN) -->
                                             <div th:if="${user != null and user.role == 'ADMIN'}"
                                                  class="mt-2 text-end d-flex justify-content-end gap-2 align-items-center">
-                                                <form th:action="@{/hotels/{id}/reviews/{rid}/status(id=${hotel.id}, rid=${review.id})}"
-                                                      method="post" class="d-inline">
-                                                    <input type="hidden" name="status" th:value="${review.status == 'VISIBLE' ? 'HIDDEN' : 'VISIBLE'}" />
-                                                    <button type="submit" class="btn btn-sm btn-outline-warning" style="font-weight: 500;"
-                                                            th:text="${review.status == 'VISIBLE' ? 'Hide Review' : 'Show Review'}">Hide</button>
-                                                </form>
+                                                <button type="button" class="btn btn-sm btn-outline-warning toggle-status-btn" style="font-weight: 500;"
+                                                        th:data-review-id="${review.id}"
+                                                        th:data-status="${review.status}"
+                                                        th:text="${review.status == 'VISIBLE' ? 'Hide' : 'Show'}">Hide</button>
                                                 <form th:action="@{/hotels/{id}/reviews/{rid}/delete(id=${hotel.id}, rid=${review.id})}"
                                                       method="post" class="d-inline"
                                                       onsubmit="return confirm('Delete this review permanently?');">
@@ -553,6 +550,45 @@
                 })
                 .catch(err => {
                     console.error("Error voting:", err);
+                });
+            });
+        });
+
+        document.querySelectorAll(".toggle-status-btn").forEach(button => {
+            button.addEventListener("click", function(e) {
+                e.preventDefault();
+                const reviewId = this.getAttribute("data-review-id");
+                const currentStatus = this.getAttribute("data-status");
+                const targetStatus = currentStatus === "VISIBLE" ? "HIDDEN" : "VISIBLE";
+                const currentButton = this;
+                
+                const formData = new FormData();
+                formData.append("status", targetStatus);
+                
+                fetch(`/hotels/${hotelId}/reviews/${reviewId}/status`, {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        currentButton.setAttribute("data-status", data.status);
+                        currentButton.textContent = data.status === "VISIBLE" ? "Hide" : "Show";
+                        
+                        const badgeContainer = document.querySelector(`.status-badge-container[data-review-id="${reviewId}"]`);
+                        if (badgeContainer) {
+                            if (data.status === "HIDDEN") {
+                                badgeContainer.innerHTML = '<span class="badge bg-secondary text-white" style="font-size: 0.7rem; border-radius: 4px; padding: 2px 6px;">HIDDEN</span>';
+                            } else {
+                                badgeContainer.innerHTML = '';
+                            }
+                        }
+                    } else {
+                        alert(data.message || "An error occurred.");
+                    }
+                })
+                .catch(err => {
+                    console.error("Error updating review status:", err);
                 });
             });
         });

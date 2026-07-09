@@ -468,28 +468,33 @@ public class ReviewController {
     }
 
     @PostMapping("/hotels/{id}/reviews/{reviewId}/status")
-    public String updateReviewStatusFromDetail(
+    @ResponseBody
+    public java.util.Map<String, Object> updateReviewStatusFromDetail(
             @PathVariable("id") int hotelId,
             @PathVariable("reviewId") int reviewId,
             @RequestParam("status") String status,
-            HttpSession session,
-            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+            HttpSession session) {
         
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null || !"ADMIN".equalsIgnoreCase(loggedInUser.getRole())) {
-            return "redirect:/login";
+            response.put("success", false);
+            response.put("message", "Please log in as Admin.");
+            return response;
         }
 
         Review review = reviewRepository.findById(reviewId).orElse(null);
         if (review == null || review.getHotel().getId() != hotelId) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Review not found.");
-            return "redirect:/hotels/" + hotelId + "/rooms";
+            response.put("success", false);
+            response.put("message", "Review not found.");
+            return response;
         }
 
         review.setStatus(status.toUpperCase());
         reviewRepository.save(review);
 
-        redirectAttributes.addFlashAttribute("successMessage", "Review status updated successfully.");
-        return "redirect:/hotels/" + hotelId + "/rooms#reviews";
+        response.put("success", true);
+        response.put("status", review.getStatus());
+        return response;
     }
 }
