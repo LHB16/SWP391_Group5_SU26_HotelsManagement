@@ -48,7 +48,6 @@ public class HotelController {
         this.ownerService = ownerService;
     }
 
-    // ===== HELPER: LƯU FILE UPLOAD =====
     private String saveUploadedFile(MultipartFile file, String subDir) throws IOException {
         if (file == null || file.isEmpty()) {
             return null;
@@ -75,7 +74,6 @@ public class HotelController {
         return path;
     }
 
-    // ===================== GET /hotels =====================
     @GetMapping("/hotels")
     public String showHotelsPage(
             @RequestParam(value = "rating", required = false) Double rating,
@@ -99,7 +97,6 @@ public class HotelController {
             hotels = hotelRepository.filterByRatingAndPrice(rating, resolvedMinPrice, resolvedMaxPrice);
         }
 
-        // Lọc in-memory theo hotel facilities (AND logic)
         if (hotelFacilities != null && !hotelFacilities.isEmpty()) {
             hotels = hotels.stream().filter(h -> {
                 HotelFacility fac = h.getFacility();
@@ -123,7 +120,6 @@ public class HotelController {
             }).collect(java.util.stream.Collectors.toList());
         }
 
-        // Lọc in-memory theo hotel views (AND logic)
         if (hotelViews != null && !hotelViews.isEmpty()) {
             hotels = hotels.stream().filter(h -> {
                 HotelView view = h.getView();
@@ -140,7 +136,6 @@ public class HotelController {
             }).collect(java.util.stream.Collectors.toList());
         }
 
-        // Lọc in-memory theo room facilities (Khách sạn có ít nhất 1 phòng thỏa mãn TẤT CẢ tiện ích phòng được chọn)
         if (roomFacilities != null && !roomFacilities.isEmpty()) {
             hotels = hotels.stream().filter(h -> {
                 List<Room> rooms = roomRepository.findByHotelId(h.getId());
@@ -248,7 +243,6 @@ public class HotelController {
         model.addAttribute("user", session.getAttribute("loggedInUser"));
         model.addAttribute("today", java.time.LocalDate.now().toString());
 
-        // Truyền ngược lại view để duy trì trạng thái tick chọn
         model.addAttribute("selectedHotelFacilities", hotelFacilities != null ? hotelFacilities : List.of());
         model.addAttribute("selectedHotelViews", hotelViews != null ? hotelViews : List.of());
         model.addAttribute("selectedRoomFacilities", roomFacilities != null ? roomFacilities : List.of());
@@ -256,7 +250,6 @@ public class HotelController {
         return "hotel/hotel-list";
     }
 
-    // ===================== GET /hotels/new =====================
     @GetMapping("/hotels/new")
     public String showCreateHotelForm(Model model, HttpSession session) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
@@ -278,18 +271,17 @@ public class HotelController {
         return "hotel/hotel-create";
     }
 
-    // ===================== POST /hotels/new =====================
     @PostMapping("/hotels/new")
     public String createHotel(
             @RequestParam("name") String name,
             @RequestParam("address") String address,
             @RequestParam("city") String city,
             @RequestParam(value = "district", required = false) String district,
-            @RequestParam(value = "description", required = false) String description,
+            @RequestParam("description") String description,
             @RequestParam(value = "ownerId", required = false) Integer ownerId,
             @RequestParam(value = "rating", required = false) Double rating,
             @RequestParam("active") boolean active,
-            @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+            @RequestParam("imageFile") MultipartFile imageFile,
             @RequestParam(value = "businessRegistrationDoc", required = false) MultipartFile businessRegistrationDoc,
             @RequestParam(value = "landCertificateDoc", required = false) MultipartFile landCertificateDoc,
             @RequestParam(value = "rentalContractDoc", required = false) MultipartFile rentalContractDoc,
@@ -301,31 +293,68 @@ public class HotelController {
             return "redirect:/login";
         }
 
-        String imageUrl = null;
-        if (imageFile != null && !imageFile.isEmpty()) {
-            try {
-                String originalFilename = imageFile.getOriginalFilename();
-                String safeFilename = System.currentTimeMillis() + "_"
-                        + (originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_") : "hotel.jpg");
-                Path uploadPath = resolveStaticDir(HOTEL_IMAGE_SUBDIR);
-                Path targetFile = uploadPath.resolve(safeFilename);
-                Files.copy(imageFile.getInputStream(),
-                        targetFile,
-                        StandardCopyOption.REPLACE_EXISTING);
-                imageUrl = HOTEL_IMAGE_URL_PREFIX + safeFilename;
+        if (description == null || description.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Hotel description is required!");
+            return "redirect:/hotels/new";
+        }
 
-                // Sync to target/classes for instant hot reload
-                Path classesPath = Paths.get(System.getProperty("user.dir"), "target", "classes", "static", HOTEL_IMAGE_SUBDIR).toAbsolutePath().normalize();
-                if (Files.exists(Paths.get(System.getProperty("user.dir"), "target", "classes", "static"))) {
-                    if (!Files.exists(classesPath)) {
-                        Files.createDirectories(classesPath);
-                    }
-                    Files.copy(targetFile, classesPath.resolve(safeFilename), StandardCopyOption.REPLACE_EXISTING);
-                }
-            } catch (IOException e) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Image upload failed: " + e.getMessage());
+        if (imageFile == null || imageFile.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Hotel image is required!");
+            return "redirect:/hotels/new";
+        }
+
+        String imageContentType = imageFile.getContentType();
+        if (imageContentType == null || !imageContentType.startsWith("image/")) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Hotel image must be an image file (JPG, PNG, WEBP, etc.)!");
+            return "redirect:/hotels/new";
+        }
+
+        if (businessRegistrationDoc != null && !businessRegistrationDoc.isEmpty()) {
+            String bizContentType = businessRegistrationDoc.getContentType();
+            if (bizContentType == null || !bizContentType.equals("application/pdf")) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Business Registration must be a PDF file!");
                 return "redirect:/hotels/new";
             }
+        }
+
+        if (landCertificateDoc != null && !landCertificateDoc.isEmpty()) {
+            String landContentType = landCertificateDoc.getContentType();
+            if (landContentType == null || !landContentType.equals("application/pdf")) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Land Certificate must be a PDF file!");
+                return "redirect:/hotels/new";
+            }
+        }
+
+        if (rentalContractDoc != null && !rentalContractDoc.isEmpty()) {
+            String rentalContentType = rentalContractDoc.getContentType();
+            if (rentalContentType == null || !rentalContentType.equals("application/pdf")) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Rental Contract must be a PDF file!");
+                return "redirect:/hotels/new";
+            }
+        }
+
+        String imageUrl = null;
+        try {
+            String originalFilename = imageFile.getOriginalFilename();
+            String safeFilename = System.currentTimeMillis() + "_"
+                    + (originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_") : "hotel.jpg");
+            Path uploadPath = resolveStaticDir(HOTEL_IMAGE_SUBDIR);
+            Path targetFile = uploadPath.resolve(safeFilename);
+            Files.copy(imageFile.getInputStream(),
+                    targetFile,
+                    StandardCopyOption.REPLACE_EXISTING);
+            imageUrl = HOTEL_IMAGE_URL_PREFIX + safeFilename;
+
+            Path classesPath = Paths.get(System.getProperty("user.dir"), "target", "classes", "static", HOTEL_IMAGE_SUBDIR).toAbsolutePath().normalize();
+            if (Files.exists(Paths.get(System.getProperty("user.dir"), "target", "classes", "static"))) {
+                if (!Files.exists(classesPath)) {
+                    Files.createDirectories(classesPath);
+                }
+                Files.copy(targetFile, classesPath.resolve(safeFilename), StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Image upload failed: " + e.getMessage());
+            return "redirect:/hotels/new";
         }
 
         Hotel hotel = new Hotel();
@@ -418,7 +447,6 @@ public class HotelController {
         }
     }
 
-    // ===================== GET /owner/hotels =====================
     @GetMapping("/owner/hotels")
     public String showOwnerHotelsPage(HttpSession session, Model model) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
@@ -443,7 +471,6 @@ public class HotelController {
         return "owner/hotel-list";
     }
 
-    // ===================== GET /owner/hotels/new =====================
     @GetMapping("/owner/hotels/new")
     public String showOwnerCreateHotelForm(Model model, HttpSession session) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
@@ -454,7 +481,6 @@ public class HotelController {
             return "redirect:/home";
         }
 
-        // Kiểm tra Owner đã được duyệt
         if (!ownerService.isOwnerApproved(loggedInUser)) {
             session.setAttribute("errorMessage",
                     "Your account is pending admin approval. You cannot add hotels yet.");
@@ -466,7 +492,6 @@ public class HotelController {
         return "owner/hotel-create";
     }
 
-    // ===================== GET /owner/hotels/{id} =====================
     @GetMapping("/owner/hotels/{id}")
     public String showOwnerHotelDetail(@PathVariable("id") int hotelId,
                                        HttpSession session,
@@ -479,7 +504,6 @@ public class HotelController {
             return "redirect:/home";
         }
 
-        // Kiểm tra Owner đã được duyệt
         if (!ownerService.isOwnerApproved(loggedInUser)) {
             session.setAttribute("errorMessage",
                     "Your account is pending admin approval.");
@@ -499,7 +523,6 @@ public class HotelController {
         return "owner/hotel-detail";
     }
 
-    // ===================== GET /owner/hotels/{id}/edit =====================
     @GetMapping("/owner/hotels/{id}/edit")
     public String showOwnerEditHotelForm(@PathVariable("id") int hotelId,
                                          HttpSession session,
@@ -512,7 +535,6 @@ public class HotelController {
             return "redirect:/home";
         }
 
-        // Kiểm tra Owner đã được duyệt
         if (!ownerService.isOwnerApproved(loggedInUser)) {
             session.setAttribute("errorMessage",
                     "Your account is pending admin approval.");
@@ -535,7 +557,6 @@ public class HotelController {
         return "owner/hotel-edit";
     }
 
-    // ===================== POST /owner/hotels/{id}/edit =====================
     @PostMapping("/owner/hotels/{id}/edit")
     public String updateOwnerHotel(
             @PathVariable("id") int hotelId,
@@ -543,7 +564,7 @@ public class HotelController {
             @RequestParam("address") String address,
             @RequestParam("city") String city,
             @RequestParam(value = "district", required = false) String district,
-            @RequestParam(value = "description", required = false) String description,
+            @RequestParam("description") String description,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
             @RequestParam("active") boolean active,
             HttpSession session,
@@ -557,7 +578,11 @@ public class HotelController {
             return "redirect:/home";
         }
 
-        // Kiểm tra Owner đã được duyệt
+        if (description == null || description.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Hotel description is required!");
+            return "redirect:/owner/hotels/" + hotelId + "/edit";
+        }
+
         if (!ownerService.isOwnerApproved(loggedInUser)) {
             redirectAttributes.addFlashAttribute("errorMessage",
                     "Your account is pending admin approval.");
@@ -589,7 +614,6 @@ public class HotelController {
                         StandardCopyOption.REPLACE_EXISTING);
                 hotel.setImageUrl(HOTEL_IMAGE_URL_PREFIX + safeFilename);
 
-                // Sync to target/classes for instant hot reload
                 Path classesPath = Paths.get(System.getProperty("user.dir"), "target", "classes", "static", HOTEL_IMAGE_SUBDIR).toAbsolutePath().normalize();
                 if (Files.exists(Paths.get(System.getProperty("user.dir"), "target", "classes", "static"))) {
                     if (!Files.exists(classesPath)) {
@@ -615,7 +639,6 @@ public class HotelController {
         return "redirect:/owner/hotels/" + hotelId;
     }
 
-    // ===================== POST /owner/hotels/{id}/delete (ĐÃ SỬA) =====================
     @PostMapping("/owner/hotels/{id}/delete")
     public String deleteOwnerHotel(@PathVariable("id") int hotelId,
                                    HttpSession session,
@@ -628,7 +651,6 @@ public class HotelController {
             return "redirect:/home";
         }
 
-        // Kiểm tra Owner đã được duyệt
         if (!ownerService.isOwnerApproved(loggedInUser)) {
             redirectAttributes.addFlashAttribute("errorMessage",
                     "Your account is pending admin approval.");
@@ -644,29 +666,24 @@ public class HotelController {
         try {
             String hotelName = hotel.getName();
 
-            // ===== 1. XÓA HOTEL VERIFICATION DOCUMENT TRƯỚC =====
             List<HotelVerificationDocument> docs = hotelVerificationDocumentRepository.findByHotelId(hotelId);
             if (!docs.isEmpty()) {
                 hotelVerificationDocumentRepository.deleteAll(docs);
                 hotelVerificationDocumentRepository.flush();
             }
 
-            // ===== 2. XÓA ROOM FACILITY VÀ ROOM =====
             List<Room> rooms = roomRepository.findByHotelId(hotelId);
             if (!rooms.isEmpty()) {
                 for (Room room : rooms) {
-                    // Xóa RoomFacility trước
                     Optional<RoomFacility> facility = roomFacilityRepository.findByRoom(room);
                     facility.ifPresent(roomFacilityRepository::delete);
                 }
                 roomFacilityRepository.flush();
 
-                // Xóa Room
                 roomRepository.deleteAll(rooms);
                 roomRepository.flush();
             }
 
-            // ===== 3. SAU ĐÓ MỚI XÓA HOTEL =====
             hotelRepository.delete(hotel);
 
             redirectAttributes.addFlashAttribute("successMessage",
@@ -678,7 +695,6 @@ public class HotelController {
         return "redirect:/owner/hotels";
     }
 
-    // ===== HELPER METHODS =====
     private boolean isHolidayOrWeekend(java.time.LocalDate date) {
         java.time.DayOfWeek dayOfWeek = date.getDayOfWeek();
         if (dayOfWeek == java.time.DayOfWeek.SATURDAY || dayOfWeek == java.time.DayOfWeek.SUNDAY) {

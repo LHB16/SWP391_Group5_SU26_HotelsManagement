@@ -202,8 +202,8 @@ public class OwnerController {
             @RequestParam("address") String address,
             @RequestParam("city") String city,
             @RequestParam(value = "district", required = false) String district,
-            @RequestParam(value = "description", required = false) String description,
-            @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+            @RequestParam("description") String description,
+            @RequestParam("imageFile") MultipartFile imageFile,
             @RequestParam("phone") String phone,
             @RequestParam("email") String email,
             @RequestParam(value = "businessRegistrationDoc", required = false) MultipartFile businessRegistrationDoc,
@@ -220,6 +220,46 @@ public class OwnerController {
             return "redirect:/home";
         }
 
+        if (description == null || description.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Hotel description is required!");
+            return "redirect:/owner/dashboard?tab=hotels";
+        }
+
+        if (imageFile == null || imageFile.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Hotel image is required!");
+            return "redirect:/owner/dashboard?tab=hotels";
+        }
+
+        String imageContentType = imageFile.getContentType();
+        if (imageContentType == null || !imageContentType.startsWith("image/")) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Hotel image must be an image file (JPG, PNG, WEBP, etc.)!");
+            return "redirect:/owner/dashboard?tab=hotels";
+        }
+
+        if (businessRegistrationDoc != null && !businessRegistrationDoc.isEmpty()) {
+            String bizContentType = businessRegistrationDoc.getContentType();
+            if (bizContentType == null || !bizContentType.equals("application/pdf")) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Business Registration must be a PDF file!");
+                return "redirect:/owner/dashboard?tab=hotels";
+            }
+        }
+
+        if (landCertificateDoc != null && !landCertificateDoc.isEmpty()) {
+            String landContentType = landCertificateDoc.getContentType();
+            if (landContentType == null || !landContentType.equals("application/pdf")) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Land Certificate must be a PDF file!");
+                return "redirect:/owner/dashboard?tab=hotels";
+            }
+        }
+
+        if (rentalContractDoc != null && !rentalContractDoc.isEmpty()) {
+            String rentalContentType = rentalContractDoc.getContentType();
+            if (rentalContentType == null || !rentalContentType.equals("application/pdf")) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Rental Contract must be a PDF file!");
+                return "redirect:/owner/dashboard?tab=hotels";
+            }
+        }
+
         if (!ownerService.isOwnerApproved(loggedInUser)) {
             redirectAttributes.addFlashAttribute("errorMessage",
                     "Your account is pending admin approval. Please wait for verification.");
@@ -233,29 +273,27 @@ public class OwnerController {
         }
 
         String imageUrl = null;
-        if (imageFile != null && !imageFile.isEmpty()) {
-            try {
-                String originalFilename = imageFile.getOriginalFilename();
-                String safeFilename = System.currentTimeMillis() + "_"
-                        + (originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_") : "hotel.jpg");
-                Path uploadPath = resolveStaticDir(HOTEL_IMAGE_SUBDIR);
-                Path targetFile = uploadPath.resolve(safeFilename);
-                Files.copy(imageFile.getInputStream(),
-                        targetFile,
-                        StandardCopyOption.REPLACE_EXISTING);
-                imageUrl = HOTEL_IMAGE_URL_PREFIX + safeFilename;
+        try {
+            String originalFilename = imageFile.getOriginalFilename();
+            String safeFilename = System.currentTimeMillis() + "_"
+                    + (originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_") : "hotel.jpg");
+            Path uploadPath = resolveStaticDir(HOTEL_IMAGE_SUBDIR);
+            Path targetFile = uploadPath.resolve(safeFilename);
+            Files.copy(imageFile.getInputStream(),
+                    targetFile,
+                    StandardCopyOption.REPLACE_EXISTING);
+            imageUrl = HOTEL_IMAGE_URL_PREFIX + safeFilename;
 
-                Path classesPath = Paths.get(System.getProperty("user.dir"), "target", "classes", "static", HOTEL_IMAGE_SUBDIR).toAbsolutePath().normalize();
-                if (Files.exists(Paths.get(System.getProperty("user.dir"), "target", "classes", "static"))) {
-                    if (!Files.exists(classesPath)) {
-                        Files.createDirectories(classesPath);
-                    }
-                    Files.copy(targetFile, classesPath.resolve(safeFilename), StandardCopyOption.REPLACE_EXISTING);
+            Path classesPath = Paths.get(System.getProperty("user.dir"), "target", "classes", "static", HOTEL_IMAGE_SUBDIR).toAbsolutePath().normalize();
+            if (Files.exists(Paths.get(System.getProperty("user.dir"), "target", "classes", "static"))) {
+                if (!Files.exists(classesPath)) {
+                    Files.createDirectories(classesPath);
                 }
-            } catch (IOException e) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Image upload failed: " + e.getMessage());
-                return "redirect:/owner/dashboard?tab=hotels";
+                Files.copy(targetFile, classesPath.resolve(safeFilename), StandardCopyOption.REPLACE_EXISTING);
             }
+        } catch (IOException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Image upload failed: " + e.getMessage());
+            return "redirect:/owner/dashboard?tab=hotels";
         }
 
         Hotel hotel = new Hotel();
