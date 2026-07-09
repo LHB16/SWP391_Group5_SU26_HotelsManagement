@@ -177,6 +177,19 @@ public class HotelController {
             }).collect(java.util.stream.Collectors.toList());
         }
 
+        // Nếu checkin hoặc checkout chưa có, gán mặc định là hôm nay và ngày mai
+        if (checkin == null || checkin.trim().isEmpty()) {
+            checkin = java.time.LocalDate.now().toString();
+        }
+        if (checkout == null || checkout.trim().isEmpty()) {
+            checkout = java.time.LocalDate.now().plusDays(1).toString();
+        }
+
+        // Lưu bộ lọc checkin/checkout của list hotel vào session
+        session.setAttribute("hotelCheckinFilter", checkin);
+        session.setAttribute("hotelCheckoutFilter", checkout);
+
+
         long nights = 1;
         boolean isFiltered = false;
         java.util.Map<Integer, BigDecimal> hotelPricesMap = new java.util.HashMap<>();
@@ -218,6 +231,7 @@ public class HotelController {
             }
         }
 
+
         model.addAttribute("hotels", hotels);
         model.addAttribute("hotelPricesMap", hotelPricesMap);
         model.addAttribute("nights", nights);
@@ -227,7 +241,10 @@ public class HotelController {
         model.addAttribute("maxPrice", resolvedMaxPrice);
         model.addAttribute("checkin", checkin);
         model.addAttribute("checkout", checkout);
+        model.addAttribute("today", java.time.LocalDate.now().toString());
+        model.addAttribute("minCheckout", java.time.LocalDate.parse(checkin).plusDays(1).toString());
         model.addAttribute("totalResults", hotels.size());
+
         model.addAttribute("user", session.getAttribute("loggedInUser"));
         model.addAttribute("today", java.time.LocalDate.now().toString());
 
@@ -476,6 +493,8 @@ public class HotelController {
                 .orElseThrow(() -> new RuntimeException("Hotel not found or you don't have permission!"));
 
         model.addAttribute("hotel", hotel);
+        List<Room> rooms = roomRepository.findByHotelId(hotelId);
+        model.addAttribute("rooms", rooms);
         model.addAttribute("user", loggedInUser);
         return "owner/hotel-detail";
     }

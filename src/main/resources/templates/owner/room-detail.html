@@ -10,9 +10,9 @@
 <section class="room-hero py-4" style="background: linear-gradient(135deg, var(--hotel-navy) 0%, #142038 60%, #1a2d4a 100%); color: #fff;">
     <div class="container">
         <nav aria-label="breadcrumb" class="mb-3">
-            <a th:href="@{/hotels}" class="bc-link">Hotels</a>
+            <a th:href="@{/owner/dashboard(tab='hotels')}" class="bc-link">My Hotels</a>
             <span class="bc-sep">/</span>
-            <a th:href="@{/hotels/{id}/rooms(id=${hotel.id}, checkin=${checkin}, checkout=${checkout})}" 
+            <a th:href="@{/owner/hotels/{id}(id=${hotel.id})}" 
                class="bc-link" th:text="${hotel.name}">Hotel</a>
             <span class="bc-sep">/</span>
             <span class="bc-active" th:text="${room.roomType} + ' Detail'">Room Detail</span>
@@ -29,10 +29,10 @@
 <!-- ==================== MAIN CONTENT ==================== -->
 <main class="flex-grow-1 py-5 bg-cream">
     <div class="container">
-        <div class="row g-5">
+        <div class="row justify-content-center">
             
-            <!-- ===== LEFT COLUMN: Media, Description, Facilities ===== -->
-            <div class="col-12 col-lg-8">
+            <!-- ===== ONLY ONE CENTERED COLUMN: Media, Description, Facilities ===== -->
+            <div class="col-12 col-lg-8 mx-auto">
                 
                 <!-- Room Image -->
                 <div class="room-detail-img-container mb-4 shadow-sm" style="border-radius:18px; overflow:hidden; background:#f1f5f9; height:420px;">
@@ -43,6 +43,41 @@
                          class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light">
                          <i class="bi bi-image text-muted fs-1 mb-2"></i>
                          <span class="text-muted small">No image available for this room</span>
+                    </div>
+                </div>
+
+                <!-- Specs row inside main content for Owner -->
+                <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius:16px;">
+                    <h5 class="fw-bold mb-3 text-navy" style="color: var(--navy); font-family: 'Playfair Display', serif;">Room Specifications</h5>
+                    <div class="row g-3">
+                        <div class="col-6 col-sm-3">
+                            <div class="p-3 rounded text-center" style="background:#f8fafc; border: 1px solid #f1f5f9;">
+                                <i class="bi bi-arrows-fullscreen text-gold fs-4 mb-1 d-block"></i>
+                                <span class="text-muted d-block small">Area</span>
+                                <strong class="text-navy" th:text="${room.acreage + ' m²'}">25 m²</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <div class="p-3 rounded text-center" style="background:#f8fafc; border: 1px solid #f1f5f9;">
+                                <i class="bi bi-people text-gold fs-4 mb-1 d-block"></i>
+                                <span class="text-muted d-block small">Max Capacity</span>
+                                <strong class="text-navy" th:text="${room.person + ' guest(s)'}">2 guests</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <div class="p-3 rounded text-center" style="background:#f8fafc; border: 1px solid #f1f5f9;">
+                                <i class="bi bi-door-closed text-gold fs-4 mb-1 d-block"></i>
+                                <span class="text-muted d-block small">Beds</span>
+                                <strong class="text-navy" th:text="${room.bed + ' bed(s)'}">1 bed</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <div class="p-3 rounded text-center" style="background:#f8fafc; border: 1px solid #f1f5f9;">
+                                <i class="bi bi-grid-3x3-gap text-gold fs-4 mb-1 d-block"></i>
+                                <span class="text-muted d-block small">Windows</span>
+                                <strong class="text-navy" th:text="${room.numWindow + ' window(s)'}">2 windows</strong>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -57,7 +92,7 @@
                 </div>
 
                 <!-- Facilities & Amenities Section -->
-                <div th:if="${room.facility != null}" class="card border-0 shadow-sm p-4" style="border-radius:16px;">
+                <div th:if="${room.facility != null}" class="card border-0 shadow-sm p-4 mb-4" style="border-radius:16px;">
                     <h5 class="fw-bold mb-4 text-navy" style="color: var(--navy); font-family: 'Playfair Display', serif;">Amenities & Facilities</h5>
                     
                     <!-- Bathroom Amenities -->
@@ -155,75 +190,11 @@
                     </div>
                 </div>
 
-            </div>
-
-            <!-- ===== RIGHT COLUMN: Price Card, Specs, Actions ===== -->
-            <div class="col-12 col-lg-4">
-                
-                <!-- Price & Booking Card -->
-                <div class="card border-0 shadow-sm mb-4" style="border-radius:16px; position:sticky; top:100px; background:#fff; border: 1px solid #e8ecf1; overflow: hidden;">
-                    
-                    <!-- Khung màu vàng kéo ngang đụng bảng chứa tiêu đề to -->
-                    <div class="text-center py-3" style="background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%); color: #fff;">
-                        <h5 class="fw-bold mb-0 text-uppercase" style="letter-spacing: 0.05em; font-size: 1.05rem;">Price Summary</h5>
-                    </div>
-
-                    <div class="p-4">
-                        <div class="room-detail-price-box mb-4 text-center">
-                            <div class="d-flex align-items-baseline justify-content-center gap-2">
-                                <span class="room-detail-price-amount fs-2 fw-bold text-navy" style="color:var(--navy);"
-                                      th:text="${#numbers.formatInteger(roomPrice, 0, 'COMMA')}">500,000</span>
-                                <span class="room-detail-price-unit fw-semibold text-gold-dark" style="color:var(--gold-dark);"
-                                      th:text="${isFiltered ? 'VND / ' + nights + ' night' + (nights > 1 ? 's' : '') : 'VND / 1 night'}">VND / 1 night</span>
-                            </div>
-                        </div>
-
-                        <div class="fdivider mb-4" style="height:1px; background:#f0f2f5;"></div>
-
-                        <!-- Room Specs Grid -->
-                        <div class="mb-4">
-                            <h6 class="fw-bold mb-3 text-navy small text-uppercase" style="letter-spacing: 0.05em; color:var(--navy);">Room Specifications</h6>
-                            <div class="d-flex flex-column gap-3">
-                                <div class="d-flex align-items-center justify-content-between p-2 rounded bg-light" style="font-size:0.86rem;">
-                                    <span class="text-muted"><i class="bi bi-arrows-fullscreen me-2 text-gold"></i>Area</span>
-                                    <strong class="text-navy" th:text="${room.acreage + ' m²'}">25 m²</strong>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between p-2 rounded bg-light" style="font-size:0.86rem;">
-                                    <span class="text-muted"><i class="bi bi-people me-2 text-gold"></i>Max Capacity</span>
-                                    <strong class="text-navy" th:text="${room.person + ' guest(s)'}">2 guests</strong>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between p-2 rounded bg-light" style="font-size:0.86rem;">
-                                    <span class="text-muted"><i class="bi bi-door-closed me-2 text-gold"></i>Beds</span>
-                                    <strong class="text-navy" th:text="${room.bed + ' bed(s)'}">1 bed</strong>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between p-2 rounded bg-light" style="font-size:0.86rem;">
-                                    <span class="text-muted"><i class="bi bi-grid-3x3-gap me-2 text-gold"></i>Windows</span>
-                                    <strong class="text-navy" th:text="${room.numWindow + ' window(s)'}">2 windows</strong>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between p-2 rounded bg-light" style="font-size:0.86rem;">
-                                    <span class="text-muted"><i class="bi bi-ban me-2 text-danger"></i>Policy</span>
-                                    <strong class="text-danger">No Smoking</strong>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="d-flex flex-column gap-2 mt-2">
-                            <!-- Book Now -->
-                            <a th:href="@{/booking(hotelId=${hotel.id}, roomId=${room.id}, checkin=${checkin}, checkout=${checkout})}"
-                               class="btn btn-submit w-100 py-3 d-flex align-items-center justify-content-center gap-2 fw-semibold">
-                                <i class="bi bi-calendar-check"></i>
-                                Book This Room Now
-                            </a>
-                            
-                            <!-- Back to List -->
-                            <a th:href="@{/hotels/{id}/rooms(id=${hotel.id}, checkin=${checkin}, checkout=${checkout})}"
-                               class="btn-cancel w-100 py-2 d-flex align-items-center justify-content-center gap-2">
-                                <i class="bi bi-arrow-left"></i>
-                                Back to Rooms
-                            </a>
-                        </div>
-                    </div>
+                <!-- Back button for Owner -->
+                <div class="text-center mt-4">
+                    <a th:href="@{/owner/hotels/{id}(id=${hotel.id})}" class="btn btn-outline-secondary px-4 py-2 rounded-pill">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Hotel Detail
+                    </a>
                 </div>
 
             </div>

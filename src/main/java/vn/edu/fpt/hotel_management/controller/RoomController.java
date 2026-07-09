@@ -81,6 +81,24 @@ public class RoomController {
             RedirectAttributes redirectAttributes
     ) {
         Hotel hotel = hotelRepository.findById(id).orElse(null);
+        
+        // Nếu tham số rỗng, đọc lại từ session trước khi fallback
+        if (checkin == null || checkin.trim().isEmpty()) {
+            checkin = (String) session.getAttribute("hotelCheckinFilter");
+        }
+        if (checkout == null || checkout.trim().isEmpty()) {
+            checkout = (String) session.getAttribute("hotelCheckoutFilter");
+        }
+
+        // Fallback về today / tomorrow nếu session cũng không có
+        if (checkin == null || checkin.trim().isEmpty()) {
+            checkin = java.time.LocalDate.now().toString();
+        }
+        if (checkout == null || checkout.trim().isEmpty()) {
+            checkout = java.time.LocalDate.now().plusDays(1).toString();
+        }
+        String minCheckout = java.time.LocalDate.parse(checkin).plusDays(1).toString();
+
         if (hotel == null || !hotel.isActive()) {
             redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
             return "redirect:/hotels";
@@ -156,10 +174,14 @@ public class RoomController {
         long nights = 1;
         boolean isFiltered = false;
         java.util.Map<Integer, BigDecimal> roomPricesMap = new java.util.HashMap<>();
+        java.util.Map<Integer, Integer> availableRoomsMap = new java.util.HashMap<>();
+
+        java.time.LocalDate d1 = java.time.LocalDate.now();
+        java.time.LocalDate d2 = java.time.LocalDate.now().plusDays(1);
         if (checkin != null && checkout != null && !checkin.trim().isEmpty() && !checkout.trim().isEmpty()) {
             try {
-                java.time.LocalDate d1 = java.time.LocalDate.parse(checkin.trim());
-                java.time.LocalDate d2 = java.time.LocalDate.parse(checkout.trim());
+                d1 = java.time.LocalDate.parse(checkin.trim());
+                d2 = java.time.LocalDate.parse(checkout.trim());
                 if (d2.isAfter(d1)) {
                     nights = java.time.temporal.ChronoUnit.DAYS.between(d1, d2);
                     isFiltered = true;
@@ -169,20 +191,28 @@ public class RoomController {
                     nights = 1;
                     isFiltered = true;
                 }
-                for (Room r : rooms) {
-                    BigDecimal actualPrice = calculateRoomSubtotal(r.getPrice(), d1, d2);
-                    roomPricesMap.put(r.getId(), actualPrice);
-                }
             } catch (Exception e) {
                 isFiltered = false;
-                for (Room r : rooms) {
-                    roomPricesMap.put(r.getId(), r.getPrice());
-                }
+                d1 = java.time.LocalDate.now();
+                d2 = java.time.LocalDate.now().plusDays(1);
             }
-        } else {
-            for (Room r : rooms) {
-                roomPricesMap.put(r.getId(), r.getPrice());
+        }
+
+        for (Room r : rooms) {
+            BigDecimal actualPrice = isFiltered ? calculateRoomSubtotal(r.getPrice(), d1, d2) : r.getPrice();
+            roomPricesMap.put(r.getId(), actualPrice);
+
+            long bookedCount = bookingRepository.countByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
+                    r.getId(),
+                    "CONFIRMED",
+                    d2,
+                    d1
+            );
+            int available = r.getNumberRooms() - (int) bookedCount;
+            if (available < 0) {
+                available = 0;
             }
+            availableRoomsMap.put(r.getId(), available);
         }
 
         boolean isHotelOwner = false;
@@ -204,6 +234,7 @@ public class RoomController {
         model.addAttribute("hotel", hotel);
         model.addAttribute("rooms", rooms);
         model.addAttribute("roomPricesMap", roomPricesMap);
+        model.addAttribute("availableRoomsMap", availableRoomsMap);
         model.addAttribute("wishlistRoomIds", wishlistRoomIds);
         model.addAttribute("nights", nights);
         model.addAttribute("isFiltered", isFiltered);
@@ -213,6 +244,7 @@ public class RoomController {
         model.addAttribute("maxPrice", maxPrice);
         model.addAttribute("checkin", checkin);
         model.addAttribute("checkout", checkout);
+        model.addAttribute("minCheckout", minCheckout);
         model.addAttribute("totalResults", rooms.size());
         model.addAttribute("user", loggedInUser);
         model.addAttribute("currentCustomerId", currentCustomerId);
@@ -241,6 +273,13 @@ public class RoomController {
             RedirectAttributes redirectAttributes
     ) {
         Hotel hotel = hotelRepository.findById(id).orElse(null);
+        if (checkin == null || checkin.trim().isEmpty()) {
+            checkin = java.time.LocalDate.now().toString();
+        }
+        if (checkout == null || checkout.trim().isEmpty()) {
+            checkout = java.time.LocalDate.now().plusDays(1).toString();
+        }
+        String minCheckout = java.time.LocalDate.parse(checkin).plusDays(1).toString();
         if (hotel == null || !hotel.isActive()) {
             redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
             return "redirect:/hotels";
@@ -278,8 +317,12 @@ public class RoomController {
         model.addAttribute("isFiltered", isFiltered);
         model.addAttribute("checkin", checkin);
         model.addAttribute("checkout", checkout);
+        model.addAttribute("minCheckout", minCheckout);
         model.addAttribute("user", loggedInUser);
 
+        if (loggedInUser != null && "HOTEL_OWNER".equals(loggedInUser.getRole())) {
+            return "owner/room-detail";
+        }
         return "hotel/room-detail";
     }
 
@@ -316,7 +359,7 @@ public class RoomController {
 
         model.addAttribute("hotel", hotel);
         model.addAttribute("user", loggedInUser);
-        return "hotel/room-create";
+        return "owner/room-create";
     }
 
     // ===================== POST /hotels/{id}/rooms/new =====================
@@ -379,6 +422,32 @@ public class RoomController {
         if (owner == null || hotel.getOwner().getId() != owner.getId()) {
             redirectAttributes.addFlashAttribute("errorMessage", "You don't have permission to add rooms to this hotel.");
             return "redirect:/home";
+        }
+
+        boolean hasBathroom = (freeToiletries != null && freeToiletries)
+                || (shower != null && shower)
+                || (bathrobe != null && bathrobe)
+                || (toilet != null && toilet)
+                || (towels != null && towels)
+                || (slippers != null && slippers)
+                || (hairdryer != null && hairdryer)
+                || (toiletPaper != null && toiletPaper);
+
+        boolean hasRoom = (airConditioning != null && airConditioning)
+                || (safetyDepositBox != null && safetyDepositBox)
+                || (desk != null && desk)
+                || (television != null && television)
+                || (telephone != null && telephone)
+                || (iron != null && iron)
+                || (electricKettle != null && electricKettle)
+                || (cableChannels != null && cableChannels)
+                || (wakeUpService != null && wakeUpService)
+                || (wardrobeCloset != null && wardrobeCloset)
+                || (clothesRack != null && clothesRack);
+
+        if (!hasBathroom || !hasRoom) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Please select at least 1 Bathroom Amenity and 1 Room Amenity.");
+            return "redirect:/hotels/" + id + "/rooms/new";
         }
 
         String imgUrl = null;
@@ -493,5 +562,267 @@ public class RoomController {
             temp = temp.plusDays(1);
         }
         return total;
+    }
+
+    // ===================== GET /owner/hotels/{id}/rooms/{roomId}/edit =====================
+    @GetMapping("/owner/hotels/{id}/rooms/{roomId}/edit")
+    public String showEditRoomForm(
+            @PathVariable("id") int id,
+            @PathVariable("roomId") int roomId,
+            HttpSession session,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+
+        if (!"HOTEL_OWNER".equals(loggedInUser.getRole())) {
+            return "redirect:/home";
+        }
+
+        if (!ownerService.isOwnerApproved(loggedInUser)) {
+            session.setAttribute("errorMessage",
+                    "Your account is pending admin approval.");
+            return "redirect:/owner/dashboard";
+        }
+
+        Hotel hotel = hotelRepository.findById(id).orElse(null);
+        if (hotel == null) return "redirect:/hotels";
+
+        HotelOwner owner = ownerService.getOwnerByUser(loggedInUser).orElse(null);
+        if (owner == null || hotel.getOwner().getId() != owner.getId()) {
+            return "redirect:/home";
+        }
+
+        Room room = roomRepository.findById(roomId).orElse(null);
+        if (room == null || room.getHotelId() != id) {
+            return "redirect:/owner/hotels/" + id;
+        }
+
+        model.addAttribute("hotel", hotel);
+        model.addAttribute("room", room);
+        model.addAttribute("user", loggedInUser);
+        return "owner/room-modify";
+    }
+
+    // ===================== POST /owner/hotels/{id}/rooms/{roomId}/edit =====================
+    @PostMapping("/owner/hotels/{id}/rooms/{roomId}/edit")
+    public String editRoom(
+            @PathVariable("id") int id,
+            @PathVariable("roomId") int roomId,
+            @RequestParam("type") String type,
+            @RequestParam("price") long price,
+            @RequestParam(value = "description", defaultValue = "") String description,
+            @RequestParam(value = "window", defaultValue = "0") int window,
+            @RequestParam(value = "bed", defaultValue = "0") int bed,
+            @RequestParam("acreage") double acreage,
+            @RequestParam("person") int person,
+            @RequestParam(value = "numberRooms", defaultValue = "1") int numberRooms,
+            @RequestParam(value = "roomStatus", required = false) Boolean roomStatus,
+            @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+            @RequestParam(value = "freeToiletries", required = false) Boolean freeToiletries,
+            @RequestParam(value = "shower", required = false) Boolean shower,
+            @RequestParam(value = "bathrobe", required = false) Boolean bathrobe,
+            @RequestParam(value = "toilet", required = false) Boolean toilet,
+            @RequestParam(value = "towels", required = false) Boolean towels,
+            @RequestParam(value = "slippers", required = false) Boolean slippers,
+            @RequestParam(value = "hairdryer", required = false) Boolean hairdryer,
+            @RequestParam(value = "toiletPaper", required = false) Boolean toiletPaper,
+            @RequestParam(value = "airConditioning", required = false) Boolean airConditioning,
+            @RequestParam(value = "safetyDepositBox", required = false) Boolean safetyDepositBox,
+            @RequestParam(value = "desk", required = false) Boolean desk,
+            @RequestParam(value = "television", required = false) Boolean television,
+            @RequestParam(value = "telephone", required = false) Boolean telephone,
+            @RequestParam(value = "iron", required = false) Boolean iron,
+            @RequestParam(value = "electricKettle", required = false) Boolean electricKettle,
+            @RequestParam(value = "cableChannels", required = false) Boolean cableChannels,
+            @RequestParam(value = "wakeUpService", required = false) Boolean wakeUpService,
+            @RequestParam(value = "wardrobeCloset", required = false) Boolean wardrobeCloset,
+            @RequestParam(value = "clothesRack", required = false) Boolean clothesRack,
+            @RequestParam(value = "freeBottledWater", defaultValue = "0") int freeBottledWater,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+
+        if (!"HOTEL_OWNER".equals(loggedInUser.getRole())) {
+            return "redirect:/home";
+        }
+
+        if (!ownerService.isOwnerApproved(loggedInUser)) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Your account is pending admin approval.");
+            return "redirect:/owner/dashboard";
+        }
+
+        Hotel hotel = hotelRepository.findById(id).orElse(null);
+        if (hotel == null) return "redirect:/hotels";
+
+        HotelOwner owner = ownerService.getOwnerByUser(loggedInUser).orElse(null);
+        if (owner == null || hotel.getOwner().getId() != owner.getId()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "You don't have permission.");
+            return "redirect:/home";
+        }
+
+        Room room = roomRepository.findById(roomId).orElse(null);
+        if (room == null || room.getHotelId() != id) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Room not found.");
+            return "redirect:/owner/hotels/" + id;
+        }
+
+        boolean hasBathroom = (freeToiletries != null && freeToiletries)
+                || (shower != null && shower)
+                || (bathrobe != null && bathrobe)
+                || (toilet != null && toilet)
+                || (towels != null && towels)
+                || (slippers != null && slippers)
+                || (hairdryer != null && hairdryer)
+                || (toiletPaper != null && toiletPaper);
+
+        boolean hasRoom = (airConditioning != null && airConditioning)
+                || (safetyDepositBox != null && safetyDepositBox)
+                || (desk != null && desk)
+                || (television != null && television)
+                || (telephone != null && telephone)
+                || (iron != null && iron)
+                || (electricKettle != null && electricKettle)
+                || (cableChannels != null && cableChannels)
+                || (wakeUpService != null && wakeUpService)
+                || (wardrobeCloset != null && wardrobeCloset)
+                || (clothesRack != null && clothesRack);
+
+        if (!hasBathroom || !hasRoom) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Please select at least 1 Bathroom Amenity and 1 Room Amenity.");
+            return "redirect:/owner/hotels/" + id + "/rooms/" + roomId + "/edit";
+        }
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+            try {
+                String original = imageFile.getOriginalFilename();
+                String safeName = System.currentTimeMillis() + "_"
+                        + (original != null ? original.replaceAll("[^a-zA-Z0-9._-]", "_") : "room.jpg");
+                Path uploadDir = resolveStaticDir(ROOM_IMAGE_SUBDIR);
+                Path filePath = uploadDir.resolve(safeName);
+                Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+                room.setImgUrl("/assets/images/room/" + safeName);
+
+                // Sync to target/classes
+                Path classesPath = Paths.get(System.getProperty("user.dir"), "target", "classes", "static", ROOM_IMAGE_SUBDIR).toAbsolutePath().normalize();
+                if (Files.exists(Paths.get(System.getProperty("user.dir"), "target", "classes", "static"))) {
+                    if (!Files.exists(classesPath)) {
+                        Files.createDirectories(classesPath);
+                    }
+                    Files.copy(filePath, classesPath.resolve(safeName), StandardCopyOption.REPLACE_EXISTING);
+                }
+            } catch (IOException e) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Image upload failed: " + e.getMessage());
+                return "redirect:/owner/hotels/" + id + "/rooms/" + roomId + "/edit";
+            }
+        }
+
+        room.setRoomType(type.trim());
+        room.setPrice(BigDecimal.valueOf(price));
+        room.setDescription(description.trim());
+        room.setNumWindow(window);
+        room.setBed(bed);
+        room.setAcreage(acreage);
+        room.setPerson(person);
+        room.setNumberRooms(numberRooms);
+        room.setRoomStatus(roomStatus != null ? roomStatus : true);
+        roomRepository.save(room);
+
+        RoomFacility facility = roomFacilityRepository.findByRoom(room).orElse(null);
+        if (facility == null) {
+            facility = new RoomFacility();
+            facility.setRoom(room);
+        }
+        facility.setFreeToiletries(freeToiletries != null && freeToiletries);
+        facility.setShower(shower != null && shower);
+        facility.setBathrobe(bathrobe != null && bathrobe);
+        facility.setToilet(toilet != null && toilet);
+        facility.setTowels(towels != null && towels);
+        facility.setSlippers(slippers != null && slippers);
+        facility.setHairdryer(hairdryer != null && hairdryer);
+        facility.setToiletPaper(toiletPaper != null && toiletPaper);
+        facility.setAirConditioning(airConditioning != null && airConditioning);
+        facility.setSafetyDepositBox(safetyDepositBox != null && safetyDepositBox);
+        facility.setDesk(desk != null && desk);
+        facility.setTelevision(television != null && television);
+        facility.setTelephone(telephone != null && telephone);
+        facility.setIron(iron != null && iron);
+        facility.setElectricKettle(electricKettle != null && electricKettle);
+        facility.setCableChannels(cableChannels != null && cableChannels);
+        facility.setWakeUpService(wakeUpService != null && wakeUpService);
+        facility.setWardrobeCloset(wardrobeCloset != null && wardrobeCloset);
+        facility.setClothesRack(clothesRack != null && clothesRack);
+        facility.setFreeBottledWater(freeBottledWater);
+        roomFacilityRepository.save(facility);
+
+        redirectAttributes.addFlashAttribute("successMessage", "Room \"" + type + "\" updated successfully!");
+        return "redirect:/owner/hotels/" + id;
+    }
+
+    // ===================== POST /owner/hotels/{id}/rooms/{roomId}/delete =====================
+    @PostMapping("/owner/hotels/{id}/rooms/{roomId}/delete")
+    public String deleteRoom(
+            @PathVariable("id") int id,
+            @PathVariable("roomId") int roomId,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+
+        if (!"HOTEL_OWNER".equals(loggedInUser.getRole())) {
+            return "redirect:/home";
+        }
+
+        if (!ownerService.isOwnerApproved(loggedInUser)) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Your account is pending admin approval.");
+            return "redirect:/owner/dashboard";
+        }
+
+        Hotel hotel = hotelRepository.findById(id).orElse(null);
+        if (hotel == null) return "redirect:/hotels";
+
+        HotelOwner owner = ownerService.getOwnerByUser(loggedInUser).orElse(null);
+        if (owner == null || hotel.getOwner().getId() != owner.getId()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "You don't have permission.");
+            return "redirect:/home";
+        }
+
+        Room room = roomRepository.findById(roomId).orElse(null);
+        if (room == null || room.getHotelId() != id) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Room not found.");
+            return "redirect:/owner/hotels/" + id;
+        }
+
+        try {
+            // Delete RoomFacility first
+            RoomFacility facility = roomFacilityRepository.findByRoom(room).orElse(null);
+            if (facility != null) {
+                roomFacilityRepository.delete(facility);
+                roomFacilityRepository.flush();
+            }
+
+            // Delete Room
+            roomRepository.delete(room);
+            roomRepository.flush();
+
+            redirectAttributes.addFlashAttribute("successMessage", "Room deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Cannot delete this room because it is associated with existing bookings.");
+        }
+
+        return "redirect:/owner/hotels/" + id;
     }
 }
