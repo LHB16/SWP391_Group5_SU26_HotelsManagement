@@ -22490,3 +22490,67 @@ h6,
   font-size: 0.72rem;
   padding: 0.125rem 0.5rem; /* px-2 py-0.5 equivalent */
 }
+
+/* Custom Red Delete Button for Modal (No inline style) */
+.btn-delete-modal {
+  background-color: #ef4444 !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+  font-size: 0.9rem !important;
+}
+
+.btn-delete-modal:hover {
+  background-color: #dc2626 !important;
+  border-color: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+/* Helper Classes for Hotel Detail Page Cleanup */
+.card-custom-rounded {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+}
+
+.hotel-detail-img-container {
+  min-height: 250px !important;
+}
+
+.badge-room-count {
+  background-color: #ede9fe !important;
+  color: #4f46e5 !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+}
+
+.modal-content-rounded {
+  border-radius: 16px !important;
+  border: none !important;
+  overflow: hidden !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+}
+
+.icon-warning-large {
+  font-size: 3rem !important;
+}
+
+.modal-title-serif {
+  font-family: 'Playfair Display', serif !important;
+}
+
+.modal-text-desc {
+  font-size: 0.95rem !important;
+  line-height: 1.6 !important;
+}
+
+.text-navy-primary {
+  color: var(--navy-primary) !important;
+}
+
+.text-gold-dark {
+  color: var(--gold-dark) !important;
+}
+
+.font-size-9 {
+  font-size: 0.9rem !important;
+}
+
