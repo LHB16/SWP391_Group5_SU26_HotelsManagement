@@ -82,6 +82,26 @@
             <artifactId>paypal-server-sdk</artifactId>
             <version>2.3.0</version>
         </dependency>
+        <!-- Selenium WebDriver for UI Automation Testing -->
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>4.22.0</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Apache POI for Excel Read/Write -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>5.2.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.5</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
