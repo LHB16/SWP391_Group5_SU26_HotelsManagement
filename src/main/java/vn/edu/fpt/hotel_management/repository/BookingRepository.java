@@ -43,4 +43,11 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
             @Param("hotelId") int hotelId,
             @Param("statuses") List<String> statuses
     );
+
+    long countByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
+            int roomId,
+            String status,
+            java.time.LocalDate checkout,
+            java.time.LocalDate checkin
+    );
 }

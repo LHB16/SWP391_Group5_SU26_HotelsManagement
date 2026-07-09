@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
 
 <head th:replace="~{fragment/frag :: head}"></head>
 
@@ -36,7 +36,7 @@
 
             <!-- ===== FILTER SIDEBAR ===== -->
             <div class="col-12 col-lg-3">
-                <div class="card filter-card border-0 shadow-sm" style="border-radius:16px; overflow:hidden; position:sticky; top:80px;">
+                <div class="card filter-card border-0 shadow-sm room-list-filter-card">
                     <div class="card-header filter-card-header text-gold border-0 d-flex align-items-center gap-2">
                         <i class="bi bi-funnel text-gold"></i>
                         Filter Rooms
@@ -58,12 +58,12 @@
                             <div class="mb-3">
                                 <label class="filter-section-label" for="filterCheckin">Check-in Date</label>
                                 <input type="text" name="checkin" id="filterCheckin"
-                                       class="form-control form-control-sm filter-input" th:value="${checkin}" placeholder="Select Check-in" />
+                                       class="form-control form-control-sm filter-input" th:value="${checkin}" th:data-min-date="${today}" placeholder="Select Check-in" />
                             </div>
                             <div class="mb-3">
                                 <label class="filter-section-label" for="filterCheckout">Check-out Date</label>
                                 <input type="text" name="checkout" id="filterCheckout"
-                                       class="form-control form-control-sm filter-input" th:value="${checkout}" placeholder="Select Check-out" />
+                                       class="form-control form-control-sm filter-input" th:value="${checkout}" th:data-min-date="${minCheckout}" placeholder="Select Check-out" />
                             </div>
 
                             <div class="d-grid gap-2 mt-4">
@@ -78,11 +78,11 @@
                         </form>
 
                         <!-- Customer Support inside the same sticky filter card to prevent overlap on scroll -->
-                        <hr style="border-color: rgba(0, 0, 0, 0.08); margin: 20px 0;">
+                        <hr class="customer-support-divider">
                         <div class="text-center">
-                            <h6 class="fw-bold mb-2" style="font-size: 0.95rem; color: #0a1628;">Customer Support</h6>
-                            <p class="text-muted mb-3" style="font-size: 0.8rem; line-height: 1.4;">Have questions about rooms or services? Chat directly with the hotel owner!</p>
-                            <a th:href="@{/customer/chat(hotelId=${hotel.id})}" class="btn w-100 btn-sm" style="background-color: #0a1628; color: #c9a96e; font-weight: 600; border-radius: 8px;">
+                            <h6 class="fw-bold mb-2 customer-support-title">Customer Support</h6>
+                            <p class="text-muted mb-3 customer-support-desc">Have questions about rooms or services? Chat directly with the hotel owner!</p>
+                            <a th:href="@{/customer/chat(hotelId=${hotel.id})}" class="btn w-100 btn-sm customer-support-btn">
                                 <i class="bi bi-chat-left-dots-fill me-1"></i>
                                 Chat with Owner
                             </a>
@@ -137,11 +137,11 @@
                         <!-- Room Quantity Badge -->
                         <div class="room-qty-badge">
                             <i class="bi bi-door-open me-1"></i>
-                            <span th:text="${room.numberRooms != null ? room.numberRooms + ' room' + (room.numberRooms > 1 ? 's' : '') + ' available' : '0 rooms available'}">5 rooms available</span>
+                            <span th:text="${availableRoomsMap != null and availableRoomsMap.containsKey(room.id) ? (availableRoomsMap.get(room.id) + ' Available Rooms') : (room.numberRooms != null ? room.numberRooms + ' Available Rooms' : '0 Available Rooms')}">5 Available Rooms</span>
                         </div>
 
                         <!-- Ảnh -->
-                        <div class="room-card-img-wrap" style="position: relative;">
+                        <div class="room-card-img-wrap room-list-img-wrap">
                             <img th:if="${room.imgUrl != null and !room.imgUrl.isEmpty()}"
                                 th:src="${room.imgUrl}" th:alt="${room.roomType}" class="room-card-img" />
                             <div th:if="${room.imgUrl == null or room.imgUrl.isEmpty()}" class="room-card-img-placeholder">
@@ -317,7 +317,7 @@
                                                             th:data-bs-target="${'#editForm-' + review.id}"
                                                             aria-expanded="false">Edit</button>
                                                     <form th:action="@{/hotels/{id}/reviews/{rid}/delete(id=${hotel.id}, rid=${review.id})}"
-                                                          method="post" style="display:inline;"
+                                                          method="post" class="d-inline"
                                                           onsubmit="return confirm('Delete this review?');">
                                                         <button type="submit" class="btn-review-delete">Delete</button>
                                                     </form>
@@ -447,7 +447,7 @@
                                             <div th:if="${user != null and user.role == 'ADMIN' and (currentCustomerId == null or review.customer == null or currentCustomerId != review.customer.id)}"
                                                  class="mt-2 text-end">
                                                 <form th:action="@{/hotels/{id}/reviews/{rid}/delete(id=${hotel.id}, rid=${review.id})}"
-                                                      method="post" style="display:inline;"
+                                                      method="post" class="d-inline"
                                                       onsubmit="return confirm('Delete this review?');">
                                                     <button type="submit" class="btn-review-delete">Delete</button>
                                                 </form>
@@ -468,48 +468,6 @@
 <footer th:replace="~{fragment/frag :: footer}"></footer>
 <div th:replace="~{fragment/frag :: scripts}"></div>
 
-<script th:inline="javascript">
-    document.addEventListener("DOMContentLoaded", function() {
-        if (typeof flatpickr !== 'function') {
-            return;
-        }
-
-        const checkinVal = /*[[${checkin}]]*/ '';
-        const checkoutVal = /*[[${checkout}]]*/ '';
-        const todayVal = /*[[${today}]]*/ '';
-
-        const checkinPicker = flatpickr("#filterCheckin", {
-            dateFormat: "Y-m-d",
-            altInput: true,
-            altFormat: "d/m/Y",
-            altInputClass: "form-control form-control-sm filter-input w-100",
-            minDate: todayVal ? todayVal : "today",
-            allowInput: false,
-            defaultDate: checkinVal ? checkinVal : null,
-            onChange: function(selectedDates, dateStr) {
-                if (selectedDates[0]) {
-                    const nextDay = new Date(selectedDates[0]);
-                    nextDay.setDate(nextDay.getDate() + 1);
-                    checkoutPicker.set("minDate", nextDay);
-
-                    const currentCheckout = checkoutPicker.selectedDates[0];
-                    if (currentCheckout && currentCheckout <= selectedDates[0]) {
-                        checkoutPicker.setDate(nextDay);
-                    }
-                }
-            }
-        });
-
-        const checkoutPicker = flatpickr("#filterCheckout", {
-            dateFormat: "Y-m-d",
-            altInput: true,
-            altFormat: "d/m/Y",
-            altInputClass: "form-control form-control-sm filter-input w-100",
-            minDate: checkinVal ? new Date(new Date(checkinVal).getTime() + 86400000) : new Date().setDate(new Date().getDate() + 1),
-            allowInput: false,
-            defaultDate: checkoutVal ? checkoutVal : null
-        });
-    });
-</script>
+<script th:src="@{/assets/js/filter.js?v=2}"></script>
 </body>
 </html>

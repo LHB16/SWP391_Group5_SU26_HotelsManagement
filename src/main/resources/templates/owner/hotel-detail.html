@@ -110,20 +110,12 @@
                                         <i class="bi bi-tag me-1"></i>
                                         <span th:text="${hotel.approvalStatus ?: 'PENDING'}">PENDING</span>
                                     </span>
-                                    <span class="badge bg-light text-dark px-3 py-2" th:if="${hotel.approvedAt != null}">
-                                        <i class="bi bi-calendar-check me-1"></i>
-                                        Approved: <span th:text="${#temporals.format(hotel.approvedAt, 'dd/MM/yyyy')}">Date</span>
-                                    </span>
                                 </div>
 
                                 <div class="mt-3 d-flex gap-2">
                                     <a th:href="@{/owner/hotels/{id}/edit(id=${hotel.id})}" class="btn btn-gold btn-sm">
                                         <i class="bi bi-pencil me-1"></i>
                                         Edit Hotel
-                                    </a>
-                                    <a th:href="@{/owner/hotels/{id}/rooms(id=${hotel.id})}" class="btn btn-outline-primary btn-sm">
-                                        <i class="bi bi-door-open me-1"></i>
-                                        Manage Rooms
                                     </a>
                                 </div>
                             </div>
@@ -134,6 +126,16 @@
 
             <!-- ===== ROOM LIST ===== -->
             <div class="col-12 mt-3">
+                <!-- Flash messages -->
+                <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span th:text="${successMessage}"></span>
+                </div>
+                <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span th:text="${errorMessage}"></span>
+                </div>
+
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h4 class="fw-bold text-dark mb-0">
                         <i class="bi bi-door-open me-2" style="color: var(--gold);"></i>
@@ -158,71 +160,80 @@
                     </a>
                 </div>
 
-                <!-- Room List (View-only) -->
-                <div th:if="${rooms != null and !rooms.isEmpty()}" class="row g-4">
-                    <div th:each="room : ${rooms}" class="col-12 col-md-6 col-lg-4">
-                        <div class="card h-100 shadow-sm border-0" style="border-radius:14px; overflow:hidden;">
+                <!-- Room List (Table view for Owner) -->
+                <div th:if="${rooms != null and !rooms.isEmpty()}" class="table-responsive bg-white rounded-3 shadow-sm p-3">
+                    <table class="owner-rooms-table align-middle table-hover">
+                        <thead>
+                            <tr>
+                                <th>nummber</th>
+                                <th>room_type</th>
+                                <th>room</th>
+                                <th>acreage</th>
+                                <th>bed</th>
+                                <th>person</th>
+                                <th>window</th>
+                                <th>room_status</th>
+                                <th>price</th>
+                                <th>action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="room, iterStat : ${rooms}">
+                                <td th:text="${iterStat.count}">1</td>
+                                <td th:text="${room.type}">Standard</td>
+                                <td th:text="${room.numberRooms}">5</td>
+                                <td th:text="${room.acreage + ' m²'}">25 m²</td>
+                                <td th:text="${room.bed}">1</td>
+                                <td th:text="${room.person}">2</td>
+                                <td th:text="${room.window}">1</td>
+                                <td>
+                                    <span class="badge" th:classappend="${room.roomStatus} ? 'bg-success' : 'bg-danger'"
+                                          th:text="${room.roomStatus} ? 'Active' : 'Inactive'">Active</span>
+                                </td>
+                                <td th:text="${#numbers.formatInteger(room.price, 0, 'COMMA') + ' VND'}">500,000 VND</td>
+                                <td>
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        <a th:href="@{/hotels/{id}/rooms/{rid}(id=${hotel.id}, rid=${room.id})}"
+                                           class="btn-action-view">View</a>
+                                        <a th:href="@{/owner/hotels/{id}/rooms/{rid}/edit(id=${hotel.id}, rid=${room.id})}"
+                                           class="btn-action-modify">Modify</a>
+                                        <button type="button" class="btn-action-delete" data-bs-toggle="modal" th:data-bs-target="'#deleteModalRoom-' + ${room.id}">Delete</button>
 
-                            <!-- Room Image -->
-                            <div class="position-relative overflow-hidden" style="height: 200px; background: #f1f5f9;">
-                                <img th:if="${room.imgUrl != null and !room.imgUrl.isEmpty()}"
-                                     th:src="@{${room.imgUrl}}" th:alt="${room.type}"
-                                     class="w-100 h-100 object-fit-cover" />
-                                <div th:if="${room.imgUrl == null or room.imgUrl.isEmpty()}"
-                                     class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
-                                    <i class="bi bi-image text-muted fs-3"></i>
-                                </div>
-                            </div>
-
-                            <!-- Room Body -->
-                            <div class="card-body">
-                                <h6 class="fw-bold text-dark mb-1" th:text="${room.type}">Room Type</h6>
-                                <p class="text-muted small mb-2" th:text="${room.description != null ? room.description : 'No description available.'}">
-                                    Description
-                                </p>
-
-                                <div class="d-flex flex-wrap gap-2 mb-2">
-                                    <span class="badge bg-light text-dark">
-                                        <i class="bi bi-arrows-fullscreen me-1"></i>
-                                        <span th:text="${room.acreage + ' m²'}">25 m²</span>
-                                    </span>
-                                    <span class="badge bg-light text-dark">
-                                        <i class="bi bi-people me-1"></i>
-                                        <span th:text="${room.person + ' guest(s)'}">2 guests</span>
-                                    </span>
-                                    <span class="badge bg-light text-dark">
-                                        <i class="bi bi-door-closed me-1"></i>
-                                        <span th:text="${room.bed + ' bed(s)'}">1 bed</span>
-                                    </span>
-                                    <span class="badge bg-light text-dark">
-                                        <i class="bi bi-grid-3x3-gap me-1"></i>
-                                        <span th:text="${room.window + ' window(s)'}">0 windows</span>
-                                    </span>
-                                </div>
-                            </div>
-
-                            <!-- Room Footer (View-only, no Book button) -->
-                            <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center">
-                                <div>
-                                    <span class="fw-bold text-gold fs-5" th:text="${#numbers.formatInteger(room.price, 0, 'COMMA')}">500,000</span>
-                                    <small class="text-muted"> VND/night</small>
-                                </div>
-                                <div class="d-flex gap-2">
-                                    <a th:href="@{/owner/hotels/{id}/rooms/{rid}/edit(id=${hotel.id}, rid=${room.id})}"
-                                       class="btn btn-sm btn-outline-secondary" th:if="${room.id != null}">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <form th:action="@{/owner/hotels/{id}/rooms/{rid}/delete(id=${hotel.id}, rid=${room.id})}"
-                                          method="post"
-                                          onsubmit="return confirm('Delete this room?');" th:if="${room.id != null}">
-                                        <button type="submit" class="btn btn-sm btn-danger">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                        <!-- Bootstrap Delete Modal -->
+                                        <div class="modal fade" th:id="'deleteModalRoom-' + ${room.id}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content" style="border-radius: 16px; border: none; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+                                                    <div class="modal-header border-0 pt-4 pb-0 justify-content-center">
+                                                        <div class="text-center">
+                                                            <i class="bi bi-exclamation-triangle" style="font-size: 3rem; color: var(--gold);"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-body text-center px-4 py-3">
+                                                        <h4 class="fw-bold text-dark mb-3" style="font-family: 'Playfair Display', serif;">Confirm Deletion</h4>
+                                                        <p class="text-muted mb-0" style="font-size: 0.95rem; line-height: 1.6;">
+                                                            Are you sure you want to delete room <strong style="color:var(--navy-primary);" th:text="'\'' + ${room.type} + '\''">Room Type</strong> from <strong style="color:var(--gold-dark);" th:text="'\'' + ${hotel.name} + '\''">Hotel Name</strong>?
+                                                        </p>
+                                                    </div>
+                                                    <div class="modal-footer border-0 pb-4 pt-2 d-flex gap-3 justify-content-center">
+                                                        <button type="button" class="btn btn-light px-4 py-2 rounded-3 border fw-semibold text-secondary" 
+                                                                data-bs-dismiss="modal" style="font-size: 0.9rem;">
+                                                            No, Keep It
+                                                        </button>
+                                                        <form th:action="@{/owner/hotels/{id}/rooms/{rid}/delete(id=${hotel.id}, rid=${room.id})}"
+                                                              method="post" class="d-inline">
+                                                            <button type="submit" class="btn px-4 py-2 rounded-3 fw-semibold text-white" style="background-color: var(--navy-primary); font-size: 0.9rem;">
+                                                                Yes, Delete
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 

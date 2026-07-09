@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragment/frag :: head}"></head>
+
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragment/frag :: navBar}"></nav>
+
+<!-- Hero Banner -->
+<section class="create-hero">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <a th:href="@{/owner/dashboard(tab='hotels')}" class="bc-link">My Hotels</a>
+            <span class="bc-sep">/</span>
+            <a th:href="@{/owner/hotels/{id}(id=${hotel.id})}"
+               class="bc-link" th:text="${hotel.name}">Hotel</a>
+            <span class="bc-sep">/</span>
+            <span class="bc-active">Edit Room</span>
+        </nav>
+        <h1>Edit Room</h1>
+        <p th:text="'Editing room: ' + ${room.type} + ' for ' + ${hotel.name}">Hotel info</p>
+        <div class="hero-divider"></div>
+    </div>
+</section>
+
+<!-- Main Content -->
+<main class="flex-grow-1 py-4" style="background:var(--cream);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10">
+
+                <!-- Flash messages -->
+                <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span th:text="${successMessage}"></span>
+                </div>
+                <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span th:text="${errorMessage}"></span>
+                </div>
+
+                <form th:action="@{/owner/hotels/{id}/rooms/{rid}/edit(id=${hotel.id}, rid=${room.id})}"
+                      method="post" enctype="multipart/form-data" id="roomForm">
+
+                    <!-- ===== SECTION 1: Room Information ===== -->
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <i class="bi bi-door-open text-gold"></i>
+                            <h5>Room Information</h5>
+                        </div>
+
+                        <div class="form-card-body">
+                            <!-- Room Type -->
+                            <div class="mb-4">
+                                <label class="lbl" for="roomType">Room Type <span class="text-danger">*</span></label>
+                                <input type="text" name="type" id="roomType" class="fc"
+                                       placeholder="e.g. Standard, Deluxe, Suite, Family"
+                                       th:value="${room.type}"
+                                       required maxlength="255" />
+                            </div>
+
+                            <!-- Price + Area -->
+                            <div class="row g-4 mb-4">
+                                <div class="col-12 col-sm-6">
+                                    <label class="lbl" for="roomPrice">Price / Night (VND) <span class="text-danger">*</span></label>
+                                    <input type="number" name="price" id="roomPrice" class="fc"
+                                           placeholder="e.g. 500000" min="100000" step="1" 
+                                           th:value="${#numbers.formatInteger(room.price, 0)}"
+                                           required />
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <label class="lbl" for="roomAcreage">Area (m²) <span class="text-danger">*</span></label>
+                                    <input type="number" name="acreage" id="roomAcreage" class="fc"
+                                           placeholder="e.g. 25" min="1" step="0.1" 
+                                           th:value="${room.acreage}"
+                                           required />
+                                </div>
+                            </div>
+
+                            <!-- Number of Rooms + Room Status -->
+                            <div class="row g-4 mb-4">
+                                <div class="col-12 col-sm-6">
+                                    <label class="lbl" for="numberRooms">Number of Rooms <span class="text-danger">*</span></label>
+                                    <input type="number" name="numberRooms" id="numberRooms" class="fc"
+                                           placeholder="e.g. 5" min="1" 
+                                           th:value="${room.numberRooms}"
+                                           required />
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <label class="lbl">Room Status</label>
+                                    <div class="room-status-toggle">
+                                        <label class="status-option">
+                                            <input type="radio" name="roomStatus" value="true" th:checked="${room.roomStatus}" />
+                                            <span class="status-label status-active">
+                                                <i class="bi bi-check-circle-fill"></i> Active
+                                            </span>
+                                        </label>
+                                        <label class="status-option">
+                                            <input type="radio" name="roomStatus" value="false" th:checked="${!room.roomStatus}" />
+                                            <span class="status-label status-inactive">
+                                                <i class="bi bi-x-circle-fill"></i> Inactive
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Max Guests / Beds / Windows -->
+                            <div class="row g-4 mb-4">
+                                <div class="col-12 col-sm-4">
+                                    <label class="lbl" for="personInput">Max Guests <span class="text-danger">*</span></label>
+                                    <input type="number" name="person" id="personInput" class="fc"
+                                           placeholder="e.g. 2" min="1" max="20" 
+                                           th:value="${room.person}"
+                                           required />
+                                </div>
+                                <div class="col-12 col-sm-4">
+                                    <label class="lbl" for="bedInput">Beds <span class="text-danger">*</span></label>
+                                    <input type="number" name="bed" id="bedInput" class="fc"
+                                           placeholder="e.g. 1" min="1" max="10" 
+                                           th:value="${room.bed}"
+                                           required />
+                                </div>
+                                <div class="col-12 col-sm-4">
+                                    <label class="lbl" for="windowInput">Windows <span class="text-danger">*</span></label>
+                                    <input type="number" name="window" id="windowInput" class="fc"
+                                           placeholder="e.g. 0" min="0" max="10" 
+                                           th:value="${room.window}"
+                                           required />
+                                </div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="mb-4">
+                                <label class="lbl" for="roomDesc">Description <span class="text-danger">*</span></label>
+                                <textarea name="description" id="roomDesc" class="fc" rows="4"
+                                          placeholder="Describe the room's features, view, amenities..."
+                                          style="resize:vertical;" required th:text="${room.description}"></textarea>
+                            </div>
+
+                            <div class="fdivider"></div>
+
+                            <!-- Upload Image -->
+                            <div class="mb-3">
+                                <label class="lbl" for="imageFile">Room Image</label>
+                                <div th:if="${room.imgUrl != null and !room.imgUrl.isEmpty()}" class="mb-3">
+                                    <img th:src="${room.imgUrl}" alt="Current image" class="img-thumbnail w-25" />
+                                    <div class="form-text text-muted mt-1">Current image preview. Upload a new file below if you wish to change it.</div>
+                                </div>
+                                <input type="file" name="imageFile" id="imageFile" class="form-control"
+                                       accept="image/jpeg,image/png,image/webp,image/jpg" />
+                                <div class="form-text text-muted mt-1">JPG, PNG, WEBP · Max 10MB</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== SECTION 2: Room Facilities ===== -->
+                    <div class="form-card mt-4">
+                        <div class="form-card-header">
+                            <i class="bi bi-grid-1x2 text-gold"></i>
+                            <h5>Room Facilities</h5>
+                        </div>
+
+                        <div class="form-card-body">
+                            <!-- Bathroom Amenities -->
+                            <div class="facility-section" id="bathroomAmenitiesSection">
+                                <div class="facility-section-title">
+                                    <i class="bi bi-droplet"></i>
+                                    Bathroom Amenities <span class="text-danger">*</span>
+                                </div>
+                                <div class="facility-grid">
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="freeToiletries" value="true" 
+                                               th:checked="${room.facility != null ? room.facility.freeToiletries : false}" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Free Toiletries</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="shower" value="true" 
+                                               th:checked="${room.facility != null ? room.facility.shower : false}" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Shower</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="bathrobe" value="true" 
+                                               th:checked="${room.facility != null ? room.facility.bathrobe : false}" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Bathrobe</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="toilet" value="true" 
+                                               th:checked="${room.facility != null ? room.facility.toilet : false}" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Toilet</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="towels" value="true" 
+                                               th:checked="${room.facility != null ? room.facility.towels : false}" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Towels</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="slippers" value="true" 
+                                               th:checked="${room.facility != null ? room.facility.slippers : false}" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Slippers</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="hairdryer" value="true" 
+                                               th:checked="${room.facility != null ? room.facility.hairdryer : false}" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Hairdryer</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="toiletPaper" value="true" 
+                                               th:checked="${room.facility != null ? room.facility.toiletPaper : false}" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Toilet Paper</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="fdivider"></div>
+
+                            <!-- Room Amenities -->
+                            <div class="facility-section" id="roomAmenitiesSection">
+                                <div class="facility-section-title">
+                                    <i class="bi bi-house-door"></i>
+                                    Room Amenities <span class="text-danger">*</span>
+                                </div>
+                                <div class="facility-grid">
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="airConditioning" value="true" 
+                                               th:checked="${room.facility != null ? room.facility.airConditioning : false}" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Air Conditioning</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="safetyDepositBox" value="true" 
+                                               th:checked="${room.facility != null ? room.facility.safetyDepositBox : false}" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Safety Deposit Box</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="desk" value="true" 
+                                               th:checked="${room.facility != null ? room.facility.desk : false}" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Desk</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="television" value="true" 
+                                               th:checked="${room.facility != null ? room.facility.television : false}" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Television</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="telephone" value="true" 
+                                               th:checked="${room.facility != null ? room.facility.telephone : false}" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Telephone</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="iron" value="true" 
+                                               th:checked="${room.facility != null ? room.facility.iron : false}" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Iron</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="electricKettle" value="true" 
+                                               th:checked="${room.facility != null ? room.facility.electricKettle : false}" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Electric Kettle</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="cableChannels" value="true" 
+                                               th:checked="${room.facility != null ? room.facility.cableChannels : false}" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Cable Channels</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="wakeUpService" value="true" 
+                                               th:checked="${room.facility != null ? room.facility.wakeUpService : false}" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Wake-up Service</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="wardrobeCloset" value="true" 
+                                               th:checked="${room.facility != null ? room.facility.wardrobeCloset : false}" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Wardrobe / Closet</span>
+                                    </label>
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="clothesRack" value="true" 
+                                               th:checked="${room.facility != null ? room.facility.clothesRack : false}" />
+                                        <span class="facility-check"></span>
+                                        <span class="facility-text">Clothes Rack</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="fdivider"></div>
+
+                            <!-- Extras -->
+                            <div class="facility-section">
+                                <div class="facility-section-title">
+                                    <i class="bi bi-cup-straw"></i>
+                                    Extras
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-12 col-sm-6">
+                                        <label class="lbl" for="freeBottledWater">Free Bottled Water (quantity)</label>
+                                        <input type="number" name="freeBottledWater" id="freeBottledWater" class="fc"
+                                               th:value="${room.facility != null ? room.facility.freeBottledWater : 0}" min="0" max="20" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== BUTTONS ===== -->
+                    <div class="form-card mt-4">
+                        <div class="form-card-body">
+                            <div class="d-flex gap-3 justify-content-end flex-wrap">
+                                <a th:href="@{/owner/hotels/{id}(id=${hotel.id})}" class="btn-cancel">
+                                    <i class="bi bi-arrow-left"></i>
+                                    Cancel
+                                </a>
+                                <button type="submit" class="btn-submit" id="submitBtn">
+                                    <i class="bi bi-floppy"></i>
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragment/frag :: footer}"></footer>
+<div th:replace="~{fragment/frag :: scripts}"></div>
+</body>
+</html>

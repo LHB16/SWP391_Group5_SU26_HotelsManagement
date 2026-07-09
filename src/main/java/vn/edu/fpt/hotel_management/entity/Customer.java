@@ -79,6 +79,22 @@ public class Customer {
         this.address = address;
     }
 
+    public String getFullAddress() {
+        StringBuilder sb = new StringBuilder();
+        if (address != null && !address.trim().isEmpty()) {
+            sb.append(address.trim());
+        }
+        if (city != null && !city.trim().isEmpty()) {
+            if (sb.length() > 0) sb.append(", ");
+            sb.append(city.trim());
+        }
+        if (country != null && !country.trim().isEmpty()) {
+            if (sb.length() > 0) sb.append(", ");
+            sb.append(country.trim());
+        }
+        return sb.toString();
+    }
+
     public String getCity() {
         return city;
     }
