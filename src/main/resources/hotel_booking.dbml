@@ -10,7 +10,7 @@ Table user_accounts {
   enabled BIT [note: 'Trạng thái kích hoạt tài khoản.']
   otp NVARCHAR(255) [note: 'Mã OTP dùng để xác thực.']
   otp_expiry DATETIME2 [note: 'Thời gian hết hạn của OTP.']
-  otp_type NVARCHAR(50) [note: 'Loại OTP: REGISTER, FORGOT_PASSWORD, LOGIN hoặc UPDATE_PROFILE.']
+  otp_type NVARCHAR(50) [note: 'Loại OTP: đăng ký, quên mật khẩu, đổi mật khẩu hoặc cập nhật hồ sơ.']
   created_at DATETIME2 [note: 'Thời gian tạo tài khoản.']
   updated_at DATETIME2 [note: 'Thời gian cập nhật tài khoản gần nhất.']
 }
@@ -195,6 +195,7 @@ Table bookings {
   status NVARCHAR(50)
   special_notes NVARCHAR(MAX)
   created_at DATETIME2
+  updated_at DATETIME2
 }
 
 
@@ -206,9 +207,6 @@ Table payments {
   status NVARCHAR(50)
   qr_code_url NVARCHAR(500)
   transaction_id NVARCHAR(255)
-  sender_account_number NVARCHAR(50)
-  sender_bank_name NVARCHAR(255)
-  sender_account_name NVARCHAR(255)
   paid_at DATETIME2
   created_at DATETIME2
   qr_expires_at DATETIME2
@@ -229,10 +227,9 @@ Table messages {
   id INT [pk, note: 'Mã định danh duy nhất của tin nhắn.']
   sender_id INT [note: 'Khóa ngoại liên kết đến tài khoản người gửi.']
   receiver_id INT [note: 'Khóa ngoại liên kết đến tài khoản người nhận.']
-  hotel_id INT [note: 'Khóa ngoại liên kết đến bảng hotel.']
   booking_id INT [note: 'Khóa ngoại liên kết đến bảng bookings.']
+  hotel_id INT [note: 'Khóa ngoại liên kết đến bảng hotel.']
   content NVARCHAR(MAX)
-  image_url NVARCHAR(255)
   is_read BIT
   sent_at DATETIME2
 }
@@ -245,7 +242,7 @@ Table feedback {
   room_id INT [note: 'Khóa ngoại liên kết đến bảng room.']
   user_full_name NVARCHAR(255)
   room_type NVARCHAR(255)
-  comment NVARCHAR(MAX)
+  comment NVARCHAR(1000)
   rating INT
   upvote INT [default: 0]
   downvote INT [default: 0]
@@ -256,9 +253,10 @@ Table feedback {
 
 
 Table feedback_votes {
+  id INT [pk]
   feedback_id INT [note: 'Khóa ngoại liên kết đến bảng feedback.']
   customer_id INT [note: 'Khóa ngoại liên kết đến bảng customers.']
-  vote_type INT
+  vote_type NVARCHAR(10) [note: 'Loại vote: UPVOTE hoặc DOWNVOTE']
   created_at DATETIME2
 }
 
@@ -287,7 +285,7 @@ Table refunds {
   refund_amount DECIMAL(38,2) [note: 'Số tiền hoàn lại cho khách hàng.']
   status NVARCHAR(50) [note: 'Trạng thái hoàn tiền: PENDING, PROCESSED, REJECTED.']
   note NVARCHAR(MAX) [note: 'Ghi chú xử lý hoàn tiền.']
-  cancellation_reason NVARCHAR(1000) [note: 'Lý do khách hàng hủy phòng.']
+  cancellation_reason NVARCHAR(1000) [note: 'Lý do hủy đặt phòng.']
   requested_at DATETIME2 [note: 'Thời điểm khách yêu cầu hoàn tiền.']
   processed_at DATETIME2 [note: 'Thời điểm hoàn tiền hoàn tất.']
 }
@@ -324,11 +322,14 @@ Ref: wishlists.room_id > room.id
 Ref: messages.sender_id > user_accounts.id
 Ref: messages.receiver_id > user_accounts.id
 Ref: messages.booking_id > bookings.id
+Ref: messages.hotel_id > hotel.id
 Ref: feedback.customer_id > customers.id
 Ref: feedback.hotel_id > hotel.id
 Ref: feedback.room_id > room.id
 Ref: feedback_replies.feedback_id > feedback.id
 Ref: feedback_replies.owner_id > hotel_owners.id
+Ref: feedback_votes.feedback_id > feedback.id
+Ref: feedback_votes.customer_id > customers.id
 
 
 
