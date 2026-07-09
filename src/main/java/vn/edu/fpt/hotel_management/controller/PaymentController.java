@@ -109,6 +109,7 @@ public class PaymentController {
     public String showQrPaymentPage(
             @RequestParam(value = "roomId", required = false) Integer roomId,
             @RequestParam(value = "roomIds", required = false) java.util.List<Integer> roomIds,
+            @RequestParam(value = "quantities", required = false) java.util.List<Integer> quantities,
             @RequestParam(value = "checkin", required = false) String checkin,
             @RequestParam(value = "checkout", required = false) String checkout,
             @RequestParam(value = "from", required = false) String from,
@@ -119,28 +120,6 @@ public class PaymentController {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null)
             return "redirect:/login";
-
-        // Lấy roomId từ danh sách nếu không có roomId đơn
-        if (roomId == null) {
-            if (roomIds != null && !roomIds.isEmpty())
-                roomId = roomIds.get(0);
-            else
-                return "redirect:/hotels";
-        }
-
-        // Tải thông tin phòng và khách sạn
-        Room room = roomRepository.findById(roomId).orElse(null);
-        if (room == null)
-            return "redirect:/hotels";
-
-        Hotel hotel = hotelRepository.findById(room.getHotelId()).orElse(null);
-        if (hotel == null || !hotel.isActive()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
-            if ("history".equals(from)) {
-                return "redirect:/booking/history";
-            }
-            return "redirect:/hotels";
-        }
 
         // Đặt ngày mặc định nếu không có
         if (checkin == null || checkin.isBlank())
@@ -154,7 +133,51 @@ public class PaymentController {
             checkInDate = LocalDate.parse(checkin);
             checkOutDate = LocalDate.parse(checkout);
         } catch (Exception e) {
-            return "redirect:/hotels/" + hotel.getId() + "/rooms";
+            return "redirect:/hotels";
+        }
+
+        // Lấy danh sách các phòng hợp lệ
+        java.util.List<Integer> validRoomIds = new java.util.ArrayList<>();
+        java.util.List<Integer> validQuantities = new java.util.ArrayList<>();
+        if (roomIds != null && !roomIds.isEmpty()) {
+            for (int i = 0; i < roomIds.size(); i++) {
+                Integer rId = roomIds.get(i);
+                Room r = roomRepository.findById(rId).orElse(null);
+                if (r != null) {
+                    validRoomIds.add(rId);
+                    int qtyVal = 1;
+                    if (quantities != null && quantities.size() > i) {
+                        qtyVal = quantities.get(i);
+                    }
+                    validQuantities.add(qtyVal);
+                }
+            }
+        } else if (roomId != null) {
+            Room r = roomRepository.findById(roomId).orElse(null);
+            if (r != null) {
+                validRoomIds.add(roomId);
+                int qtyVal = 1;
+                if (quantities != null && !quantities.isEmpty()) {
+                    qtyVal = quantities.get(0);
+                }
+                validQuantities.add(qtyVal);
+            }
+        }
+
+        if (validRoomIds.isEmpty()) {
+            return "redirect:/hotels";
+        }
+
+        // Tải thông tin phòng chính (phòng đầu tiên) và khách sạn
+        int primaryRoomId = validRoomIds.get(0);
+        Room room = roomRepository.findById(primaryRoomId).orElse(null);
+        Hotel hotel = hotelRepository.findById(room.getHotelId()).orElse(null);
+        if (hotel == null || !hotel.isActive()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "This hotel is currently inactive.");
+            if ("history".equals(from)) {
+                return "redirect:/booking/history";
+            }
+            return "redirect:/hotels";
         }
 
         // Tính số đêm
@@ -162,21 +185,32 @@ public class PaymentController {
         if (nights <= 0)
             nights = 1;
 
-        // Tính giá tiền (có tăng giá ngày lễ/cuối tuần)
-        BigDecimal subtotal = calculateRoomSubtotal(room.getPrice(), checkInDate, checkOutDate);
-        BigDecimal serviceFee = subtotal.compareTo(BigDecimal.ZERO) > 0 ? BigDecimal.valueOf(50_000) : BigDecimal.ZERO;
-        BigDecimal tax = subtotal.multiply(BigDecimal.valueOf(0.1)).setScale(0, java.math.RoundingMode.HALF_UP);
-        BigDecimal totalPrice = subtotal.add(tax).add(serviceFee);
+        // Tính toán các giá trị tổng cộng cho cả nhóm phòng
+        BigDecimal totalSubtotal = BigDecimal.ZERO;
+        java.util.List<BigDecimal> roomSubtotals = new java.util.ArrayList<>();
+        
+        for (int i = 0; i < validRoomIds.size(); i++) {
+            Room r = roomRepository.findById(validRoomIds.get(i)).orElse(null);
+            int qtyVal = validQuantities.get(i);
+            BigDecimal baseSub = calculateRoomSubtotal(r.getPrice(), checkInDate, checkOutDate);
+            BigDecimal rSub = baseSub.multiply(BigDecimal.valueOf(qtyVal));
+            totalSubtotal = totalSubtotal.add(rSub);
+            roomSubtotals.add(rSub);
+        }
+
+        BigDecimal serviceFee = totalSubtotal.compareTo(BigDecimal.ZERO) > 0 ? BigDecimal.valueOf(50_000) : BigDecimal.ZERO;
+        BigDecimal totalTax = totalSubtotal.multiply(BigDecimal.valueOf(0.1)).setScale(0, java.math.RoundingMode.HALF_UP);
+        BigDecimal grandTotalPrice = totalSubtotal.add(totalTax).add(serviceFee);
 
         // Lấy thông tin Customer từ User đang đăng nhập
         vn.edu.fpt.hotel_management.entity.Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
         if (customer == null)
             return "redirect:/hotels/" + hotel.getId() + "/rooms";
 
-        // Kiểm tra nếu đã có booking PENDING còn hạn QR thì dùng lại
+        // Kiểm tra nếu đã có booking PENDING cho phòng chính còn hạn QR thì dùng lại
         java.util.Optional<Booking> existingOpt = bookingRepository
                 .findByCustomerIdAndRoomIdAndCheckInDateAndCheckOutDateAndStatusOrderByCreatedAtDesc(
-                        customer.getId(), roomId, checkInDate, checkOutDate, "PENDING")
+                        customer.getId(), primaryRoomId, checkInDate, checkOutDate, "PENDING")
                 .stream()
                 .filter(b -> {
                     Payment p = paymentRepository.findByBookingId(b.getId()).orElse(null);
@@ -184,49 +218,102 @@ public class PaymentController {
                 })
                 .findFirst();
 
+        Booking parentBooking;
+        java.util.List<Booking> bookingsList = new java.util.ArrayList<>();
+        java.util.Map<Integer, Integer> bookingQuantitiesMap = new java.util.HashMap<>();
+
         if (existingOpt.isPresent()) {
-            // Chuyển sang trang QR của booking cũ
-            int existingBookingId = existingOpt.get().getId();
-            return "redirect:/booking/qr-payment-status?bookingId=" + existingBookingId
-                    + "&hotelId=" + hotel.getId() + "&roomId=" + roomId
-                    + "&checkin=" + checkInDate + "&checkout=" + checkOutDate;
+            parentBooking = existingOpt.get();
+            bookingsList.add(parentBooking);
+            bookingQuantitiesMap.put(parentBooking.getId(), validQuantities.get(0));
+            
+            // Tìm các booking con hiện tại của group
+            java.util.List<Booking> children = bookingRepository.findByCustomerIdOrderByCreatedAtDesc(customer.getId()).stream()
+                    .filter(b -> b.getSpecialNotes() != null && b.getSpecialNotes().equals("GROUP_BOOKING_parent:" + parentBooking.getId()))
+                    .collect(java.util.stream.Collectors.toList());
+            bookingsList.addAll(children);
+            for (int i = 1; i < validRoomIds.size() && i < bookingsList.size(); i++) {
+                bookingQuantitiesMap.put(bookingsList.get(i).getId(), validQuantities.get(i));
+            }
+        } else {
+            // Tạo mới cả group booking
+            parentBooking = new Booking();
+            parentBooking.setCustomer(customer);
+            parentBooking.setRoom(room);
+            parentBooking.setHotel(hotel);
+            parentBooking.setNumNights((int) nights);
+            parentBooking.setCheckInDate(checkInDate);
+            parentBooking.setCheckOutDate(checkOutDate);
+            
+            BigDecimal rSub = roomSubtotals.get(0);
+            BigDecimal rTax = rSub.multiply(BigDecimal.valueOf(0.1)).setScale(0, java.math.RoundingMode.HALF_UP);
+            BigDecimal rTotalPrice = rSub.add(rTax).add(serviceFee);
+            
+            parentBooking.setTotalPrice(rTotalPrice);
+            parentBooking.setStatus("PENDING");
+            parentBooking.setCreatedAt(LocalDateTime.now());
+            bookingRepository.save(parentBooking);
+            
+            bookingsList.add(parentBooking);
+            bookingQuantitiesMap.put(parentBooking.getId(), validQuantities.get(0));
+
+            for (int i = 1; i < validRoomIds.size(); i++) {
+                Room r = roomRepository.findById(validRoomIds.get(i)).orElse(null);
+                BigDecimal childSub = roomSubtotals.get(i);
+                BigDecimal childTax = childSub.multiply(BigDecimal.valueOf(0.1)).setScale(0, java.math.RoundingMode.HALF_UP);
+                BigDecimal childTotalPrice = childSub.add(childTax);
+                
+                Booking childBooking = new Booking();
+                childBooking.setCustomer(customer);
+                childBooking.setRoom(r);
+                childBooking.setHotel(hotel);
+                childBooking.setNumNights((int) nights);
+                childBooking.setCheckInDate(checkInDate);
+                childBooking.setCheckOutDate(checkOutDate);
+                childBooking.setTotalPrice(childTotalPrice);
+                childBooking.setStatus("PENDING");
+                childBooking.setCreatedAt(LocalDateTime.now());
+                childBooking.setSpecialNotes("GROUP_BOOKING_parent:" + parentBooking.getId());
+                bookingRepository.save(childBooking);
+                
+                bookingsList.add(childBooking);
+                bookingQuantitiesMap.put(childBooking.getId(), validQuantities.get(i));
+            }
         }
 
-        // Tạo booking mới
-        Booking booking = new Booking();
-        booking.setCustomer(customer);
-        booking.setRoom(room);
-        booking.setHotel(hotel);
-        booking.setNumNights((int) nights);
-        booking.setCheckInDate(checkInDate);
-        booking.setCheckOutDate(checkOutDate);
-        booking.setTotalPrice(totalPrice);
-        booking.setStatus("PENDING");
-        booking.setCreatedAt(LocalDateTime.now());
-        bookingRepository.save(booking);
+        int bookingId = parentBooking.getId();
 
-        // Tạo bản ghi thanh toán với trạng thái PENDING
-        LocalDateTime qrExpiresAt = LocalDateTime.now().plusMinutes(15); // QR hết hạn sau 15 phút
-        Payment payment = new Payment();
-        payment.setBooking(booking);
-        payment.setAmount(totalPrice);
-        payment.setMethod("QR_CODE");
-        payment.setStatus("PENDING");
-        payment.setPaidAt(null);
-        payment.setQrExpiresAt(qrExpiresAt);
-        paymentRepository.save(payment);
+        // Tạo hoặc lấy bản ghi thanh toán với trạng thái PENDING
+        Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
+        LocalDateTime qrExpiresAt;
+        if (payment == null) {
+            qrExpiresAt = LocalDateTime.now().plusMinutes(15); // QR hết hạn sau 15 phút
+            payment = new Payment();
+            payment.setBooking(parentBooking);
+            payment.setAmount(grandTotalPrice); // Sử dụng giá trị tổng cộng cho Payment
+            payment.setMethod("QR_CODE");
+            payment.setStatus("PENDING");
+            payment.setPaidAt(null);
+            payment.setQrExpiresAt(qrExpiresAt);
+            paymentRepository.save(payment);
+        } else {
+            qrExpiresAt = payment.getQrExpiresAt();
+        }
 
         // Tạo mã QR (ưu tiên PayOS, nếu không có thì dùng VietQR tĩnh)
-        String transferInfo = buildTransferInfo(booking.getId(), hotel.getName(), room.getRoomType(), nights);
-        String qrUrl = getQrUrl(booking.getId(), totalPrice, transferInfo, payment);
+        String transferInfo = buildTransferInfo(bookingId, hotel.getName(), room.getRoomType(), nights);
+        String qrUrl = getQrUrl(bookingId, grandTotalPrice, transferInfo, payment);
 
         // Tính thời gian còn lại cho đồng hồ đếm ngược
-        long remainingSeconds = java.time.Duration.between(LocalDateTime.now(), qrExpiresAt).getSeconds();
+        long remainingSeconds = Math.max(0, java.time.Duration.between(LocalDateTime.now(), qrExpiresAt).getSeconds());
 
         // Đưa dữ liệu vào model để hiển thị trên giao diện
         pushToModel(model, loggedInUser, hotel, room, checkInDate, checkOutDate,
-                nights, subtotal, tax, serviceFee, totalPrice, qrUrl,
-                transferInfo, booking.getId(), qrExpiresAt, remainingSeconds, from);
+                nights, totalSubtotal, totalTax, serviceFee, grandTotalPrice, qrUrl,
+                transferInfo, bookingId, qrExpiresAt, remainingSeconds, from, validQuantities.get(0));
+        
+        model.addAttribute("bookingsList", bookingsList);
+        model.addAttribute("bookingQuantitiesMap", bookingQuantitiesMap);
 
         return "booking/qr-payment";
     }
@@ -368,21 +455,57 @@ public class PaymentController {
         if (nights <= 0)
             nights = 1;
 
-        // Tính lại giá để hiển thị
-        BigDecimal subtotal = calculateRoomSubtotal(room.getPrice(), checkInDate, checkOutDate);
-        BigDecimal serviceFee = subtotal.compareTo(BigDecimal.ZERO) > 0 ? BigDecimal.valueOf(50_000) : BigDecimal.ZERO;
-        BigDecimal tax = subtotal.multiply(BigDecimal.valueOf(0.1)).setScale(0, java.math.RoundingMode.HALF_UP);
+        // Tìm tất cả các booking con trong cùng group
+        java.util.List<Booking> childBookings = bookingRepository.findByCustomerIdOrderByCreatedAtDesc(booking.getCustomer().getId()).stream()
+                .filter(b -> b.getSpecialNotes() != null && b.getSpecialNotes().equals("GROUP_BOOKING_parent:" + booking.getId()))
+                .collect(java.util.stream.Collectors.toList());
+
+        java.util.List<Booking> bookingsList = new java.util.ArrayList<>();
+        bookingsList.add(booking);
+        bookingsList.addAll(childBookings);
+
+        java.util.Map<Integer, Integer> bookingQuantitiesMap = new java.util.HashMap<>();
+        BigDecimal totalSubtotal = BigDecimal.ZERO;
+        BigDecimal totalTax = BigDecimal.ZERO;
+        BigDecimal serviceFee = BigDecimal.ZERO;
+        BigDecimal grandTotalPrice = BigDecimal.ZERO;
+
+        for (Booking b : bookingsList) {
+            BigDecimal bTotalPrice = b.getTotalPrice();
+            boolean isParent = (b.getSpecialNotes() == null || !b.getSpecialNotes().startsWith("GROUP_BOOKING_parent:"));
+            BigDecimal bServiceFee = (isParent && bTotalPrice.compareTo(BigDecimal.valueOf(50_000)) > 0) ? BigDecimal.valueOf(50_000) : BigDecimal.ZERO;
+            BigDecimal bSubtotalPlusTax = bTotalPrice.subtract(bServiceFee);
+            
+            BigDecimal bSubtotal = bSubtotalPlusTax.divide(BigDecimal.valueOf(1.1), 0, java.math.RoundingMode.HALF_UP);
+            BigDecimal bTax = bSubtotalPlusTax.subtract(bSubtotal);
+            
+            BigDecimal singleSubtotal = calculateRoomSubtotal(b.getRoom().getPrice(), b.getCheckInDate(), b.getCheckOutDate());
+            int qty = 1;
+            if (singleSubtotal.compareTo(BigDecimal.ZERO) > 0) {
+                qty = bSubtotal.divide(singleSubtotal, 0, java.math.RoundingMode.HALF_UP).intValue();
+            }
+            if (qty <= 0) qty = 1;
+
+            bookingQuantitiesMap.put(b.getId(), qty);
+            totalSubtotal = totalSubtotal.add(bSubtotal);
+            totalTax = totalTax.add(bTax);
+            serviceFee = serviceFee.add(bServiceFee);
+            grandTotalPrice = grandTotalPrice.add(bTotalPrice);
+        }
 
         // Lấy hoặc tạo lại URL mã QR
         String transferInfo = buildTransferInfo(bookingId, hotel.getName(), room.getRoomType(), nights);
-        String qrUrl = getQrUrl(bookingId, booking.getTotalPrice(), transferInfo, payment);
+        String qrUrl = getQrUrl(bookingId, grandTotalPrice, transferInfo, payment);
 
         LocalDateTime qrExpiresAt = payment != null ? payment.getQrExpiresAt() : LocalDateTime.now().plusMinutes(15);
         long remainingSeconds = Math.max(0, java.time.Duration.between(LocalDateTime.now(), qrExpiresAt).getSeconds());
 
         pushToModel(model, loggedInUser, hotel, room, checkInDate, checkOutDate,
-                nights, subtotal, tax, serviceFee, booking.getTotalPrice(), qrUrl,
-                transferInfo, bookingId, qrExpiresAt, remainingSeconds, from);
+                nights, totalSubtotal, totalTax, serviceFee, grandTotalPrice, qrUrl,
+                transferInfo, bookingId, qrExpiresAt, remainingSeconds, from, bookingQuantitiesMap.get(bookingId));
+
+        model.addAttribute("bookingsList", bookingsList);
+        model.addAttribute("bookingQuantitiesMap", bookingQuantitiesMap);
 
         return "booking/qr-payment";
     }
@@ -416,6 +539,21 @@ public class PaymentController {
         booking.setStatus("CONFIRMED");
         booking.setUpdatedAt(LocalDateTime.now());
         bookingRepository.save(booking);
+
+        // Cập nhật tất cả các booking con trong cùng group
+        try {
+            java.util.List<Booking> childBookings = bookingRepository.findByCustomerIdOrderByCreatedAtDesc(booking.getCustomer().getId()).stream()
+                    .filter(b -> b.getSpecialNotes() != null && b.getSpecialNotes().equals("GROUP_BOOKING_parent:" + booking.getId()))
+                    .collect(java.util.stream.Collectors.toList());
+            for (Booking cb : childBookings) {
+                cb.setStatus("CONFIRMED");
+                cb.setUpdatedAt(LocalDateTime.now());
+                bookingRepository.save(cb);
+            }
+        } catch (Exception e) {
+            System.err.println("[Group Booking] Error confirming child bookings: " + e.getMessage());
+        }
+
         if (payment != null) {
             payment.setStatus("PAID");
             payment.setPaidAt(LocalDateTime.now());
@@ -460,7 +598,7 @@ public class PaymentController {
             LocalDate checkIn, LocalDate checkOut, long nights,
             BigDecimal subtotal, BigDecimal tax, BigDecimal serviceFee,
             BigDecimal totalPrice, String qrUrl, String transferInfo,
-            int bookingId, LocalDateTime qrExpiresAt, long remainingSeconds, String from) {
+            int bookingId, LocalDateTime qrExpiresAt, long remainingSeconds, String from, int qty) {
         model.addAttribute("user", user);
         model.addAttribute("hotel", hotel);
         model.addAttribute("room", room);
@@ -480,6 +618,7 @@ public class PaymentController {
         model.addAttribute("qrExpiresAt", qrExpiresAt);
         model.addAttribute("remainingSeconds", remainingSeconds);
         model.addAttribute("from", from);
+        model.addAttribute("qty", qty);
 
         // Tính toán quy đổi USD cho PayPal
         double rate = exchangeRateService.getRate();

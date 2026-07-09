@@ -37,7 +37,7 @@ CREATE TABLE user_accounts (
     created_at DATETIME2 NOT NULL CONSTRAINT DF_user_accounts_created_at DEFAULT GETDATE(),
     updated_at DATETIME2 NOT NULL CONSTRAINT DF_user_accounts_updated_at DEFAULT GETDATE(),
     CONSTRAINT CK_user_accounts_role CHECK (role IN (N'CUSTOMER', N'HOTEL_OWNER', N'ADMIN')),
-    CONSTRAINT CK_user_accounts_otp_type CHECK (otp_type IS NULL OR otp_type IN (N'REGISTER', N'FORGOT_PASSWORD', N'LOGIN'))
+    CONSTRAINT CK_user_accounts_otp_type CHECK (otp_type IS NULL OR otp_type IN (N'REGISTER', N'FORGOT_PASSWORD', N'LOGIN', N'UPDATE_PROFILE'))
 );
 GO
 
@@ -93,7 +93,7 @@ CREATE TABLE hotel (
     district NVARCHAR(100) NULL,
     image_url NVARCHAR(500) NULL,
     description NVARCHAR(MAX) NULL,
-    rating DECIMAL(2,1) NOT NULL CONSTRAINT DF_hotel_rating DEFAULT 0,
+    rating FLOAT NOT NULL CONSTRAINT DF_hotel_rating DEFAULT 0,
     total_reviews INT NOT NULL CONSTRAINT DF_hotel_total_reviews DEFAULT 0,
     approval_status NVARCHAR(50) NULL,
     active BIT NOT NULL CONSTRAINT DF_hotel_active DEFAULT 1,
@@ -141,7 +141,8 @@ CREATE TABLE hotel_facilities (
     ev_charging_station BIT NOT NULL CONSTRAINT DF_hotel_facilities_ev_charging_station DEFAULT 0,
     wheelchair_accessible BIT NOT NULL CONSTRAINT DF_hotel_facilities_wheelchair_accessible DEFAULT 0,
     swimming_pool BIT NOT NULL CONSTRAINT DF_hotel_facilities_swimming_pool DEFAULT 0,
-    bar_pub BIT NOT NULL CONSTRAINT DF_hotel_facilities_bar_pub DEFAULT 0
+    bar_pub BIT NOT NULL CONSTRAINT DF_hotel_facilities_bar_pub DEFAULT 0,
+    rent_vehicle BIT NOT NULL CONSTRAINT DF_hotel_facilities_rent_vehicle DEFAULT 0
 );
 GO
 
@@ -263,6 +264,9 @@ CREATE TABLE payments (
     status NVARCHAR(50) NULL,
     qr_code_url NVARCHAR(500) NULL,
     transaction_id NVARCHAR(255) NULL,
+    sender_account_number NVARCHAR(50) NULL,
+    sender_bank_name NVARCHAR(255) NULL,
+    sender_account_name NVARCHAR(255) NULL,
     paid_at DATETIME2 NULL,
     created_at DATETIME2 NOT NULL CONSTRAINT DF_payments_created_at DEFAULT GETDATE(),
     qr_expires_at DATETIME2 NULL,
@@ -281,6 +285,7 @@ CREATE TABLE refunds (
     refund_amount DECIMAL(38,2) NOT NULL,
     status NVARCHAR(50) NOT NULL CONSTRAINT DF_refunds_status DEFAULT N'PENDING',
     note NVARCHAR(MAX) NULL,
+    cancellation_reason NVARCHAR(1000) NULL,
     requested_at DATETIME2 NOT NULL CONSTRAINT DF_refunds_requested_at DEFAULT GETDATE(),
     processed_at DATETIME2 NULL,
     CONSTRAINT CK_refunds_refund_amount CHECK (refund_amount >= 0),
@@ -306,8 +311,10 @@ CREATE TABLE messages (
     id INT IDENTITY(1,1) PRIMARY KEY,
     sender_id INT NOT NULL,
     receiver_id INT NOT NULL,
+    hotel_id INT NOT NULL,
     booking_id INT NULL,
     content NVARCHAR(MAX) NULL,
+    image_url NVARCHAR(255) NULL,
     is_read BIT NOT NULL CONSTRAINT DF_messages_is_read DEFAULT 0,
     sent_at DATETIME2 NOT NULL CONSTRAINT DF_messages_sent_at DEFAULT GETDATE()
 );
@@ -318,9 +325,10 @@ CREATE TABLE feedback (
     customer_id INT NOT NULL,
     hotel_id INT NOT NULL,
     room_id INT NOT NULL,
+    booking_id INT NULL,
     user_full_name NVARCHAR(255) NULL,
     room_type NVARCHAR(255) NULL,
-    comment NVARCHAR(1000) NULL,
+    comment NVARCHAR(MAX) NULL,
     rating INT NULL,
     upvote INT NOT NULL CONSTRAINT DF_feedback_upvote DEFAULT 0,
     downvote INT NOT NULL CONSTRAINT DF_feedback_downvote DEFAULT 0,
@@ -468,6 +476,12 @@ FOREIGN KEY (booking_id) REFERENCES bookings(id)
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 GO
 
+ALTER TABLE messages
+ADD CONSTRAINT FK_messages_hotel
+FOREIGN KEY (hotel_id) REFERENCES hotel(id)
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
+
 ALTER TABLE feedback
 ADD CONSTRAINT FK_feedback_customers
 FOREIGN KEY (customer_id) REFERENCES customers(id)
@@ -483,6 +497,12 @@ GO
 ALTER TABLE feedback
 ADD CONSTRAINT FK_feedback_room
 FOREIGN KEY (room_id) REFERENCES room(id)
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE feedback
+ADD CONSTRAINT FK_feedback_bookings
+FOREIGN KEY (booking_id) REFERENCES bookings(id)
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 GO
 
