@@ -98,53 +98,34 @@ public class BookingController {
             }
         }
 
-        // Lọc theo các tiêu chí
-        List<Booking> filteredBookings = new java.util.ArrayList<>();
-        for (Booking b : allBookings) {
-            boolean matches = true;
+        // Chuẩn bị tham số lọc và gọi Magic Method từ Repository
+        String statusParam = (status != null) ? status.trim() : "";
+        String roomTypeParam = (roomType != null) ? roomType.trim() : "";
 
-            // Lọc theo trạng thái
-            if (status != null && !status.trim().isEmpty()) {
-                if (!status.equalsIgnoreCase(b.getStatus())) {
-                    matches = false;
-                }
-            }
-
-            // Lọc theo loại phòng
-            if (roomType != null && !roomType.trim().isEmpty()) {
-                if (b.getRoom() == null || !roomType.equalsIgnoreCase(b.getRoom().getRoomType())) {
-                    matches = false;
-                }
-            }
-
-            // Lọc theo ngày check-in
-            if (checkIn != null && !checkIn.trim().isEmpty()) {
-                try {
-                    java.time.LocalDate filterCheckInDate = java.time.LocalDate.parse(checkIn);
-                    if (b.getCheckInDate() == null || !b.getCheckInDate().isEqual(filterCheckInDate)) {
-                        matches = false;
-                    }
-                } catch (Exception e) {
-                    // Bỏ qua lỗi
-                }
-            }
-
-            // Lọc theo ngày check-out
-            if (checkOut != null && !checkOut.trim().isEmpty()) {
-                try {
-                    java.time.LocalDate filterCheckOutDate = java.time.LocalDate.parse(checkOut);
-                    if (b.getCheckOutDate() == null || !b.getCheckOutDate().isEqual(filterCheckOutDate)) {
-                        matches = false;
-                    }
-                } catch (Exception e) {
-                    // Bỏ qua lỗi
-                }
-            }
-
-            if (matches) {
-                filteredBookings.add(b);
-            }
+        java.time.LocalDate filterCheckInDate = null;
+        if (checkIn != null && !checkIn.trim().isEmpty()) {
+            try {
+                filterCheckInDate = java.time.LocalDate.parse(checkIn.trim());
+            } catch (Exception e) {}
         }
+
+        java.time.LocalDate filterCheckOutDate = null;
+        if (checkOut != null && !checkOut.trim().isEmpty()) {
+            try {
+                filterCheckOutDate = java.time.LocalDate.parse(checkOut.trim());
+            } catch (Exception e) {}
+        }
+
+        java.time.LocalDate checkInLimit = (filterCheckInDate != null) ? filterCheckInDate : java.time.LocalDate.of(1970, 1, 1);
+        java.time.LocalDate checkOutLimit = (filterCheckOutDate != null) ? filterCheckOutDate : java.time.LocalDate.of(2099, 12, 31);
+
+        List<Booking> filteredBookings = bookingRepository.findByCustomerIdAndStatusContainingIgnoreCaseAndRoomTypeContainingIgnoreCaseAndCheckInDateLessThanEqualAndCheckOutDateGreaterThanEqualOrderByCreatedAtDesc(
+                customerId,
+                statusParam,
+                roomTypeParam,
+                checkOutLimit,
+                checkInLimit
+        );
 
         // Lấy danh sách allRoomTypes của toàn bộ hệ thống để hiển thị trên Filter Panel
         List<String> allRoomTypes = new java.util.ArrayList<>();

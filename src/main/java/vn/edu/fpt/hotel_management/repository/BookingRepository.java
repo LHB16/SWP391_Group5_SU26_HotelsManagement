@@ -52,4 +52,12 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
             java.time.LocalDate checkout,
             java.time.LocalDate checkin
     );
+
+    List<Booking> findByCustomerIdAndStatusContainingIgnoreCaseAndRoomTypeContainingIgnoreCaseAndCheckInDateLessThanEqualAndCheckOutDateGreaterThanEqualOrderByCreatedAtDesc(
+            int customerId,
+            String status,
+            String roomType,
+            java.time.LocalDate checkOutLimit,
+            java.time.LocalDate checkInLimit
+    );
 }
