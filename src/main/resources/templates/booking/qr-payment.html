@@ -87,20 +87,13 @@
                             </div>
                             <div>
                                 <div class="summary-hotel-name" th:text="${hotel.name}">Hotel Name</div>
-                                <div class="summary-room-type" th:if="${bookingsList == null or bookingsList.size() <= 1}" th:text="${room.roomType}">Room Type</div>
-                                <div class="summary-room-type" th:if="${bookingsList != null and bookingsList.size() > 1}">
-                                    <span th:each="b, iterStat : ${bookingsList}" th:text="${bookingQuantitiesMap.get(b.id)} + ' x ' + ${b.room.roomType} + (${iterStat.last} ? '' : ', ')">Room Types</span>
-                                </div>
                             </div>
                         </div>
 
                         <!-- Booking detail rows -->
                         <div class="summary-row">
                             <span class="summary-label">Rooms Selected</span>
-                            <div class="text-end">
-                                <div th:if="${bookingsList == null or bookingsList.size() <= 1}" class="summary-value" th:text="${qty} + ' Room(s) (' + ${room.roomType} + ')'">1 Room(s) (Superior Room)</div>
-                                <div th:if="${bookingsList != null and bookingsList.size() > 1}" th:each="b : ${bookingsList}" class="summary-value" style="font-size: 0.9rem; font-weight: normal; margin-bottom: 2px;" th:text="${bookingQuantitiesMap.get(b.id)} + ' Room(s) (' + ${b.room.roomType} + ')'">1 Room(s) (Superior Room)</div>
-                            </div>
+                            <span class="summary-value" th:text="${qty} + ' Room(s)'">1 Room(s)</span>
                         </div>
                         <div class="summary-row">
                             <span class="summary-label">Subtotal</span>
@@ -132,9 +125,9 @@
                         <div class="summary-total">
                             <div class="summary-total-label">Total Amount</div>
                             <div>
-                                <span class="summary-total-amount"
+                                <span class="summary-total-amount" style="color: var(--gold) !important; font-weight: bold;"
                                     th:text="${#numbers.formatInteger(totalPrice, 0, 'COMMA')}">1,040,000</span>
-                                <span class="summary-total-unit">VND</span>
+                                <span class="summary-total-unit" style="color: var(--gold) !important; font-weight: bold;">VND</span>
                             </div>
                         </div>
 
@@ -274,7 +267,7 @@
                                     </div>
                                     <div class="qr-bank-info-row">
                                         <span class="qr-bank-label">Amount</span>
-                                        <span class="qr-bank-value amount">
+                                        <span class="qr-bank-value amount" style="color: var(--gold) !important; font-weight: bold;">
                                             <th:block th:text="${#numbers.formatInteger(totalPrice, 0, 'COMMA')}">
                                                 1,040,000</th:block>
                                             VND

@@ -1,26 +1,29 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragment/frag :: head}"></head>
+
 <body class="d-flex flex-column" style="min-height: 100vh;">
-<nav th:replace="~{fragment/frag :: navBar}"></nav>
+    <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
-<main class="container mt-5 flex-grow-1">
-    <div class="text-center py-5">
-        <h1 class="display-4 fw-bold">Booking Hotels</h1>
-        <p class="lead text-muted">Find and book your perfect hotel stay</p>
+    <main class="container mt-5 flex-grow-1">
+        <div class="text-center py-5">
+            <h1 class="display-4 fw-bold">Booking Hotels</h1>
+            <p class="lead text-muted">Find and book your perfect hotel stay</p>
 
-        <th:block th:if="${session.loggedInUser == null}">
-            <a th:href="@{/register}" class="btn btn-success btn-lg me-2">Get Started</a>
-            <a th:href="@{/login}" class="btn btn-outline-primary btn-lg">Login</a>
-        </th:block>
+            <th:block th:if="${session.loggedInUser == null}">
+                <a th:href="@{/register}" class="btn btn-success btn-lg me-2">Get Started</a>
+                <a th:href="@{/login}" class="btn btn-outline-primary btn-lg">Login</a>
+            </th:block>
 
-        <th:block th:if="${session.loggedInUser != null}">
-            <a th:href="@{/hotels}" class="btn btn-primary btn-lg">Browse Hotels</a>
-        </th:block>
-    </div>
-</main>
+            <th:block th:if="${session.loggedInUser != null}">
+                <a th:href="@{/hotels}" class="btn btn-primary btn-lg">Browse Hotels</a>
+            </th:block>
+        </div>
+    </main>
 
-<footer th:replace="~{fragment/frag :: footer}"></footer>
-<div th:replace="~{fragment/frag :: scripts}"></div>
+    <footer th:replace="~{fragment/frag :: footer}"></footer>
+    <div th:replace="~{fragment/frag :: scripts}"></div>
 </body>
+
 </html>
