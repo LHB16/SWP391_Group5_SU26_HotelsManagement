@@ -87,8 +87,25 @@
                         </div>
                     </div>
 
-                    <!-- Nút quay lại đơn giản -->
-                    <div class="cp-actions" style="margin-top: 30px; display: flex; justify-content: center;">
+                    <!-- Nút hành động nếu là luồng hủy đơn -->
+                    <div th:if="${action == 'cancel' and booking.status == 'CONFIRMED'}" class="cp-cancel-action-flow" style="margin-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                        <label class="d-flex align-items-center gap-2" style="cursor: pointer; font-weight: 500; color: #334155;">
+                            <input type="checkbox" id="agreePolicyCheckbox" style="width: 18px; height: 18px; cursor: pointer;">
+                            I have read and agree to the cancellation policy terms.
+                        </label>
+                        
+                        <div class="d-flex gap-3" style="margin-top: 10px;">
+                            <a th:href="@{/booking/detail/{id}(id=${booking.id})}" class="cp-btn-back" style="text-decoration: none; padding: 10px 24px; display: flex; align-items: center;">
+                                Keep Booking
+                            </a>
+                            <a th:href="@{/booking/cancel/{id}(id=${booking.id})}" id="proceedCancelBtn" class="btn btn-danger disabled" style="padding: 10px 24px; border-radius: 30px; font-weight: 600; text-decoration: none; pointer-events: none; opacity: 0.6; display: flex; align-items: center; gap: 8px;">
+                                Proceed to Cancellation
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Nút quay lại đơn giản nếu chỉ xem chính sách -->
+                    <div th:unless="${action == 'cancel' and booking.status == 'CONFIRMED'}" class="cp-actions" style="margin-top: 30px; display: flex; justify-content: center;">
                         <a th:href="@{/booking/detail/{id}(id=${booking.id})}" class="cp-btn-back">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
                             Back to my booking
@@ -98,6 +115,26 @@
             </div>
         </div>
     </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const checkbox = document.getElementById('agreePolicyCheckbox');
+            const proceedBtn = document.getElementById('proceedCancelBtn');
+            if (checkbox && proceedBtn) {
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        proceedBtn.classList.remove('disabled');
+                        proceedBtn.style.pointerEvents = 'auto';
+                        proceedBtn.style.opacity = '1';
+                    } else {
+                        proceedBtn.classList.add('disabled');
+                        proceedBtn.style.pointerEvents = 'none';
+                        proceedBtn.style.opacity = '0.6';
+                    }
+                });
+            }
+        });
+    </script>
 
 </body>
 </html>

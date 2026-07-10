@@ -66,6 +66,7 @@
                             <th:block th:unless="${booking.status == 'PENDING'}">
                                 <!-- Trạng thái thanh toán khác -->
                                 <span th:if="${booking.status == 'CONFIRMED'}" class="bd-status-label bd-status-confirmed">Confirmed</span>
+                                <a th:if="${booking.status == 'CONFIRMED' and cancelable}" th:href="@{/booking/cancel-policy(bookingId=${booking.id},action='cancel')}" class="btn btn-danger btn-sm ms-2" style="font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600; text-decoration: none;">Cancel</a>
                                 <span th:if="${booking.status == 'DONE' or booking.status == 'COMPLETED'}" class="bd-status-label bd-status-done">Completed</span>
                                 <th:block th:if="${booking.status == 'DONE' or booking.status == 'COMPLETED'}">
                                     <a th:if="${!hasFeedback}" th:href="@{/booking/{id}/feedback(id=${booking.id})}" 
@@ -82,26 +83,11 @@
                         </div>
                     </div>
 
-                    <!-- Nhóm bên phải: Giá tiền đứng trước nút 3 chấm -->
+                    <!-- Nhóm bên phải: Giá tiền -->
                     <div class="bd-right-section">
                         <!-- Giá tiền -->
                         <div class="bd-price-box">
                             <span class="bd-price-val" th:text="${#numbers.formatInteger(booking.totalPrice, 3, 'COMMA') + ' VND'}">223,000 VND</span>
-                        </div>
-
-                        <!-- Nút menu 3 chấm ở góc phải -->
-                        <div class="dropdown bd-dots-dropdown">
-                            <button class="btn btn-link text-dark p-0 bd-dots-btn" type="button" id="bookingActionMenu" onclick="event.stopPropagation(); this.nextElementSibling.classList.toggle('show')">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-more-vertical"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end bd-dots-menu" aria-labelledby="bookingActionMenu">
-                                <li th:if="${booking.status == 'CONFIRMED' and cancelable}">
-                                    <a class="dropdown-item text-danger" th:href="@{/booking/cancel/{id}(id=${booking.id})}">Cancel booking</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" th:href="@{/booking/cancel-policy(bookingId=${booking.id},action='view')}">View cancellation policy</a>
-                                </li>
-                            </ul>
                         </div>
                     </div>
                 </div>
