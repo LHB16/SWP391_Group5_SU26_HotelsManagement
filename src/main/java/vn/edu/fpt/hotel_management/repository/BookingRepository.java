@@ -52,6 +52,14 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
             LocalDate checkin
     );
 
+    @Query("SELECT COALESCE(SUM(b.quantity), 0) FROM Booking b WHERE b.room.id = :roomId AND b.status = :status AND b.checkInDate < :checkout AND b.checkOutDate > :checkin")
+    long sumQuantityByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
+            @Param("roomId") int roomId,
+            @Param("status") String status,
+            @Param("checkout") LocalDate checkout,
+            @Param("checkin") LocalDate checkin
+    );
+
     // ===== FILTER METHODS FOR BOOKINGS =====
 
     @Query("SELECT b FROM Booking b WHERE b.hotel.id IN :hotelIds ORDER BY b.createdAt DESC")

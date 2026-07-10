@@ -468,9 +468,9 @@ BEGIN TRY
     )
         INSERT INTO bookings (
             customer_id, room_id, hotel_id, phone, full_name, email, id_promotion, check_in_date, check_out_date,
-            num_nights, total_price, status, special_notes
+            num_nights, total_price, status, special_notes, quantity
         )
-        VALUES (@customer1_id, @room2_id, @hotel1_id, N'+84933000001', N'Lưu Hữu Bình', N'binh.customer@hotelbooking.test', @promo1_id, '2026-07-10', '2026-07-12', 2, 3000000, N'CONFIRMED', N'Khách muốn nhận phòng gần thang máy.');
+        VALUES (@customer1_id, @room2_id, @hotel1_id, N'+84933000001', N'Lưu Hữu Bình', N'binh.customer@hotelbooking.test', @promo1_id, '2026-07-10', '2026-07-12', 2, 3000000, N'CONFIRMED', N'Khách muốn nhận phòng gần thang máy.', 1);
 
     IF NOT EXISTS (
         SELECT 1 FROM bookings
@@ -479,9 +479,9 @@ BEGIN TRY
     )
         INSERT INTO bookings (
             customer_id, room_id, hotel_id, phone, full_name, email, id_promotion, check_in_date, check_out_date,
-            num_nights, total_price, status, special_notes
+            num_nights, total_price, status, special_notes, quantity
         )
-        VALUES (@customer2_id, @room6_id, @hotel2_id, N'+84933000002', N'Nguyễn Thị Lan', N'lan.customer@hotelbooking.test', NULL, '2026-07-15', '2026-07-17', 2, 5000000, N'PENDING', N'Yêu cầu phòng tầng cao.');
+        VALUES (@customer2_id, @room6_id, @hotel2_id, N'+84933000002', N'Nguyễn Thị Lan', N'lan.customer@hotelbooking.test', NULL, '2026-07-15', '2026-07-17', 2, 5000000, N'PENDING', N'Yêu cầu phòng tầng cao.', 1);
 
     IF NOT EXISTS (
         SELECT 1 FROM bookings
@@ -490,9 +490,9 @@ BEGIN TRY
     )
         INSERT INTO bookings (
             customer_id, room_id, hotel_id, phone, full_name, email, id_promotion, check_in_date, check_out_date,
-            num_nights, total_price, status, special_notes
+            num_nights, total_price, status, special_notes, quantity
         )
-        VALUES (@customer3_id, @room8_id, @hotel3_id, N'+84933000003', N'Trần Đức Minh', N'minh.customer@hotelbooking.test', @promo3_id, '2026-08-01', '2026-08-03', 2, 9000000, N'CONFIRMED', N'Cần thêm gối và nước suối.');
+        VALUES (@customer3_id, @room8_id, @hotel3_id, N'+84933000003', N'Trần Đức Minh', N'minh.customer@hotelbooking.test', @promo3_id, '2026-08-01', '2026-08-03', 2, 9000000, N'CONFIRMED', N'Cần thêm gối và nước suối.', 1);
 
     IF NOT EXISTS (
         SELECT 1 FROM bookings
@@ -501,9 +501,9 @@ BEGIN TRY
     )
         INSERT INTO bookings (
             customer_id, room_id, hotel_id, phone, full_name, email, id_promotion, check_in_date, check_out_date,
-            num_nights, total_price, status, special_notes
+            num_nights, total_price, status, special_notes, quantity
         )
-        VALUES (@customer4_id, @room1_id, @hotel1_id, N'+84933000004', N'Phạm Hoài Anh', N'anh.customer@hotelbooking.test', NULL, '2026-06-05', '2026-06-07', 2, 1800000, N'COMPLETED', N'Khách đã check out đúng hạn.');
+        VALUES (@customer4_id, @room1_id, @hotel1_id, N'+84933000004', N'Phạm Hoài Anh', N'anh.customer@hotelbooking.test', NULL, '2026-06-05', '2026-06-07', 2, 1800000, N'COMPLETED', N'Khách đã check out đúng hạn.', 1);
 
     IF NOT EXISTS (
         SELECT 1 FROM bookings
@@ -512,9 +512,9 @@ BEGIN TRY
     )
         INSERT INTO bookings (
             customer_id, room_id, hotel_id, phone, full_name, email, id_promotion, check_in_date, check_out_date,
-            num_nights, total_price, status, special_notes
+            num_nights, total_price, status, special_notes, quantity
         )
-        VALUES (@customer5_id, @room4_id, @hotel2_id, N'+84933000005', N'Lê Gia Khoa', N'khoa.customer@hotelbooking.test', NULL, '2026-06-20', '2026-06-22', 2, 2400000, N'COMPLETED', N'Khách hài lòng với dịch vụ.');
+        VALUES (@customer5_id, @room4_id, @hotel2_id, N'+84933000005', N'Lê Gia Khoa', N'khoa.customer@hotelbooking.test', NULL, '2026-06-20', '2026-06-22', 2, 2400000, N'COMPLETED', N'Khách hài lòng với dịch vụ.', 1);
 
     SELECT @booking1_id = id FROM bookings WHERE customer_id = @customer1_id AND room_id = @room2_id AND check_in_date = '2026-07-10' AND check_out_date = '2026-07-12';
     SELECT @booking2_id = id FROM bookings WHERE customer_id = @customer2_id AND room_id = @room6_id AND check_in_date = '2026-07-15' AND check_out_date = '2026-07-17';

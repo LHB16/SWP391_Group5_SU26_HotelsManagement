@@ -250,11 +250,13 @@ CREATE TABLE bookings (
     special_notes NVARCHAR(MAX) NULL,
     created_at DATETIME2 NOT NULL CONSTRAINT DF_bookings_created_at DEFAULT GETDATE(),
     updated_at DATETIME2 NULL,
+    quantity INT NOT NULL CONSTRAINT DF_bookings_quantity DEFAULT 1,
     CONSTRAINT CK_bookings_num_nights CHECK (num_nights IS NULL OR num_nights > 0),
     CONSTRAINT CK_bookings_total_price CHECK (total_price IS NULL OR total_price >= 0),
     CONSTRAINT CK_bookings_date CHECK (check_in_date IS NULL OR check_out_date IS NULL OR check_out_date > check_in_date),
+    CONSTRAINT CK_bookings_quantity CHECK (quantity > 0),
     CONSTRAINT CK_bookings_status CHECK (
-        status IS NULL OR status IN (N'PENDING', N'CONFIRMED', N'COMPLETED', N'CANCELLED', N'REJECTED')
+        status IS NULL OR status IN (N'PENDING', N'CONFIRMED', N'COMPLETED', N'CANCELLED', N'REJECTED', N'EXPIRED')
     )
 );
 GO

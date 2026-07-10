@@ -18,12 +18,12 @@
                 <!-- ========== Cột trái: Filter Panel ========== -->
                 <div class="col-md-3 mb-4">
                     <!-- ========== Filter Panel ========== -->
-                    <div class="bh-filter-card">
-                        <div class="bh-filter-header">
-                            <i class="bi bi-funnel"></i>
+                    <div class="card filter-sidebar-card">
+                        <div class="card-header text-gold">
+                            <i class="bi bi-funnel me-1"></i>
                             Filter Bookings
                         </div>
-                        <div class="bh-filter-body">
+                        <div class="card-body">
                             <form th:action="@{/booking/history}" method="get" id="bookingFilterForm">
 
                                 <!-- Lọc theo trạng thái -->
@@ -35,6 +35,7 @@
                                         <option value="CONFIRMED" th:selected="${selectedStatus == 'CONFIRMED'}">Confirmed</option>
                                         <option value="COMPLETED" th:selected="${selectedStatus == 'COMPLETED' or selectedStatus == 'DONE'}">Completed</option>
                                         <option value="CANCELLED" th:selected="${selectedStatus == 'CANCELLED'}">Cancelled</option>
+                                        <option value="EXPIRED" th:selected="${selectedStatus == 'EXPIRED'}">Expired</option>
                                     </select>
                                 </div>
 

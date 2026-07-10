@@ -63,6 +63,9 @@ public class Booking {
     @OneToOne(mappedBy = "booking", fetch = FetchType.LAZY)
     private Payment payment;
 
+    @Column(name = "quantity")
+    private Integer quantity = 1;
+
     public Booking() {
     }
 
@@ -206,5 +209,13 @@ public class Booking {
         return "CONFIRMED".equalsIgnoreCase(this.status) 
             && this.checkInDate != null 
             && java.time.LocalDate.now().isBefore(this.checkInDate);
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
     }
 }

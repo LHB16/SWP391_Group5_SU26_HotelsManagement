@@ -266,6 +266,7 @@ public class PaymentController {
         parentBooking.setPhone(phone);
         parentBooking.setFullName(fullName);
         parentBooking.setEmail(email);
+        parentBooking.setQuantity(validQuantities.get(0)); // Lưu số lượng phòng đặt cho phòng chính
         if (specialRequests != null && !specialRequests.trim().isEmpty()) {
             parentBooking.setSpecialNotes(specialRequests.trim());
         } else {
@@ -315,6 +316,7 @@ public class PaymentController {
             childBooking.setPhone(phone);
             childBooking.setFullName(fullName);
             childBooking.setEmail(email);
+            childBooking.setQuantity(validQuantities.get(i)); // Lưu số lượng phòng đặt cho phòng con
             Integer childPromoId = promotionIds != null && promotionIds.size() > i ? promotionIds.get(i) : null;
             if (childPromoId != null && childPromoId > 0) {
                 Promotion promo = promotionRepository.findById(childPromoId).orElse(null);
@@ -467,7 +469,8 @@ public class PaymentController {
         if (booking == null)
             return "redirect:/hotels";
 
-        // Nếu click từ child booking, tự động đổi hướng sang parent booking tương ứng để xử lý
+        // Nếu click từ child booking, tự động đổi hướng sang parent booking tương ứng
+        // để xử lý
         if (booking.getSpecialNotes() != null && booking.getSpecialNotes().startsWith("GROUP_BOOKING_parent:")) {
             try {
                 String parentIdStr = booking.getSpecialNotes().replace("GROUP_BOOKING_parent:", "").trim();
@@ -477,7 +480,8 @@ public class PaymentController {
                     booking = parent;
                     bookingId = parentId;
                 }
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
 
         Room room = booking.getRoom();
@@ -499,7 +503,8 @@ public class PaymentController {
 
         Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
 
-        // 1. QR hết hạn → hủy đồng bộ cả nhóm và chuyển về lịch sử (Kiểm tra hết hạn TRƯỚC TIÊN)
+        // 1. QR hết hạn → hủy đồng bộ cả nhóm và chuyển về lịch sử (Kiểm tra hết hạn
+        // TRƯỚC TIÊN)
         if (payment != null && payment.isQrExpired()) {
             booking.setStatus("EXPIRED");
             booking.setUpdatedAt(LocalDateTime.now());
@@ -519,7 +524,8 @@ public class PaymentController {
                     cb.setUpdatedAt(LocalDateTime.now());
                     bookingRepository.save(cb);
                 }
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
 
             payment.setStatus("EXPIRED");
             paymentRepository.save(payment);
