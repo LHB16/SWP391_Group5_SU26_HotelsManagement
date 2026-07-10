@@ -128,11 +128,11 @@ BEGIN TRY
 
     IF NOT EXISTS (SELECT 1 FROM admins WHERE user_account_id = @admin1_user_id)
         INSERT INTO admins (user_account_id, full_name, phone)
-        VALUES (@admin1_user_id, N'Nguyễn Minh Admin', N'0901000001');
+        VALUES (@admin1_user_id, N'Nguyễn Minh Admin', N'+84901000001');
 
     IF NOT EXISTS (SELECT 1 FROM admins WHERE user_account_id = @admin2_user_id)
         INSERT INTO admins (user_account_id, full_name, phone)
-        VALUES (@admin2_user_id, N'Trần Bảo Admin', N'0901000002');
+        VALUES (@admin2_user_id, N'Trần Bảo Admin', N'+84901000002');
 
     IF NOT EXISTS (SELECT 1 FROM hotel_owners WHERE user_account_id = @owner1_user_id)
         INSERT INTO hotel_owners (
@@ -140,7 +140,7 @@ BEGIN TRY
             verification_status, verified_at, rejection_reason, id_card_document
         )
         VALUES (
-            @owner1_user_id, N'Lê Thảo Điểm', N'0912000001',
+            @owner1_user_id, N'Lê Thảo Điểm', N'+84912000001',
             N'12 Hai Bà Trưng, Ninh Kiều, Cần Thơ',
             N'092345678901', N'TAX-TD-001',
             N'APPROVED', DATEADD(DAY, -40, GETDATE()), NULL,
@@ -153,7 +153,7 @@ BEGIN TRY
             verification_status, verified_at, rejection_reason, id_card_document
         )
         VALUES (
-            @owner2_user_id, N'Phạm Nhật Minh', N'0912000002',
+            @owner2_user_id, N'Phạm Nhật Minh', N'+84912000002',
             N'88 Trần Văn Khéo, Ninh Kiều, Cần Thơ',
             N'092345678902', N'TAX-SUN-002',
             N'APPROVED', DATEADD(DAY, -35, GETDATE()), NULL,
@@ -166,7 +166,7 @@ BEGIN TRY
             verification_status, verified_at, rejection_reason, id_card_document
         )
         VALUES (
-            @owner3_user_id, N'Võ Ngọc Rose', N'0912000003',
+            @owner3_user_id, N'Võ Ngọc Rose', N'+84912000003',
             N'25 Nguyễn Văn Cừ, Ninh Kiều, Cần Thơ',
             N'092345678903', N'TAX-ROSE-003',
             N'APPROVED', DATEADD(DAY, -30, GETDATE()), NULL,
@@ -175,23 +175,23 @@ BEGIN TRY
 
     IF NOT EXISTS (SELECT 1 FROM customers WHERE user_account_id = @customer1_user_id)
         INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth, gender)
-        VALUES (@customer1_user_id, N'Lưu Hữu Bình', N'0933000001', N'Xuân Khánh, Ninh Kiều', N'Cần Thơ', N'Việt Nam', '2005-03-16', N'MALE');
+        VALUES (@customer1_user_id, N'Lưu Hữu Bình', N'+84933000001', N'Xuân Khánh, Ninh Kiều', N'Cần Thơ', N'Việt Nam', '2005-03-16', N'MALE');
 
     IF NOT EXISTS (SELECT 1 FROM customers WHERE user_account_id = @customer2_user_id)
         INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth, gender)
-        VALUES (@customer2_user_id, N'Nguyễn Thị Lan', N'0933000002', N'Cái Răng', N'Cần Thơ', N'Việt Nam', '2002-07-22', N'FEMALE');
+        VALUES (@customer2_user_id, N'Nguyễn Thị Lan', N'+84933000002', N'Cái Răng', N'Cần Thơ', N'Việt Nam', '2002-07-22', N'FEMALE');
 
     IF NOT EXISTS (SELECT 1 FROM customers WHERE user_account_id = @customer3_user_id)
         INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth, gender)
-        VALUES (@customer3_user_id, N'Trần Đức Minh', N'0933000003', N'Bình Thủy', N'Cần Thơ', N'Việt Nam', '2001-11-09', N'MALE');
+        VALUES (@customer3_user_id, N'Trần Đức Minh', N'+84933000003', N'Bình Thủy', N'Cần Thơ', N'Việt Nam', '2001-11-09', N'MALE');
 
     IF NOT EXISTS (SELECT 1 FROM customers WHERE user_account_id = @customer4_user_id)
         INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth, gender)
-        VALUES (@customer4_user_id, N'Phạm Hoài Anh', N'0933000004', N'Ô Môn', N'Cần Thơ', N'Việt Nam', '2003-01-28', N'FEMALE');
+        VALUES (@customer4_user_id, N'Phạm Hoài Anh', N'+84933000004', N'Ô Môn', N'Cần Thơ', N'Việt Nam', '2003-01-28', N'FEMALE');
 
     IF NOT EXISTS (SELECT 1 FROM customers WHERE user_account_id = @customer5_user_id)
         INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth, gender)
-        VALUES (@customer5_user_id, N'Lê Gia Khoa', N'0933000005', N'Thốt Nốt', N'Cần Thơ', N'Việt Nam', '2000-09-14', N'MALE');
+        VALUES (@customer5_user_id, N'Lê Gia Khoa', N'+84933000005', N'Thốt Nốt', N'Cần Thơ', N'Việt Nam', '2000-09-14', N'MALE');
 
     SELECT @admin1_id = id FROM admins WHERE user_account_id = @admin1_user_id;
     SELECT @admin2_id = id FROM admins WHERE user_account_id = @admin2_user_id;
@@ -253,7 +253,7 @@ BEGIN TRY
             rental_contract_doc, upload_status, rejection_reason, verified_at
         )
         VALUES (
-            @hotel1_id, N'02923880001', N'thaodiem@hotelbooking.test',
+            @hotel1_id, N'+842923880001', N'thaodiem@hotelbooking.test',
             N'/docs/hotels/thao-diem/business_registration.pdf',
             N'/docs/hotels/thao-diem/land_certificate.pdf',
             N'/docs/hotels/thao-diem/rental_contract.pdf',
@@ -266,7 +266,7 @@ BEGIN TRY
             rental_contract_doc, upload_status, rejection_reason, verified_at
         )
         VALUES (
-            @hotel2_id, N'02923880002', N'sunhotel@hotelbooking.test',
+            @hotel2_id, N'+842923880002', N'sunhotel@hotelbooking.test',
             N'/docs/hotels/sun-hotel/business_registration.pdf',
             N'/docs/hotels/sun-hotel/land_certificate.pdf',
             N'/docs/hotels/sun-hotel/rental_contract.pdf',
@@ -279,7 +279,7 @@ BEGIN TRY
             rental_contract_doc, upload_status, rejection_reason, verified_at
         )
         VALUES (
-            @hotel3_id, N'02923880003', N'roseboutique@hotelbooking.test',
+            @hotel3_id, N'+842923880003', N'roseboutique@hotelbooking.test',
             N'/docs/hotels/rose-boutique/business_registration.pdf',
             N'/docs/hotels/rose-boutique/land_certificate.pdf',
             N'/docs/hotels/rose-boutique/rental_contract.pdf',
@@ -462,7 +462,7 @@ BEGIN TRY
             customer_id, room_id, hotel_id, phone, full_name, check_in_date, check_out_date,
             num_nights, total_price, status, special_notes
         )
-        VALUES (@customer1_id, @room2_id, @hotel1_id, N'0933000001', N'Lưu Hữu Bình', '2026-07-10', '2026-07-12', 2, 3000000, N'CONFIRMED', N'Khách muốn nhận phòng gần thang máy.');
+        VALUES (@customer1_id, @room2_id, @hotel1_id, N'+84933000001', N'Lưu Hữu Bình', '2026-07-10', '2026-07-12', 2, 3000000, N'CONFIRMED', N'Khách muốn nhận phòng gần thang máy.');
 
     IF NOT EXISTS (
         SELECT 1 FROM bookings
@@ -473,7 +473,7 @@ BEGIN TRY
             customer_id, room_id, hotel_id, phone, full_name, check_in_date, check_out_date,
             num_nights, total_price, status, special_notes
         )
-        VALUES (@customer2_id, @room6_id, @hotel2_id, N'0933000002', N'Nguyễn Thị Lan', '2026-07-15', '2026-07-17', 2, 5000000, N'PENDING', N'Yêu cầu phòng tầng cao.');
+        VALUES (@customer2_id, @room6_id, @hotel2_id, N'+84933000002', N'Nguyễn Thị Lan', '2026-07-15', '2026-07-17', 2, 5000000, N'PENDING', N'Yêu cầu phòng tầng cao.');
 
     IF NOT EXISTS (
         SELECT 1 FROM bookings
@@ -484,7 +484,7 @@ BEGIN TRY
             customer_id, room_id, hotel_id, phone, full_name, check_in_date, check_out_date,
             num_nights, total_price, status, special_notes
         )
-        VALUES (@customer3_id, @room8_id, @hotel3_id, N'0933000003', N'Trần Đức Minh', '2026-08-01', '2026-08-03', 2, 9000000, N'CONFIRMED', N'Cần thêm gối và nước suối.');
+        VALUES (@customer3_id, @room8_id, @hotel3_id, N'+84933000003', N'Trần Đức Minh', '2026-08-01', '2026-08-03', 2, 9000000, N'CONFIRMED', N'Cần thêm gối và nước suối.');
 
     IF NOT EXISTS (
         SELECT 1 FROM bookings
@@ -495,7 +495,7 @@ BEGIN TRY
             customer_id, room_id, hotel_id, phone, full_name, check_in_date, check_out_date,
             num_nights, total_price, status, special_notes
         )
-        VALUES (@customer4_id, @room1_id, @hotel1_id, N'0933000004', N'Phạm Hoài Anh', '2026-06-05', '2026-06-07', 2, 1800000, N'COMPLETED', N'Khách đã check out đúng hạn.');
+        VALUES (@customer4_id, @room1_id, @hotel1_id, N'+84933000004', N'Phạm Hoài Anh', '2026-06-05', '2026-06-07', 2, 1800000, N'COMPLETED', N'Khách đã check out đúng hạn.');
 
     IF NOT EXISTS (
         SELECT 1 FROM bookings
@@ -506,7 +506,7 @@ BEGIN TRY
             customer_id, room_id, hotel_id, phone, full_name, check_in_date, check_out_date,
             num_nights, total_price, status, special_notes
         )
-        VALUES (@customer5_id, @room4_id, @hotel2_id, N'0933000005', N'Lê Gia Khoa', '2026-06-20', '2026-06-22', 2, 2400000, N'COMPLETED', N'Khách hài lòng với dịch vụ.');
+        VALUES (@customer5_id, @room4_id, @hotel2_id, N'+84933000005', N'Lê Gia Khoa', '2026-06-20', '2026-06-22', 2, 2400000, N'COMPLETED', N'Khách hài lòng với dịch vụ.');
 
     SELECT @booking1_id = id FROM bookings WHERE customer_id = @customer1_id AND room_id = @room2_id AND check_in_date = '2026-07-10' AND check_out_date = '2026-07-12';
     SELECT @booking2_id = id FROM bookings WHERE customer_id = @customer2_id AND room_id = @room6_id AND check_in_date = '2026-07-15' AND check_out_date = '2026-07-17';

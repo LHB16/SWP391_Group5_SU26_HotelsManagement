@@ -150,7 +150,7 @@
 
                                             <!-- Chế độ sửa Phone -->
                                             <div id="phone-edit-group" style="display: none;">
-                                                <input type="text" class="form-control profile-input-editable mb-2" id="phone-edit-input" th:value="${user.phone}" required style="border-color: #0a1628 !important;"/>
+                                                <input type="tel" class="form-control profile-input-editable mb-2" id="phone-edit-input" th:value="${user.phone}" required style="border-color: #0a1628 !important;"/>
                                                 <div class="d-flex gap-2">
                                                     <button type="button" id="btn-save-phone" class="btn btn-sm text-white profile-btn-primary d-flex align-items-center gap-2" style="width: auto; padding: 8px 16px !important; background-color: #0a1628 !important; border-color: #0a1628 !important;">
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
@@ -399,6 +399,17 @@
             const phoneEditInput = document.getElementById("phone-edit-input");
             const phoneErrorMsg = document.getElementById("phone-error-msg");
 
+            let itiPhone;
+            if (phoneEditInput) {
+                itiPhone = window.intlTelInput(phoneEditInput, {
+                    initialCountry: "vn",
+                    preferredCountries: ["vn"],
+                    separateDialCode: false,
+                    nationalMode: false,
+                    utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.js"
+                });
+            }
+
             if (btnEditPhone && btnCancelPhone && btnSavePhone) {
                 // Toggle to edit mode
                 btnEditPhone.addEventListener("click", function() {
@@ -406,11 +417,17 @@
                     phoneEditGroup.style.display = "block";
                     phoneErrorMsg.style.display = "none";
                     phoneEditInput.focus();
+                    if (itiPhone) {
+                        itiPhone.setNumber(phoneEditInput.value); // Re-sync in case format is modified
+                    }
                 });
 
                 // Cancel edit mode
                 btnCancelPhone.addEventListener("click", function() {
                     phoneEditInput.value = phoneDisplayInput.value; // Reset value
+                    if (itiPhone) {
+                        itiPhone.setNumber(phoneDisplayInput.value);
+                    }
                     phoneViewGroup.style.display = "flex";
                     phoneEditGroup.style.display = "none";
                     phoneErrorMsg.style.display = "none";
@@ -418,7 +435,7 @@
 
                 // Save phone via AJAX
                 btnSavePhone.addEventListener("click", function() {
-                    const phoneValue = phoneEditInput.value.trim();
+                    const phoneValue = itiPhone ? itiPhone.getNumber() : phoneEditInput.value.trim();
                     if (!phoneValue) {
                         phoneErrorMsg.textContent = "Phone number is required.";
                         phoneErrorMsg.style.display = "block";
@@ -454,6 +471,9 @@
                     .then(data => {
                         // Success: Update UI without page reload
                         phoneDisplayInput.value = phoneValue;
+                        if (itiPhone) {
+                            itiPhone.setNumber(phoneValue);
+                        }
                         phoneViewGroup.style.display = "flex";
                         phoneEditGroup.style.display = "none";
                         btnSavePhone.disabled = false;
