@@ -88,7 +88,7 @@ public class ExcelHelper {
             failStyle.setFont(failFont);
 
             // Headers
-            String[] headers = {"Test Case ID", "Username", "Hotel Name", "Room Type", "Status", "Execution Time (ms)", "Note"};
+            String[] headers = {"Test Case ID", "Username", "Hotel Name", "Room Type", "Description", "Status", "Execution Time (ms)", "Note"};
             Row headerRow = sheet.createRow(0);
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
@@ -104,8 +104,9 @@ public class ExcelHelper {
                 row.createCell(1).setCellValue(rowData.getOrDefault("Username", ""));
                 row.createCell(2).setCellValue(rowData.getOrDefault("HotelName", ""));
                 row.createCell(3).setCellValue(rowData.getOrDefault("RoomType", ""));
+                row.createCell(4).setCellValue(rowData.getOrDefault("Description", ""));
                 
-                Cell statusCell = row.createCell(4);
+                Cell statusCell = row.createCell(5);
                 String status = rowData.getOrDefault("Status", "FAIL");
                 statusCell.setCellValue(status);
                 if ("PASS".equalsIgnoreCase(status)) {
@@ -114,8 +115,8 @@ public class ExcelHelper {
                     statusCell.setCellStyle(failStyle);
                 }
 
-                row.createCell(5).setCellValue(rowData.getOrDefault("ExecutionTime", "0"));
-                row.createCell(6).setCellValue(rowData.getOrDefault("Note", ""));
+                row.createCell(6).setCellValue(rowData.getOrDefault("ExecutionTime", "0"));
+                row.createCell(7).setCellValue(rowData.getOrDefault("Note", ""));
             }
 
             // Auto-fit columns

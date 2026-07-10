@@ -1,6 +1,5 @@
 package vn.edu.fpt.hotel_management.selenium;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
@@ -60,22 +59,22 @@ public class WishlistSeleniumTest {
     public void runWishlistAutomationTest() throws IOException {
         System.out.println("=== STARTING WISHLIST SELENIUM E2E TEST ===");
 
-        // Kiểm tra file excel input tồn tại
+        // Check if input excel file exists
         File inputFile = new File(inputExcelPath);
         if (!inputFile.exists()) {
-            System.out.println(">>> SKIP TEST: File dữ liệu test '" + inputExcelPath + "' không tồn tại.");
+            System.out.println(">>> SKIP TEST: Test data file '" + inputExcelPath + "' does not exist.");
             return;
         }
 
-        // Đọc dữ liệu từ file Excel
+        // Read test data from Excel file
         List<Map<String, String>> testCases = ExcelHelper.readTestData(inputExcelPath);
         if (testCases == null || testCases.isEmpty()) {
-            System.out.println(">>> SKIP TEST: Không tìm thấy dữ liệu kiểm thử nào trong file: " + inputExcelPath);
+            System.out.println(">>> SKIP TEST: No test data found in file: " + inputExcelPath);
             return;
         }
         List<Map<String, String>> reportList = new ArrayList<>();
 
-        System.out.println("Số lượng testcase đọc được từ Excel: " + testCases.size());
+        System.out.println("Number of test cases read from Excel: " + testCases.size());
 
         for (Map<String, String> testCase : testCases) {
             String testCaseId = testCase.getOrDefault("TestCaseID", "TC_Unknown");
@@ -83,117 +82,88 @@ public class WishlistSeleniumTest {
             String password = testCase.getOrDefault("Password", "");
             String hotelName = testCase.getOrDefault("HotelName", "");
             String roomType = testCase.getOrDefault("RoomType", "");
-            String expectedStatus = testCase.getOrDefault("ExpectedStatus", "SUCCESS");
+            String scenario = testCase.getOrDefault("Scenario", "ADD").toUpperCase();
 
             System.out.println("\n--------------------------------------------------");
-            System.out.println("Đang chạy: " + testCaseId + " | User: " + username + " | Hotel: " + hotelName + " | Room: " + roomType);
+            System.out.println("Running: " + testCaseId + " | User: " + username + " | Hotel: " + hotelName + " | Room: " + roomType + " | Scenario: " + scenario);
 
             Map<String, String> reportRow = new HashMap<>(testCase);
             long startTime = System.currentTimeMillis();
 
             WebDriver driver = null;
             try {
-                // 1. Dọn dẹp trạng thái wishlist của user trước khi chạy test để đảm bảo tính độc lập
-                clearUserWishlist(username);
+                // 1. Clean up database (except for unauthorized test where user does not log in)
+                if (!"UNAUTHORIZED".equals(scenario)) {
+                    clearUserWishlist(username);
+                }
 
-                // 2. Khởi tạo Selenium Driver (Chrome)
+                // 2. Initialize Driver
                 ChromeOptions options = new ChromeOptions();
-                // options.addArguments("--headless=new"); // Bỏ comment nếu muốn chạy ẩn không giao diện
                 options.addArguments("--start-maximized");
                 options.addArguments("--remote-allow-origins=*");
                 driver = new ChromeDriver(options);
                 driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
                 WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
 
-                // 3. Mở trang login
-                driver.get(baseUrl + "/login");
-                System.out.println("Đã truy cập trang login");
-
-                // 4. Nhập form login
-                WebElement usernameInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("username")));
-                WebElement passwordInput = driver.findElement(By.id("password"));
-                WebElement loginBtn = driver.findElement(By.xpath("//button[@type='submit']"));
-
-                usernameInput.sendKeys(username);
-                passwordInput.sendKeys(password);
-                loginBtn.click();
-                System.out.println("Đã bấm submit form login");
-
-                // Xác thực đăng nhập thành công (Thanh điều hướng có avatarBtn)
-                WebElement avatarBtn = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("avatarBtn")));
-                System.out.println("Đăng nhập thành công với user: " + avatarBtn.getText());
-
-                // 5. Vào trang hotel list
-                driver.get(baseUrl + "/hotels");
-                System.out.println("Đã truy cập trang danh sách khách sạn /hotels");
-
-                // 6. Tìm khách sạn được chỉ định và click "View Rooms"
-                String viewRoomsXPath = String.format(
-                        "//div[contains(@class, 'hotel-card') and .//h5[contains(@class, 'card-title') and contains(text(), '%s')]]/descendant::a[contains(@class, 'custom-hl-view-btn')]",
-                        hotelName
-                );
-                WebElement viewRoomsBtn = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(viewRoomsXPath)));
-                
-                String parentWindow = driver.getWindowHandle();
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", viewRoomsBtn);
-                System.out.println("Đã click View Rooms khách sạn: " + hotelName);
-
-                // 7. Chuyển sang tab mới (do target="_blank")
-                wait.until(d -> d.getWindowHandles().size() > 1);
-                for (String handle : driver.getWindowHandles()) {
-                    if (!handle.equals(parentWindow)) {
-                        driver.switchTo().window(handle);
+                switch (scenario) {
+                    case "ADD":
+                        // Login -> Go to rooms -> Add -> Verify in Wishlist page
+                        login(driver, wait, username, password);
+                        goToHotelRooms(driver, wait, hotelName);
+                        addRoomToWishlist(driver, wait, roomType);
+                        verifyRoomInWishlistPage(driver, wait, hotelName, roomType);
+                        reportRow.put("Status", "PASS");
+                        reportRow.put("Note", "Successfully added room to wishlist and verified on Wishlist page.");
                         break;
-                    }
+
+                    case "TOGGLE_REMOVE":
+                        // Login -> Go to rooms -> Add -> Click heart again -> Verify wishlist empty
+                        login(driver, wait, username, password);
+                        goToHotelRooms(driver, wait, hotelName);
+                        addRoomToWishlist(driver, wait, roomType);
+                        
+                        // Click heart again to toggle remove
+                        clickHeartButton(driver, wait, roomType);
+                        verifyHeartIconIsOutline(driver, wait, roomType);
+
+                        goToWishlistPage(driver, wait);
+                        verifyWishlistIsEmpty(driver, wait);
+                        reportRow.put("Status", "PASS");
+                        reportRow.put("Note", "Successfully removed room from wishlist via toggle on Rooms page.");
+                        break;
+
+                    case "REMOVE_PAGE":
+                        // Login -> Go to rooms -> Add -> Go to wishlist -> Click red heart -> Verify empty
+                        login(driver, wait, username, password);
+                        goToHotelRooms(driver, wait, hotelName);
+                        addRoomToWishlist(driver, wait, roomType);
+
+                        goToWishlistPage(driver, wait);
+                        clickRemoveHeartOnWishlistPage(driver, wait, roomType);
+                        verifyWishlistIsEmpty(driver, wait);
+                        reportRow.put("Status", "PASS");
+                        reportRow.put("Note", "Successfully removed room from wishlist via red heart button on Wishlist page.");
+                        break;
+
+                    case "UNAUTHORIZED":
+                        // Directly access /hotels -> View rooms -> Verify no heart button rendered
+                        driver.get(baseUrl + "/hotels");
+                        System.out.println("Accessed hotels list page (unauthorized)");
+                        goToHotelRoomsDirect(driver, wait, hotelName);
+
+                        verifyNoHeartButtonDisplayed(driver, wait, roomType);
+                        reportRow.put("Status", "PASS");
+                        reportRow.put("Note", "Successfully verified that unauthorized users cannot see the wishlist heart button.");
+                        break;
+
+                    default:
+                        throw new IllegalArgumentException("Unknown scenario type: " + scenario);
                 }
-                System.out.println("Đã chuyển tab sang trang chi tiết phòng");
-
-                // 8. Tìm phòng được chỉ định và click nút trái tim thêm vào wishlist
-                String heartBtnXPath = String.format(
-                        "//div[contains(@class, 'room-card') and .//div[contains(@class, 'room-type-title') and contains(text(), '%s')]]/descendant::a[contains(@class, 'wishlist-heart-btn')]",
-                        roomType
-                );
-                WebElement heartBtn = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(heartBtnXPath)));
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", heartBtn);
-                System.out.println("Đã click nút trái tim của phòng: " + roomType);
-
-                // Chờ trang tải lại và nút trái tim được fill (bi-heart-fill)
-                String filledHeartXPath = String.format(
-                        "//div[contains(@class, 'room-card') and .//div[contains(@class, 'room-type-title') and contains(text(), '%s')]]/descendant::i[contains(@class, 'bi-heart-fill')]",
-                        roomType
-                );
-                wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(filledHeartXPath)));
-                System.out.println("Đã xác nhận icon trái tim chuyển sang dạng fill (đỏ/hồng)");
-
-                // 9. Vào trang wishlist bằng cách click qua giao diện (Avatar Dropdown -> Wishlist)
-                avatarBtn = wait.until(ExpectedConditions.elementToBeClickable(By.id("avatarBtn")));
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", avatarBtn);
-                System.out.println("Đã click mở menu avatar dropdown");
-
-                WebElement wishlistLink = wait.until(ExpectedConditions.elementToBeClickable(
-                        By.xpath("//a[contains(@class, 'avatar-menu-item') and contains(@href, '/wishlist') and not(contains(@href, '/toggle'))]")
-                ));
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", wishlistLink);
-                System.out.println("Đã click chọn menu 'Wishlist'");
-
-                // 10. Xác nhận trang wishlist chứa phòng được chỉ định
-                String wishlistRoomXPath = String.format(
-                        "//div[contains(@class, 'wishlist-room-card') and .//span[contains(@class, 'wl-hotel-name') and contains(text(), '%s')] and .//div[contains(@class, 'room-type-title') and contains(text(), '%s')]]",
-                        hotelName, roomType
-                );
-                WebElement savedRoom = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(wishlistRoomXPath)));
-                
-                assertTrue(savedRoom.isDisplayed(), "Không tìm thấy phòng đã lưu trong danh sách Wishlist!");
-                System.out.println("THÀNH CÔNG: Tìm thấy phòng " + roomType + " của khách sạn " + hotelName + " trong Wishlist!");
-
-                // Ghi nhận kết quả PASS
-                reportRow.put("Status", "PASS");
-                reportRow.put("Note", "Thêm phòng vào wishlist thành công thông qua UI.");
 
             } catch (Exception e) {
-                System.err.println("Lỗi khi chạy testcase " + testCaseId + ": " + e.getMessage());
+                System.err.println("Error running testcase " + testCaseId + ": " + e.getMessage());
                 reportRow.put("Status", "FAIL");
-                reportRow.put("Note", "Lỗi: " + e.getMessage());
+                reportRow.put("Note", "Error: " + e.getMessage());
             } finally {
                 long duration = System.currentTimeMillis() - startTime;
                 reportRow.put("ExecutionTime", String.valueOf(duration));
@@ -201,29 +171,140 @@ public class WishlistSeleniumTest {
 
                 if (driver != null) {
                     driver.quit();
-                    System.out.println("Đã đóng trình duyệt.");
+                    System.out.println("Closed the browser.");
                 }
             }
         }
 
-        // Xuất báo cáo ra file Excel
-        System.out.println("\nĐang xuất báo cáo kết quả ra file Excel: " + outputExcelPath);
+        // Export report to Excel
+        System.out.println("\nExporting test report to Excel file: " + outputExcelPath);
         try {
             ExcelHelper.writeTestReport(outputExcelPath, reportList);
-            System.out.println("Báo cáo xuất thành công. Đường dẫn: " + new File(outputExcelPath).getAbsolutePath());
+            System.out.println("Report exported successfully. Path: " + new File(outputExcelPath).getAbsolutePath());
         } catch (IOException e) {
-            System.err.println("\n>>> LỖI GHI FILE BÁO CÁO EXCEL: " + e.getMessage());
-            System.err.println(">>> Vui lòng ĐÓNG file '" + outputExcelPath + "' nếu đang mở bằng Excel/WPS Office và chạy lại test.");
-            
-            // Tạo file backup dự phòng để không mất kết quả test
+            System.err.println("\n>>> ERROR WRITING EXCEL REPORT FILE: " + e.getMessage());
             String backupPath = "wishlist_test_report_" + System.currentTimeMillis() + ".xlsx";
-            try {
-                ExcelHelper.writeTestReport(backupPath, reportList);
-                System.out.println(">>> Đã ghi báo cáo kết quả dự phòng thành công tại: " + new File(backupPath).getAbsolutePath());
-            } catch (IOException ex) {
-                System.err.println(">>> Không thể ghi file báo cáo dự phòng: " + ex.getMessage());
+            ExcelHelper.writeTestReport(backupPath, reportList);
+            System.out.println(">>> Backup test report written to: " + new File(backupPath).getAbsolutePath());
+        }
+    }
+
+    // Helper methods
+    private void login(WebDriver driver, WebDriverWait wait, String username, String password) {
+        driver.get(baseUrl + "/login");
+        WebElement usernameInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("username")));
+        WebElement passwordInput = driver.findElement(By.id("password"));
+        WebElement loginBtn = driver.findElement(By.xpath("//button[@type='submit']"));
+
+        usernameInput.sendKeys(username);
+        passwordInput.sendKeys(password);
+        loginBtn.click();
+        
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("avatarBtn")));
+        System.out.println("Logged in successfully as user: " + username);
+    }
+
+    private void goToHotelRooms(WebDriver driver, WebDriverWait wait, String hotelName) {
+        driver.get(baseUrl + "/hotels");
+        goToHotelRoomsDirect(driver, wait, hotelName);
+    }
+
+    private void goToHotelRoomsDirect(WebDriver driver, WebDriverWait wait, String hotelName) {
+        String viewRoomsXPath = String.format(
+                "//div[contains(@class, 'hotel-card') and .//h5[contains(@class, 'card-title') and contains(text(), '%s')]]/descendant::a[contains(@class, 'custom-hl-view-btn')]",
+                hotelName
+        );
+        WebElement viewRoomsBtn = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(viewRoomsXPath)));
+        
+        String parentWindow = driver.getWindowHandle();
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", viewRoomsBtn);
+
+        wait.until(d -> d.getWindowHandles().size() > 1);
+        for (String handle : driver.getWindowHandles()) {
+            if (!handle.equals(parentWindow)) {
+                driver.switchTo().window(handle);
+                break;
             }
         }
+        System.out.println("Accessed rooms list page for hotel: " + hotelName);
+    }
+
+    private void clickHeartButton(WebDriver driver, WebDriverWait wait, String roomType) {
+        String heartBtnXPath = String.format(
+                "//div[contains(@class, 'room-card') and .//div[contains(@class, 'room-type-title') and contains(text(), '%s')]]/descendant::a[contains(@class, 'wishlist-heart-btn')]",
+                roomType
+        );
+        WebElement heartBtn = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(heartBtnXPath)));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", heartBtn);
+    }
+
+    private void addRoomToWishlist(WebDriver driver, WebDriverWait wait, String roomType) {
+        clickHeartButton(driver, wait, roomType);
+        System.out.println("Clicked heart button for room: " + roomType);
+
+        String filledHeartXPath = String.format(
+                "//div[contains(@class, 'room-card') and .//div[contains(@class, 'room-type-title') and contains(text(), '%s')]]/descendant::i[contains(@class, 'bi-heart-fill')]",
+                roomType
+        );
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(filledHeartXPath)));
+        System.out.println("Heart icon verified as filled.");
+    }
+
+    private void verifyHeartIconIsOutline(WebDriver driver, WebDriverWait wait, String roomType) {
+        String outlineHeartXPath = String.format(
+                "//div[contains(@class, 'room-card') and .//div[contains(@class, 'room-type-title') and contains(text(), '%s')]]/descendant::i[contains(@class, 'bi-heart') and not(contains(@class, 'bi-heart-fill'))]",
+                roomType
+        );
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(outlineHeartXPath)));
+        System.out.println("Verified heart icon toggled back to outline.");
+    }
+
+    private void goToWishlistPage(WebDriver driver, WebDriverWait wait) {
+        WebElement avatarBtn = wait.until(ExpectedConditions.elementToBeClickable(By.id("avatarBtn")));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", avatarBtn);
+
+        WebElement wishlistLink = wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//a[contains(@class, 'avatar-menu-item') and contains(@href, '/wishlist') and not(contains(@href, '/toggle'))]")
+        ));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", wishlistLink);
+        System.out.println("Navigated to Wishlist page.");
+    }
+
+    private void verifyRoomInWishlistPage(WebDriver driver, WebDriverWait wait, String hotelName, String roomType) {
+        goToWishlistPage(driver, wait);
+        String wishlistRoomXPath = String.format(
+                "//div[contains(@class, 'wishlist-room-card') and .//span[contains(@class, 'wl-hotel-name') and contains(text(), '%s')] and .//div[contains(@class, 'room-type-title') and contains(text(), '%s')]]",
+                hotelName, roomType
+            );
+        WebElement savedRoom = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(wishlistRoomXPath)));
+        assertTrue(savedRoom.isDisplayed(), "Saved room not found on Wishlist page!");
+        System.out.println("Verified room is listed on Wishlist page.");
+    }
+
+    private void verifyWishlistIsEmpty(WebDriver driver, WebDriverWait wait) {
+        WebElement emptyState = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("wishlist-empty-state")));
+        assertTrue(emptyState.isDisplayed(), "Wishlist is not empty!");
+        System.out.println("Verified Wishlist page is empty.");
+    }
+
+    private void clickRemoveHeartOnWishlistPage(WebDriver driver, WebDriverWait wait, String roomType) {
+        String wishlistHeartXPath = String.format(
+                "//div[contains(@class, 'wishlist-room-card') and .//div[contains(@class, 'room-type-title') and contains(text(), '%s')]]/descendant::a[contains(@class, 'custom-wishlist-heart-btn')]",
+                roomType
+        );
+        WebElement wishlistHeartBtn = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(wishlistHeartXPath)));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", wishlistHeartBtn);
+        System.out.println("Clicked red heart button on Wishlist page to remove room: " + roomType);
+    }
+
+    private void verifyNoHeartButtonDisplayed(WebDriver driver, WebDriverWait wait, String roomType) {
+        String heartBtnXPath = String.format(
+                "//div[contains(@class, 'room-card') and .//div[contains(@class, 'room-type-title') and contains(text(), '%s')]]/descendant::a[contains(@class, 'wishlist-heart-btn')]",
+                roomType
+        );
+        List<WebElement> heartButtons = driver.findElements(By.xpath(heartBtnXPath));
+        assertTrue(heartButtons.isEmpty(), "Wishlist heart button should NOT be displayed for unauthorized users!");
+        System.out.println("Verified that wishlist heart button is NOT displayed for unauthorized user.");
     }
 
     private void clearUserWishlist(String username) {
@@ -235,12 +316,12 @@ public class WishlistSeleniumTest {
                     List<Wishlist> list = wishlistRepository.findByCustomerIdOrderByAddedAtDesc(customerOpt.get().getId());
                     if (!list.isEmpty()) {
                         wishlistRepository.deleteAll(list);
-                        System.out.println("Đã clear wishlist của user: " + username + " trong database.");
+                        System.out.println("Cleared wishlist of user: " + username + " in database.");
                     }
                 }
             }
         } catch (Exception e) {
-            System.err.println("Không thể dọn dẹp database trước khi test: " + e.getMessage());
+            System.err.println("Cannot clean up database before test: " + e.getMessage());
         }
     }
 }
