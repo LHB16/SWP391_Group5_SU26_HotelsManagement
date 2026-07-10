@@ -14,11 +14,14 @@
 <nav th:fragment="navBar" class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
         <a class="navbar-brand fw-bold"
-           th:href="${session.loggedInUser != null && session.loggedInUser.role == 'HOTEL_OWNER'} ? @{/owner/dashboard} : @{/}">
+           th:href="${session.loggedInUser != null && session.loggedInUser.role == 'HOTEL_OWNER'} ? @{/owner/dashboard} : (${session.loggedInUser != null && session.loggedInUser.role == 'ADMIN'} ? @{/admin/dashboard} : @{/})">
             <span th:if="${session.loggedInUser != null && session.loggedInUser.role == 'HOTEL_OWNER'}">
                 Dashboard
             </span>
-            <span th:if="${session.loggedInUser == null || session.loggedInUser.role != 'HOTEL_OWNER'}">
+            <span th:if="${session.loggedInUser != null && session.loggedInUser.role == 'ADMIN'}">
+                Admin Dashboard
+            </span>
+            <span th:if="${session.loggedInUser == null || (session.loggedInUser.role != 'HOTEL_OWNER' && session.loggedInUser.role != 'ADMIN')}">
                 Booking Hotels
             </span>
         </a>
@@ -32,11 +35,7 @@
                 <th:block th:if="${session.loggedInUser != null && session.loggedInUser.role == 'HOTEL_OWNER'}">
                 </th:block>
 
-                <th:block th:if="${session.loggedInUser != null && session.loggedInUser.role == 'ADMIN'}">
-                    <li class="nav-item">
-                        <a class="nav-link" th:href="@{/admin/dashboard}">Admin Dashboard</a>
-                    </li>
-                </th:block>
+                <!-- Admin Dashboard link has been moved to the Brand position -->
 
                 <th:block th:if="${session.loggedInUser == null || session.loggedInUser.role == 'CUSTOMER'}">
                     <li class="nav-item">

@@ -36,7 +36,17 @@ public class ForgotPasswordController {
     }
 
     @GetMapping("/forgot-password")
-    public String showForgotForm() {
+    public String showForgotForm(HttpSession session) {
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser != null) {
+            if ("ADMIN".equalsIgnoreCase(loggedInUser.getRole())) {
+                return "redirect:/admin/dashboard";
+            } else if ("HOTEL_OWNER".equalsIgnoreCase(loggedInUser.getRole())) {
+                return "redirect:/owner/dashboard";
+            } else {
+                return "redirect:/home";
+            }
+        }
         return "auth/forgot-password";
     }
 
@@ -59,6 +69,16 @@ public class ForgotPasswordController {
 
     @GetMapping("/reset-password")
     public String showResetPassword(HttpSession session, Model model) {
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser != null) {
+            if ("ADMIN".equalsIgnoreCase(loggedInUser.getRole())) {
+                return "redirect:/admin/dashboard";
+            } else if ("HOTEL_OWNER".equalsIgnoreCase(loggedInUser.getRole())) {
+                return "redirect:/owner/dashboard";
+            } else {
+                return "redirect:/home";
+            }
+        }
         String email = (String) session.getAttribute("resetEmail");
         if (email == null) return "redirect:/forgot-password";
         model.addAttribute("email", email);

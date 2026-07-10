@@ -22,6 +22,16 @@ public class OtpController {
 
     @GetMapping("/verify-otp")
     public String showVerifyOtp(HttpSession session, Model model) {
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser != null) {
+            if ("ADMIN".equalsIgnoreCase(loggedInUser.getRole())) {
+                return "redirect:/admin/dashboard";
+            } else if ("HOTEL_OWNER".equalsIgnoreCase(loggedInUser.getRole())) {
+                return "redirect:/owner/dashboard";
+            } else {
+                return "redirect:/home";
+            }
+        }
         String email = (String) session.getAttribute("pendingEmail");
         if (email == null) return "redirect:/register";
         model.addAttribute("email", email);
