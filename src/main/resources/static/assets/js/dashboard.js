@@ -12,16 +12,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const bookingsData = window.bookingsData || [];
 
     // 4. Formatting Helper
-    function formatUSD(amount) {
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'VND', minimumFractionDigits: 0 }).format(amount);
+    function formatVND(amount) {
+        return new Intl.NumberFormat('en-US', { minimumFractionDigits: 0 }).format(amount) + " VND";
     }
 
     // ==========================================
     // TAB 1: REVENUE OVERVIEW LOGIC (CSS Chart & Date filters)
     // ==========================================
+    const revenuePanel = document.getElementById("revenuePanel");
+    const isRevenueTab = revenuePanel && revenuePanel.classList.contains("active");
+
     const filterStartDate = document.getElementById("filterStartDate");
     const filterEndDate = document.getElementById("filterEndDate");
-    const hotelCheckboxes = document.querySelectorAll(".hotel-filter-checkbox");
 
     const totalRevenueEl = document.getElementById("totalRevenue");
     const totalBookingsEl = document.getElementById("totalBookings");
@@ -29,6 +31,54 @@ document.addEventListener("DOMContentLoaded", function () {
     
     const cssChartContainer = document.getElementById("cssChartContainer");
     const revenueTableBody = document.getElementById("revenueTableBody");
+
+    function saveRevenueFilterState() {
+        if (!filterStartDate || !isRevenueTab) return;
+        const activeHotelNames = [];
+        document.querySelectorAll(".hotel-pill-btn.active").forEach(btn => {
+            activeHotelNames.push(btn.getAttribute("data-hotel-name"));
+        });
+        const state = {
+            startDate: filterStartDate.value,
+            endDate: filterEndDate.value,
+            selectedHotels: activeHotelNames
+        };
+        localStorage.setItem("adminRevenueFilters", JSON.stringify(state));
+    }
+
+    function restoreRevenueFilterState() {
+        if (!isRevenueTab) return;
+        const savedStateStr = localStorage.getItem("adminRevenueFilters");
+        if (!savedStateStr) return;
+        try {
+            const state = JSON.parse(savedStateStr);
+            
+            // 1. Restore dates
+            if (state.startDate) {
+                filterStartDate.value = state.startDate;
+                filterEndDate.min = state.startDate;
+            }
+            if (state.endDate) {
+                filterEndDate.value = state.endDate;
+                filterStartDate.max = state.endDate;
+            }
+            
+            // 2. Restore active hotels
+            if (state.selectedHotels && Array.isArray(state.selectedHotels)) {
+                const hotelPillButtons = document.querySelectorAll(".hotel-pill-btn");
+                hotelPillButtons.forEach(btn => {
+                    const hotelName = btn.getAttribute("data-hotel-name");
+                    if (state.selectedHotels.includes(hotelName)) {
+                        btn.classList.add("active");
+                    } else {
+                        btn.classList.remove("active");
+                    }
+                });
+            }
+        } catch (e) {
+            console.error("Failed to restore revenue filters", e);
+        }
+    }
 
     function applyRevenueFilters() {
         if (!filterStartDate) return;
@@ -46,12 +96,10 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // Get list of checked hotel names
+        // Get list of selected hotel names from active buttons
         const selectedHotelNames = [];
-        hotelCheckboxes.forEach(cb => {
-            if (cb.checked) {
-                selectedHotelNames.push(cb.value);
-            }
+        document.querySelectorAll(".hotel-pill-btn.active").forEach(btn => {
+            selectedHotelNames.push(btn.getAttribute("data-hotel-name"));
         });
 
         // Object to accumulate revenue per hotel
@@ -88,7 +136,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         // 1. Update summary cards
-        totalRevenueEl.textContent = formatUSD(totalRevenue);
+        totalRevenueEl.textContent = formatVND(totalRevenue);
         totalBookingsEl.textContent = totalBookings.toLocaleString('en-US');
         totalHotelsEl.textContent = Object.keys(hotelRevenueMap).length;
 
@@ -110,7 +158,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     <div class="chart-hotel-name" title="${h.hotelName}">${h.hotelName}</div>
                     <div class="chart-bar-wrapper">
                         <div class="chart-bar" style="width: 0%;">
-                            <span class="chart-bar-value">${formatUSD(h.revenue)}</span>
+                            <span class="chart-bar-value">${formatVND(h.revenue)}</span>
                         </div>
                     </div>
                 `;
@@ -131,28 +179,31 @@ document.addEventListener("DOMContentLoaded", function () {
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
                     <td><strong>${h.hotelName}</strong></td>
-                    <td class="revenue-amount text-success">${formatUSD(h.revenue)}</td>
+                    <td class="revenue-amount text-success">${formatVND(h.revenue)}</td>
                     <td>${h.bookingCount} successful bookings</td>
                     <td><span class="badge bg-success-subtle text-success px-2 py-1">Active</span></td>
                 `;
                 revenueTableBody.appendChild(tr);
             });
         }
+
+        // Save current filter state to localStorage
+        saveRevenueFilterState();
     }
 
-    if (filterStartDate) {
-        // Search filter for hotels in checkbox list
+    if (filterStartDate && isRevenueTab) {
+        // Search filter for hotels in pill buttons list
         const searchHotelInput = document.getElementById("searchHotelInput");
         if (searchHotelInput) {
             searchHotelInput.addEventListener("input", function() {
                 const keyword = this.value.trim().toLowerCase();
-                const items = document.querySelectorAll(".hotel-checkbox-item");
-                items.forEach(item => {
-                    const hotelName = item.querySelector("span").textContent.toLowerCase();
+                const hotelPillButtons = document.querySelectorAll(".hotel-pill-btn");
+                hotelPillButtons.forEach(btn => {
+                    const hotelName = btn.getAttribute("data-hotel-name").toLowerCase();
                     if (hotelName.includes(keyword)) {
-                        item.style.setProperty("display", "flex", "important");
+                        btn.style.setProperty("display", "inline-flex", "important");
                     } else {
-                        item.style.setProperty("display", "none", "important");
+                        btn.style.setProperty("display", "none", "important");
                     }
                 });
             });
@@ -164,19 +215,19 @@ document.addEventListener("DOMContentLoaded", function () {
         
         if (btnSelectAllHotels && btnDeselectAllHotels) {
             btnSelectAllHotels.addEventListener("click", function() {
-                hotelCheckboxes.forEach(cb => {
-                    const parentItem = cb.closest(".hotel-checkbox-item");
-                    if (parentItem && parentItem.style.display !== "none") {
-                        cb.checked = true;
+                const hotelPillButtons = document.querySelectorAll(".hotel-pill-btn");
+                hotelPillButtons.forEach(btn => {
+                    if (btn.style.display !== "none") {
+                        btn.classList.add("active");
                     }
                 });
                 applyRevenueFilters();
             });
             btnDeselectAllHotels.addEventListener("click", function() {
-                hotelCheckboxes.forEach(cb => {
-                    const parentItem = cb.closest(".hotel-checkbox-item");
-                    if (parentItem && parentItem.style.display !== "none") {
-                        cb.checked = false;
+                const hotelPillButtons = document.querySelectorAll(".hotel-pill-btn");
+                hotelPillButtons.forEach(btn => {
+                    if (btn.style.display !== "none") {
+                        btn.classList.remove("active");
                     }
                 });
                 applyRevenueFilters();
@@ -199,7 +250,18 @@ document.addEventListener("DOMContentLoaded", function () {
             }
             applyRevenueFilters();
         });
-        hotelCheckboxes.forEach(cb => cb.addEventListener("change", applyRevenueFilters));
+
+        // Add click events to pill buttons
+        const hotelPillButtons = document.querySelectorAll(".hotel-pill-btn");
+        hotelPillButtons.forEach(btn => {
+            btn.addEventListener("click", function() {
+                this.classList.toggle("active");
+                applyRevenueFilters();
+            });
+        });
+        
+        // Restore filters state from localStorage
+        restoreRevenueFilterState();
         
         // Load initial state
         applyRevenueFilters();

@@ -57,7 +57,7 @@
                     <!-- Phone -->
                     <div class="mb-3">
                         <label class="form-label">Phone Number <span class="text-danger">*</span></label>
-                        <input type="tel" name="phone" class="form-control"
+                        <input type="tel" name="phone" id="phone" class="form-control"
                                placeholder="Enter your phone number..."
                                th:value="${phone}"
                                required/>
@@ -121,5 +121,29 @@
 
 <footer th:replace="~{fragment/frag :: footer}"></footer>
 <div th:replace="~{fragment/frag :: scripts}"></div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const phoneInput = document.getElementById("phone");
+        if (phoneInput) {
+            const iti = window.intlTelInput(phoneInput, {
+                initialCountry: "vn",
+                preferredCountries: ["vn"],
+                separateDialCode: false,
+                nationalMode: false,
+                utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.js"
+            });
+            
+            // Format phone number to international standard before form submission
+            const form = phoneInput.closest("form");
+            if (form) {
+                form.addEventListener("submit", function() {
+                    if (phoneInput.value.trim()) {
+                        phoneInput.value = iti.getNumber();
+                    }
+                });
+            }
+        }
+    });
+</script>
 </body>
 </html>

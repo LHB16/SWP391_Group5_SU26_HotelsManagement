@@ -7,6 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import vn.edu.fpt.hotel_management.entity.Admin;
 import vn.edu.fpt.hotel_management.entity.Customer;
 import vn.edu.fpt.hotel_management.entity.HotelOwner;
@@ -70,6 +71,7 @@ public class ProfileController {
         User userInDb = userRepository.findById(loggedInUser.getId())
                 .orElse(loggedInUser);
         userInDb.setFullName(getFullNameByRole(userInDb));
+        userInDb.setPhone(getPhoneByRole(userInDb));
 
         model.addAttribute("user", userInDb);
         return "User/profile";
@@ -86,37 +88,23 @@ public class ProfileController {
             return "redirect:/login";
         }
 
-        // Chỉ cho phép chỉnh sửa "fullName", "email" hoặc "password"
-        if (!"fullName".equals(field) && !"email".equals(field) && !"password".equals(field)) {
+        // Chỉ cho phép chỉnh sửa "fullName", "email", "password" hoặc "phone"
+        if (!"fullName".equals(field) && !"email".equals(field) && !"password".equals(field) && !"phone".equals(field)) {
             session.setAttribute("errorMessage", "Invalid action!");
             return "redirect:/profile";
         }
 
-        try {
-            // Sinh mã OTP mới
-            String otp = otpService.generateOtp();
-
-            // Lưu mã OTP, thời hạn và kiểu OTP vào DB của user hiện tại
-            User userInDb = userRepository.findById(loggedInUser.getId())
-                    .orElseThrow(() -> new RuntimeException("Account not found!"));
-            userInDb.setOtp(otp);
-            userInDb.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
-            userInDb.setOtpType("UPDATE_PROFILE");
-            userRepository.save(userInDb);
-
-            // Gửi OTP qua email hiện tại để xác minh danh tính
-            emailService.sendProfileUpdateOtp(userInDb.getEmail(), otp);
-
-            // Thiết lập cờ yêu cầu sửa đổi và lưu trường muốn sửa vào session
-            session.setAttribute("pendingEditRequest", true);
+        if ("phone".equals(field)) {
+            session.setAttribute("profileVerifiedForEdit", true);
             session.setAttribute("editField", field);
-
-            session.setAttribute("successMessage", "Verification OTP code has been sent to your email to verify identity!");
-            return "redirect:/profile/verify-edit";
-        } catch (Exception e) {
-            session.setAttribute("errorMessage", "Error sending verification email: " + e.getMessage());
             return "redirect:/profile";
         }
+
+        // Thiết lập cờ yêu cầu sửa đổi và lưu trường muốn sửa vào session
+        session.setAttribute("pendingEditRequest", true);
+        session.setAttribute("editField", field);
+
+        return "redirect:/profile/verify-edit";
     }
 
     // Giao diện nhập mã OTP để xác nhận chỉnh sửa
@@ -130,6 +118,34 @@ public class ProfileController {
         Boolean pendingEditRequest = (Boolean) session.getAttribute("pendingEditRequest");
         if (pendingEditRequest == null || !pendingEditRequest) {
             return "redirect:/profile";
+        }
+
+        try {
+            User userInDb = userRepository.findById(loggedInUser.getId())
+                    .orElseThrow(() -> new RuntimeException("Account not found!"));
+            
+            // Chỉ sinh và gửi OTP nếu chưa có mã OTP hiện tại hoạt động hoặc mã đã hết hạn
+            if (userInDb.getOtp() == null || userInDb.getOtpExpiry() == null || userInDb.getOtpExpiry().isBefore(LocalDateTime.now())) {
+                String otp = otpService.generateOtp();
+                userInDb.setOtp(otp);
+                userInDb.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
+                userInDb.setOtpType("UPDATE_PROFILE");
+                userRepository.save(userInDb);
+
+                final String userEmail = userInDb.getEmail();
+                final String otpCode = otp;
+                java.util.concurrent.CompletableFuture.runAsync(() -> {
+                    try {
+                        emailService.sendProfileUpdateOtp(userEmail, otpCode);
+                    } catch (Exception e) {
+                        System.err.println("Error sending async profile update OTP: " + e.getMessage());
+                    }
+                });
+
+                model.addAttribute("successMessage", "Verification OTP code is being sent to your email!");
+            }
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Error: " + e.getMessage());
         }
 
         String successMsg = (String) session.getAttribute("successMessage");
@@ -235,6 +251,36 @@ public class ProfileController {
         }
     }
 
+    // Lưu số điện thoại mới vào Database (không cần xác thực OTP - AJAX)
+    @PostMapping("/profile/save-phone")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<?> savePhone(
+            @RequestParam("phone") String phone,
+            HttpSession session) {
+
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return org.springframework.http.ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        try {
+            User userInDb = userRepository.findById(loggedInUser.getId())
+                    .orElseThrow(() -> new RuntimeException("Account not found!"));
+            
+            updatePhoneByRole(userInDb, phone);
+            userInDb.setPhone(phone);
+
+            // Cập nhật session và dọn cờ
+            session.setAttribute("loggedInUser", userInDb);
+            session.removeAttribute("profileVerifiedForEdit");
+            session.removeAttribute("editField");
+
+            return org.springframework.http.ResponseEntity.ok("success");
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.status(500).body(e.getMessage());
+        }
+    }
+
     // Gửi OTP xác thực đến Email mới (Xác thực bước 2)
     @PostMapping("/profile/request-new-email")
     public String requestNewEmail(
@@ -278,14 +324,22 @@ public class ProfileController {
             userInDb.setOtpType("UPDATE_PROFILE");
             userRepository.save(userInDb);
 
-            // Gửi mã xác nhận đến Email mới
-            emailService.sendProfileUpdateOtp(newEmail, otp);
+            // Gửi mã xác nhận đến Email mới (Bất đồng bộ)
+            final String targetEmail = newEmail;
+            final String otpCode = otp;
+            java.util.concurrent.CompletableFuture.runAsync(() -> {
+                try {
+                    emailService.sendProfileUpdateOtp(targetEmail, otpCode);
+                } catch (Exception e) {
+                    System.err.println("Error sending async new email update OTP: " + e.getMessage());
+                }
+            });
 
             // Lưu email mới tạm thời vào session và thiết lập cờ xác nhận email mới
             session.setAttribute("pendingNewEmail", newEmail);
             session.setAttribute("pendingNewEmailOtpRequest", true);
 
-            session.setAttribute("successMessage", "Verification OTP code has been sent to your new email!");
+            session.setAttribute("successMessage", "Verification OTP code is being sent to your new email!");
             return "redirect:/profile/verify-new-email";
         } catch (Exception e) {
             session.setAttribute("errorMessage", "Error sending OTP to new email: " + e.getMessage());
@@ -474,5 +528,37 @@ public class ProfileController {
             return adminRepository.findByUserAccount(user).map(Admin::getFullName).orElse(user.getUsername());
         }
         return user.getUsername();
+    }
+
+    private String getPhoneByRole(User user) {
+        if ("CUSTOMER".equalsIgnoreCase(user.getRole())) {
+            return customerRepository.findByUserAccount(user).map(Customer::getPhone).orElse("");
+        } else if ("HOTEL_OWNER".equalsIgnoreCase(user.getRole())) {
+            return hotelOwnerRepository.findByUserAccount(user).map(HotelOwner::getPhone).orElse("");
+        } else if ("ADMIN".equalsIgnoreCase(user.getRole())) {
+            return adminRepository.findByUserAccount(user).map(Admin::getPhone).orElse("");
+        }
+        return "";
+    }
+
+    private void updatePhoneByRole(User user, String phone) {
+        if ("CUSTOMER".equalsIgnoreCase(user.getRole())) {
+            Customer customer = customerRepository.findByUserAccount(user)
+                    .orElseThrow(() -> new RuntimeException("Customer profile not found!"));
+            customer.setPhone(phone);
+            customerRepository.save(customer);
+        } else if ("HOTEL_OWNER".equalsIgnoreCase(user.getRole())) {
+            HotelOwner owner = hotelOwnerRepository.findByUserAccount(user)
+                    .orElseThrow(() -> new RuntimeException("Hotel owner profile not found!"));
+            owner.setPhone(phone);
+            hotelOwnerRepository.save(owner);
+        } else if ("ADMIN".equalsIgnoreCase(user.getRole())) {
+            Admin admin = adminRepository.findByUserAccount(user)
+                    .orElseThrow(() -> new RuntimeException("Admin profile not found!"));
+            admin.setPhone(phone);
+            adminRepository.save(admin);
+        } else {
+            throw new RuntimeException("Unsupported account role!");
+        }
     }
 }

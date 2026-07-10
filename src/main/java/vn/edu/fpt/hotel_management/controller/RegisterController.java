@@ -29,12 +29,32 @@ public class RegisterController {
     }
 
     @GetMapping("/register")
-    public String showRegisterForm() {
+    public String showRegisterForm(HttpSession session) {
+        vn.edu.fpt.hotel_management.entity.User loggedInUser = (vn.edu.fpt.hotel_management.entity.User) session.getAttribute("loggedInUser");
+        if (loggedInUser != null) {
+            if ("ADMIN".equalsIgnoreCase(loggedInUser.getRole())) {
+                return "redirect:/admin/dashboard";
+            } else if ("HOTEL_OWNER".equalsIgnoreCase(loggedInUser.getRole())) {
+                return "redirect:/owner/dashboard";
+            } else {
+                return "redirect:/home";
+            }
+        }
         return "auth/register";
     }
 
     @GetMapping("/register-owner")
-    public String showRegisterOwnerForm() {
+    public String showRegisterOwnerForm(HttpSession session) {
+        vn.edu.fpt.hotel_management.entity.User loggedInUser = (vn.edu.fpt.hotel_management.entity.User) session.getAttribute("loggedInUser");
+        if (loggedInUser != null) {
+            if ("ADMIN".equalsIgnoreCase(loggedInUser.getRole())) {
+                return "redirect:/admin/dashboard";
+            } else if ("HOTEL_OWNER".equalsIgnoreCase(loggedInUser.getRole())) {
+                return "redirect:/owner/dashboard";
+            } else {
+                return "redirect:/home";
+            }
+        }
         return "auth/register-owner";
     }
 

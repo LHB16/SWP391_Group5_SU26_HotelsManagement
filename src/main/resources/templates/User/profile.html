@@ -133,6 +133,37 @@
                                             </div>
                                         </div>
 
+                                        <!-- 2.5 PHONE NUMBER -->
+                                        <div class="mb-4" id="phone-container">
+                                            <label class="form-label text-muted fw-semibold profile-label-sm d-flex align-items-center gap-2">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                                PHONE NUMBER
+                                            </label>
+                                            
+                                            <!-- Chế độ xem Phone -->
+                                            <div id="phone-view-group" class="input-group" style="display: flex;">
+                                                <input type="text" id="phone-display-input" class="form-control profile-input-readonly" th:value="${user.phone}" readonly style="border-right: none; background-color: #f8fafc !important; border-color: #e2e8f0 !important;"/>
+                                                <button type="button" id="btn-edit-phone" class="btn d-flex align-items-center justify-content-center" title="Edit Phone Number" style="border: 1px solid #e2e8f0; border-left: none; background-color: #f8fafc; color: #0a1628; padding-left: 14px; padding-right: 14px; border-top-right-radius: 8px; border-bottom-right-radius: 8px;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                                                </button>
+                                            </div>
+
+                                            <!-- Chế độ sửa Phone -->
+                                            <div id="phone-edit-group" style="display: none;">
+                                                <input type="tel" class="form-control profile-input-editable mb-2" id="phone-edit-input" th:value="${user.phone}" required style="border-color: #0a1628 !important;"/>
+                                                <div class="d-flex gap-2">
+                                                    <button type="button" id="btn-save-phone" class="btn btn-sm text-white profile-btn-primary d-flex align-items-center gap-2" style="width: auto; padding: 8px 16px !important; background-color: #0a1628 !important; border-color: #0a1628 !important;">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                                                        Save
+                                                    </button>
+                                                    <button type="button" id="btn-cancel-phone" class="btn btn-sm btn-outline-secondary profile-btn-secondary d-flex align-items-center justify-content-center" style="width: auto; padding: 8px 16px !important;">
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                                <span id="phone-error-msg" class="text-danger small mt-1" style="display: none;"></span>
+                                            </div>
+                                        </div>
+
                                         <!-- 3. EMAIL ADDRESS -->
                                         <div class="mb-4">
                                             <label class="form-label text-muted fw-semibold profile-label-sm d-flex align-items-center gap-2">
@@ -355,6 +386,106 @@
                 minDate: checkinVal ? new Date(new Date(checkinVal).getTime() + 86400000) : null,
                 defaultDate: checkoutVal ? checkoutVal : null
             });
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const btnEditPhone = document.getElementById("btn-edit-phone");
+            const btnCancelPhone = document.getElementById("btn-cancel-phone");
+            const btnSavePhone = document.getElementById("btn-save-phone");
+            const phoneViewGroup = document.getElementById("phone-view-group");
+            const phoneEditGroup = document.getElementById("phone-edit-group");
+            const phoneDisplayInput = document.getElementById("phone-display-input");
+            const phoneEditInput = document.getElementById("phone-edit-input");
+            const phoneErrorMsg = document.getElementById("phone-error-msg");
+
+            let itiPhone;
+            if (phoneEditInput) {
+                itiPhone = window.intlTelInput(phoneEditInput, {
+                    initialCountry: "vn",
+                    preferredCountries: ["vn"],
+                    separateDialCode: false,
+                    nationalMode: false,
+                    utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.js"
+                });
+            }
+
+            if (btnEditPhone && btnCancelPhone && btnSavePhone) {
+                // Toggle to edit mode
+                btnEditPhone.addEventListener("click", function() {
+                    phoneViewGroup.style.display = "none";
+                    phoneEditGroup.style.display = "block";
+                    phoneErrorMsg.style.display = "none";
+                    phoneEditInput.focus();
+                    if (itiPhone) {
+                        itiPhone.setNumber(phoneEditInput.value); // Re-sync in case format is modified
+                    }
+                });
+
+                // Cancel edit mode
+                btnCancelPhone.addEventListener("click", function() {
+                    phoneEditInput.value = phoneDisplayInput.value; // Reset value
+                    if (itiPhone) {
+                        itiPhone.setNumber(phoneDisplayInput.value);
+                    }
+                    phoneViewGroup.style.display = "flex";
+                    phoneEditGroup.style.display = "none";
+                    phoneErrorMsg.style.display = "none";
+                });
+
+                // Save phone via AJAX
+                btnSavePhone.addEventListener("click", function() {
+                    const phoneValue = itiPhone ? itiPhone.getNumber() : phoneEditInput.value.trim();
+                    if (!phoneValue) {
+                        phoneErrorMsg.textContent = "Phone number is required.";
+                        phoneErrorMsg.style.display = "block";
+                        return;
+                    }
+
+                    btnSavePhone.disabled = true;
+                    phoneErrorMsg.style.display = "none";
+
+                    const formData = new URLSearchParams();
+                    formData.append("phone", phoneValue);
+
+                    // Extract CSRF token if present on the page
+                    const csrfToken = document.querySelector('input[name="_csrf"]')?.value;
+                    if (csrfToken) {
+                        formData.append("_csrf", csrfToken);
+                    }
+
+                    fetch("/profile/save-phone", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            return response.text();
+                        } else {
+                            throw new Error("Failed to update phone number.");
+                        }
+                    })
+                    .then(data => {
+                        // Success: Update UI without page reload
+                        phoneDisplayInput.value = phoneValue;
+                        if (itiPhone) {
+                            itiPhone.setNumber(phoneValue);
+                        }
+                        phoneViewGroup.style.display = "flex";
+                        phoneEditGroup.style.display = "none";
+                        btnSavePhone.disabled = false;
+                        alert("Phone number updated successfully!");
+                    })
+                    .catch(error => {
+                        phoneErrorMsg.textContent = error.message;
+                        phoneErrorMsg.style.display = "block";
+                        btnSavePhone.disabled = false;
+                    });
+                });
+            }
         });
     </script>
 </body>

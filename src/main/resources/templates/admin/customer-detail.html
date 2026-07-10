@@ -74,20 +74,25 @@
             <div class="detail-body">
                 <!-- Info row -->
                 <div class="row g-4 mb-5 border-bottom pb-4">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <small class="text-uppercase text-muted d-block fw-bold mb-1"
                                style="font-size: 0.75rem; letter-spacing: 0.05em;">Customer ID</small>
                         <span class="fw-bold text-dark" th:text="'#' + ${selectedCustomer.id}">#0</span>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <small class="text-uppercase text-muted d-block fw-bold mb-1"
                                style="font-size: 0.75rem; letter-spacing: 0.05em;">Username</small>
                         <span class="text-dark fw-medium" th:text="${selectedCustomer.username}">-</span>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <small class="text-uppercase text-muted d-block fw-bold mb-1"
                                style="font-size: 0.75rem; letter-spacing: 0.05em;">Email Address</small>
                         <span class="text-dark fw-medium" th:text="${selectedCustomer.email}">-</span>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-uppercase text-muted d-block fw-bold mb-1"
+                               style="font-size: 0.75rem; letter-spacing: 0.05em;">Phone Number</small>
+                        <span class="text-dark fw-medium" th:text="${selectedCustomer.phone ?: '-'}">-</span>
                     </div>
                     <div class="col-md-2">
                         <small class="text-uppercase text-muted d-block fw-bold mb-1"

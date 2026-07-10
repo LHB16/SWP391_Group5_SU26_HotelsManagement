@@ -210,24 +210,22 @@
                     <div class="col-12 col-lg-4">
                         <div class="sticky-summary d-flex flex-column gap-4">
 
-                            <!-- Information Card (Read-only Profile) -->
+                            <!-- Information Card -->
                             <div class="card border-0 shadow-sm p-4">
                                 <h4 class="section-header text-gold">Information</h4>
                                 <div class="mb-3">
-                                    <label class="form-label small fw-bold text-uppercase text-muted">Full Name</label>
-                                    <input type="text" class="form-control bg-light"
-                                        th:value="${customer != null ? customer.fullName : ''}" readonly disabled>
+                                    <label class="form-label small fw-bold text-uppercase text-muted">Full Name <span class="text-danger">*</span></label>
+                                    <input type="text" name="fullName" class="form-control"
+                                        th:value="${customer != null ? customer.fullName : ''}" required>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label small fw-bold text-uppercase text-muted">Phone
-                                        Number</label>
-                                    <input type="text" class="form-control bg-light"
-                                        th:value="${customer != null ? customer.phone : ''}" readonly disabled>
+                                    <label class="form-label small fw-bold text-uppercase text-muted">Phone Number <span class="text-danger">*</span></label>
+                                    <input type="tel" name="phone" id="phone" class="form-control"
+                                        th:value="${customer != null ? customer.phone : ''}" required>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-uppercase text-muted">Address</label>
-                                    <input type="text" class="form-control bg-light"
-                                        th:value="${customer != null ? customer.fullAddress : ''}" readonly disabled>
+                                <div class="mt-3 text-muted small d-flex align-items-start gap-2" style="font-size: 0.82rem; line-height: 1.4; color: #64748b;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c9a96e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                                    <span>Upon check-in, guests must provide an ID matching this name. Please note that this name cannot be changed.</span>
                                 </div>
                             </div>
 
@@ -291,6 +289,30 @@
 
     <!-- Booking Filter JS -->
     <script th:src="@{/assets/js/booking-filter.js}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const phoneInput = document.getElementById("phone");
+            if (phoneInput) {
+                const iti = window.intlTelInput(phoneInput, {
+                    initialCountry: "vn",
+                    preferredCountries: ["vn"],
+                    separateDialCode: false,
+                    nationalMode: false,
+                    utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.js"
+                });
+                
+                // Format phone number to international standard before form submission
+                const form = phoneInput.closest("form");
+                if (form) {
+                    form.addEventListener("submit", function() {
+                        if (phoneInput.value.trim()) {
+                            phoneInput.value = iti.getNumber();
+                        }
+                    });
+                }
+            }
+        });
+    </script>
 </body>
 
 </html>

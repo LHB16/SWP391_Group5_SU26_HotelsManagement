@@ -25,6 +25,38 @@
             background-color: #cbd5e1;
             color: #1e293b;
         }
+        
+        /* GUI Hotel Filter Toggle Buttons */
+        .hotel-pill-btn {
+            background-color: #f8fafc;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .hotel-pill-btn:hover {
+            background-color: #f1f5f9;
+            color: #334155;
+            border-color: #cbd5e1;
+        }
+        .hotel-pill-btn.active {
+            background-color: #4f46e5;
+            color: #ffffff;
+            border-color: #4f46e5;
+            box-shadow: 0 2px 4px rgba(79, 70, 229, 0.15);
+        }
+        .hotel-pill-btn.active:hover {
+            background-color: #4338ca;
+            border-color: #4338ca;
+        }
     </style>
 </head>
 
@@ -163,11 +195,11 @@
                                                     <button type="button" id="btnDeselectAllHotels" class="btn btn-sm btn-outline-secondary py-0.5 px-2" style="font-size: 0.75rem; border-radius: 6px;">Clear All</button>
                                                 </div>
                                             </div>
-                                            <div class="hotel-checkbox-list" id="hotelCheckboxListContainer">
-                                                <label class="hotel-checkbox-item" th:each="h : ${hotels}">
-                                                    <input type="checkbox" class="hotel-filter-checkbox" th:value="${h.name}" checked />
+                                            <div class="d-flex flex-wrap gap-2 py-2" id="hotelCheckboxListContainer">
+                                                <button type="button" class="hotel-pill-btn active" th:each="h : ${hotels}" th:data-hotel-name="${h.name}">
+                                                    <i data-lucide="building" style="width: 14px; height: 14px; stroke-width: 1.5;"></i>
                                                     <span th:text="${h.name}">Hotel Name</span>
-                                                </label>
+                                                </button>
                                                 <div class="text-muted small" th:if="${#lists.isEmpty(hotels)}">No hotels available.</div>
                                             </div>
                                         </div>
@@ -895,8 +927,9 @@
                                                               th:text="${refund.status}">PENDING</span>
                                                     </td>
                                                     <td>
-                                                        <div class="d-flex align-items-center gap-2">
-                                                            <button type="button" class="ra-btn-detail"
+                                                        <div class="d-flex flex-column gap-1" style="width: fit-content; min-width: 90px;">
+                                                            <button type="button" class="ra-btn-detail py-1 px-2 d-flex align-items-center justify-content-center gap-1"
+                                                                    style="font-size: 0.75rem; border-radius: 6px; width: 100%;"
                                                                     th:attr="data-refund-id=${refund.id},
                                                                              data-booking-id=${refund.booking.id},
                                                                              data-customer-name=${refund.booking.customer.fullName},
@@ -911,12 +944,12 @@
                                                                              data-processed-at=${refund.processedAt != null ? #temporals.format(refund.processedAt, 'HH:mm dd/MM/yyyy') : '-'},
                                                                              data-admin-note=${refund.note}"
                                                                     onclick="openDetailModal(this)">
-                                                                <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                                                                <i data-lucide="eye" style="width: 12px; height: 12px;"></i>
                                                                 Detail
                                                             </button>
                                                             <!-- Chỉ hiện nút action khi PENDING -->
-                                                            <div th:if="${refund.status == 'PENDING'}" class="d-flex gap-1">
-                                                                <button type="button" class="btn btn-sm btn-success text-white px-2 py-1"
+                                                            <th:block th:if="${refund.status == 'PENDING'}">
+                                                                <button type="button" class="btn btn-sm btn-success text-white px-2 py-1 d-flex align-items-center justify-content-center gap-1"
                                                                         th:data-refund-id="${refund.id}"
                                                                         th:data-customer="${refund.booking.customer.fullName}"
                                                                         th:data-amount="${#numbers.formatInteger(refund.refundAmount, 3, 'COMMA') + ' VND'}"
@@ -924,22 +957,41 @@
                                                                         th:data-account-number="${refund.accountNumber}"
                                                                         th:data-account-holder="${refund.accountHolder}"
                                                                         th:data-booking-id="${refund.booking.id}"
-                                                                        onclick="openApproveModal(this)" style="background-color: #10b981; font-size: 0.8rem; border-radius: 6px;">
-                                                                    <i data-lucide="check" style="width: 13px; height: 13px;"></i>
+                                                                        onclick="openApproveModal(this)" style="background-color: #10b981; font-size: 0.75rem; border-radius: 6px; width: 100%;">
+                                                                    <i data-lucide="check" style="width: 12px; height: 12px;"></i>
                                                                     Approve
                                                                 </button>
-                                                                <button type="button" class="btn btn-sm btn-danger text-white px-2 py-1"
+                                                                <button type="button" class="btn btn-sm btn-danger text-white px-2 py-1 d-flex align-items-center justify-content-center gap-1"
                                                                         th:data-refund-id="${refund.id}"
-                                                                        onclick="openRejectModal(this)" style="background-color: #ef4444; font-size: 0.8rem; border-radius: 6px;">
-                                                                    <i data-lucide="x" style="width: 13px; height: 13px;"></i>
+                                                                        onclick="openRejectModal(this)" style="background-color: #ef4444; font-size: 0.75rem; border-radius: 6px; width: 100%;">
+                                                                    <i data-lucide="x" style="width: 12px; height: 12px;"></i>
                                                                     Reject
                                                                 </button>
-                                                            </div>
+                                                            </th:block>
                                                         </div>
                                                     </td>
                                                 </tr>
                                             </tbody>
                                         </table>
+
+                                        <!-- Pagination -->
+                                        <div class="pagination-container mt-3" th:if="${refundTotalPages > 1}">
+                                            <a th:href="@{/admin/dashboard(page=${refundCurrentPage - 1}, tab='refundPanel', status=${filterStatus}, searchQuery=${searchQuery}, searchType=${searchType})}"
+                                               class="page-link-custom" th:classappend="${refundCurrentPage == 0} ? 'disabled' : ''">
+                                                <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>
+                                            </a>
+
+                                            <th:block th:each="i : ${#numbers.sequence(0, refundTotalPages - 1)}">
+                                                <a th:href="@{/admin/dashboard(page=${i}, tab='refundPanel', status=${filterStatus}, searchQuery=${searchQuery}, searchType=${searchType})}"
+                                                   class="page-link-custom" th:classappend="${refundCurrentPage == i} ? 'active' : ''"
+                                                   th:text="${i + 1}">1</a>
+                                            </th:block>
+                                            
+                                            <a th:href="@{/admin/dashboard(page=${refundCurrentPage + 1}, tab='refundPanel', status=${filterStatus}, searchQuery=${searchQuery}, searchType=${searchType})}"
+                                               class="page-link-custom" th:classappend="${refundCurrentPage + 1 >= refundTotalPages} ? 'disabled' : ''">
+                                                <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+                                            </a>
+                                        </div>
                                     </div>
 
                                     <!-- Empty State -->

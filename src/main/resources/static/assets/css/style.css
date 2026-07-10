@@ -22663,3 +22663,22 @@ td .discount-badge {
   cursor: pointer !important;
 }
 
+/* Custom styling for intl-tel-input to integrate with Bootstrap */
+.iti {
+  display: block !important;
+  width: 100% !important;
+}
+.iti__country-list {
+  z-index: 1050 !important;
+  color: #212529 !important;
+  text-align: left !important;
+}
+.iti__flag-container {
+  padding: 2px !important;
+}
+.iti input {
+  padding-left: 52px !important;
+}
+
+
+

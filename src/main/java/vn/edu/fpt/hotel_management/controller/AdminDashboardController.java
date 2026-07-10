@@ -256,35 +256,78 @@ public class AdminDashboardController {
         model.addAttribute("customerReviewTotalPages", customerReviewPage.getTotalPages());
 
         // --- Tab 8: refundPanel (Quản lý hoàn tiền) ---
-        List<Refund> refunds = Collections.emptyList();
+        Page<Refund> refundPage = Page.empty();
         long pendingCount = 0;
         long processedCount = 0;
         long rejectedCount = 0;
         if ("refundPanel".equals(tab)) {
             String filterStatus = (status != null && !status.isBlank()) ? status.toUpperCase() : "ALL";
-            if (!"ALL".equals(filterStatus)) {
-                refunds = refundRepository.findByStatusOrderByRequestedAtAsc(filterStatus);
-            } else {
-                refunds = refundRepository.findAllByOrderByRequestedAtAsc();
-            }
+            
+            // Định nghĩa Sort: PENDING lên đầu (alphabet: PENDING < PROCESSED < REJECTED), rồi requestedAt tăng dần (cũ nhất trước)
+            Sort refundSort = Sort.by(Sort.Order.asc("status"), Sort.Order.asc("requestedAt"));
+            Pageable refundPageable = PageRequest.of(page, 5, refundSort);
 
-            // Lọc theo searchQuery
             if (searchQuery != null && !searchQuery.isBlank()) {
-                String query = searchQuery.trim().toLowerCase();
-                refunds = refunds.stream().filter(r -> {
-                    if ("fullName".equals(searchType)) {
-                        return r.getBooking().getCustomer().getFullName() != null &&
-                               r.getBooking().getCustomer().getFullName().toLowerCase().contains(query);
-                    } else if ("email".equals(searchType)) {
-                        return r.getBooking().getCustomer().getEmail() != null &&
-                               r.getBooking().getCustomer().getEmail().toLowerCase().contains(query);
-                    } else if ("id".equals(searchType)) {
-                        return String.valueOf(r.getId()).contains(query);
-                    } else if ("bookingId".equals(searchType)) {
-                        return String.valueOf(r.getBooking().getId()).contains(query);
+                String query = searchQuery.trim();
+                boolean isStatusAll = "ALL".equals(filterStatus);
+                
+                if ("fullName".equals(searchType)) {
+                    if (isStatusAll) {
+                        refundPage = refundRepository.findByBookingCustomerFullNameContainingIgnoreCase(query, refundPageable);
+                    } else {
+                        refundPage = refundRepository.findByStatusAndBookingCustomerFullNameContainingIgnoreCase(filterStatus, query, refundPageable);
                     }
-                    return false;
-                }).collect(Collectors.toList());
+                } else if ("email".equals(searchType)) {
+                    if (isStatusAll) {
+                        refundPage = refundRepository.findByBookingCustomerUserAccountEmailContainingIgnoreCase(query, refundPageable);
+                    } else {
+                        refundPage = refundRepository.findByStatusAndBookingCustomerUserAccountEmailContainingIgnoreCase(filterStatus, query, refundPageable);
+                    }
+                } else if ("id".equals(searchType)) {
+                    try {
+                        int refundId = Integer.parseInt(query);
+                        Optional<Refund> refundOpt = refundRepository.findById(refundId);
+                        if (refundOpt.isPresent()) {
+                            Refund r = refundOpt.get();
+                            if (isStatusAll || filterStatus.equals(r.getStatus())) {
+                                refundPage = new org.springframework.data.domain.PageImpl<>(
+                                        Collections.singletonList(r), refundPageable, 1
+                                );
+                            } else {
+                                refundPage = Page.empty(refundPageable);
+                            }
+                        } else {
+                            refundPage = Page.empty(refundPageable);
+                        }
+                    } catch (NumberFormatException e) {
+                        refundPage = Page.empty(refundPageable);
+                    }
+                } else if ("bookingId".equals(searchType)) {
+                    try {
+                        int bookingId = Integer.parseInt(query);
+                        Optional<Refund> refundOpt = refundRepository.findByBookingId(bookingId);
+                        if (refundOpt.isPresent()) {
+                            Refund r = refundOpt.get();
+                            if (isStatusAll || filterStatus.equals(r.getStatus())) {
+                                refundPage = new org.springframework.data.domain.PageImpl<>(
+                                        Collections.singletonList(r), refundPageable, 1
+                                );
+                            } else {
+                                refundPage = Page.empty(refundPageable);
+                            }
+                        } else {
+                            refundPage = Page.empty(refundPageable);
+                        }
+                    } catch (NumberFormatException e) {
+                        refundPage = Page.empty(refundPageable);
+                    }
+                }
+            } else {
+                if ("ALL".equals(filterStatus)) {
+                    refundPage = refundRepository.findAll(refundPageable);
+                } else {
+                    refundPage = refundRepository.findByStatus(filterStatus, refundPageable);
+                }
             }
 
             // Đếm số lượng
@@ -292,12 +335,14 @@ public class AdminDashboardController {
             processedCount = refundRepository.findByStatusOrderByRequestedAtAsc("PROCESSED").size();
             rejectedCount  = refundRepository.findByStatusOrderByRequestedAtAsc("REJECTED").size();
             
-            model.addAttribute("refunds", refunds);
+            model.addAttribute("refunds", refundPage.getContent());
             model.addAttribute("filterStatus", filterStatus);
             model.addAttribute("pendingCount", pendingCount);
             model.addAttribute("processedCount", processedCount);
             model.addAttribute("rejectedCount", rejectedCount);
-            model.addAttribute("totalCount", refunds.size());
+            model.addAttribute("refundCurrentPage", "refundPanel".equals(tab) ? page : 0);
+            model.addAttribute("refundTotalPages", refundPage.getTotalPages());
+            model.addAttribute("totalCount", refundPage.getTotalElements());
         }
 
         // --- Lưu lại thông tin search nếu có ---

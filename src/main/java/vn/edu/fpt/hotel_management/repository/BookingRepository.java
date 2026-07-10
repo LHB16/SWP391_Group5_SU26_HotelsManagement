@@ -57,7 +57,7 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     @Query("SELECT b FROM Booking b WHERE b.hotel.id IN :hotelIds ORDER BY b.createdAt DESC")
     List<Booking> findByHotelIds(@Param("hotelIds") List<Integer> hotelIds);
 
-    @Query("SELECT b FROM Booking b WHERE b.hotel.id IN :hotelIds AND LOWER(b.customer.fullName) LIKE LOWER(CONCAT('%', :customerName, '%')) ORDER BY b.createdAt DESC")
+    @Query("SELECT b FROM Booking b WHERE b.hotel.id IN :hotelIds AND (LOWER(b.fullName) LIKE LOWER(CONCAT('%', :customerName, '%')) OR (b.fullName IS NULL AND LOWER(b.customer.fullName) LIKE LOWER(CONCAT('%', :customerName, '%')))) ORDER BY b.createdAt DESC")
     List<Booking> findByHotelIdsAndCustomerName(
             @Param("hotelIds") List<Integer> hotelIds,
             @Param("customerName") String customerName

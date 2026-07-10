@@ -115,6 +115,8 @@ public class PaymentController {
             @RequestParam(value = "checkins", required = false) java.util.List<String> checkins,
             @RequestParam(value = "checkouts", required = false) java.util.List<String> checkouts,
             @RequestParam(value = "from", required = false) String from,
+            @RequestParam(value = "fullName", required = false) String fullName,
+            @RequestParam(value = "phone", required = false) String phone,
             HttpSession session, Model model,
             RedirectAttributes redirectAttributes) {
 
@@ -233,6 +235,8 @@ public class PaymentController {
         parentBooking.setNumNights((int) nights);
         parentBooking.setCheckInDate(checkInDate);
         parentBooking.setCheckOutDate(checkOutDate);
+        parentBooking.setPhone(phone);
+        parentBooking.setFullName(fullName);
         
         BigDecimal rSub = roomSubtotals.get(0);
         BigDecimal rTax = rSub.multiply(BigDecimal.valueOf(0.1)).setScale(0, java.math.RoundingMode.HALF_UP);
@@ -263,6 +267,8 @@ public class PaymentController {
             childBooking.setStatus("PENDING");
             childBooking.setCreatedAt(LocalDateTime.now());
             childBooking.setSpecialNotes("GROUP_BOOKING_parent:" + parentBooking.getId());
+            childBooking.setPhone(phone);
+            childBooking.setFullName(fullName);
             bookingRepository.save(childBooking);
             
             bookingsList.add(childBooking);
@@ -305,7 +311,8 @@ public class PaymentController {
         // Đưa dữ liệu vào model để hiển thị trên giao diện
         pushToModel(model, loggedInUser, hotel, room, checkInDate, checkOutDate,
                 nights, totalSubtotal, totalTax, serviceFee, grandTotalPrice, qrUrl,
-                transferInfo, bookingId, qrExpiresAt, remainingSeconds, from, totalQty);
+                transferInfo, bookingId, qrExpiresAt, remainingSeconds, from, totalQty,
+                fullName, phone);
         
         model.addAttribute("bookingsList", bookingsList);
         model.addAttribute("bookingQuantitiesMap", bookingQuantitiesMap);
@@ -504,7 +511,8 @@ public class PaymentController {
 
         pushToModel(model, loggedInUser, hotel, room, checkInDate, checkOutDate,
                 nights, totalSubtotal, totalTax, serviceFee, grandTotalPrice, qrUrl,
-                transferInfo, bookingId, qrExpiresAt, remainingSeconds, from, totalQty);
+                transferInfo, bookingId, qrExpiresAt, remainingSeconds, from, totalQty,
+                booking.getFullName(), booking.getPhone());
 
         model.addAttribute("bookingsList", bookingsList);
         model.addAttribute("bookingQuantitiesMap", bookingQuantitiesMap);
@@ -600,9 +608,12 @@ public class PaymentController {
             LocalDate checkIn, LocalDate checkOut, long nights,
             BigDecimal subtotal, BigDecimal tax, BigDecimal serviceFee,
             BigDecimal totalPrice, String qrUrl, String transferInfo,
-            int bookingId, LocalDateTime qrExpiresAt, long remainingSeconds, String from, int qty) {
+            int bookingId, LocalDateTime qrExpiresAt, long remainingSeconds, String from, int qty,
+            String fullName, String phone) {
         model.addAttribute("user", user);
         model.addAttribute("hotel", hotel);
+        model.addAttribute("bookingFullName", fullName);
+        model.addAttribute("bookingPhone", phone);
         model.addAttribute("room", room);
         model.addAttribute("checkIn", checkIn);
         model.addAttribute("checkOut", checkOut);
