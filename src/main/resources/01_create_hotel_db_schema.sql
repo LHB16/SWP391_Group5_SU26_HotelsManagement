@@ -239,6 +239,7 @@ CREATE TABLE bookings (
     room_id INT NOT NULL,
     hotel_id INT NOT NULL,
     phone NVARCHAR(20) NULL,
+    full_name NVARCHAR(255) NULL,
     check_in_date DATE NULL,
     check_out_date DATE NULL,
     num_nights INT NULL,

@@ -43,6 +43,9 @@ public class User {
     @Transient
     private String fullName;
 
+    @Transient
+    private String phone;
+
     public User() {
     }
 
@@ -98,5 +101,13 @@ public class User {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 }

@@ -459,10 +459,10 @@ BEGIN TRY
           AND check_in_date = '2026-07-10' AND check_out_date = '2026-07-12'
     )
         INSERT INTO bookings (
-            customer_id, room_id, hotel_id, phone, check_in_date, check_out_date,
+            customer_id, room_id, hotel_id, phone, full_name, check_in_date, check_out_date,
             num_nights, total_price, status, special_notes
         )
-        VALUES (@customer1_id, @room2_id, @hotel1_id, N'0933000001', '2026-07-10', '2026-07-12', 2, 3000000, N'CONFIRMED', N'Khách muốn nhận phòng gần thang máy.');
+        VALUES (@customer1_id, @room2_id, @hotel1_id, N'0933000001', N'Lưu Hữu Bình', '2026-07-10', '2026-07-12', 2, 3000000, N'CONFIRMED', N'Khách muốn nhận phòng gần thang máy.');
 
     IF NOT EXISTS (
         SELECT 1 FROM bookings
@@ -470,10 +470,10 @@ BEGIN TRY
           AND check_in_date = '2026-07-15' AND check_out_date = '2026-07-17'
     )
         INSERT INTO bookings (
-            customer_id, room_id, hotel_id, phone, check_in_date, check_out_date,
+            customer_id, room_id, hotel_id, phone, full_name, check_in_date, check_out_date,
             num_nights, total_price, status, special_notes
         )
-        VALUES (@customer2_id, @room6_id, @hotel2_id, N'0933000002', '2026-07-15', '2026-07-17', 2, 5000000, N'PENDING', N'Yêu cầu phòng tầng cao.');
+        VALUES (@customer2_id, @room6_id, @hotel2_id, N'0933000002', N'Nguyễn Thị Lan', '2026-07-15', '2026-07-17', 2, 5000000, N'PENDING', N'Yêu cầu phòng tầng cao.');
 
     IF NOT EXISTS (
         SELECT 1 FROM bookings
@@ -481,10 +481,10 @@ BEGIN TRY
           AND check_in_date = '2026-08-01' AND check_out_date = '2026-08-03'
     )
         INSERT INTO bookings (
-            customer_id, room_id, hotel_id, phone, check_in_date, check_out_date,
+            customer_id, room_id, hotel_id, phone, full_name, check_in_date, check_out_date,
             num_nights, total_price, status, special_notes
         )
-        VALUES (@customer3_id, @room8_id, @hotel3_id, N'0933000003', '2026-08-01', '2026-08-03', 2, 9000000, N'CONFIRMED', N'Cần thêm gối và nước suối.');
+        VALUES (@customer3_id, @room8_id, @hotel3_id, N'0933000003', N'Trần Đức Minh', '2026-08-01', '2026-08-03', 2, 9000000, N'CONFIRMED', N'Cần thêm gối và nước suối.');
 
     IF NOT EXISTS (
         SELECT 1 FROM bookings
@@ -492,10 +492,10 @@ BEGIN TRY
           AND check_in_date = '2026-06-05' AND check_out_date = '2026-06-07'
     )
         INSERT INTO bookings (
-            customer_id, room_id, hotel_id, phone, check_in_date, check_out_date,
+            customer_id, room_id, hotel_id, phone, full_name, check_in_date, check_out_date,
             num_nights, total_price, status, special_notes
         )
-        VALUES (@customer4_id, @room1_id, @hotel1_id, N'0933000004', '2026-06-05', '2026-06-07', 2, 1800000, N'COMPLETED', N'Khách đã check out đúng hạn.');
+        VALUES (@customer4_id, @room1_id, @hotel1_id, N'0933000004', N'Phạm Hoài Anh', '2026-06-05', '2026-06-07', 2, 1800000, N'COMPLETED', N'Khách đã check out đúng hạn.');
 
     IF NOT EXISTS (
         SELECT 1 FROM bookings
@@ -503,10 +503,10 @@ BEGIN TRY
           AND check_in_date = '2026-06-20' AND check_out_date = '2026-06-22'
     )
         INSERT INTO bookings (
-            customer_id, room_id, hotel_id, phone, check_in_date, check_out_date,
+            customer_id, room_id, hotel_id, phone, full_name, check_in_date, check_out_date,
             num_nights, total_price, status, special_notes
         )
-        VALUES (@customer5_id, @room4_id, @hotel2_id, N'0933000005', '2026-06-20', '2026-06-22', 2, 2400000, N'COMPLETED', N'Khách hài lòng với dịch vụ.');
+        VALUES (@customer5_id, @room4_id, @hotel2_id, N'0933000005', N'Lê Gia Khoa', '2026-06-20', '2026-06-22', 2, 2400000, N'COMPLETED', N'Khách hài lòng với dịch vụ.');
 
     SELECT @booking1_id = id FROM bookings WHERE customer_id = @customer1_id AND room_id = @room2_id AND check_in_date = '2026-07-10' AND check_out_date = '2026-07-12';
     SELECT @booking2_id = id FROM bookings WHERE customer_id = @customer2_id AND room_id = @room6_id AND check_in_date = '2026-07-15' AND check_out_date = '2026-07-17';

@@ -27,6 +27,9 @@ public class Booking {
     @Column(name = "phone")
     private String phone;
 
+    @Column(name = "full_name")
+    private String fullName;
+
     @Column(name = "check_in_date", nullable = false)
     private LocalDate checkInDate;
 
@@ -95,6 +98,14 @@ public class Booking {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public LocalDate getCheckInDate() {

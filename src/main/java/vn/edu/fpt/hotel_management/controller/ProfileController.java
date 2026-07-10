@@ -70,6 +70,7 @@ public class ProfileController {
         User userInDb = userRepository.findById(loggedInUser.getId())
                 .orElse(loggedInUser);
         userInDb.setFullName(getFullNameByRole(userInDb));
+        userInDb.setPhone(getPhoneByRole(userInDb));
 
         model.addAttribute("user", userInDb);
         return "User/profile";
@@ -86,9 +87,15 @@ public class ProfileController {
             return "redirect:/login";
         }
 
-        // Chỉ cho phép chỉnh sửa "fullName", "email" hoặc "password"
-        if (!"fullName".equals(field) && !"email".equals(field) && !"password".equals(field)) {
+        // Chỉ cho phép chỉnh sửa "fullName", "email", "password" hoặc "phone"
+        if (!"fullName".equals(field) && !"email".equals(field) && !"password".equals(field) && !"phone".equals(field)) {
             session.setAttribute("errorMessage", "Invalid action!");
+            return "redirect:/profile";
+        }
+
+        if ("phone".equals(field)) {
+            session.setAttribute("profileVerifiedForEdit", true);
+            session.setAttribute("editField", field);
             return "redirect:/profile";
         }
 
@@ -228,6 +235,45 @@ public class ProfileController {
             session.removeAttribute("editField");
 
             session.setAttribute("successMessage", "Full Name updated successfully!");
+            return "redirect:/profile";
+        } catch (Exception e) {
+            session.setAttribute("errorMessage", "System error: " + e.getMessage());
+            return "redirect:/profile";
+        }
+    }
+
+    // Lưu số điện thoại mới vào Database (không cần xác thực OTP)
+    @PostMapping("/profile/save-phone")
+    public String savePhone(
+            @RequestParam("phone") String phone,
+            HttpSession session) {
+
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+
+        Boolean verified = (Boolean) session.getAttribute("profileVerifiedForEdit");
+        String editField = (String) session.getAttribute("editField");
+
+        if (verified == null || !verified || !"phone".equals(editField)) {
+            session.setAttribute("errorMessage", "Unauthorized action!");
+            return "redirect:/profile";
+        }
+
+        try {
+            User userInDb = userRepository.findById(loggedInUser.getId())
+                    .orElseThrow(() -> new RuntimeException("Account not found!"));
+            
+            updatePhoneByRole(userInDb, phone);
+            userInDb.setPhone(phone);
+
+            // Cập nhật session và dọn cờ
+            session.setAttribute("loggedInUser", userInDb);
+            session.removeAttribute("profileVerifiedForEdit");
+            session.removeAttribute("editField");
+
+            session.setAttribute("successMessage", "Phone Number updated successfully!");
             return "redirect:/profile";
         } catch (Exception e) {
             session.setAttribute("errorMessage", "System error: " + e.getMessage());
@@ -474,5 +520,37 @@ public class ProfileController {
             return adminRepository.findByUserAccount(user).map(Admin::getFullName).orElse(user.getUsername());
         }
         return user.getUsername();
+    }
+
+    private String getPhoneByRole(User user) {
+        if ("CUSTOMER".equalsIgnoreCase(user.getRole())) {
+            return customerRepository.findByUserAccount(user).map(Customer::getPhone).orElse("");
+        } else if ("HOTEL_OWNER".equalsIgnoreCase(user.getRole())) {
+            return hotelOwnerRepository.findByUserAccount(user).map(HotelOwner::getPhone).orElse("");
+        } else if ("ADMIN".equalsIgnoreCase(user.getRole())) {
+            return adminRepository.findByUserAccount(user).map(Admin::getPhone).orElse("");
+        }
+        return "";
+    }
+
+    private void updatePhoneByRole(User user, String phone) {
+        if ("CUSTOMER".equalsIgnoreCase(user.getRole())) {
+            Customer customer = customerRepository.findByUserAccount(user)
+                    .orElseThrow(() -> new RuntimeException("Customer profile not found!"));
+            customer.setPhone(phone);
+            customerRepository.save(customer);
+        } else if ("HOTEL_OWNER".equalsIgnoreCase(user.getRole())) {
+            HotelOwner owner = hotelOwnerRepository.findByUserAccount(user)
+                    .orElseThrow(() -> new RuntimeException("Hotel owner profile not found!"));
+            owner.setPhone(phone);
+            hotelOwnerRepository.save(owner);
+        } else if ("ADMIN".equalsIgnoreCase(user.getRole())) {
+            Admin admin = adminRepository.findByUserAccount(user)
+                    .orElseThrow(() -> new RuntimeException("Admin profile not found!"));
+            admin.setPhone(phone);
+            adminRepository.save(admin);
+        } else {
+            throw new RuntimeException("Unsupported account role!");
+        }
     }
 }

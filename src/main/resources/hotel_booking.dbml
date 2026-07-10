@@ -188,6 +188,7 @@ Table bookings {
   room_id INT [note: 'Khóa ngoại liên kết đến bảng room.']
   hotel_id INT [note: 'Khóa ngoại liên kết đến bảng hotel.']
   phone NVARCHAR(20)
+  full_name NVARCHAR(255)
   check_in_date DATE
   check_out_date DATE
   num_nights INT

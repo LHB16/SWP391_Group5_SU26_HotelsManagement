@@ -195,7 +195,7 @@ public class OwnerController {
         List<Map<String, Object>> mappedBookings = recentBookings.stream().map(b -> {
             Map<String, Object> map = new HashMap<>();
             map.put("bookingId", b.getId());
-            map.put("customerName", b.getCustomer() != null ? b.getCustomer().getFullName() : "N/A");
+            map.put("customerName", (b.getFullName() != null && !b.getFullName().isEmpty()) ? b.getFullName() : (b.getCustomer() != null ? b.getCustomer().getFullName() : "N/A"));
             map.put("hotelName", b.getHotel() != null ? b.getHotel().getName() : "N/A");
             map.put("roomType", b.getRoom() != null ? b.getRoom().getRoomType() : "N/A");
             map.put("checkInDate", b.getCheckInDate() != null ? b.getCheckInDate().toString() : null);
