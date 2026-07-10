@@ -88,5 +88,8 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
             java.time.LocalDate checkOutLimit,
             java.time.LocalDate checkInLimit
     );
+
+    @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE b.customer.id = :customerId AND b.idPromotion = :idPromotion")
+    boolean existsByCustomerIdAndIdPromotion(@Param("customerId") int customerId, @Param("idPromotion") int idPromotion);
 }
 

@@ -30,7 +30,8 @@
             </div>
 
             <!-- Booking Form (Pure Thymeleaf/Spring Boot) -->
-            <form th:if="${rooms != null and !rooms.isEmpty()}" th:action="@{/booking}" method="get">
+            <form th:if="${rooms != null and !rooms.isEmpty()}" th:action="@{/booking}" method="get"
+                id="bookingCheckoutForm">
                 <!-- Keep hotelId state -->
                 <input type="hidden" name="hotelId" th:value="${selectedHotelId}">
 
@@ -147,14 +148,18 @@
                                                         class="d-flex justify-content-between align-items-start gap-2 mb-1">
                                                         <h4 class="fw-bold mb-0 booking-room-type-title"
                                                             th:text="${room.type}">Standard Garden Room</h4>
-                                                        <!-- Badge số phòng trống ở góc phải -->
-                                                        <span
-                                                            class="badge bg-navy text-white px-2 py-1 fs-7 rounded-pill booking-available-badge">
-                                                            <i class="bi bi-door-open me-1"></i>
-                                                            <span
-                                                                th:text="${room.numberRooms != null ? room.numberRooms + ' Available Rooms' : '0 Available Rooms'}">9
-                                                                Available Rooms</span>
-                                                        </span>
+                                                        <!-- Nút Special requests ở góc phải -->
+                                                        <button type="button"
+                                                            class="btn bg-navy text-white px-2 py-1 fs-7 rounded-pill booking-special-request-btn"
+                                                            th:data-room-id="${room.id}"
+                                                            th:data-room-name="${room.type}"
+                                                            style="border: none; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+                                                            <i class="bi bi-chat-left-text me-1"></i>
+                                                            <span>Special requests</span>
+                                                        </button>
+                                                        <!-- Input ẩn lưu yêu cầu của phòng này -->
+                                                        <input type="hidden" th:id="'room-req-' + ${room.id}"
+                                                            class="room-special-request-input" value="">
                                                     </div>
 
                                                     <!-- Mô tả phòng -->
@@ -184,18 +189,37 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- Total Price -->
-                                                <div class="mt-3">
-                                                    <div
-                                                        class="text-muted small text-uppercase fw-semibold booking-price-label">
-                                                        Total Price</div>
-                                                    <div class="d-flex align-items-baseline gap-1">
-                                                        <span class="fw-bold text-gold booking-price-amount"
-                                                            th:text="${#numbers.formatDecimal(roomPricesMap.get(room.id), 0, 'COMMA', 0, 'POINT')}">1,100,000</span>
-                                                        <span class="text-muted fw-semibold" style="font-size: 0.9rem;">VND / </span>
-                                                        <span class="text-muted small booking-price-night"
-                                                            th:text="${roomNightsMap.get(room.id) + ' night' + (roomNightsMap.get(room.id) > 1 ? 's' : '')}">1
-                                                            night</span>
+                                                <!-- Total Price & Promotion -->
+                                                <div class="mt-3 d-flex justify-content-between align-items-end">
+                                                    <div>
+                                                        <div
+                                                            class="text-muted small text-uppercase fw-semibold booking-price-label">
+                                                            Total Price</div>
+                                                        <div class="d-flex align-items-baseline gap-1">
+                                                            <span class="fw-bold text-gold booking-price-amount"
+                                                                th:id="'room-price-' + ${room.id}"
+                                                                th:data-base-price="${roomPricesMap.get(room.id)}"
+                                                                th:text="${#numbers.formatDecimal(roomPricesMap.get(room.id), 0, 'COMMA', 0, 'POINT')}">1,100,000</span>
+                                                            <span class="text-muted fw-semibold"
+                                                                style="font-size: 0.9rem;">VND / </span>
+                                                            <span class="text-muted small booking-price-night"
+                                                                th:text="${roomNightsMap.get(room.id) + ' night' + (roomNightsMap.get(room.id) > 1 ? 's' : '')}">1
+                                                                night</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Nút chọn Promotion -->
+                                                    <div class="booking-promo-action-wrap">
+                                                        <button type="button" class="btn booking-select-promo-btn"
+                                                            th:data-room-id="${room.id}"
+                                                            th:data-room-name="${room.type}"
+                                                            th:data-hotel-id="${room.hotelId}">
+                                                            <i class="bi bi-tags me-1"></i>
+                                                            <span>Apply Promotion</span>
+                                                        </button>
+                                                        <input type="hidden" name="promotionIds"
+                                                            th:id="'room-promo-' + ${room.id}"
+                                                            class="room-promotion-input" value="0">
                                                     </div>
                                                 </div>
                                             </div>
@@ -203,6 +227,9 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Input ẩn chung để gửi gộp Special requests lên server -->
+                            <input type="hidden" name="specialRequests" id="finalSpecialRequests" value="">
                         </div>
                     </div>
 
@@ -214,18 +241,35 @@
                             <div class="card border-0 shadow-sm p-4">
                                 <h4 class="section-header text-gold">Information</h4>
                                 <div class="mb-3">
-                                    <label class="form-label small fw-bold text-uppercase text-muted">Full Name <span class="text-danger">*</span></label>
+                                    <label class="form-label small fw-bold text-uppercase text-muted">Full Name <span
+                                            class="text-danger">*</span></label>
                                     <input type="text" name="fullName" class="form-control"
                                         th:value="${customer != null ? customer.fullName : ''}" required>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label small fw-bold text-uppercase text-muted">Phone Number <span class="text-danger">*</span></label>
+                                    <label class="form-label small fw-bold text-uppercase text-muted">Email <span
+                                            class="text-danger">*</span></label>
+                                    <input type="email" name="email" id="email" class="form-control"
+                                        th:value="${user != null ? user.email : ''}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-uppercase text-muted">Phone Number <span
+                                            class="text-danger">*</span></label>
                                     <input type="tel" name="phone" id="phone" class="form-control"
                                         th:value="${customer != null ? customer.phone : ''}" required>
                                 </div>
-                                <div class="mt-3 text-muted small d-flex align-items-start gap-2" style="font-size: 0.82rem; line-height: 1.4; color: #64748b;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c9a96e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-                                    <span>Upon check-in, guests must provide an ID matching this name. Please note that this name cannot be changed.</span>
+                                <div class="mt-3 text-muted small d-flex align-items-start gap-2"
+                                    style="font-size: 0.82rem; line-height: 1.4; color: #64748b;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="#c9a96e" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="lucide lucide-info"
+                                        style="flex-shrink: 0; margin-top: 2px;">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <path d="M12 16v-4" />
+                                        <path d="M12 8h.01" />
+                                    </svg>
+                                    <span>Upon check-in, guests must provide an ID matching this name. Please note that
+                                        this name cannot be changed.</span>
                                 </div>
                             </div>
 
@@ -236,22 +280,24 @@
                                 <div class="d-flex flex-column gap-2 mb-3">
                                     <div class="d-flex justify-content-between">
                                         <span class="text-muted">Rooms Selected</span>
-                                        <strong class="text-dark" th:text="${(quantities != null and !quantities.isEmpty()) ? #aggregates.sum(quantities) : 0} + ' Room(s)'">0 Room(s)</strong>
+                                        <strong class="text-dark"
+                                            th:text="${(quantities != null and !quantities.isEmpty()) ? #aggregates.sum(quantities) : 0} + ' Room(s)'">0
+                                            Room(s)</strong>
                                     </div>
                                     <div class="d-flex justify-content-between">
                                         <span class="text-muted">Subtotal</span>
-                                        <span class="fw-semibold"
+                                        <span class="fw-semibold" id="invoiceSubtotal"
                                             th:text="${#numbers.formatInteger(subtotal, 0, 'COMMA')} + ' VND'">0
                                             VND</span>
                                     </div>
                                     <div class="d-flex justify-content-between">
                                         <span class="text-muted">VAT (10%)</span>
-                                        <span class="text-muted"
+                                        <span class="text-muted" id="invoiceTax"
                                             th:text="${#numbers.formatInteger(tax, 0, 'COMMA')} + ' VND'">0 VND</span>
                                     </div>
                                     <div class="d-flex justify-content-between">
                                         <span class="text-muted">Service Fee</span>
-                                        <span class="text-muted"
+                                        <span class="text-muted" id="invoiceServiceFee"
                                             th:text="${#numbers.formatInteger(serviceFee, 0, 'COMMA')} + ' VND'">0
                                             VND</span>
                                     </div>
@@ -262,11 +308,13 @@
                                 <div class="d-flex justify-content-between align-items-center mb-4">
                                     <span class="fw-bold fs-5" style="color: var(--navy-primary);">Total Amount</span>
                                     <strong class="fs-4 text-primary" style="color: var(--navy-primary) !important;"
+                                        id="invoiceGrandTotal"
                                         th:text="${#numbers.formatInteger(grandTotal, 0, 'COMMA')} + ' VND'">0
                                         VND</strong>
                                 </div>
 
-                                <button type="submit" class="btn btn-gold w-100 py-3 fw-bold fs-5 shadow-sm d-flex justify-content-center align-items-center"
+                                <button type="submit"
+                                    class="btn btn-gold w-100 py-3 fw-bold fs-5 shadow-sm d-flex justify-content-center align-items-center"
                                     th:formaction="@{/booking/qr-payment}">
                                     Confirm Reservation & Pay
                                 </button>
@@ -281,6 +329,64 @@
         </div>
     </main>
 
+    <!-- Special Requests Modal -->
+    <div class="modal fade" id="specialRequestsModal" tabindex="-1" aria-labelledby="specialRequestsModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg sr-modal-content">
+                <!-- Header -->
+                <div class="modal-header text-white border-0 py-3 sr-modal-header">
+                    <h5 class="modal-title fw-bold sr-modal-title" id="specialRequestsModalLabel">Special requests</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <!-- Body -->
+                <div class="modal-body p-4 sr-modal-body">
+                    <h6 class="fw-bold mb-2 room-target-title sr-modal-room-title">Room: Standard Room</h6>
+                    <p class="text-muted small mb-3 sr-modal-desc">
+                        Special requests cannot be guaranteed – but the property will do its best to meet your needs.
+                        You can always make a special request after your booking is complete!
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted sr-modal-label">
+                            Please write your requests in English or Vietnamese. <span
+                                class="text-muted fw-normal">(optional)</span>
+                        </label>
+                        <textarea id="modalSpecialRequestsTextarea" class="form-control sr-modal-textarea" rows="4"
+                            placeholder="e.g. Early check-in, airport shuttle, twin beds, quiet room, etc."></textarea>
+                    </div>
+                </div>
+                <!-- Footer -->
+                <div class="modal-footer border-0 p-3 d-flex justify-content-end gap-2 sr-modal-footer">
+                    <button type="button" class="btn sr-modal-btn-reset" id="modalResetBtn">Reset</button>
+                    <button type="button" class="btn sr-modal-btn-save" id="modalSubmitBtn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Promotion Selection Modal -->
+    <div class="modal fade" id="promotionModal" tabindex="-1" aria-labelledby="promotionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-md">
+            <div class="modal-content border-0 shadow-lg sr-modal-content">
+                <!-- Header -->
+                <div class="modal-header text-white border-0 py-3 sr-modal-header">
+                    <h5 class="modal-title fw-bold sr-modal-title" id="promotionModalLabel">Select Promotion</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <!-- Body -->
+                <div class="modal-body p-4 sr-modal-body">
+                    <!-- Danh sách khuyến mãi -->
+                    <div id="promoListContainer"
+                        style="max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 4px;">
+                        <!-- Các voucher sẽ được render động ở đây -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- FOOTER -->
     <footer th:replace="~{fragment/frag :: footer}"></footer>
 
@@ -289,30 +395,12 @@
 
     <!-- Booking Filter JS -->
     <script th:src="@{/assets/js/booking-filter.js}"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const phoneInput = document.getElementById("phone");
-            if (phoneInput) {
-                const iti = window.intlTelInput(phoneInput, {
-                    initialCountry: "vn",
-                    preferredCountries: ["vn"],
-                    separateDialCode: false,
-                    nationalMode: false,
-                    utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.js"
-                });
-                
-                // Format phone number to international standard before form submission
-                const form = phoneInput.closest("form");
-                if (form) {
-                    form.addEventListener("submit", function() {
-                        if (phoneInput.value.trim()) {
-                            phoneInput.value = iti.getNumber();
-                        }
-                    });
-                }
-            }
-        });
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const hotelPromotions = /*[[${promotions}]]*/ [];
+        /*]]>*/
     </script>
+    <script th:src="@{/assets/js/booking.js}"></script>
 </body>
 
 </html>

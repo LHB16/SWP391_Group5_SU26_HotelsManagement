@@ -30,6 +30,12 @@ public class Booking {
     @Column(name = "full_name")
     private String fullName;
 
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "id_promotion")
+    private Integer idPromotion;
+
     @Column(name = "check_in_date", nullable = false)
     private LocalDate checkInDate;
 
@@ -174,6 +180,22 @@ public class Booking {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Integer getIdPromotion() {
+        return idPromotion;
+    }
+
+    public void setIdPromotion(Integer idPromotion) {
+        this.idPromotion = idPromotion;
     }
 
     public void setUpdatedAt(LocalDateTime updatedAt) {

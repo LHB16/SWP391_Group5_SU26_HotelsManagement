@@ -143,13 +143,13 @@ function renderPromotions(promotions) {
                     <strong class="text-dark">${escapeHtml(promo.title)}</strong>
                     <div class="text-muted small">${escapeHtml(hotelName)}</div>
                 </td>
-                <td><span class="discount-badge">-${promo.discountPercent}%</span></td>
-                <td>${startDate || '-'}</td>
-                <td>${endDate || '-'}</td>
+                <td style="text-align: center;"><span class="discount-badge">-${promo.discountPercent}%</span></td>
+                <td style="text-align: center;">${startDate || '-'}</td>
+                <td style="text-align: center;">${endDate || '-'}</td>
                 <td style="text-align: center;">
                     <span class="promo-status-badge ${statusClass}">${promo.status}</span>
                 </td>
-                <td>
+                <td style="text-align: center;">
                     <div class="d-flex gap-2 justify-content-center">
                         <button type="button" class="promo-action-btn promo-action-btn-edit" 
                                 onclick="openEditPromotionModal(this)" 
@@ -206,7 +206,7 @@ function setupPromotionDateFilters() {
             altInput: true,
             altFormat: "d/m/Y",
             allowInput: false,
-            onChange: function() {
+            onChange: function () {
                 applyPromotionFilters();
             }
         });
@@ -218,7 +218,7 @@ function setupPromotionDateFilters() {
             altInput: true,
             altFormat: "d/m/Y",
             allowInput: false,
-            onChange: function() {
+            onChange: function () {
                 applyPromotionFilters();
             }
         });
@@ -309,8 +309,22 @@ function openEditPromotionModal(button) {
     document.getElementById('editTitle').value = title;
     document.getElementById('editDescription').value = description;
     document.getElementById('editDiscountPercent').value = discount;
-    document.getElementById('editStartDate').value = start;
-    document.getElementById('editEndDate').value = end;
+
+    // Gán ngày cho Flatpickr
+    const startFp = document.getElementById('editStartDate')._flatpickr;
+    if (startFp) {
+        startFp.setDate(start);
+    } else {
+        document.getElementById('editStartDate').value = start;
+    }
+
+    const endFp = document.getElementById('editEndDate')._flatpickr;
+    if (endFp) {
+        endFp.setDate(end);
+    } else {
+        document.getElementById('editEndDate').value = end;
+    }
+
     document.getElementById('editStatus').value = status || 'ACTIVE';
 
     const modal = new bootstrap.Modal(document.getElementById('editPromotionModal'));
@@ -321,8 +335,44 @@ function openEditPromotionModal(button) {
 // OPEN ADD PROMOTION MODAL
 // ============================================================
 function openAddPromotionModal() {
+    // Clear dữ liệu cũ trong modal add trước khi mở
+    const addStart = document.getElementById('addStartDate');
+    const addEnd = document.getElementById('addEndDate');
+    if (addStart && addStart._flatpickr) addStart._flatpickr.clear();
+    if (addEnd && addEnd._flatpickr) addEnd._flatpickr.clear();
+
     const modal = new bootstrap.Modal(document.getElementById('addPromotionModal'));
     modal.show();
+}
+
+// ============================================================
+// SETUP PROMOTION FORM DATE PICKERS (ADD/EDIT) WITH FLATPICKR
+// ============================================================
+function setupPromotionFormDatePickers() {
+    const addStart = document.getElementById('addStartDate');
+    const addEnd = document.getElementById('addEndDate');
+    const editStart = document.getElementById('editStartDate');
+    const editEnd = document.getElementById('editEndDate');
+
+    const config = {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d/m/Y",
+        allowInput: false
+    };
+
+    if (addStart && typeof flatpickr === 'function') {
+        flatpickr(addStart, config);
+    }
+    if (addEnd && typeof flatpickr === 'function') {
+        flatpickr(addEnd, config);
+    }
+    if (editStart && typeof flatpickr === 'function') {
+        flatpickr(editStart, config);
+    }
+    if (editEnd && typeof flatpickr === 'function') {
+        flatpickr(editEnd, config);
+    }
 }
 
 // ============================================================
@@ -347,12 +397,15 @@ function setupPromotionEvents() {
 // ============================================================
 // AUTO-LOAD ON PAGE READY
 // ============================================================
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Setup events
     setupPromotionEvents();
 
     // Setup date filters with Flatpickr
     setupPromotionDateFilters();
+
+    // Setup add/edit form date pickers with Flatpickr
+    setupPromotionFormDatePickers();
 
     // Check if promotions tab is active
     const activeTab = document.querySelector('.tab-panel.active');
@@ -363,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Listen for tab changes
     const sidebarLinks = document.querySelectorAll('.sidebar-link');
     sidebarLinks.forEach(link => {
-        link.addEventListener('click', function() {
+        link.addEventListener('click', function () {
             const tab = this.getAttribute('data-tab');
             if (tab === 'promotions') {
                 loadPromotions();

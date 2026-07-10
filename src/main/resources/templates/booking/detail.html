@@ -22,9 +22,6 @@
                 <div class="bd-banner-content">
                     <h1 class="bd-banner-room-name">
                         <span th:text="${room.type}">Room Type</span>
-                        <span class="bd-edit-icon-btn" title="Edit Booking">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-                        </span>
                     </h1>
                 </div>
             </div>
@@ -52,33 +49,46 @@
                             &nbsp;·&nbsp;
                             <span th:text="${room.type}">Samal</span>
                             &nbsp;·&nbsp;
-                            <span th:if="${booking.status == 'PENDING'}">Pending</span>
-                            <span th:unless="${booking.status == 'PENDING'}" th:text="${cancelable ? 'Free cancellation' : 'Non-refundable'}">Free cancellation</span>
+                            <span th:if="${booking.status == 'EXPIRED' or (booking.status == 'CANCELLED' and booking.payment != null and booking.payment.status == 'EXPIRED')}">Expired</span>
+                            <th:block th:unless="${booking.status == 'EXPIRED' or (booking.status == 'CANCELLED' and booking.payment != null and booking.payment.status == 'EXPIRED')}">
+                                <span th:if="${booking.status == 'PENDING'}">
+                                    <th:block th:if="${booking.payment != null and booking.payment.qrExpiresAt != null and booking.payment.qrExpiresAt.isBefore(now)}">Expired</th:block>
+                                    <th:block th:unless="${booking.payment != null and booking.payment.qrExpiresAt != null and booking.payment.qrExpiresAt.isBefore(now)}">Pending</th:block>
+                                </span>
+                                <span th:unless="${booking.status == 'PENDING'}" th:text="${cancelable ? 'Free cancellation' : 'Non-refundable'}">Free cancellation</span>
+                            </th:block>
                         </div>
                         
                         <!-- Dòng trạng thái hoặc Go to Payment -->
                         <div class="bd-status-action">
-                            <th:block th:if="${booking.status == 'PENDING'}">
-                                <a th:href="@{/booking/qr-payment-status(bookingId=${booking.id},from='history')}" class="bd-status-btn bd-status-btn-pay">
-                                    Go to payment
-                                </a>
+                            <!-- Nếu hết hạn thanh toán -->
+                            <th:block th:if="${booking.status == 'EXPIRED' or (booking.status == 'CANCELLED' and booking.payment != null and booking.payment.status == 'EXPIRED') or (booking.status == 'PENDING' and booking.payment != null and booking.payment.qrExpiresAt != null and booking.payment.qrExpiresAt.isBefore(now))}">
+                                <span class="bd-status-label bd-status-cancelled" style="background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600;">Expired</span>
                             </th:block>
-                            <th:block th:unless="${booking.status == 'PENDING'}">
-                                <!-- Trạng thái thanh toán khác -->
-                                <span th:if="${booking.status == 'CONFIRMED'}" class="bd-status-label bd-status-confirmed">Confirmed</span>
-                                <a th:if="${booking.status == 'CONFIRMED' and cancelable}" th:href="@{/booking/cancel-policy(bookingId=${booking.id},action='cancel')}" class="btn btn-danger btn-sm ms-2" style="font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600; text-decoration: none;">Cancel</a>
-                                <span th:if="${booking.status == 'DONE' or booking.status == 'COMPLETED'}" class="bd-status-label bd-status-done">Completed</span>
-                                <th:block th:if="${booking.status == 'DONE' or booking.status == 'COMPLETED'}">
-                                    <a th:if="${!hasFeedback}" th:href="@{/booking/{id}/feedback(id=${booking.id})}" 
-                                       class="bd-status-label ms-2" 
-                                       style="background-color: var(--gold) !important; color: white !important; text-decoration: none; display: inline-block; vertical-align: middle;">
-                                        Feedback
+                            
+                            <th:block th:unless="${booking.status == 'EXPIRED' or (booking.status == 'CANCELLED' and booking.payment != null and booking.payment.status == 'EXPIRED') or (booking.status == 'PENDING' and booking.payment != null and booking.payment.qrExpiresAt != null and booking.payment.qrExpiresAt.isBefore(now))}">
+                                <th:block th:if="${booking.status == 'PENDING'}">
+                                    <a th:href="@{/booking/qr-payment-status(bookingId=${booking.id},from='history')}" class="bd-status-btn bd-status-btn-pay">
+                                        Go to payment
                                     </a>
-                                    <span th:if="${hasFeedback}" class="bd-status-label bd-status-confirmed ms-2" style="vertical-align: middle;">
-                                        Reviewed
-                                    </span>
                                 </th:block>
-                                <span th:if="${booking.status == 'CANCELLED'}" class="bd-status-label bd-status-cancelled">Cancelled</span>
+                                <th:block th:unless="${booking.status == 'PENDING'}">
+                                    <!-- Trạng thái thanh toán khác -->
+                                    <span th:if="${booking.status == 'CONFIRMED'}" class="bd-status-label bd-status-confirmed">Confirmed</span>
+                                    <a th:if="${booking.status == 'CONFIRMED' and cancelable}" th:href="@{/booking/cancel-policy(bookingId=${booking.id},action='cancel')}" class="btn btn-danger btn-sm ms-2" style="font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600; text-decoration: none;">Cancel</a>
+                                    <span th:if="${booking.status == 'DONE' or booking.status == 'COMPLETED'}" class="bd-status-label bd-status-done">Completed</span>
+                                    <th:block th:if="${booking.status == 'DONE' or booking.status == 'COMPLETED'}">
+                                        <a th:if="${!hasFeedback}" th:href="@{/booking/{id}/feedback(id=${booking.id})}" 
+                                           class="bd-status-label ms-2" 
+                                           style="background-color: var(--gold) !important; color: white !important; text-decoration: none; display: inline-block; vertical-align: middle;">
+                                            Feedback
+                                        </a>
+                                        <span th:if="${hasFeedback}" class="bd-status-label bd-status-confirmed ms-2" style="vertical-align: middle;">
+                                            Reviewed
+                                        </span>
+                                    </th:block>
+                                    <span th:if="${booking.status == 'CANCELLED'}" class="bd-status-label bd-status-cancelled">Cancelled</span>
+                                </th:block>
                             </th:block>
                         </div>
                     </div>

@@ -123,10 +123,20 @@
                                             
                                             <!-- Trạng thái đặt phòng -->
                                             <div class="bh-card-status-wrapper" style="margin-top: 4px; margin-bottom: 6px;">
-                                                <span th:if="${booking.status == 'PENDING'}" class="bd-status-label bd-status-pending" style="background: #fef3c7; color: #d97706; font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600;">Pending</span>
-                                                <span th:if="${booking.status == 'CONFIRMED'}" class="bd-status-label bd-status-confirmed" style="font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600;">Confirmed</span>
-                                                <span th:if="${booking.status == 'DONE' or booking.status == 'COMPLETED'}" class="bd-status-label bd-status-done" style="font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600;">Completed</span>
-                                                <span th:if="${booking.status == 'CANCELLED'}" class="bd-status-label bd-status-cancelled" style="font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600;">Cancelled</span>
+                                                <th:block th:if="${booking.status == 'CANCELLED' and booking.payment != null and booking.payment.status == 'EXPIRED'}">
+                                                    <span class="bd-status-label bd-status-cancelled" style="background: #f1f5f9; color: #64748b; font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600; border: 1px solid #cbd5e1;">Expired</span>
+                                                </th:block>
+                                                <th:block th:unless="${booking.status == 'CANCELLED' and booking.payment != null and booking.payment.status == 'EXPIRED'}">
+                                                    <th:block th:if="${booking.status == 'PENDING'}">
+                                                        <span th:if="${booking.payment != null and booking.payment.qrExpiresAt != null and booking.payment.qrExpiresAt.isBefore(now)}" 
+                                                              class="bd-status-label bd-status-cancelled" style="background: #f1f5f9; color: #64748b; font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600; border: 1px solid #cbd5e1;">Expired</span>
+                                                        <span th:unless="${booking.payment != null and booking.payment.qrExpiresAt != null and booking.payment.qrExpiresAt.isBefore(now)}" 
+                                                              class="bd-status-label bd-status-pending" style="background: #fef3c7; color: #d97706; font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600;">Pending</span>
+                                                    </th:block>
+                                                    <span th:if="${booking.status == 'CONFIRMED'}" class="bd-status-label bd-status-confirmed" style="font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600;">Confirmed</span>
+                                                    <span th:if="${booking.status == 'DONE' or booking.status == 'COMPLETED'}" class="bd-status-label bd-status-done" style="font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600;">Completed</span>
+                                                    <span th:if="${booking.status == 'CANCELLED'}" class="bd-status-label bd-status-cancelled" style="font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600;">Cancelled</span>
+                                                </th:block>
                                             </div>
                                             
                                             <!-- Khoảng thời gian và số lượt booking (như hình: Apr 15 - Apr 17 · 1 night) -->

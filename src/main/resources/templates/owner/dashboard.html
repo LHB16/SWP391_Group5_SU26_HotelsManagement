@@ -331,14 +331,11 @@
                                         </a>
                                     </div>
                                     <div class="d-flex gap-2">
-                                        <a th:href="@{/owner/hotels/{id}/edit(id=${hotel.id})}"
-                                           class="btn btn-sm btn-outline-secondary">
-                                            <i data-lucide="pencil" style="width: 14px; height: 14px;"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" th:data-bs-target="'#deleteModalHotel-' + ${hotel.id}">
-                                            <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
-                                        </button>
-                                    </div>
+                                         <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" th:data-bs-target="'#deleteModalHotel-' + ${hotel.id}">
+                                             <i data-lucide="trash-2" style="width: 14px; height: 14px; vertical-align: middle;"></i>
+                                             Delete
+                                         </button>
+                                     </div>
                                 </div>
                             </div>
                         </div>
@@ -360,6 +357,12 @@
             <!-- PANEL 3: PROMOTIONS -->
             <!-- ========================================================= -->
             <div id="promotions" class="tab-panel" th:classappend="${tab == 'promotions'} ? 'active' : ''">
+                <style>
+                    #promotions table thead th:not(:first-child),
+                    #promotionTableBody td:not(:first-child) {
+                        text-align: center !important;
+                    }
+                </style>
 
                 <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3 flex-wrap gap-2">
                     <div>
@@ -477,10 +480,10 @@
                                     <thead>
                                     <tr>
                                         <th>Title</th>
-                                        <th>Discount</th>
-                                        <th>Start Date</th>
-                                        <th>End Date</th>
-                                        <th>Status</th>
+                                        <th style="text-align: center;">Discount</th>
+                                        <th style="text-align: center;">Start Date</th>
+                                        <th style="text-align: center;">End Date</th>
+                                        <th style="text-align: center;">Status</th>
                                         <th style="text-align: center;">Actions</th>
                                     </tr>
                                     </thead>
@@ -687,12 +690,12 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Start Date <span class="text-danger">*</span></label>
-                        <input type="date" name="startDate" class="form-control" required />
+                        <input type="text" name="startDate" id="addStartDate" class="form-control" placeholder="Select start date" required />
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">End Date <span class="text-danger">*</span></label>
-                        <input type="date" name="endDate" class="form-control" required />
+                        <input type="text" name="endDate" id="addEndDate" class="form-control" placeholder="Select end date" required />
                     </div>
 
                     <div class="mb-3">
@@ -761,12 +764,12 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Start Date <span class="text-danger">*</span></label>
-                        <input type="date" name="startDate" id="editStartDate" class="form-control" required />
+                        <input type="text" name="startDate" id="editStartDate" class="form-control" placeholder="Select start date" required />
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">End Date <span class="text-danger">*</span></label>
-                        <input type="date" name="endDate" id="editEndDate" class="form-control" required />
+                        <input type="text" name="endDate" id="editEndDate" class="form-control" placeholder="Select end date" required />
                     </div>
 
                     <div class="mb-3">

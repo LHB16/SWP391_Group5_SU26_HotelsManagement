@@ -18,13 +18,13 @@ import vn.edu.fpt.hotel_management.repository.HotelRepository;
 import vn.edu.fpt.hotel_management.repository.RefundRepository;
 import vn.edu.fpt.hotel_management.repository.CustomerRepository;
 import vn.edu.fpt.hotel_management.repository.ReviewRepository;
+import vn.edu.fpt.hotel_management.repository.PromotionRepository;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 
 @Controller
 public class BookingController {
@@ -49,6 +49,9 @@ public class BookingController {
 
     @Autowired
     private ReviewRepository reviewRepository;
+
+    @Autowired
+    private PromotionRepository promotionRepository;
 
     @org.springframework.beans.factory.annotation.Value("${payment.payos.client-id:}")
     private String payosClientId;
@@ -79,27 +82,90 @@ public class BookingController {
         // Lấy tất cả booking của user để lọc trong bộ nhớ
         List<Booking> allBookings = bookingRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);
 
-        // Tự động kiểm tra trạng thái thanh toán đối với các đơn hàng còn PENDING khi truy cập Lịch sử đặt phòng
+        // Tự động kiểm tra trạng thái thanh toán đối với các đơn hàng còn PENDING khi
+        // truy cập Lịch sử đặt phòng
         for (Booking b : allBookings) {
             if ("PENDING".equals(b.getStatus())) {
-                boolean verified = checkPayOSPaymentStatus(b.getId(), b.getTotalPrice());
-                if (verified) {
-                    b.setStatus("CONFIRMED");
+                Payment payment = paymentRepository.findByBookingId(b.getId()).orElse(null);
+
+                // Nếu là child booking, tìm payment của parent booking để kiểm tra hết hạn
+                if (payment == null && b.getSpecialNotes() != null
+                        && b.getSpecialNotes().startsWith("GROUP_BOOKING_parent:")) {
+                    try {
+                        String parentIdStr = b.getSpecialNotes().replace("GROUP_BOOKING_parent:", "").trim();
+                        int parentId = Integer.parseInt(parentIdStr);
+                        payment = paymentRepository.findByBookingId(parentId).orElse(null);
+                    } catch (Exception e) {
+                    }
+                }
+
+                // 1. Kiểm tra hết hạn TRƯỚC TIÊN
+                if (payment != null && payment.getQrExpiresAt() != null
+                        && payment.getQrExpiresAt().isBefore(java.time.LocalDateTime.now())) {
+                    b.setStatus("EXPIRED");
                     b.setUpdatedAt(java.time.LocalDateTime.now());
                     bookingRepository.save(b);
-                    
-                    Payment payment = paymentRepository.findByBookingId(b.getId()).orElse(null);
-                    if (payment != null) {
-                        payment.setStatus("PAID");
-                        payment.setPaidAt(java.time.LocalDateTime.now());
-                        paymentRepository.save(payment);
+
+                    payment.setStatus("EXPIRED");
+                    paymentRepository.save(payment);
+
+                    // Đồng bộ hủy tất cả các phòng con khác nếu đây là phòng cha
+                    try {
+                        final int parentId = b.getId();
+                        List<Booking> childBookings = bookingRepository.findByCustomerIdOrderByCreatedAtDesc(customerId)
+                                .stream()
+                                .filter(cb -> cb.getSpecialNotes() != null
+                                        && cb.getSpecialNotes().equals("GROUP_BOOKING_parent:" + parentId))
+                                .collect(java.util.stream.Collectors.toList());
+                        for (Booking cb : childBookings) {
+                            cb.setStatus("EXPIRED");
+                            cb.setUpdatedAt(java.time.LocalDateTime.now());
+                            bookingRepository.save(cb);
+                        }
+                    } catch (Exception e) {
+                    }
+                } else {
+                    // 2. Nếu chưa hết hạn, mới tiến hành kiểm tra trên PayOS (chỉ gọi API đối với
+                    // phòng cha)
+                    boolean isChild = b.getSpecialNotes() != null
+                            && b.getSpecialNotes().startsWith("GROUP_BOOKING_parent:");
+                    if (!isChild) {
+                        boolean verified = checkPayOSPaymentStatus(b.getId(), b.getTotalPrice());
+                        if (verified) {
+                            b.setStatus("CONFIRMED");
+                            b.setUpdatedAt(java.time.LocalDateTime.now());
+                            bookingRepository.save(b);
+
+                            if (payment != null) {
+                                payment.setStatus("PAID");
+                                payment.setPaidAt(java.time.LocalDateTime.now());
+                                paymentRepository.save(payment);
+                            }
+
+                            // Đồng bộ xác nhận tất cả phòng con đi kèm
+                            try {
+                                final int parentId = b.getId();
+                                List<Booking> childBookings = bookingRepository
+                                        .findByCustomerIdOrderByCreatedAtDesc(customerId).stream()
+                                        .filter(cb -> cb.getSpecialNotes() != null
+                                                && cb.getSpecialNotes().equals("GROUP_BOOKING_parent:" + parentId))
+                                        .collect(java.util.stream.Collectors.toList());
+                                for (Booking cb : childBookings) {
+                                    cb.setStatus("CONFIRMED");
+                                    cb.setUpdatedAt(java.time.LocalDateTime.now());
+                                    bookingRepository.save(cb);
+                                }
+                            } catch (Exception e) {
+                            }
+                        }
                     }
                 }
             }
 
             // Tự động chuyển sang COMPLETED nếu đã qua 12h trưa ngày checkout
             if ("CONFIRMED".equals(b.getStatus())) {
-                if (b.getCheckOutDate() != null && b.getCheckOutDate().atTime(12, 0).isBefore(java.time.LocalDateTime.now())) {
+                if (b.getCheckOutDate() != null
+                        && b.getCheckOutDate().atTime(12, 0).isBefore(java.time.LocalDateTime.now())) {
                     b.setStatus("COMPLETED");
                     b.setUpdatedAt(java.time.LocalDateTime.now());
                     bookingRepository.save(b);
@@ -115,31 +181,36 @@ public class BookingController {
         if (checkIn != null && !checkIn.trim().isEmpty()) {
             try {
                 filterCheckInDate = java.time.LocalDate.parse(checkIn.trim());
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
 
         java.time.LocalDate filterCheckOutDate = null;
         if (checkOut != null && !checkOut.trim().isEmpty()) {
             try {
                 filterCheckOutDate = java.time.LocalDate.parse(checkOut.trim());
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
 
-        java.time.LocalDate checkInLimit = (filterCheckInDate != null) ? filterCheckInDate : java.time.LocalDate.of(1970, 1, 1);
-        java.time.LocalDate checkOutLimit = (filterCheckOutDate != null) ? filterCheckOutDate : java.time.LocalDate.of(2099, 12, 31);
+        java.time.LocalDate checkInLimit = (filterCheckInDate != null) ? filterCheckInDate
+                : java.time.LocalDate.of(1970, 1, 1);
+        java.time.LocalDate checkOutLimit = (filterCheckOutDate != null) ? filterCheckOutDate
+                : java.time.LocalDate.of(2099, 12, 31);
 
-        List<Booking> filteredBookings = bookingRepository.findByCustomerIdAndStatusContainingIgnoreCaseAndRoomTypeContainingIgnoreCaseAndCheckInDateLessThanEqualAndCheckOutDateGreaterThanEqualOrderByCreatedAtDesc(
-                customerId,
-                statusParam,
-                roomTypeParam,
-                checkOutLimit,
-                checkInLimit
-        );
+        List<Booking> filteredBookings = bookingRepository
+                .findByCustomerIdAndStatusContainingIgnoreCaseAndRoomTypeContainingIgnoreCaseAndCheckInDateLessThanEqualAndCheckOutDateGreaterThanEqualOrderByCreatedAtDesc(
+                        customerId,
+                        statusParam,
+                        roomTypeParam,
+                        checkOutLimit,
+                        checkInLimit);
 
         // Lấy danh sách allRoomTypes của toàn bộ hệ thống để hiển thị trên Filter Panel
         List<String> allRoomTypes = new java.util.ArrayList<>();
         for (Room r : roomRepository.findAll()) {
-            if (r.getRoomType() != null && !r.getRoomType().trim().isEmpty() && !allRoomTypes.contains(r.getRoomType())) {
+            if (r.getRoomType() != null && !r.getRoomType().trim().isEmpty()
+                    && !allRoomTypes.contains(r.getRoomType())) {
                 allRoomTypes.add(r.getRoomType());
             }
         }
@@ -178,9 +249,9 @@ public class BookingController {
         Map<Integer, Boolean> refundSubmittedMap = new java.util.HashMap<>();
         Map<Integer, Boolean> cancelableMap = new java.util.HashMap<>();
         Map<Integer, String> refundPolicyMap = new java.util.HashMap<>();
-        
+
         java.time.LocalDateTime nowTime = java.time.LocalDateTime.now();
-        
+
         for (Booking b : pagedBookings) {
             // Tính cancelable và refund policy trước khi hủy
             cancelableMap.put(b.getId(), b.isCancelable());
@@ -222,6 +293,7 @@ public class BookingController {
         model.addAttribute("refundSubmittedMap", refundSubmittedMap);
         model.addAttribute("cancelableMap", cancelableMap);
         model.addAttribute("refundPolicyMap", refundPolicyMap);
+        model.addAttribute("now", java.time.LocalDateTime.now());
 
         // Truyền các bộ lọc hiện tại để giữ lại trên giao diện
         model.addAttribute("selectedStatus", status);
@@ -332,8 +404,9 @@ public class BookingController {
         java.time.LocalDateTime refundDeadline = booking.getCheckInDate().minusDays(3).atTime(12, 0);
         boolean isFullRefundEligible = java.time.LocalDateTime.now().isBefore(refundDeadline);
 
-        java.math.BigDecimal cancellationFee = isFullRefundEligible ? java.math.BigDecimal.ZERO : booking.getTotalPrice();
-        
+        java.math.BigDecimal cancellationFee = isFullRefundEligible ? java.math.BigDecimal.ZERO
+                : booking.getTotalPrice();
+
         model.addAttribute("booking", booking);
         model.addAttribute("hotel", booking.getHotel());
         model.addAttribute("room", booking.getRoom());
@@ -345,7 +418,8 @@ public class BookingController {
     }
 
     // Hủy booking: cho phép hủy khi CONFIRMED và chưa đến ngày check-in
-    // Chính sách hoàn tiền: trước 12:00 trưa ngày (checkin - 3 ngày) → 100% | sau deadline → 0%
+    // Chính sách hoàn tiền: trước 12:00 trưa ngày (checkin - 3 ngày) → 100% | sau
+    // deadline → 0%
     @PostMapping("/booking/cancel/{id}")
     public String cancelBooking(
             @PathVariable("id") int bookingId,
@@ -392,7 +466,8 @@ public class BookingController {
             // Quá hạn hoàn tiền: HỦY NGAY
             booking.setStatus("CANCELLED");
             if (reason != null && !reason.isBlank()) {
-                booking.setSpecialNotes((booking.getSpecialNotes() != null ? booking.getSpecialNotes() + "\n" : "") + "Reason for canceling: " + reason);
+                booking.setSpecialNotes((booking.getSpecialNotes() != null ? booking.getSpecialNotes() + "\n" : "")
+                        + "Reason for canceling: " + reason);
             }
             bookingRepository.save(booking);
 
@@ -404,7 +479,7 @@ public class BookingController {
             }
 
             redirectAttributes.addFlashAttribute("errorMessage",
-                "Booking cancelled. Unfortunately, cancellations within 3 days of check-in are non-refundable per our policy.");
+                    "Booking cancelled. Unfortunately, cancellations within 3 days of check-in are non-refundable per our policy.");
             return "redirect:/booking/history";
         }
     }
@@ -437,14 +512,16 @@ public class BookingController {
 
         // Kiểm tra xem đã gửi yêu cầu hoàn tiền chưa
         if (refundRepository.existsByBookingId(bookingId)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "A refund request for this booking has already been submitted.");
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "A refund request for this booking has already been submitted.");
             return "redirect:/booking/history";
         }
 
         // Đảm bảo đơn đã thanh toán (Payment status là PAID hoặc SUCCESSFUL)
         Payment p = paymentRepository.findByBookingId(bookingId).orElse(null);
         if (p == null || (!"PAID".equalsIgnoreCase(p.getStatus()) && !"SUCCESSFUL".equalsIgnoreCase(p.getStatus()))) {
-            redirectAttributes.addFlashAttribute("errorMessage", "This booking has not been paid or is not eligible for a refund.");
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "This booking has not been paid or is not eligible for a refund.");
             return "redirect:/booking/history";
         }
 
@@ -496,19 +573,21 @@ public class BookingController {
         }
 
         if (!"CONFIRMED".equalsIgnoreCase(booking.getStatus())) {
-            redirectAttributes.addFlashAttribute("errorMessage", "This booking is not eligible for cancellation/refund.");
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "This booking is not eligible for cancellation/refund.");
             return "redirect:/booking/history";
         }
 
         if (refundRepository.existsByBookingId(bookingId)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "A refund request for this booking has already been submitted.");
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "A refund request for this booking has already been submitted.");
             return "redirect:/booking/history";
         }
 
         // Validate input
         if (bankName == null || bankName.isBlank() ||
-            accountNumber == null || accountNumber.isBlank() ||
-            accountHolder == null || accountHolder.isBlank()) {
+                accountNumber == null || accountNumber.isBlank() ||
+                accountHolder == null || accountHolder.isBlank()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Please fill in all bank account information.");
             return "redirect:/booking/refund-request?bookingId=" + bookingId;
         }
@@ -526,18 +605,21 @@ public class BookingController {
             return "redirect:/booking/history";
         }
 
-        // ĐỔI TRẠNG THÁI BOOKING THÀNH CANCELLED CHỈ KHI SUBMIT REFUND REQUEST THÀNH CÔNG
+        // ĐỔI TRẠNG THÁI BOOKING THÀNH CANCELLED CHỈ KHI SUBMIT REFUND REQUEST THÀNH
+        // CÔNG
         booking.setStatus("CANCELLED");
-        
+
         // Lấy lý do hủy từ session và ghi vào specialNotes
         String reason = (String) session.getAttribute("cancelReason_" + bookingId);
         if (reason != null && !reason.isBlank()) {
-            booking.setSpecialNotes((booking.getSpecialNotes() != null ? booking.getSpecialNotes() + "\n" : "") + "Reason for canceling: " + reason);
+            booking.setSpecialNotes((booking.getSpecialNotes() != null ? booking.getSpecialNotes() + "\n" : "")
+                    + "Reason for canceling: " + reason);
         }
         bookingRepository.save(booking);
         session.removeAttribute("cancelReason_" + bookingId); // dọn dẹp session
 
-        // Trạng thái thanh toán vẫn giữ là PAID, chỉ chuyển sang REFUNDED khi Admin Approve hoàn tiền thành công
+        // Trạng thái thanh toán vẫn giữ là PAID, chỉ chuyển sang REFUNDED khi Admin
+        // Approve hoàn tiền thành công
 
         // Hoàn tiền 100%
         java.math.BigDecimal refundAmount = booking.getTotalPrice()
@@ -557,11 +639,12 @@ public class BookingController {
 
         String formattedAmount = String.format("%,.0f", refundAmount.doubleValue());
         redirectAttributes.addFlashAttribute("successMessage",
-                "Booking cancelled and refund request submitted successfully! " + formattedAmount + " VND will be processed within 3-5 business days.");
+                "Booking cancelled and refund request submitted successfully! " + formattedAmount
+                        + " VND will be processed within 3-5 business days.");
         return "redirect:/booking/history";
     }
 
-    @GetMapping({"/booking", "/booking/create"})
+    @GetMapping({ "/booking", "/booking/create" })
     public String showCreateBookingPage(
             @RequestParam(name = "hotelId", required = false) Integer hotelId,
             @RequestParam(name = "roomId", required = false) Integer roomId,
@@ -571,10 +654,10 @@ public class BookingController {
             @RequestParam(name = "checkins", required = false) List<String> checkins,
             @RequestParam(name = "checkouts", required = false) List<String> checkouts,
             @RequestParam(name = "quantities", required = false) List<Integer> quantities,
-            HttpSession session, 
+            HttpSession session,
             Model model,
             org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
-        
+
         // Kiểm tra đăng nhập và vai trò (chỉ CUSTOMER đã đăng nhập mới được vào)
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
@@ -621,7 +704,8 @@ public class BookingController {
         Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
         model.addAttribute("customer", customer);
 
-        // Lấy danh sách các phòng (chỉ lấy phòng được chọn nếu roomId hoặc roomIds có giá trị)
+        // Lấy danh sách các phòng (chỉ lấy phòng được chọn nếu roomId hoặc roomIds có
+        // giá trị)
         List<Room> rooms = new ArrayList<>();
         if (roomId != null) {
             Room r = roomRepository.findById(roomId).orElse(null);
@@ -658,7 +742,8 @@ public class BookingController {
         }
         model.addAttribute("rooms", rooms);
 
-        // Lấy danh sách khách sạn để map ID sang tên khách sạn dễ hiển thị và địa chỉ đầy đủ
+        // Lấy danh sách khách sạn để map ID sang tên khách sạn dễ hiển thị và địa chỉ
+        // đầy đủ
         List<Hotel> hotels = hotelRepository.findAll();
         Map<Integer, String> hotelMap = new HashMap<>();
         Map<Integer, String> hotelAddressMap = new HashMap<>();
@@ -675,7 +760,7 @@ public class BookingController {
         }
         model.addAttribute("hotelMap", hotelMap);
         model.addAttribute("hotelAddressMap", hotelAddressMap);
-        
+
         // Chuẩn bị danh sách phòng được chọn
         List<Integer> selectedRoomIds = new ArrayList<>();
         if (roomIds != null) {
@@ -689,10 +774,10 @@ public class BookingController {
         List<String> finalCheckins = new ArrayList<>();
         List<String> finalCheckouts = new ArrayList<>();
         List<Integer> finalQuantities = new ArrayList<>();
-        
+
         java.time.LocalDate today = java.time.LocalDate.now();
         java.time.LocalDate tomorrow = today.plusDays(1);
-        
+
         for (int i = 0; i < selectedRoomIds.size(); i++) {
             String ci = null;
             if (checkins != null && checkins.size() > i) {
@@ -702,7 +787,7 @@ public class BookingController {
                 ci = (checkin != null && !checkin.trim().isEmpty()) ? checkin : today.toString();
             }
             finalCheckins.add(ci);
-            
+
             String co = null;
             if (checkouts != null && checkouts.size() > i) {
                 co = checkouts.get(i);
@@ -711,7 +796,7 @@ public class BookingController {
                 co = (checkout != null && !checkout.trim().isEmpty()) ? checkout : tomorrow.toString();
             }
             finalCheckouts.add(co);
-            
+
             Integer qty = 1;
             if (quantities != null && quantities.size() > i) {
                 qty = quantities.get(i);
@@ -735,7 +820,7 @@ public class BookingController {
                 String ci = finalCheckins.get(i);
                 String co = finalCheckouts.get(i);
                 Integer qty = finalQuantities.get(i);
-                
+
                 long nights = 1;
                 try {
                     java.time.LocalDate d1 = java.time.LocalDate.parse(ci.trim());
@@ -743,24 +828,26 @@ public class BookingController {
                     if (d2.isAfter(d1)) {
                         nights = java.time.temporal.ChronoUnit.DAYS.between(d1, d2);
                     }
-                } catch (Exception e) {}
-                
+                } catch (Exception e) {
+                }
+
                 BigDecimal singleRoomSubtotal = BigDecimal.ZERO;
                 try {
-                    singleRoomSubtotal = calculateRoomSubtotal(r.getPrice(), java.time.LocalDate.parse(ci.trim()), java.time.LocalDate.parse(co.trim()));
+                    singleRoomSubtotal = calculateRoomSubtotal(r.getPrice(), java.time.LocalDate.parse(ci.trim()),
+                            java.time.LocalDate.parse(co.trim()));
                 } catch (Exception e) {
                     singleRoomSubtotal = r.getPrice().multiply(BigDecimal.valueOf(nights));
                 }
-                
+
                 BigDecimal totalRoomSubtotal = singleRoomSubtotal.multiply(BigDecimal.valueOf(qty));
-                
+
                 roomPricesMap.put(rId, totalRoomSubtotal);
                 roomSinglePricesMap.put(rId, singleRoomSubtotal);
                 roomNightsMap.put(rId, nights);
                 subtotal = subtotal.add(totalRoomSubtotal);
             }
         }
-        
+
         model.addAttribute("roomPricesMap", roomPricesMap);
         model.addAttribute("roomSinglePricesMap", roomSinglePricesMap);
         model.addAttribute("roomNightsMap", roomNightsMap);
@@ -781,7 +868,47 @@ public class BookingController {
         model.addAttribute("tax", tax);
         model.addAttribute("serviceFee", serviceFee);
         model.addAttribute("grandTotal", grandTotal);
-        
+
+        // Thu thập các hotelId từ danh sách phòng đã chọn
+        java.util.Set<Integer> hotelIds = new java.util.HashSet<>();
+        for (Integer rId : selectedRoomIds) {
+            Room r = roomRepository.findById(rId).orElse(null);
+            if (r != null) {
+                hotelIds.add(r.getHotelId());
+            }
+        }
+
+        // Lấy danh sách khuyến mãi còn hiệu lực của tất cả các khách sạn có phòng được
+        // chọn
+        int customerId = (customer != null) ? customer.getId() : 0;
+        List<Promotion> rawPromotions = new java.util.ArrayList<>();
+        for (Integer hId : hotelIds) {
+            List<Promotion> hotelPromos = promotionRepository.findActivePromotionsByHotelId(hId,
+                    java.time.LocalDate.now());
+            if (hotelPromos != null) {
+                for (Promotion promo : hotelPromos) {
+                    if (customerId == 0
+                            || !bookingRepository.existsByCustomerIdAndIdPromotion(customerId, promo.getId())) {
+                        rawPromotions.add(promo);
+                    }
+                }
+            }
+        }
+        List<Map<String, Object>> promotionsList = new java.util.ArrayList<>();
+        for (Promotion p : rawPromotions) {
+            Map<String, Object> map = new java.util.HashMap<>();
+            map.put("id", p.getId());
+            map.put("title", p.getTitle());
+            map.put("description", p.getDescription());
+            map.put("discountPercent", p.getDiscountPercent());
+            map.put("status", p.getStatus());
+            map.put("hotelId", p.getHotel() != null ? p.getHotel().getId() : 0);
+            map.put("startDate", p.getStartDate() != null ? p.getStartDate().toString() : null);
+            map.put("endDate", p.getEndDate() != null ? p.getEndDate().toString() : null);
+            promotionsList.add(map);
+        }
+        model.addAttribute("promotions", promotionsList);
+
         // Trả về file giao diện templates/booking/create.html
         return "booking/create";
     }
@@ -798,33 +925,47 @@ public class BookingController {
         int d = date.getDayOfMonth();
 
         // Lễ dương lịch VN cố định
-        if (m == 1 && d == 1) return true;   // Tết Dương Lịch
-        if (m == 4 && d == 30) return true;  // Giải phóng Miền Nam
-        if (m == 5 && d == 1) return true;   // Quốc tế Lao động
-        if (m == 9 && d == 2) return true;   // Quốc khánh
+        if (m == 1 && d == 1)
+            return true; // Tết Dương Lịch
+        if (m == 4 && d == 30)
+            return true; // Giải phóng Miền Nam
+        if (m == 5 && d == 1)
+            return true; // Quốc tế Lao động
+        if (m == 9 && d == 2)
+            return true; // Quốc khánh
 
         // Các ngày lễ đặc biệt yêu cầu thêm
-        if (m == 2 && d == 14) return true;  // Valentine
-        if (m == 3 && d == 8) return true;   // Quốc tế Phụ nữ
-        if (m == 6 && d == 1) return true;   // Quốc tế Thiếu nhi
-        if (m == 10 && d == 20) return true; // Phụ nữ VN
-        if (m == 11 && d == 20) return true; // Nhà giáo VN
-        if (m == 12 && d == 25) return true; // Giáng sinh
+        if (m == 2 && d == 14)
+            return true; // Valentine
+        if (m == 3 && d == 8)
+            return true; // Quốc tế Phụ nữ
+        if (m == 6 && d == 1)
+            return true; // Quốc tế Thiếu nhi
+        if (m == 10 && d == 20)
+            return true; // Phụ nữ VN
+        if (m == 11 && d == 20)
+            return true; // Nhà giáo VN
+        if (m == 12 && d == 25)
+            return true; // Giáng sinh
 
         // Tết Âm Lịch năm 2025 (Từ 28/01 đến 03/02/2025)
         if (date.getYear() == 2025) {
-            if (m == 1 && d >= 28) return true;
-            if (m == 2 && d <= 3) return true;
+            if (m == 1 && d >= 28)
+                return true;
+            if (m == 2 && d <= 3)
+                return true;
         }
         // Tết Âm Lịch năm 2026 (Từ 16/02 đến 22/02/2026)
         if (date.getYear() == 2026) {
-            if (m == 2 && d >= 16 && d <= 22) return true;
+            if (m == 2 && d >= 16 && d <= 22)
+                return true;
         }
 
         return false;
     }
 
-    private BigDecimal calculateRoomSubtotal(BigDecimal basePrice, java.time.LocalDate checkin, java.time.LocalDate checkout) {
+    private BigDecimal calculateRoomSubtotal(BigDecimal basePrice, java.time.LocalDate checkin,
+            java.time.LocalDate checkout) {
         BigDecimal total = BigDecimal.ZERO;
         java.time.LocalDate temp = checkin;
         while (temp.isBefore(checkout)) {
@@ -862,17 +1003,78 @@ public class BookingController {
 
         // Tự động kiểm tra trạng thái thanh toán đối với các đơn hàng còn PENDING
         if ("PENDING".equals(booking.getStatus())) {
-            boolean verified = checkPayOSPaymentStatus(booking.getId(), booking.getTotalPrice());
-            if (verified) {
-                booking.setStatus("CONFIRMED");
+            Payment payment = paymentRepository.findByBookingId(booking.getId()).orElse(null);
+
+            // Nếu là child booking, tìm payment của parent booking để kiểm tra hết hạn
+            if (payment == null && booking.getSpecialNotes() != null
+                    && booking.getSpecialNotes().startsWith("GROUP_BOOKING_parent:")) {
+                try {
+                    String parentIdStr = booking.getSpecialNotes().replace("GROUP_BOOKING_parent:", "").trim();
+                    int parentId = Integer.parseInt(parentIdStr);
+                    payment = paymentRepository.findByBookingId(parentId).orElse(null);
+                } catch (Exception e) {
+                }
+            }
+
+            // 1. Kiểm tra hết hạn TRƯỚC TIÊN
+            if (payment != null && payment.getQrExpiresAt() != null
+                    && payment.getQrExpiresAt().isBefore(java.time.LocalDateTime.now())) {
+                booking.setStatus("EXPIRED");
                 booking.setUpdatedAt(java.time.LocalDateTime.now());
                 bookingRepository.save(booking);
-                
-                Payment payment = paymentRepository.findByBookingId(booking.getId()).orElse(null);
-                if (payment != null) {
-                    payment.setStatus("PAID");
-                    payment.setPaidAt(java.time.LocalDateTime.now());
-                    paymentRepository.save(payment);
+
+                payment.setStatus("EXPIRED");
+                paymentRepository.save(payment);
+
+                // Đồng bộ hủy tất cả các phòng con khác nếu đây là phòng cha
+                try {
+                    final int parentId = booking.getId();
+                    List<Booking> childBookings = bookingRepository
+                            .findByCustomerIdOrderByCreatedAtDesc(customer.getId()).stream()
+                            .filter(cb -> cb.getSpecialNotes() != null
+                                    && cb.getSpecialNotes().equals("GROUP_BOOKING_parent:" + parentId))
+                            .collect(java.util.stream.Collectors.toList());
+                    for (Booking cb : childBookings) {
+                        cb.setStatus("EXPIRED");
+                        cb.setUpdatedAt(java.time.LocalDateTime.now());
+                        bookingRepository.save(cb);
+                    }
+                } catch (Exception e) {
+                }
+            } else {
+                // 2. Nếu chưa hết hạn, mới tiến hành kiểm tra trên PayOS (chỉ gọi API đối với
+                // phòng cha)
+                boolean isChild = booking.getSpecialNotes() != null
+                        && booking.getSpecialNotes().startsWith("GROUP_BOOKING_parent:");
+                if (!isChild) {
+                    boolean verified = checkPayOSPaymentStatus(booking.getId(), booking.getTotalPrice());
+                    if (verified) {
+                        booking.setStatus("CONFIRMED");
+                        booking.setUpdatedAt(java.time.LocalDateTime.now());
+                        bookingRepository.save(booking);
+
+                        if (payment != null) {
+                            payment.setStatus("PAID");
+                            payment.setPaidAt(java.time.LocalDateTime.now());
+                            paymentRepository.save(payment);
+                        }
+
+                        // Đồng bộ xác nhận tất cả phòng con đi kèm
+                        try {
+                            final int parentId = booking.getId();
+                            List<Booking> childBookings = bookingRepository
+                                    .findByCustomerIdOrderByCreatedAtDesc(customer.getId()).stream()
+                                    .filter(cb -> cb.getSpecialNotes() != null
+                                            && cb.getSpecialNotes().equals("GROUP_BOOKING_parent:" + parentId))
+                                    .collect(java.util.stream.Collectors.toList());
+                            for (Booking cb : childBookings) {
+                                cb.setStatus("CONFIRMED");
+                                cb.setUpdatedAt(java.time.LocalDateTime.now());
+                                bookingRepository.save(cb);
+                            }
+                        } catch (Exception e) {
+                        }
+                    }
                 }
             }
         }
@@ -904,6 +1106,7 @@ public class BookingController {
         model.addAttribute("refundSubmitted", refundSubmitted);
         model.addAttribute("user", loggedInUser);
         model.addAttribute("hasFeedback", hasFeedback);
+        model.addAttribute("now", java.time.LocalDateTime.now());
 
         return "booking/detail";
     }
@@ -930,10 +1133,12 @@ public class BookingController {
                     .GET()
                     .build();
 
-            java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+            java.net.http.HttpResponse<String> response = client.send(request,
+                    java.net.http.HttpResponse.BodyHandlers.ofString());
             String body = response.body();
 
-            // Kiểm tra trạng thái PAID và đối chiếu số tiền để tránh trùng ID của đơn hàng test cũ trên sandbox
+            // Kiểm tra trạng thái PAID và đối chiếu số tiền để tránh trùng ID của đơn hàng
+            // test cũ trên sandbox
             if (body != null && body.contains("\"status\":\"PAID\"")) {
                 long expectedVal = expectedAmount.setScale(0, java.math.RoundingMode.HALF_UP).longValue();
                 if (body.contains("\"amount\":" + expectedVal) || body.contains("\"amount\": " + expectedVal)) {
