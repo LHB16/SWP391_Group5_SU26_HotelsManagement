@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragment/frag :: head}">
+    <title>Feedback - Hotel Management</title>
+</head>
+
+<body class="bh-page-layout">
+
+    <!-- Thanh điều hướng -->
+    <nav th:replace="~{fragment/frag :: navBar}"></nav>
+
+    <main class="bh-main">
+        <div class="container my-5">
+
+            <!-- Thẻ điền đánh giá -->
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-8 col-lg-6">
+                    <div class="card border-0 shadow-sm p-4 bg-white" style="border-radius: 12px;">
+                        <div class="text-center mb-4">
+                            <h3 class="fw-bold text-navy">Guest Feedback</h3>
+                            <p class="text-muted">Tell us about your experience at <span class="fw-semibold text-gold" th:text="${hotel.name}">Hotel Name</span></p>
+                        </div>
+
+                        <!-- Thông báo lỗi (nếu có) -->
+                        <div th:if="${session.errorMessage}" class="alert alert-danger mb-3" th:text="${session.errorMessage}"></div>
+                        <div th:if="${session.successMessage}" class="alert alert-success mb-3" th:text="${session.successMessage}"></div>
+
+                        <form th:action="@{/booking/{bookingId}/feedback(bookingId=${booking.id})}" method="post">
+                            <!-- Họ và tên khách hàng -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-uppercase text-muted">Customer Name</label>
+                                <input type="text" class="form-control bg-light" th:value="${customer.fullName}" readonly style="border-radius: 6px; border: 1px solid #e2e8f0; font-weight: 500;" />
+                            </div>
+
+                            <!-- Loại phòng -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-uppercase text-muted">Room Type</label>
+                                <input type="text" class="form-control bg-light" th:value="${room.type}" readonly style="border-radius: 6px; border: 1px solid #e2e8f0; font-weight: 500;" />
+                            </div>
+
+                            <!-- Đánh giá số sao (Rating) -->
+                            <div class="mb-4">
+                                <label class="form-label small fw-semibold text-uppercase text-muted d-block">Your Rating</label>
+                                <div class="star-rating-form">
+                                    <input type="radio" name="rating" id="star5" value="5" checked />
+                                    <label for="star5" title="5 stars">★</label>
+                                    
+                                    <input type="radio" name="rating" id="star4" value="4" />
+                                    <label for="star4" title="4 stars">★</label>
+                                    
+                                    <input type="radio" name="rating" id="star3" value="3" />
+                                    <label for="star3" title="3 stars">★</label>
+                                    
+                                    <input type="radio" name="rating" id="star2" value="2" />
+                                    <label for="star2" title="2 stars">★</label>
+                                    
+                                    <input type="radio" name="rating" id="star1" value="1" />
+                                    <label for="star1" title="1 star">★</label>
+                                </div>
+                            </div>
+
+                            <!-- Ý kiến phản hồi (Comment) -->
+                            <div class="mb-4">
+                                <label for="commentTextarea" class="form-label small fw-semibold text-uppercase text-muted">Your Review Comment</label>
+                                <textarea class="form-control" id="commentTextarea" name="comment" rows="5" placeholder="Write your review here..." required style="border-radius: 6px; border: 1px solid #cbd5e1;"></textarea>
+                            </div>
+
+                            <!-- Nút gửi -->
+                            <button type="submit" class="btn btn-gold w-100 py-2.5 fw-semibold text-uppercase" style="border-radius: 6px; background-color: var(--gold); border: none; color: white;">
+                                Submit Feedback
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragment/frag :: footer}"></footer>
+
+    <!-- CSS bổ sung cho trang Feedback -->
+    <style>
+        .star-rating-form {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: center;
+            gap: 8px;
+            font-size: 2.2rem;
+            margin-top: -5px;
+        }
+        .star-rating-form input {
+            display: none;
+        }
+        .star-rating-form label {
+            color: #cbd5e1;
+            cursor: pointer;
+            transition: color 0.15s ease;
+        }
+        .star-rating-form input:checked ~ label,
+        .star-rating-form label:hover,
+        .star-rating-form label:hover ~ label {
+            color: var(--gold);
+        }
+        .text-navy {
+            color: #1e293b !important;
+        }
+        .text-gold {
+            color: var(--gold) !important;
+        }
+        .btn-gold:hover {
+            opacity: 0.9;
+        }
+    </style>
+</body>
+</html>

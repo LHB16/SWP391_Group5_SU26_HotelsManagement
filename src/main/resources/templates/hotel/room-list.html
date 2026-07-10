@@ -238,50 +238,7 @@
                                 <div class="rating-summary-count" th:text="${totalReviews + ' reviews in total'}">0 reviews</div>
                             </div>
 
-                            <!-- Form viết review (chỉ CUSTOMER chưa review) -->
-                            <div th:if="${user != null and user.role == 'CUSTOMER' and !hasReviewed}"
-                                 class="card border-0 shadow-sm p-4 bg-light">
-                                <h5 class="fw-bold mb-3 text-navy">Write a Review</h5>
-                                <form th:action="@{/hotels/{id}/reviews(id=${hotel.id})}" method="post">
-                                    <!-- Gửi ngầm bookingId và roomId sang controller -->
-                                    <input type="hidden" name="bookingId" th:value="${bookingId}" th:if="${bookingId != null}" />
-                                    <input type="hidden" name="roomId" th:value="${defaultRoomId}" th:if="${defaultRoomId != null}" />
 
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-semibold text-uppercase text-muted">Your Rating</label>
-                                        <div class="star-radio-group">
-                                            <th:block th:each="star : ${#numbers.sequence(5, 1, -1)}">
-                                                <input type="radio" name="rating"
-                                                       th:id="${'star-review-' + star}"
-                                                       th:value="${star}" th:checked="${star == 5}" />
-                                                <label th:for="${'star-review-' + star}" title="star">★</label>
-                                            </th:block>
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="commentInput" class="form-label small fw-semibold text-uppercase text-muted">Your Comment</label>
-                                        <textarea class="form-control" id="commentInput" name="comment"
-                                                  rows="4" placeholder="Share details of your experience..." required></textarea>
-                                    </div>
-                                    <button type="submit" class="btn btn-gold w-100">Submit Review</button>
-                                </form>
-                            </div>
-
-                            <div th:if="${user != null and user.role == 'CUSTOMER' and hasReviewed}"
-                                 class="card border-0 shadow-sm p-4 bg-light text-center">
-                                <h5 class="fw-bold mb-2 text-navy">Write a Review</h5>
-                                <p class="text-muted small">You have already reviewed this hotel.</p>
-                            </div>
-                            <div th:if="${user == null}" class="card border-0 shadow-sm p-4 bg-light text-center">
-                                <h5 class="fw-bold mb-2 text-navy">Write a Review</h5>
-                                <p class="text-muted small">Please log in to share your experience.</p>
-                                <a href="/login" class="btn btn-outline-secondary btn-sm mt-2">Log In Now</a>
-                            </div>
-                            <div th:if="${user != null and user.role != 'CUSTOMER'}"
-                                 class="card border-0 shadow-sm p-4 bg-light text-center">
-                                <h5 class="fw-bold mb-2 text-navy">Write a Review</h5>
-                                <p class="text-muted small">Only customers can submit reviews.</p>
-                            </div>
                         </div>
 
                         <!-- Right: Reviews Feed -->
@@ -314,41 +271,82 @@
                                                 <span th:each="i : ${#numbers.sequence(1, 5)}"
                                                     th:text="${i <= review.rating ? '★' : '☆'}"></span>
                                             </div>
+                                            <div th:if="${review.roomType != null and !#strings.isEmpty(review.roomType)}" 
+                                                 class="text-muted small fw-semibold mb-1" 
+                                                 th:text="${review.roomType}">Room Type</div>
                                             <p class="review-comment" th:text="${review.comment}">Comment</p>
 
-                                            <!-- Up/Down Vote Panel -->
-                                            <div class="d-flex align-items-center gap-3 mt-2 mb-3">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 vote-btn"
-                                                        th:classappend="${userVotesMap != null and userVotesMap.get(review.id) == 'UPVOTE'} ? 'active-vote' : ''"
-                                                        th:data-review-id="${review.id}" data-vote-type="UPVOTE"
-                                                        th:disabled="${session.loggedInUser == null or session.loggedInUser.role != 'CUSTOMER'}"
-                                                        style="border-radius: 20px; padding: 4px 12px; font-size: 0.8rem; border-color: #e2e8f0; color: #64748b; background-color: transparent;">
-                                                    <i data-lucide="thumbs-up" style="width: 14px; height: 14px; stroke-width: 1.5;"></i>
-                                                    <span class="vote-count" th:text="${review.upvote}">0</span>
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 vote-btn"
-                                                        th:classappend="${userVotesMap != null and userVotesMap.get(review.id) == 'DOWNVOTE'} ? 'active-vote' : ''"
-                                                        th:data-review-id="${review.id}" data-vote-type="DOWNVOTE"
-                                                        th:disabled="${session.loggedInUser == null or session.loggedInUser.role != 'CUSTOMER'}"
-                                                        style="border-radius: 20px; padding: 4px 12px; font-size: 0.8rem; border-color: #e2e8f0; color: #64748b; background-color: transparent;">
-                                                    <i data-lucide="thumbs-down" style="width: 14px; height: 14px; stroke-width: 1.5;"></i>
-                                                    <span class="vote-count" th:text="${review.downvote}">0</span>
-                                                </button>
-                                            </div>
-
-                                            <!-- Edit/Delete (chủ review) - Đã được chuyển lên trên Phản hồi của khách sạn -->
-                                            <div th:if="${currentCustomerId != null and review.customer != null and currentCustomerId == review.customer.id}" class="mt-2">
-                                                <div class="d-flex justify-content-end gap-2">
-                                                    <button type="button" class="btn-review-edit"
+                                            <!-- Up/Down Vote & Edit/Delete Panel -->
+                                            <div class="d-flex align-items-center justify-content-between mt-2 mb-3">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 vote-btn"
+                                                            th:classappend="${userVotesMap != null and userVotesMap.get(review.id) == 'UPVOTE'} ? 'active-vote' : ''"
+                                                            th:data-review-id="${review.id}" data-vote-type="UPVOTE"
+                                                            th:disabled="${session.loggedInUser == null or session.loggedInUser.role != 'CUSTOMER'}"
+                                                            style="border-radius: 20px; padding: 4px 12px; font-size: 0.8rem; border-color: #e2e8f0; color: #64748b; background-color: transparent;">
+                                                        <i data-lucide="thumbs-up" style="width: 14px; height: 14px; stroke-width: 1.5;"></i>
+                                                        <span class="vote-count" th:text="${review.upvote}">0</span>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 vote-btn"
+                                                            th:classappend="${userVotesMap != null and userVotesMap.get(review.id) == 'DOWNVOTE'} ? 'active-vote' : ''"
+                                                            th:data-review-id="${review.id}" data-vote-type="DOWNVOTE"
+                                                            th:disabled="${session.loggedInUser == null or session.loggedInUser.role != 'CUSTOMER'}"
+                                                            style="border-radius: 20px; padding: 4px 12px; font-size: 0.8rem; border-color: #e2e8f0; color: #64748b; background-color: transparent;">
+                                                        <i data-lucide="thumbs-down" style="width: 14px; height: 14px; stroke-width: 1.5;"></i>
+                                                        <span class="vote-count" th:text="${review.downvote}">0</span>
+                                                    </button>
+                                                </div>
+                                                
+                                                <!-- Edit/Delete (chủ review) -->
+                                                <div th:if="${currentCustomerId != null and review.customer != null and currentCustomerId == review.customer.id}" class="d-flex align-items-center gap-2">
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center p-2"
                                                             data-bs-toggle="collapse"
                                                             th:data-bs-target="${'#editForm-' + review.id}"
-                                                            aria-expanded="false">Edit</button>
-                                                    <form th:action="@{/hotels/{id}/reviews/{rid}/delete(id=${hotel.id}, rid=${review.id})}"
-                                                          method="post" class="d-inline"
-                                                          onsubmit="return confirm('Delete this review?');">
-                                                        <button type="submit" class="btn-review-delete">Delete</button>
-                                                    </form>
+                                                            aria-expanded="false"
+                                                            title="Edit Review"
+                                                            style="border-radius: 50%; width: 32px; height: 32px; justify-content: center; border-color: #cbd5e1; color: #64748b; background-color: transparent; border-style: solid; border-width: 1px;">
+                                                        <i data-lucide="pencil" style="width: 14px; height: 14px;"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center p-2"
+                                                             data-bs-toggle="modal"
+                                                             th:data-bs-target="'#deleteModalReview-' + ${review.id}"
+                                                             title="Delete Review"
+                                                             style="border-radius: 50%; width: 32px; height: 32px; justify-content: center; border-color: #fecaca; color: #ef4444; background-color: transparent; border-style: solid; border-width: 1px;">
+                                                         <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                                                     </button>
+
+                                                     <!-- Bootstrap Delete Modal for Review -->
+                                                     <div class="modal fade" th:id="'deleteModalReview-' + ${review.id}" tabindex="-1" aria-hidden="true">
+                                                         <div class="modal-dialog modal-dialog-centered">
+                                                             <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);">
+                                                                 <div class="modal-header border-0 pt-4 pb-0 justify-content-center">
+                                                                     <div class="text-center">
+                                                                         <span style="color: var(--gold); display: inline-block;">
+                                                                             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                                                         </span>
+                                                                     </div>
+                                                                 </div>
+                                                                 <div class="modal-body text-center px-4 py-3">
+                                                                     <h4 class="fw-bold text-dark mb-2">Delete Review</h4>
+                                                                     <p class="text-muted mb-0">
+                                                                         Are you sure you want to delete this review? This action cannot be undone.
+                                                                     </p>
+                                                                 </div>
+                                                                 <div class="modal-footer border-0 pb-4 pt-2 d-flex gap-3 justify-content-center">
+                                                                     <button type="button" class="btn btn-light px-4 py-2 rounded-3 border fw-semibold text-secondary" data-bs-dismiss="modal">
+                                                                         Cancel
+                                                                     </button>
+                                                                     <form th:action="@{/hotels/{id}/reviews/{rid}/delete(id=${hotel.id}, rid=${review.id})}" method="post" class="d-inline">
+                                                                         <button type="submit" class="btn px-4 py-2 rounded-3 fw-semibold text-white" style="background-color: #ef4444; border: none;">
+                                                                             Delete
+                                                                         </button>
+                                                                     </form>
+                                                                 </div>
+                                                             </div>
+                                                         </div>
+                                                     </div>
                                                 </div>
+                                            </div>
 
                                                 <!-- Inline edit form – Bootstrap collapse -->
                                                 <div class="collapse mt-3" th:id="${'editForm-' + review.id}">
