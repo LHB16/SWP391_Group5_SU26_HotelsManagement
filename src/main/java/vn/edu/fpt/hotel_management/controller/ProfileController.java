@@ -100,31 +100,11 @@ public class ProfileController {
             return "redirect:/profile";
         }
 
-        try {
-            // Sinh mã OTP mới
-            String otp = otpService.generateOtp();
+        // Thiết lập cờ yêu cầu sửa đổi và lưu trường muốn sửa vào session
+        session.setAttribute("pendingEditRequest", true);
+        session.setAttribute("editField", field);
 
-            // Lưu mã OTP, thời hạn và kiểu OTP vào DB của user hiện tại
-            User userInDb = userRepository.findById(loggedInUser.getId())
-                    .orElseThrow(() -> new RuntimeException("Account not found!"));
-            userInDb.setOtp(otp);
-            userInDb.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
-            userInDb.setOtpType("UPDATE_PROFILE");
-            userRepository.save(userInDb);
-
-            // Gửi OTP qua email hiện tại để xác minh danh tính
-            emailService.sendProfileUpdateOtp(userInDb.getEmail(), otp);
-
-            // Thiết lập cờ yêu cầu sửa đổi và lưu trường muốn sửa vào session
-            session.setAttribute("pendingEditRequest", true);
-            session.setAttribute("editField", field);
-
-            session.setAttribute("successMessage", "Verification OTP code has been sent to your email to verify identity!");
-            return "redirect:/profile/verify-edit";
-        } catch (Exception e) {
-            session.setAttribute("errorMessage", "Error sending verification email: " + e.getMessage());
-            return "redirect:/profile";
-        }
+        return "redirect:/profile/verify-edit";
     }
 
     // Giao diện nhập mã OTP để xác nhận chỉnh sửa
@@ -138,6 +118,34 @@ public class ProfileController {
         Boolean pendingEditRequest = (Boolean) session.getAttribute("pendingEditRequest");
         if (pendingEditRequest == null || !pendingEditRequest) {
             return "redirect:/profile";
+        }
+
+        try {
+            User userInDb = userRepository.findById(loggedInUser.getId())
+                    .orElseThrow(() -> new RuntimeException("Account not found!"));
+            
+            // Chỉ sinh và gửi OTP nếu chưa có mã OTP hiện tại hoạt động hoặc mã đã hết hạn
+            if (userInDb.getOtp() == null || userInDb.getOtpExpiry() == null || userInDb.getOtpExpiry().isBefore(LocalDateTime.now())) {
+                String otp = otpService.generateOtp();
+                userInDb.setOtp(otp);
+                userInDb.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
+                userInDb.setOtpType("UPDATE_PROFILE");
+                userRepository.save(userInDb);
+
+                final String userEmail = userInDb.getEmail();
+                final String otpCode = otp;
+                java.util.concurrent.CompletableFuture.runAsync(() -> {
+                    try {
+                        emailService.sendProfileUpdateOtp(userEmail, otpCode);
+                    } catch (Exception e) {
+                        System.err.println("Error sending async profile update OTP: " + e.getMessage());
+                    }
+                });
+
+                model.addAttribute("successMessage", "Verification OTP code is being sent to your email!");
+            }
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Error: " + e.getMessage());
         }
 
         String successMsg = (String) session.getAttribute("successMessage");
@@ -316,14 +324,22 @@ public class ProfileController {
             userInDb.setOtpType("UPDATE_PROFILE");
             userRepository.save(userInDb);
 
-            // Gửi mã xác nhận đến Email mới
-            emailService.sendProfileUpdateOtp(newEmail, otp);
+            // Gửi mã xác nhận đến Email mới (Bất đồng bộ)
+            final String targetEmail = newEmail;
+            final String otpCode = otp;
+            java.util.concurrent.CompletableFuture.runAsync(() -> {
+                try {
+                    emailService.sendProfileUpdateOtp(targetEmail, otpCode);
+                } catch (Exception e) {
+                    System.err.println("Error sending async new email update OTP: " + e.getMessage());
+                }
+            });
 
             // Lưu email mới tạm thời vào session và thiết lập cờ xác nhận email mới
             session.setAttribute("pendingNewEmail", newEmail);
             session.setAttribute("pendingNewEmailOtpRequest", true);
 
-            session.setAttribute("successMessage", "Verification OTP code has been sent to your new email!");
+            session.setAttribute("successMessage", "Verification OTP code is being sent to your new email!");
             return "redirect:/profile/verify-new-email";
         } catch (Exception e) {
             session.setAttribute("errorMessage", "Error sending OTP to new email: " + e.getMessage());
