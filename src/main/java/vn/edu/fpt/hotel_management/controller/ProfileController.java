@@ -242,23 +242,16 @@ public class ProfileController {
         }
     }
 
-    // Lưu số điện thoại mới vào Database (không cần xác thực OTP)
+    // Lưu số điện thoại mới vào Database (không cần xác thực OTP - AJAX)
     @PostMapping("/profile/save-phone")
-    public String savePhone(
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<?> savePhone(
             @RequestParam("phone") String phone,
             HttpSession session) {
 
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
-            return "redirect:/login";
-        }
-
-        Boolean verified = (Boolean) session.getAttribute("profileVerifiedForEdit");
-        String editField = (String) session.getAttribute("editField");
-
-        if (verified == null || !verified || !"phone".equals(editField)) {
-            session.setAttribute("errorMessage", "Unauthorized action!");
-            return "redirect:/profile";
+            return org.springframework.http.ResponseEntity.status(401).body("Unauthorized");
         }
 
         try {
@@ -273,11 +266,9 @@ public class ProfileController {
             session.removeAttribute("profileVerifiedForEdit");
             session.removeAttribute("editField");
 
-            session.setAttribute("successMessage", "Phone Number updated successfully!");
-            return "redirect:/profile";
+            return org.springframework.http.ResponseEntity.ok("success");
         } catch (Exception e) {
-            session.setAttribute("errorMessage", "System error: " + e.getMessage());
-            return "redirect:/profile";
+            return org.springframework.http.ResponseEntity.status(500).body(e.getMessage());
         }
     }
 
