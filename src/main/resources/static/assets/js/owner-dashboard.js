@@ -28,7 +28,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 4. Add Hotel Modal - Open
+    // 4. Setup Flatpickr for Booking Date Filters
+    setupBookingDateFilters();
+
+    // 5. Setup Booking Filter Events
+    setupBookingFilterEvents();
+
+    // 6. Add Hotel Modal - Open
     window.openAddHotelModal = function() {
         const modal = document.getElementById('addHotelModal');
         if (modal) {
@@ -37,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // 5. Add Hotel Modal - Close
+    // 7. Add Hotel Modal - Close
     window.closeAddHotelModal = function() {
         const modal = document.getElementById('addHotelModal');
         if (modal) {
@@ -48,41 +54,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // 6. Apply Booking Filters on page load
+    // 8. Apply Booking Filters on page load
     setTimeout(applyBookingFilters, 500);
 
-    // 7. Booking Filter Input Events
-    const searchInput = document.getElementById('bookingSearchInput');
-    const hotelFilter = document.getElementById('bookingHotelFilter');
-    const statusFilter = document.getElementById('bookingStatusFilter');
-    const checkinFilter = document.getElementById('bookingCheckinFilter');
-    const checkoutFilter = document.getElementById('bookingCheckoutFilter');
-
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            applyBookingFilters();
-        });
-    }
-    if (hotelFilter) {
-        hotelFilter.addEventListener('change', function() {
-            applyBookingFilters();
-        });
-    }
-    if (statusFilter) {
-        statusFilter.addEventListener('change', function() {
-            applyBookingFilters();
-        });
-    }
-    if (checkinFilter) {
-        checkinFilter.addEventListener('change', function() {
-            applyBookingFilters();
-        });
-    }
-    if (checkoutFilter) {
-        checkoutFilter.addEventListener('change', function() {
-            applyBookingFilters();
-        });
-    }
+    // 9. Format booking dates after load
+    setTimeout(formatAllBookingDates, 600);
 
 });
 
@@ -112,12 +88,66 @@ function updateDateTime() {
 }
 
 // ============================================================
-// BOOKINGS FILTER FUNCTIONS - FIXED
+// SETUP BOOKING DATE FILTERS WITH FLATPICKR
 // ============================================================
+function setupBookingDateFilters() {
+    const checkinFilter = document.getElementById('bookingCheckinFilter');
+    const checkoutFilter = document.getElementById('bookingCheckoutFilter');
 
+    if (checkinFilter && typeof flatpickr === 'function') {
+        flatpickr(checkinFilter, {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            allowInput: false,
+            onChange: function() {
+                applyBookingFilters();
+            }
+        });
+    }
+
+    if (checkoutFilter && typeof flatpickr === 'function') {
+        flatpickr(checkoutFilter, {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            allowInput: false,
+            onChange: function() {
+                applyBookingFilters();
+            }
+        });
+    }
+}
+
+// ============================================================
+// SETUP BOOKING FILTER EVENTS
+// ============================================================
+function setupBookingFilterEvents() {
+    const searchInput = document.getElementById('bookingSearchInput');
+    const hotelFilter = document.getElementById('bookingHotelFilter');
+    const statusFilter = document.getElementById('bookingStatusFilter');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            applyBookingFilters();
+        });
+    }
+    if (hotelFilter) {
+        hotelFilter.addEventListener('change', function() {
+            applyBookingFilters();
+        });
+    }
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            applyBookingFilters();
+        });
+    }
+}
+
+// ============================================================
+// BOOKINGS FILTER FUNCTIONS
+// ============================================================
 function applyBookingFilters() {
-    console.log('🔍 applyBookingFilters called');
-
     const searchInput = document.getElementById('bookingSearchInput');
     const hotelFilter = document.getElementById('bookingHotelFilter');
     const statusFilter = document.getElementById('bookingStatusFilter');
@@ -130,21 +160,14 @@ function applyBookingFilters() {
     const checkinVal = checkinFilter ? checkinFilter.value : '';
     const checkoutVal = checkoutFilter ? checkoutFilter.value : '';
 
-    console.log('📋 Filter values:', { keyword, hotelVal, statusVal, checkinVal, checkoutVal });
-
     const tbody = document.getElementById('bookingTableBody');
-    if (!tbody) {
-        console.warn('bookingTableBody not found');
-        return;
-    }
+    if (!tbody) return;
 
-    // Lấy tất cả rows TRỪ row empty
+    // Get all rows EXCEPT empty row
     const allRows = tbody.querySelectorAll('tr');
     const rows = Array.from(allRows).filter(row => {
         return !row.querySelector('td[colspan]');
     });
-
-    console.log('Total rows to filter:', rows.length);
 
     let visibleCount = 0;
 
@@ -154,19 +177,13 @@ function applyBookingFilters() {
         existingEmpty.remove();
     }
 
-    if (rows.length === 0) {
-        console.log('ℹNo rows to filter');
-        return;
-    }
+    if (rows.length === 0) return;
 
-    rows.forEach((row, index) => {
+    rows.forEach((row) => {
         let show = true;
 
         const cells = row.querySelectorAll('td');
-        if (cells.length < 9) {
-            console.warn(`⚠️ Row ${index} has less than 9 cells:`, cells.length);
-            return;
-        }
+        if (cells.length < 9) return;
 
         const bookingId = cells[0] ? cells[0].textContent.trim().replace('#', '') : '';
         const customerName = cells[1] ? cells[1].textContent.trim().toLowerCase() : '';
@@ -219,9 +236,7 @@ function applyBookingFilters() {
         }
     });
 
-    console.log(`Filter applied - Visible: ${visibleCount}/${rows.length}`);
-
-    // Show empty state if no results (ĐÃ BỎ ICON)
+    // Show empty state if no results
     if (visibleCount === 0 && rows.length > 0) {
         const emptyRow = document.createElement('tr');
         emptyRow.className = 'booking-empty-row';
@@ -235,8 +250,6 @@ function applyBookingFilters() {
 }
 
 function clearBookingFilters() {
-    console.log(' clearBookingFilters called');
-
     const searchInput = document.getElementById('bookingSearchInput');
     const hotelFilter = document.getElementById('bookingHotelFilter');
     const statusFilter = document.getElementById('bookingStatusFilter');
@@ -246,8 +259,16 @@ function clearBookingFilters() {
     if (searchInput) searchInput.value = '';
     if (hotelFilter) hotelFilter.value = 'all';
     if (statusFilter) statusFilter.value = 'all';
-    if (checkinFilter) checkinFilter.value = '';
-    if (checkoutFilter) checkoutFilter.value = '';
+    if (checkinFilter) {
+        const fp = checkinFilter._flatpickr;
+        if (fp) fp.clear();
+        checkinFilter.value = '';
+    }
+    if (checkoutFilter) {
+        const fp = checkoutFilter._flatpickr;
+        if (fp) fp.clear();
+        checkoutFilter.value = '';
+    }
 
     applyBookingFilters();
 }
@@ -260,4 +281,51 @@ function openAddHotelModal() {
 function openAddPromotionModal() {
     var modal = new bootstrap.Modal(document.getElementById('addPromotionModal'));
     modal.show();
+}
+
+// ============================================================
+// FORMAT DATE YYYY-MM-DD TO DD/MM/YYYY
+// ============================================================
+function formatDateDisplay(dateStr) {
+    if (!dateStr) return '';
+    // Nếu đã có định dạng DD/MM/YYYY thì giữ nguyên
+    if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+        return dateStr;
+    }
+    // Chuyển từ YYYY-MM-DD sang DD/MM/YYYY
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return dateStr;
+}
+
+// ============================================================
+// FORMAT ALL BOOKING DATES
+// ============================================================
+function formatAllBookingDates() {
+    const rows = document.querySelectorAll('#bookingTableBody tr');
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 6) {
+            // Check-in date (cell index 4)
+            const checkinCell = cells[4];
+            if (checkinCell) {
+                const dateStr = checkinCell.textContent.trim();
+                if (dateStr) {
+                    const formatted = formatDateDisplay(dateStr);
+                    if (formatted) checkinCell.textContent = formatted;
+                }
+            }
+            // Check-out date (cell index 5)
+            const checkoutCell = cells[5];
+            if (checkoutCell) {
+                const dateStr = checkoutCell.textContent.trim();
+                if (dateStr) {
+                    const formatted = formatDateDisplay(dateStr);
+                    if (formatted) checkoutCell.textContent = formatted;
+                }
+            }
+        }
+    });
 }
