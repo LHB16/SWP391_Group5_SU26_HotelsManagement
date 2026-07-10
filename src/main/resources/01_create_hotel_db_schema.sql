@@ -37,7 +37,7 @@ CREATE TABLE user_accounts (
     created_at DATETIME2 NOT NULL CONSTRAINT DF_user_accounts_created_at DEFAULT GETDATE(),
     updated_at DATETIME2 NOT NULL CONSTRAINT DF_user_accounts_updated_at DEFAULT GETDATE(),
     CONSTRAINT CK_user_accounts_role CHECK (role IN (N'CUSTOMER', N'HOTEL_OWNER', N'ADMIN')),
-    CONSTRAINT CK_user_accounts_otp_type CHECK (otp_type IS NULL OR otp_type IN (N'REGISTER', N'FORGOT_PASSWORD', N'LOGIN'))
+    CONSTRAINT CK_user_accounts_otp_type CHECK (otp_type IS NULL OR otp_type IN (N'REGISTER', N'FORGOT_PASSWORD', N'LOGIN', N'UPDATE_PROFILE'))
 );
 GO
 
