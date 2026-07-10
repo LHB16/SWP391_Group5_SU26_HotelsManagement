@@ -225,7 +225,7 @@ public class RoomController {
             BigDecimal actualPrice = isFiltered ? calculateRoomSubtotal(r.getPrice(), d1, d2) : r.getPrice();
             roomPricesMap.put(r.getId(), actualPrice);
 
-            long bookedCount = bookingRepository.countByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
+            long bookedCount = bookingRepository.sumQuantityByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
                     r.getId(),
                     "CONFIRMED",
                     d2,

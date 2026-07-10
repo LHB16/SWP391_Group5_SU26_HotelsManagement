@@ -28,6 +28,23 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Tự động switch sang tab tương ứng nếu URL chứa query parameter ?tab=xxx
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam) {
+        const targetLink = document.querySelector(`.sidebar-link[data-tab="${tabParam}"]`);
+        const targetPanel = document.getElementById(tabParam);
+        if (targetLink && targetPanel) {
+            // Xóa active ở các tab mặc định
+            sidebarLinks.forEach(l => l.classList.remove('active'));
+            tabPanels.forEach(panel => panel.classList.remove('active'));
+
+            // Kích hoạt active cho tab mới
+            targetLink.classList.add('active');
+            targetPanel.classList.add('active');
+        }
+    }
+
     // 4. Setup Flatpickr for Booking Date Filters
     setupBookingDateFilters();
 

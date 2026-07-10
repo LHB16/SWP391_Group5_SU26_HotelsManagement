@@ -89,18 +89,22 @@ public class PaymentController {
     @Value("${payment.paypal.return-base-url:http://localhost:8082}")
     private String returnBaseUrl;
 
+    private final PromotionRepository promotionRepository;
+
     public PaymentController(BookingRepository bookingRepository,
             PaymentRepository paymentRepository,
             RoomRepository roomRepository,
             HotelRepository hotelRepository,
             CustomerRepository customerRepository,
-            ExchangeRateService exchangeRateService) {
+            ExchangeRateService exchangeRateService,
+            PromotionRepository promotionRepository) {
         this.bookingRepository = bookingRepository;
         this.paymentRepository = paymentRepository;
         this.roomRepository = roomRepository;
         this.hotelRepository = hotelRepository;
         this.customerRepository = customerRepository;
         this.exchangeRateService = exchangeRateService;
+        this.promotionRepository = promotionRepository;
     }
 
     // ===================== HIỂN THỊ TRANG QR THANH TOÁN =====================
@@ -117,6 +121,9 @@ public class PaymentController {
             @RequestParam(value = "from", required = false) String from,
             @RequestParam(value = "fullName", required = false) String fullName,
             @RequestParam(value = "phone", required = false) String phone,
+            @RequestParam(value = "email", required = false) String email,
+            @RequestParam(value = "specialRequests", required = false) String specialRequests,
+            @RequestParam(value = "promotionIds", required = false) java.util.List<Integer> promotionIds,
             HttpSession session, Model model,
             RedirectAttributes redirectAttributes) {
 
@@ -201,33 +208,54 @@ public class PaymentController {
         if (nights <= 0)
             nights = 1;
 
+        // Lấy thông tin Customer từ User đang đăng nhập
+        vn.edu.fpt.hotel_management.entity.Customer customer = customerRepository.findByUserAccount(loggedInUser)
+                .orElse(null);
+        if (customer == null)
+            return "redirect:/hotels/" + hotel.getId() + "/rooms";
+        int customerId = customer.getId();
+
         // Tính toán các giá trị tổng cộng cho cả nhóm phòng
         BigDecimal totalSubtotal = BigDecimal.ZERO;
         java.util.List<BigDecimal> roomSubtotals = new java.util.ArrayList<>();
-        
+
         for (int i = 0; i < validRoomIds.size(); i++) {
             Room r = roomRepository.findById(validRoomIds.get(i)).orElse(null);
             int qtyVal = validQuantities.get(i);
             BigDecimal baseSub = calculateRoomSubtotal(r.getPrice(), checkInDate, checkOutDate);
             BigDecimal rSub = baseSub.multiply(BigDecimal.valueOf(qtyVal));
+
+            // Áp dụng khuyến mãi nếu có
+            Integer promoId = promotionIds != null && promotionIds.size() > i ? promotionIds.get(i) : null;
+            if (promoId != null && promoId > 0) {
+                Promotion promo = promotionRepository.findById(promoId).orElse(null);
+                if (promo != null && "ACTIVE".equalsIgnoreCase(promo.getStatus()) && promo.getHotel() != null
+                        && promo.getHotel().getId() == r.getHotelId()) {
+                    // Kiểm tra xem promotion đã được khách hàng này sử dụng chưa
+                    if (!bookingRepository.existsByCustomerIdAndIdPromotion(customerId, promoId)) {
+                        BigDecimal discountRate = promo.getDiscountPercent().divide(BigDecimal.valueOf(100));
+                        BigDecimal discountAmount = rSub.multiply(discountRate);
+                        rSub = rSub.subtract(discountAmount);
+                    }
+                }
+            }
+
             totalSubtotal = totalSubtotal.add(rSub);
             roomSubtotals.add(rSub);
         }
 
-        BigDecimal serviceFee = totalSubtotal.compareTo(BigDecimal.ZERO) > 0 ? BigDecimal.valueOf(50_000) : BigDecimal.ZERO;
-        BigDecimal totalTax = totalSubtotal.multiply(BigDecimal.valueOf(0.1)).setScale(0, java.math.RoundingMode.HALF_UP);
+        BigDecimal serviceFee = totalSubtotal.compareTo(BigDecimal.ZERO) > 0 ? BigDecimal.valueOf(50_000)
+                : BigDecimal.ZERO;
+        BigDecimal totalTax = totalSubtotal.multiply(BigDecimal.valueOf(0.1)).setScale(0,
+                java.math.RoundingMode.HALF_UP);
         BigDecimal grandTotalPrice = totalSubtotal.add(totalTax).add(serviceFee);
-
-        // Lấy thông tin Customer từ User đang đăng nhập
-        vn.edu.fpt.hotel_management.entity.Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
-        if (customer == null)
-            return "redirect:/hotels/" + hotel.getId() + "/rooms";
 
         Booking parentBooking;
         java.util.List<Booking> bookingsList = new java.util.ArrayList<>();
         java.util.Map<Integer, Integer> bookingQuantitiesMap = new java.util.HashMap<>();
 
-        // Luôn tạo mới cả group booking để đảm bảo chính xác các phòng và số lượng đã chọn
+        // Luôn tạo mới cả group booking để đảm bảo chính xác các phòng và số lượng đã
+        // chọn
         parentBooking = new Booking();
         parentBooking.setCustomer(customer);
         parentBooking.setRoom(room);
@@ -237,25 +265,43 @@ public class PaymentController {
         parentBooking.setCheckOutDate(checkOutDate);
         parentBooking.setPhone(phone);
         parentBooking.setFullName(fullName);
-        
+        parentBooking.setEmail(email);
+        parentBooking.setQuantity(validQuantities.get(0)); // Lưu số lượng phòng đặt cho phòng chính
+        if (specialRequests != null && !specialRequests.trim().isEmpty()) {
+            parentBooking.setSpecialNotes(specialRequests.trim());
+        } else {
+            parentBooking.setSpecialNotes(null);
+        }
+        Integer parentPromoId = promotionIds != null && promotionIds.size() > 0 ? promotionIds.get(0) : null;
+        if (parentPromoId != null && parentPromoId > 0) {
+            Promotion promo = promotionRepository.findById(parentPromoId).orElse(null);
+            if (promo != null && "ACTIVE".equalsIgnoreCase(promo.getStatus()) && promo.getHotel() != null
+                    && promo.getHotel().getId() == room.getHotelId()) {
+                if (!bookingRepository.existsByCustomerIdAndIdPromotion(customerId, parentPromoId)) {
+                    parentBooking.setIdPromotion(parentPromoId);
+                }
+            }
+        }
+
         BigDecimal rSub = roomSubtotals.get(0);
         BigDecimal rTax = rSub.multiply(BigDecimal.valueOf(0.1)).setScale(0, java.math.RoundingMode.HALF_UP);
         BigDecimal rTotalPrice = rSub.add(rTax).add(serviceFee);
-        
+
         parentBooking.setTotalPrice(rTotalPrice);
         parentBooking.setStatus("PENDING");
         parentBooking.setCreatedAt(LocalDateTime.now());
         bookingRepository.save(parentBooking);
-        
+
         bookingsList.add(parentBooking);
         bookingQuantitiesMap.put(parentBooking.getId(), validQuantities.get(0));
 
         for (int i = 1; i < validRoomIds.size(); i++) {
             Room r = roomRepository.findById(validRoomIds.get(i)).orElse(null);
             BigDecimal childSub = roomSubtotals.get(i);
-            BigDecimal childTax = childSub.multiply(BigDecimal.valueOf(0.1)).setScale(0, java.math.RoundingMode.HALF_UP);
+            BigDecimal childTax = childSub.multiply(BigDecimal.valueOf(0.1)).setScale(0,
+                    java.math.RoundingMode.HALF_UP);
             BigDecimal childTotalPrice = childSub.add(childTax);
-            
+
             Booking childBooking = new Booking();
             childBooking.setCustomer(customer);
             childBooking.setRoom(r);
@@ -269,8 +315,20 @@ public class PaymentController {
             childBooking.setSpecialNotes("GROUP_BOOKING_parent:" + parentBooking.getId());
             childBooking.setPhone(phone);
             childBooking.setFullName(fullName);
+            childBooking.setEmail(email);
+            childBooking.setQuantity(validQuantities.get(i)); // Lưu số lượng phòng đặt cho phòng con
+            Integer childPromoId = promotionIds != null && promotionIds.size() > i ? promotionIds.get(i) : null;
+            if (childPromoId != null && childPromoId > 0) {
+                Promotion promo = promotionRepository.findById(childPromoId).orElse(null);
+                if (promo != null && "ACTIVE".equalsIgnoreCase(promo.getStatus()) && promo.getHotel() != null
+                        && promo.getHotel().getId() == r.getHotelId()) {
+                    if (!bookingRepository.existsByCustomerIdAndIdPromotion(customerId, childPromoId)) {
+                        childBooking.setIdPromotion(childPromoId);
+                    }
+                }
+            }
             bookingRepository.save(childBooking);
-            
+
             bookingsList.add(childBooking);
             bookingQuantitiesMap.put(childBooking.getId(), validQuantities.get(i));
         }
@@ -313,7 +371,7 @@ public class PaymentController {
                 nights, totalSubtotal, totalTax, serviceFee, grandTotalPrice, qrUrl,
                 transferInfo, bookingId, qrExpiresAt, remainingSeconds, from, totalQty,
                 fullName, phone);
-        
+
         model.addAttribute("bookingsList", bookingsList);
         model.addAttribute("bookingQuantitiesMap", bookingQuantitiesMap);
 
@@ -411,6 +469,21 @@ public class PaymentController {
         if (booking == null)
             return "redirect:/hotels";
 
+        // Nếu click từ child booking, tự động đổi hướng sang parent booking tương ứng
+        // để xử lý
+        if (booking.getSpecialNotes() != null && booking.getSpecialNotes().startsWith("GROUP_BOOKING_parent:")) {
+            try {
+                String parentIdStr = booking.getSpecialNotes().replace("GROUP_BOOKING_parent:", "").trim();
+                int parentId = Integer.parseInt(parentIdStr);
+                Booking parent = bookingRepository.findById(parentId).orElse(null);
+                if (parent != null) {
+                    booking = parent;
+                    bookingId = parentId;
+                }
+            } catch (Exception e) {
+            }
+        }
+
         Room room = booking.getRoom();
         Hotel hotel = room != null ? hotelRepository.findById(room.getHotelId()).orElse(null) : null;
         if (room == null || hotel == null || !hotel.isActive()) {
@@ -430,7 +503,38 @@ public class PaymentController {
 
         Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
 
-        // Tự động kiểm tra PayOS khi vào trang
+        // 1. QR hết hạn → hủy đồng bộ cả nhóm và chuyển về lịch sử (Kiểm tra hết hạn
+        // TRƯỚC TIÊN)
+        if (payment != null && payment.isQrExpired()) {
+            booking.setStatus("EXPIRED");
+            booking.setUpdatedAt(LocalDateTime.now());
+            bookingRepository.save(booking);
+
+            // Đồng bộ hủy các booking con trong cùng group
+            try {
+                final int parentId = booking.getId();
+                final int customerId = booking.getCustomer().getId();
+                java.util.List<Booking> childBookings = bookingRepository
+                        .findByCustomerIdOrderByCreatedAtDesc(customerId).stream()
+                        .filter(b -> b.getSpecialNotes() != null
+                                && b.getSpecialNotes().equals("GROUP_BOOKING_parent:" + parentId))
+                        .collect(java.util.stream.Collectors.toList());
+                for (Booking cb : childBookings) {
+                    cb.setStatus("EXPIRED");
+                    cb.setUpdatedAt(LocalDateTime.now());
+                    bookingRepository.save(cb);
+                }
+            } catch (Exception e) {
+            }
+
+            payment.setStatus("EXPIRED");
+            paymentRepository.save(payment);
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "This payment session has expired. Please make a new reservation.");
+            return "redirect:/booking/history";
+        }
+
+        // 2. Tự động kiểm tra PayOS khi vào trang
         if ("PENDING".equals(booking.getStatus()) && payosApiKey != null && !payosApiKey.isBlank()) {
             if (checkPayOSPaymentStatus(bookingId, payment)) {
                 confirmBooking(booking, payment);
@@ -440,26 +544,19 @@ public class PaymentController {
             }
         }
 
-        // QR hết hạn → hủy và chuyển về lịch sử
-        if (payment != null && payment.isQrExpired()) {
-            booking.setStatus("CANCELLED");
-            bookingRepository.save(booking);
-            payment.setStatus("FAILED");
-            paymentRepository.save(payment);
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "This payment session has expired. Please make a new reservation.");
-            return "redirect:/booking/history";
-        }
-
         LocalDate checkInDate = booking.getCheckInDate();
         LocalDate checkOutDate = booking.getCheckOutDate();
         long nights = checkOutDate.toEpochDay() - checkInDate.toEpochDay();
         if (nights <= 0)
             nights = 1;
 
+        final int targetCustomerId = booking.getCustomer().getId();
+        final int parentIdVal = booking.getId();
         // Tìm tất cả các booking con trong cùng group
-        java.util.List<Booking> childBookings = bookingRepository.findByCustomerIdOrderByCreatedAtDesc(booking.getCustomer().getId()).stream()
-                .filter(b -> b.getSpecialNotes() != null && b.getSpecialNotes().equals("GROUP_BOOKING_parent:" + booking.getId()))
+        java.util.List<Booking> childBookings = bookingRepository
+                .findByCustomerIdOrderByCreatedAtDesc(targetCustomerId).stream()
+                .filter(b -> b.getSpecialNotes() != null
+                        && b.getSpecialNotes().equals("GROUP_BOOKING_parent:" + parentIdVal))
                 .collect(java.util.stream.Collectors.toList());
 
         java.util.List<Booking> bookingsList = new java.util.ArrayList<>();
@@ -474,19 +571,24 @@ public class PaymentController {
 
         for (Booking b : bookingsList) {
             BigDecimal bTotalPrice = b.getTotalPrice();
-            boolean isParent = (b.getSpecialNotes() == null || !b.getSpecialNotes().startsWith("GROUP_BOOKING_parent:"));
-            BigDecimal bServiceFee = (isParent && bTotalPrice.compareTo(BigDecimal.valueOf(50_000)) > 0) ? BigDecimal.valueOf(50_000) : BigDecimal.ZERO;
+            boolean isParent = (b.getSpecialNotes() == null
+                    || !b.getSpecialNotes().startsWith("GROUP_BOOKING_parent:"));
+            BigDecimal bServiceFee = (isParent && bTotalPrice.compareTo(BigDecimal.valueOf(50_000)) > 0)
+                    ? BigDecimal.valueOf(50_000)
+                    : BigDecimal.ZERO;
             BigDecimal bSubtotalPlusTax = bTotalPrice.subtract(bServiceFee);
-            
+
             BigDecimal bSubtotal = bSubtotalPlusTax.divide(BigDecimal.valueOf(1.1), 0, java.math.RoundingMode.HALF_UP);
             BigDecimal bTax = bSubtotalPlusTax.subtract(bSubtotal);
-            
-            BigDecimal singleSubtotal = calculateRoomSubtotal(b.getRoom().getPrice(), b.getCheckInDate(), b.getCheckOutDate());
+
+            BigDecimal singleSubtotal = calculateRoomSubtotal(b.getRoom().getPrice(), b.getCheckInDate(),
+                    b.getCheckOutDate());
             int qty = 1;
             if (singleSubtotal.compareTo(BigDecimal.ZERO) > 0) {
                 qty = bSubtotal.divide(singleSubtotal, 0, java.math.RoundingMode.HALF_UP).intValue();
             }
-            if (qty <= 0) qty = 1;
+            if (qty <= 0)
+                qty = 1;
 
             bookingQuantitiesMap.put(b.getId(), qty);
             totalSubtotal = totalSubtotal.add(bSubtotal);
@@ -552,8 +654,10 @@ public class PaymentController {
 
         // Cập nhật tất cả các booking con trong cùng group
         try {
-            java.util.List<Booking> childBookings = bookingRepository.findByCustomerIdOrderByCreatedAtDesc(booking.getCustomer().getId()).stream()
-                    .filter(b -> b.getSpecialNotes() != null && b.getSpecialNotes().equals("GROUP_BOOKING_parent:" + booking.getId()))
+            java.util.List<Booking> childBookings = bookingRepository
+                    .findByCustomerIdOrderByCreatedAtDesc(booking.getCustomer().getId()).stream()
+                    .filter(b -> b.getSpecialNotes() != null
+                            && b.getSpecialNotes().equals("GROUP_BOOKING_parent:" + booking.getId()))
                     .collect(java.util.stream.Collectors.toList());
             for (Booking cb : childBookings) {
                 cb.setStatus("CONFIRMED");
@@ -1015,7 +1119,6 @@ public class PaymentController {
     // ===================== PAYPAL PAYMENTS (NO JS REDIRECT FLOW)
     // =====================
 
-
     @PostMapping("/booking/paypal/pay")
     public String payWithPaypal(@RequestParam("bookingId") int bookingId,
             HttpSession session,
@@ -1120,8 +1223,10 @@ public class PaymentController {
     private PaypalServerSdkClient buildPaypalClient() {
         System.out.println("[PayPal SDK] Building client...");
         System.out.println("[PayPal SDK] Mode: " + paypalMode);
-        System.out.println("[PayPal SDK] Client ID length: " + (paypalClientId != null ? paypalClientId.trim().length() : "null"));
-        System.out.println("[PayPal SDK] Secret length: " + (paypalClientSecret != null ? paypalClientSecret.trim().length() : "null"));
+        System.out.println(
+                "[PayPal SDK] Client ID length: " + (paypalClientId != null ? paypalClientId.trim().length() : "null"));
+        System.out.println("[PayPal SDK] Secret length: "
+                + (paypalClientSecret != null ? paypalClientSecret.trim().length() : "null"));
         Environment env = "sandbox".equalsIgnoreCase(paypalMode)
                 ? Environment.SANDBOX
                 : Environment.PRODUCTION;
@@ -1169,7 +1274,6 @@ public class PaymentController {
             ApiResponse<Order> response = ordersController.createOrderAsync(input).get();
             Order order = response.getResult();
 
-
             if (order != null && order.getId() != null) {
                 String orderId = order.getId();
                 String approveUrl = "";
@@ -1182,28 +1286,32 @@ public class PaymentController {
                     }
                 }
                 if (!approveUrl.isEmpty()) {
-                    return new String[]{orderId, approveUrl};
+                    return new String[] { orderId, approveUrl };
                 }
             }
         } catch (Throwable e) {
             System.err.println("[PayPal] Create order EXCEPTION TYPE: " + e.getClass().getName());
             System.err.println("[PayPal] Create order EXCEPTION MSG: " + e.getMessage());
-            if (e.getCause() != null) System.err.println("[PayPal] CAUSED BY: " + e.getCause().getMessage());
+            if (e.getCause() != null)
+                System.err.println("[PayPal] CAUSED BY: " + e.getCause().getMessage());
             e.printStackTrace();
             // Ghi ra file để debug
             try {
                 java.io.FileWriter fw = new java.io.FileWriter("paypal_error.txt", false);
                 fw.write("EXCEPTION: " + e.getClass().getName() + "\n");
                 fw.write("MSG: " + e.getMessage() + "\n");
-                if (e.getCause() != null) fw.write("CAUSE: " + e.getCause().getMessage() + "\n");
+                if (e.getCause() != null)
+                    fw.write("CAUSE: " + e.getCause().getMessage() + "\n");
                 Throwable root = e;
-                while (root.getCause() != null) root = root.getCause();
+                while (root.getCause() != null)
+                    root = root.getCause();
                 fw.write("ROOT: " + root.getClass().getName() + ": " + root.getMessage() + "\n");
                 java.io.PrintWriter pw = new java.io.PrintWriter(fw);
                 e.printStackTrace(pw);
                 pw.close();
                 fw.close();
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         return null;
     }
@@ -1227,14 +1335,20 @@ public class PaymentController {
                     if (pu.getPayments() != null && pu.getPayments().getCaptures() != null
                             && !pu.getPayments().getCaptures().isEmpty()) {
                         OrdersCapture capture = pu.getPayments().getCaptures().get(0);
-                        if (capture.getId() != null) captureId = capture.getId();
+                        if (capture.getId() != null)
+                            captureId = capture.getId();
                     }
                 }
                 if (order.getPayer() != null) {
-                    if (order.getPayer().getEmailAddress() != null) payerEmail = order.getPayer().getEmailAddress();
+                    if (order.getPayer().getEmailAddress() != null)
+                        payerEmail = order.getPayer().getEmailAddress();
                     if (order.getPayer().getName() != null) {
-                        String given = order.getPayer().getName().getGivenName() != null ? order.getPayer().getName().getGivenName() : "";
-                        String sur = order.getPayer().getName().getSurname() != null ? order.getPayer().getName().getSurname() : "";
+                        String given = order.getPayer().getName().getGivenName() != null
+                                ? order.getPayer().getName().getGivenName()
+                                : "";
+                        String sur = order.getPayer().getName().getSurname() != null
+                                ? order.getPayer().getName().getSurname()
+                                : "";
                         payerName = (given + " " + sur).trim();
                     }
                 }
@@ -1255,4 +1369,4 @@ public class PaymentController {
         }
         return false;
     }
-}
+}

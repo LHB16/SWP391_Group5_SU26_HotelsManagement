@@ -30,6 +30,12 @@ public class Booking {
     @Column(name = "full_name")
     private String fullName;
 
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "id_promotion")
+    private Integer idPromotion;
+
     @Column(name = "check_in_date", nullable = false)
     private LocalDate checkInDate;
 
@@ -56,6 +62,9 @@ public class Booking {
 
     @OneToOne(mappedBy = "booking", fetch = FetchType.LAZY)
     private Payment payment;
+
+    @Column(name = "quantity")
+    private Integer quantity = 1;
 
     public Booking() {
     }
@@ -176,6 +185,22 @@ public class Booking {
         return updatedAt;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Integer getIdPromotion() {
+        return idPromotion;
+    }
+
+    public void setIdPromotion(Integer idPromotion) {
+        this.idPromotion = idPromotion;
+    }
+
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
@@ -184,5 +209,13 @@ public class Booking {
         return "CONFIRMED".equalsIgnoreCase(this.status) 
             && this.checkInDate != null 
             && java.time.LocalDate.now().isBefore(this.checkInDate);
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
     }
 }
