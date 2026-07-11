@@ -89,6 +89,66 @@
                                 VND
                             </span>
                         </div>
+<<<<<<< refs/remotes/origin/phuoctm
+=======
+                        <th:block th:if="${detailedDiscounts != null and !detailedDiscounts.isEmpty()}">
+                            <!-- Nếu số lượng discount <= 1 -->
+                            <th:block th:if="${detailedDiscounts.size() <= 1}">
+                                <div class="summary-row" th:each="d : ${detailedDiscounts}" style="align-items: flex-start;">
+                                    <div>
+                                        <span class="summary-label" style="display: block;">Discount</span>
+                                        <span class="text-muted" style="font-size: 0.85rem; display: block; margin-top: 2px; line-height: 1.2;" th:text="'(' + ${d.title} + ')'">(Promotion Title)</span>
+                                    </div>
+                                    <span class="summary-value text-danger" style="color: #dc3545 !important; font-weight: 600; white-space: nowrap; margin-left: 10px;">
+                                        -<th:block th:text="${#numbers.formatInteger(d.amount, 0, 'COMMA')}">0</th:block>
+                                        VND
+                                    </span>
+                                </div>
+                            </th:block>
+
+                            <!-- Nếu số lượng discount >= 2 -->
+                            <th:block th:if="${detailedDiscounts.size() >= 2}">
+                                <div class="summary-row" id="qrDiscountSummaryRow" style="cursor: pointer;">
+                                    <span class="summary-label d-flex align-items-center">
+                                        Discount (Total)
+                                        <i class="bi bi-chevron-down ms-1" id="qrDiscountChevron" style="transition: transform 0.2s;"></i>
+                                    </span>
+                                    <span class="summary-value text-danger" style="color: #dc3545 !important; font-weight: 600;">
+                                        -<th:block th:text="${#numbers.formatInteger(discount, 0, 'COMMA')}">0</th:block>
+                                        VND
+                                    </span>
+                                </div>
+                                <div id="qrDiscountDetails" class="d-none ps-3 border-start mb-2" style="font-size: 0.9rem;">
+                                    <div class="d-flex justify-content-between mb-1 text-muted" th:each="d : ${detailedDiscounts}">
+                                        <span th:text="${d.title}">Promotion</span>
+                                        <span class="text-danger">
+                                            -<th:block th:text="${#numbers.formatInteger(d.amount, 0, 'COMMA')}">0</th:block>
+                                            VND
+                                        </span>
+                                    </div>
+                                </div>
+                                <script>
+                                    document.addEventListener("DOMContentLoaded", function() {
+                                        const summaryRow = document.getElementById("qrDiscountSummaryRow");
+                                        const details = document.getElementById("qrDiscountDetails");
+                                        const chevron = document.getElementById("qrDiscountChevron");
+                                        if (summaryRow && details) {
+                                            summaryRow.addEventListener("click", function() {
+                                                const isCollapsed = details.classList.contains("d-none");
+                                                if (isCollapsed) {
+                                                    details.classList.remove("d-none");
+                                                    if (chevron) chevron.style.transform = "rotate(180deg)";
+                                                } else {
+                                                    details.classList.add("d-none");
+                                                    if (chevron) chevron.style.transform = "rotate(0deg)";
+                                                }
+                                            });
+                                        }
+                                    });
+                                </script>
+                            </th:block>
+                        </th:block>
+>>>>>>> local
                         <div class="summary-row">
                             <span class="summary-label">VAT (10%)</span>
                             <span class="summary-value">

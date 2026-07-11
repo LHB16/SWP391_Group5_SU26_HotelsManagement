@@ -79,6 +79,9 @@ public class BookingController {
         Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
         int customerId = (customer != null) ? customer.getId() : 0;
 
+        // Dọn dẹp booking hết hạn
+        cleanExpiredBookings(customerId);
+
         // Lấy tất cả booking của user để lọc trong bộ nhớ
         List<Booking> allBookings = bookingRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);
 
@@ -88,75 +91,36 @@ public class BookingController {
             if ("PENDING".equals(b.getStatus())) {
                 Payment payment = paymentRepository.findByBookingId(b.getId()).orElse(null);
 
-                // Nếu là child booking, tìm payment của parent booking để kiểm tra hết hạn
-                if (payment == null && b.getSpecialNotes() != null
-                        && b.getSpecialNotes().startsWith("GROUP_BOOKING_parent:")) {
-                    try {
-                        String parentIdStr = b.getSpecialNotes().replace("GROUP_BOOKING_parent:", "").trim();
-                        int parentId = Integer.parseInt(parentIdStr);
-                        payment = paymentRepository.findByBookingId(parentId).orElse(null);
-                    } catch (Exception e) {
-                    }
-                }
+                // Chỉ tiến hành kiểm tra trên PayOS đối với các booking chưa hết hạn (chỉ gọi API đối với phòng cha)
+                boolean isChild = b.getSpecialNotes() != null
+                        && b.getSpecialNotes().startsWith("GROUP_BOOKING_parent:");
+                if (!isChild) {
+                    boolean verified = checkPayOSPaymentStatus(b.getId(), b.getTotalPrice());
+                    if (verified) {
+                        b.setStatus("CONFIRMED");
+                        b.setUpdatedAt(java.time.LocalDateTime.now());
+                        bookingRepository.save(b);
 
-                // 1. Kiểm tra hết hạn TRƯỚC TIÊN
-                if (payment != null && payment.getQrExpiresAt() != null
-                        && payment.getQrExpiresAt().isBefore(java.time.LocalDateTime.now())) {
-                    b.setStatus("EXPIRED");
-                    b.setUpdatedAt(java.time.LocalDateTime.now());
-                    bookingRepository.save(b);
-
-                    payment.setStatus("EXPIRED");
-                    paymentRepository.save(payment);
-
-                    // Đồng bộ hủy tất cả các phòng con khác nếu đây là phòng cha
-                    try {
-                        final int parentId = b.getId();
-                        List<Booking> childBookings = bookingRepository.findByCustomerIdOrderByCreatedAtDesc(customerId)
-                                .stream()
-                                .filter(cb -> cb.getSpecialNotes() != null
-                                        && cb.getSpecialNotes().equals("GROUP_BOOKING_parent:" + parentId))
-                                .collect(java.util.stream.Collectors.toList());
-                        for (Booking cb : childBookings) {
-                            cb.setStatus("EXPIRED");
-                            cb.setUpdatedAt(java.time.LocalDateTime.now());
-                            bookingRepository.save(cb);
+                        if (payment != null) {
+                            payment.setStatus("PAID");
+                            payment.setPaidAt(java.time.LocalDateTime.now());
+                            paymentRepository.save(payment);
                         }
-                    } catch (Exception e) {
-                    }
-                } else {
-                    // 2. Nếu chưa hết hạn, mới tiến hành kiểm tra trên PayOS (chỉ gọi API đối với
-                    // phòng cha)
-                    boolean isChild = b.getSpecialNotes() != null
-                            && b.getSpecialNotes().startsWith("GROUP_BOOKING_parent:");
-                    if (!isChild) {
-                        boolean verified = checkPayOSPaymentStatus(b.getId(), b.getTotalPrice());
-                        if (verified) {
-                            b.setStatus("CONFIRMED");
-                            b.setUpdatedAt(java.time.LocalDateTime.now());
-                            bookingRepository.save(b);
 
-                            if (payment != null) {
-                                payment.setStatus("PAID");
-                                payment.setPaidAt(java.time.LocalDateTime.now());
-                                paymentRepository.save(payment);
+                        // Đồng bộ xác nhận tất cả phòng con đi kèm
+                        try {
+                            final int parentId = b.getId();
+                            List<Booking> childBookings = bookingRepository
+                                    .findByCustomerIdOrderByCreatedAtDesc(customerId).stream()
+                                    .filter(cb -> cb.getSpecialNotes() != null
+                                            && cb.getSpecialNotes().equals("GROUP_BOOKING_parent:" + parentId))
+                                    .collect(java.util.stream.Collectors.toList());
+                            for (Booking cb : childBookings) {
+                                cb.setStatus("CONFIRMED");
+                                cb.setUpdatedAt(java.time.LocalDateTime.now());
+                                bookingRepository.save(cb);
                             }
-
-                            // Đồng bộ xác nhận tất cả phòng con đi kèm
-                            try {
-                                final int parentId = b.getId();
-                                List<Booking> childBookings = bookingRepository
-                                        .findByCustomerIdOrderByCreatedAtDesc(customerId).stream()
-                                        .filter(cb -> cb.getSpecialNotes() != null
-                                                && cb.getSpecialNotes().equals("GROUP_BOOKING_parent:" + parentId))
-                                        .collect(java.util.stream.Collectors.toList());
-                                for (Booking cb : childBookings) {
-                                    cb.setStatus("CONFIRMED");
-                                    cb.setUpdatedAt(java.time.LocalDateTime.now());
-                                    bookingRepository.save(cb);
-                                }
-                            } catch (Exception e) {
-                            }
+                        } catch (Exception e) {
                         }
                     }
                 }
@@ -881,6 +845,10 @@ public class BookingController {
         // Lấy danh sách khuyến mãi còn hiệu lực của tất cả các khách sạn có phòng được
         // chọn
         int customerId = (customer != null) ? customer.getId() : 0;
+        
+        // Dọn dẹp booking hết hạn
+        cleanExpiredBookings(customerId);
+
         List<Promotion> rawPromotions = new java.util.ArrayList<>();
         for (Integer hId : hotelIds) {
             List<Promotion> hotelPromos = promotionRepository.findActivePromotionsByHotelId(hId,
@@ -996,84 +964,51 @@ public class BookingController {
         // Tìm booking
         Booking booking = bookingRepository.findById(id).orElse(null);
         Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
+        if (customer != null) {
+            cleanExpiredBookings(customer.getId());
+        }
+
+        // Tải lại booking sau khi dọn dẹp
+        booking = bookingRepository.findById(id).orElse(null);
+
         if (booking == null || customer == null || booking.getCustomer().getId() != customer.getId()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Booking not found.");
             return "redirect:/booking/history";
         }
 
-        // Tự động kiểm tra trạng thái thanh toán đối với các đơn hàng còn PENDING
+        // Tự động kiểm tra trạng thái thanh toán đối với các đơn hàng còn PENDING chưa hết hạn
         if ("PENDING".equals(booking.getStatus())) {
             Payment payment = paymentRepository.findByBookingId(booking.getId()).orElse(null);
 
-            // Nếu là child booking, tìm payment của parent booking để kiểm tra hết hạn
-            if (payment == null && booking.getSpecialNotes() != null
-                    && booking.getSpecialNotes().startsWith("GROUP_BOOKING_parent:")) {
-                try {
-                    String parentIdStr = booking.getSpecialNotes().replace("GROUP_BOOKING_parent:", "").trim();
-                    int parentId = Integer.parseInt(parentIdStr);
-                    payment = paymentRepository.findByBookingId(parentId).orElse(null);
-                } catch (Exception e) {
-                }
-            }
+            boolean isChild = booking.getSpecialNotes() != null
+                    && booking.getSpecialNotes().startsWith("GROUP_BOOKING_parent:");
+            if (!isChild) {
+                boolean verified = checkPayOSPaymentStatus(booking.getId(), booking.getTotalPrice());
+                if (verified) {
+                    booking.setStatus("CONFIRMED");
+                    booking.setUpdatedAt(java.time.LocalDateTime.now());
+                    bookingRepository.save(booking);
 
-            // 1. Kiểm tra hết hạn TRƯỚC TIÊN
-            if (payment != null && payment.getQrExpiresAt() != null
-                    && payment.getQrExpiresAt().isBefore(java.time.LocalDateTime.now())) {
-                booking.setStatus("EXPIRED");
-                booking.setUpdatedAt(java.time.LocalDateTime.now());
-                bookingRepository.save(booking);
-
-                payment.setStatus("EXPIRED");
-                paymentRepository.save(payment);
-
-                // Đồng bộ hủy tất cả các phòng con khác nếu đây là phòng cha
-                try {
-                    final int parentId = booking.getId();
-                    List<Booking> childBookings = bookingRepository
-                            .findByCustomerIdOrderByCreatedAtDesc(customer.getId()).stream()
-                            .filter(cb -> cb.getSpecialNotes() != null
-                                    && cb.getSpecialNotes().equals("GROUP_BOOKING_parent:" + parentId))
-                            .collect(java.util.stream.Collectors.toList());
-                    for (Booking cb : childBookings) {
-                        cb.setStatus("EXPIRED");
-                        cb.setUpdatedAt(java.time.LocalDateTime.now());
-                        bookingRepository.save(cb);
+                    if (payment != null) {
+                        payment.setStatus("PAID");
+                        payment.setPaidAt(java.time.LocalDateTime.now());
+                        paymentRepository.save(payment);
                     }
-                } catch (Exception e) {
-                }
-            } else {
-                // 2. Nếu chưa hết hạn, mới tiến hành kiểm tra trên PayOS (chỉ gọi API đối với
-                // phòng cha)
-                boolean isChild = booking.getSpecialNotes() != null
-                        && booking.getSpecialNotes().startsWith("GROUP_BOOKING_parent:");
-                if (!isChild) {
-                    boolean verified = checkPayOSPaymentStatus(booking.getId(), booking.getTotalPrice());
-                    if (verified) {
-                        booking.setStatus("CONFIRMED");
-                        booking.setUpdatedAt(java.time.LocalDateTime.now());
-                        bookingRepository.save(booking);
 
-                        if (payment != null) {
-                            payment.setStatus("PAID");
-                            payment.setPaidAt(java.time.LocalDateTime.now());
-                            paymentRepository.save(payment);
+                    // Đồng bộ xác nhận tất cả phòng con đi kèm
+                    try {
+                        final int parentId = booking.getId();
+                        List<Booking> childBookings = bookingRepository
+                                .findByCustomerIdOrderByCreatedAtDesc(customer.getId()).stream()
+                                .filter(cb -> cb.getSpecialNotes() != null
+                                        && cb.getSpecialNotes().equals("GROUP_BOOKING_parent:" + parentId))
+                                .collect(java.util.stream.Collectors.toList());
+                        for (Booking cb : childBookings) {
+                            cb.setStatus("CONFIRMED");
+                            cb.setUpdatedAt(java.time.LocalDateTime.now());
+                            bookingRepository.save(cb);
                         }
-
-                        // Đồng bộ xác nhận tất cả phòng con đi kèm
-                        try {
-                            final int parentId = booking.getId();
-                            List<Booking> childBookings = bookingRepository
-                                    .findByCustomerIdOrderByCreatedAtDesc(customer.getId()).stream()
-                                    .filter(cb -> cb.getSpecialNotes() != null
-                                            && cb.getSpecialNotes().equals("GROUP_BOOKING_parent:" + parentId))
-                                    .collect(java.util.stream.Collectors.toList());
-                            for (Booking cb : childBookings) {
-                                cb.setStatus("CONFIRMED");
-                                cb.setUpdatedAt(java.time.LocalDateTime.now());
-                                bookingRepository.save(cb);
-                            }
-                        } catch (Exception e) {
-                        }
+                    } catch (Exception e) {
                     }
                 }
             }
@@ -1153,5 +1088,124 @@ public class BookingController {
             System.err.println("[PayOS] Loi kiem tra trang thai tu dong: " + e.getMessage());
         }
         return false;
+    }
+
+    // Helper dọn dẹp các booking hết hạn thanh toán
+    private void cleanExpiredBookings(int customerId) {
+        if (customerId <= 0) return;
+
+        // 1. Quét các booking PENDING của customer này
+        List<Booking> pendingBookings = bookingRepository.findByCustomerIdOrderByCreatedAtDesc(customerId)
+                .stream()
+                .filter(b -> "PENDING".equals(b.getStatus()))
+                .collect(java.util.stream.Collectors.toList());
+
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+
+        for (Booking b : pendingBookings) {
+            // Bỏ qua child booking để xử lý theo parent booking
+            boolean isChild = b.getSpecialNotes() != null && b.getSpecialNotes().startsWith("GROUP_BOOKING_parent:");
+            if (isChild) {
+                continue;
+            }
+
+            Payment payment = paymentRepository.findByBookingId(b.getId()).orElse(null);
+            if (payment != null && payment.getQrExpiresAt() != null && payment.getQrExpiresAt().isBefore(now)) {
+                // Xóa booking hết hạn
+                final int parentId = b.getId();
+                List<Booking> childBookings = pendingBookings.stream()
+                        .filter(cb -> cb.getSpecialNotes() != null
+                                && cb.getSpecialNotes().equals("GROUP_BOOKING_parent:" + parentId))
+                        .collect(java.util.stream.Collectors.toList());
+
+                // Gỡ bỏ liên kết hai chiều trước khi xóa để tránh lỗi TransientPropertyValueException của Hibernate
+                b.setPayment(null);
+                payment.setBooking(null);
+                
+                // Xóa payment trước
+                paymentRepository.delete(payment);
+                paymentRepository.flush();
+
+                // Xóa child bookings
+                for (Booking cb : childBookings) {
+                    bookingRepository.delete(cb);
+                }
+
+                // Xóa parent booking
+                bookingRepository.delete(b);
+                bookingRepository.flush();
+            }
+        }
+
+        // 2. Đồng thời xóa các booking EXPIRED cũ (nếu lỡ còn tồn tại trong DB)
+        List<Booking> expiredBookings = bookingRepository.findByCustomerIdOrderByCreatedAtDesc(customerId)
+                .stream()
+                .filter(b -> "EXPIRED".equals(b.getStatus()))
+                .collect(java.util.stream.Collectors.toList());
+
+        for (Booking b : expiredBookings) {
+            boolean isChild = b.getSpecialNotes() != null && b.getSpecialNotes().startsWith("GROUP_BOOKING_parent:");
+            if (isChild) {
+                bookingRepository.delete(b);
+                bookingRepository.flush();
+                continue;
+            }
+            Payment payment = paymentRepository.findByBookingId(b.getId()).orElse(null);
+            if (payment != null) {
+                b.setPayment(null);
+                payment.setBooking(null);
+                paymentRepository.delete(payment);
+                paymentRepository.flush();
+            }
+            bookingRepository.delete(b);
+            bookingRepository.flush();
+        }
+    }
+
+    // API dọn dẹp các booking hết hạn và lấy danh sách promotion khả dụng mới nhất cho trang booking
+    @GetMapping("/booking/api/clean-and-get-promotions")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public List<Map<String, Object>> cleanAndGetPromotions(
+            @RequestParam("hotelId") int hotelId,
+            HttpSession session) {
+        
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return new java.util.ArrayList<>();
+        }
+        
+        Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
+        int customerId = (customer != null) ? customer.getId() : 0;
+        
+        // 1. Dọn dẹp booking hết hạn
+        cleanExpiredBookings(customerId);
+        
+        // 2. Lấy danh sách khuyến mãi khả dụng mới nhất
+        List<Promotion> rawPromotions = new java.util.ArrayList<>();
+        List<Promotion> hotelPromos = promotionRepository.findActivePromotionsByHotelId(hotelId, java.time.LocalDate.now());
+        if (hotelPromos != null) {
+            for (Promotion promo : hotelPromos) {
+                if (customerId == 0
+                        || !bookingRepository.existsByCustomerIdAndIdPromotion(customerId, promo.getId())) {
+                    rawPromotions.add(promo);
+                }
+            }
+        }
+        
+        List<Map<String, Object>> promotionsList = new java.util.ArrayList<>();
+        for (Promotion p : rawPromotions) {
+            Map<String, Object> map = new java.util.HashMap<>();
+            map.put("id", p.getId());
+            map.put("title", p.getTitle());
+            map.put("description", p.getDescription());
+            map.put("discountPercent", p.getDiscountPercent());
+            map.put("status", p.getStatus());
+            map.put("hotelId", p.getHotel() != null ? p.getHotel().getId() : 0);
+            map.put("startDate", p.getStartDate() != null ? p.getStartDate().toString() : null);
+            map.put("endDate", p.getEndDate() != null ? p.getEndDate().toString() : null);
+            promotionsList.add(map);
+        }
+        
+        return promotionsList;
     }
 }
