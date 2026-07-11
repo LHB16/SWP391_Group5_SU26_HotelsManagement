@@ -154,24 +154,24 @@
                             <div class="room-gold-divider my-2 wishlist-divider"></div>
 
                             <!-- Amenities -->
-                            <div class="room-amenities d-flex flex-wrap gap-2 mb-3">
-                                <span class="badge bg-light text-secondary border px-2 py-1 small">
-                                    <i class="bi bi-arrows-fullscreen me-1"></i>
-                                    <span th:text="${wl.room.acreage + ' m²'}">25 m²</span>
-                                </span>
-                                <span class="badge bg-light text-secondary border px-2 py-1 small">
-                                    <i class="bi bi-people me-1"></i>
-                                    <span th:text="${wl.room.person + ' guest(s)'}">2 guest(s)</span>
-                                </span>
-                                <span class="badge bg-light text-secondary border px-2 py-1 small">
-                                    <i class="bi bi-bed me-1"></i>
-                                    <span th:text="${wl.room.bed + ' bed(s)'}">2 bed(s)</span>
-                                </span>
-                                <span class="badge bg-light text-secondary border px-2 py-1 small">
-                                    <i class="bi bi-grid-3x3-gap me-1"></i>
-                                    <span th:text="${wl.room.window + ' window(s)'}">2 window(s)</span>
-                                </span>
-                            </div>
+                             <div class="room-amenities d-flex flex-wrap gap-2 mb-3">
+                                 <span class="badge bg-light text-secondary border px-2 py-1 small">
+                                     <i data-lucide="maximize" class="me-1" style="width: 16px; height: 16px; vertical-align: middle;"></i>
+                                     <span th:text="${wl.room.acreage + ' m²'}">25 m²</span>
+                                 </span>
+                                 <span class="badge bg-light text-secondary border px-2 py-1 small">
+                                     <i data-lucide="users" class="me-1" style="width: 16px; height: 16px; vertical-align: middle;"></i>
+                                     <span th:text="${wl.room.person + ' guest(s)'}">2 guest(s)</span>
+                                 </span>
+                                 <span class="badge bg-light text-secondary border px-2 py-1 small">
+                                     <i data-lucide="bed" class="me-1" style="width: 16px; height: 16px; vertical-align: middle;"></i>
+                                     <span th:text="${wl.room.bed + ' bed(s)'}">2 bed(s)</span>
+                                 </span>
+                                 <span class="badge bg-light text-secondary border px-2 py-1 small">
+                                     <i data-lucide="layout-grid" class="me-1" style="width: 16px; height: 16px; vertical-align: middle;"></i>
+                                     <span th:text="${wl.room.window + ' window(s)'}">2 window(s)</span>
+                                 </span>
+                             </div>
                         </div>
 
                         <!-- Footer: Giá + badge trạng thái -->
