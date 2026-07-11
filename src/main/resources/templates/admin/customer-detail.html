@@ -32,21 +32,15 @@
 
         <!-- Back navigation link -->
         <div class="mb-4">
-            <a th:href="@{/admin/dashboard}" class="back-btn">
+            <a th:href="@{/admin/dashboard?tab=customerPanel}" class="back-btn">
                 <i class="bi bi-arrow-left"></i>
-                <span>Back to Dashboard</span>
+                <span>Back to Customer Account</span>
             </a>
         </div>
 
         <div class="detail-card">
             <div class="detail-header">
                 <div class="d-flex align-items-center gap-3 flex-wrap">
-                    <!-- Avatar circle -->
-                    <div style="width: 54px; height: 54px; font-size: 1.4rem; font-weight: 700;
-                                background-color: rgba(255,255,255,0.15); color: #ffffff;
-                                display: flex; align-items: center; justify-content: center;
-                                border-radius: 50%; border: 2px solid rgba(255,255,255,0.25);"
-                         th:text="${#strings.substring(selectedCustomer.fullName, 0, 1).toUpperCase()}">C</div>
                     <div>
                         <h1 class="fw-bold m-0 h3 text-white" th:text="${selectedCustomer.fullName}">Customer Name</h1>
                         <p class="mb-0 mt-1" style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">

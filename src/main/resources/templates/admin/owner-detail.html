@@ -44,12 +44,6 @@
             <!-- Header: gradient background with avatar + name -->
             <div class="detail-header">
                 <div class="d-flex align-items-center gap-3 flex-wrap">
-                    <!-- Avatar circle -->
-                    <div style="width: 54px; height: 54px; font-size: 1.4rem; font-weight: 700;
-                                background-color: rgba(255,255,255,0.15); color: #ffffff;
-                                display: flex; align-items: center; justify-content: center;
-                                border-radius: 50%; border: 2px solid rgba(255,255,255,0.25);"
-                         th:text="${#strings.substring(selectedOwner.fullName, 0, 1).toUpperCase()}">O</div>
                     <div>
                         <h1 class="fw-bold m-0 h3 text-white" th:text="${selectedOwner.fullName}">Owner Name</h1>
                         <p class="mb-0 mt-1" style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">
