@@ -365,5 +365,41 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+    // Auto expand if any hidden checkbox is already checked (loaded from filter session/URL)
+    ['hotelFacilitiesContainer', 'hotelViewsContainer', 'roomFacilitiesContainer'].forEach(id => {
+        const container = document.getElementById(id);
+        if (container) {
+            const hiddenChecked = container.querySelectorAll('.hidden-filter-item input[type="checkbox"]:checked');
+            if (hiddenChecked.length > 0) {
+                const btn = container.nextElementSibling;
+                if (btn && btn.classList.contains('show-more-btn')) {
+                    // Gọi hàm qua scope window để bảo đảm tương thích
+                    window.toggleFilterGroup(btn, id);
+                }
+            }
+        }
+    });
+
 });
+
+// ==========================================
+// 7. TOGGLE FILTER GROUP (Show more / Show less)
+// ==========================================
+window.toggleFilterGroup = function(button, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const hiddenItems = container.querySelectorAll('.hidden-filter-item');
+    const isExpanded = button.getAttribute('data-expanded') === 'true';
+    
+    if (isExpanded) {
+        hiddenItems.forEach(item => item.style.setProperty('display', 'none', 'important'));
+        button.setAttribute('data-expanded', 'false');
+        const remainingCount = hiddenItems.length;
+        button.innerHTML = `Show all (+${remainingCount}) <i class="bi bi-chevron-down ms-1"></i>`;
+    } else {
+        hiddenItems.forEach(item => item.style.setProperty('display', 'flex', 'important'));
+        button.setAttribute('data-expanded', 'true');
+        button.innerHTML = `Show less <i class="bi bi-chevron-up ms-1"></i>`;
+    }
+};
 

@@ -74,6 +74,15 @@ public class HotelController {
         return path;
     }
 
+    private String removeAccent(String s) {
+        if (s == null) return "";
+        String temp = java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFD);
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        return pattern.matcher(temp).replaceAll("")
+                .replace('đ', 'd')
+                .replace('Đ', 'D');
+    }
+
     @GetMapping("/hotels")
     public String showHotelsPage(
             @RequestParam(value = "search", required = false) String search,
@@ -85,6 +94,8 @@ public class HotelController {
             @RequestParam(value = "hotelFacilities", required = false) List<String> hotelFacilities,
             @RequestParam(value = "hotelViews", required = false) List<String> hotelViews,
             @RequestParam(value = "roomFacilities", required = false) List<String> roomFacilities,
+            @RequestParam(value = "persons", required = false) Integer persons,
+            @RequestParam(value = "rooms", required = false) Integer rooms,
             HttpSession session,
             Model model
     ) {
@@ -99,12 +110,9 @@ public class HotelController {
         }
 
         if (search != null && !search.trim().isEmpty()) {
-            String cleanSearch = search.trim().toLowerCase();
+            String cleanSearch = removeAccent(search.trim().toLowerCase());
             hotels = hotels.stream().filter(h -> 
-                (h.getName() != null && h.getName().toLowerCase().contains(cleanSearch)) ||
-                (h.getCity() != null && h.getCity().toLowerCase().contains(cleanSearch)) ||
-                (h.getDistrict() != null && h.getDistrict().toLowerCase().contains(cleanSearch)) ||
-                (h.getAddress() != null && h.getAddress().toLowerCase().contains(cleanSearch))
+                h.getCity() != null && removeAccent(h.getCity().toLowerCase()).contains(cleanSearch)
             ).collect(java.util.stream.Collectors.toList());
         }
 
@@ -149,9 +157,9 @@ public class HotelController {
 
         if (roomFacilities != null && !roomFacilities.isEmpty()) {
             hotels = hotels.stream().filter(h -> {
-                List<Room> rooms = roomRepository.findByHotelId(h.getId());
-                if (rooms == null || rooms.isEmpty()) return false;
-                for (Room r : rooms) {
+                List<Room> hotelRooms = roomRepository.findByHotelId(h.getId());
+                if (hotelRooms == null || hotelRooms.isEmpty()) return false;
+                for (Room r : hotelRooms) {
                     RoomFacility rf = r.getFacility();
                     if (rf == null) continue;
                     boolean matchAll = true;
@@ -258,6 +266,8 @@ public class HotelController {
         model.addAttribute("selectedHotelFacilities", hotelFacilities != null ? hotelFacilities : List.of());
         model.addAttribute("selectedHotelViews", hotelViews != null ? hotelViews : List.of());
         model.addAttribute("selectedRoomFacilities", roomFacilities != null ? roomFacilities : List.of());
+        model.addAttribute("persons", persons != null ? persons : 1);
+        model.addAttribute("rooms", rooms != null ? rooms : 1);
 
         return "hotel/hotel-list";
     }

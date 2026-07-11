@@ -81,6 +81,8 @@ public class RoomController {
             @RequestParam(value = "maxPrice", required = false, defaultValue = "50000000") long maxPrice,
             @RequestParam(value = "checkin", required = false) String checkin,
             @RequestParam(value = "checkout", required = false) String checkout,
+            @RequestParam(value = "persons", required = false) Integer persons,
+            @RequestParam(value = "rooms", required = false) Integer roomsQuery,
             @RequestParam(value = "bookingId", required = false) Integer bookingId,
             HttpSession session,
             Model model,
@@ -224,6 +226,28 @@ public class RoomController {
             }
         }
 
+        final java.time.LocalDate finalD1 = d1;
+        final java.time.LocalDate finalD2 = d2;
+
+        // Lọc theo persons (sức chứa)
+        if (persons != null && persons > 0) {
+            rooms = rooms.stream().filter(r -> r.getPerson() >= persons).collect(java.util.stream.Collectors.toList());
+        }
+
+        // Lọc theo roomsQuery (số phòng trống khả dụng)
+        if (roomsQuery != null && roomsQuery > 0) {
+            rooms = rooms.stream().filter(r -> {
+                long bookedCount = bookingRepository.sumQuantityByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
+                        r.getId(),
+                        "CONFIRMED",
+                        finalD2,
+                        finalD1
+                );
+                int available = r.getNumberRooms() - (int) bookedCount;
+                return available >= roomsQuery;
+            }).collect(java.util.stream.Collectors.toList());
+        }
+
         for (Room r : rooms) {
             BigDecimal actualPrice = isFiltered ? calculateRoomSubtotal(r.getPrice(), d1, d2) : r.getPrice();
             roomPricesMap.put(r.getId(), actualPrice);
@@ -231,8 +255,8 @@ public class RoomController {
             long bookedCount = bookingRepository.sumQuantityByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
                     r.getId(),
                     "CONFIRMED",
-                    d2,
-                    d1
+                    finalD2,
+                    finalD1
             );
             int available = r.getNumberRooms() - (int) bookedCount;
             if (available < 0) {
@@ -277,6 +301,9 @@ public class RoomController {
         model.addAttribute("bookingId", bookingId);
         model.addAttribute("defaultRoomId", defaultRoomId);
         model.addAttribute("userVotesMap", userVotesMap);
+        model.addAttribute("selectedPersons", persons != null ? persons : 1);
+        model.addAttribute("selectedRoomsCount", roomsQuery != null ? roomsQuery : 1);
+        model.addAttribute("search", hotel.getCity());
 
         long hotelUnreadCount = 0;
         if (loggedInUser != null) {

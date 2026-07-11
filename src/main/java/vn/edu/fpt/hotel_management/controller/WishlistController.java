@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import vn.edu.fpt.hotel_management.entity.Room;
 import vn.edu.fpt.hotel_management.entity.User;
 import vn.edu.fpt.hotel_management.entity.Customer;
@@ -194,6 +195,61 @@ public class WishlistController {
             return redirectUrl.toString();
         }
         return "redirect:/hotels";
+    }
+
+    @GetMapping("/api/wishlist/toggle")
+    @ResponseBody
+    public java.util.Map<String, Object> toggleWishlistApi(
+            @RequestParam("roomId") int roomId,
+            @RequestParam(value = "checkin", required = false) String checkin,
+            @RequestParam(value = "checkout", required = false) String checkout,
+            HttpSession session
+    ) {
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            response.put("success", false);
+            response.put("message", "Please login first.");
+            return response;
+        }
+
+        Optional<Customer> customerOpt = customerRepository.findByUserAccount(loggedInUser);
+        if (customerOpt.isEmpty()) {
+            response.put("success", false);
+            response.put("message", "Customer account not found.");
+            return response;
+        }
+        Customer customer = customerOpt.get();
+
+        Room room = roomRepository.findById(roomId).orElse(null);
+        if (room == null) {
+            response.put("success", false);
+            response.put("message", "Room not found.");
+            return response;
+        }
+
+        Optional<Wishlist> existing = wishlistRepository.findByCustomerIdAndRoomId(customer.getId(), roomId);
+        if (existing.isPresent()) {
+            wishlistRepository.delete(existing.get());
+            response.put("success", true);
+            response.put("active", false);
+        } else {
+            LocalDate inDate = LocalDate.now();
+            LocalDate outDate = LocalDate.now().plusDays(1);
+            if (checkin != null && !checkin.trim().isEmpty() && checkout != null && !checkout.trim().isEmpty()) {
+                try {
+                    inDate = LocalDate.parse(checkin.trim());
+                    outDate = LocalDate.parse(checkout.trim());
+                } catch (Exception e) {
+                    // keep defaults
+                }
+            }
+            Wishlist wl = new Wishlist(customer, room, inDate, outDate);
+            wishlistRepository.save(wl);
+            response.put("success", true);
+            response.put("active", true);
+        }
+        return response;
     }
 
     @GetMapping("/wishlist/remove")
