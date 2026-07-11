@@ -109,6 +109,22 @@ public class OwnerController {
             return "redirect:/home";
         }
 
+        // Tự động chuyển các booking CONFIRMED đã quá giờ checkout (12:00 trưa) sang COMPLETED
+        try {
+            List<Booking> confirmedBookings = bookingRepository.findByStatusInOrderByCreatedAtDesc(java.util.Arrays.asList("CONFIRMED"));
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            for (Booking b : confirmedBookings) {
+                if (b.getCheckOutDate() != null
+                        && b.getCheckOutDate().atTime(12, 0).isBefore(now)) {
+                    b.setStatus("COMPLETED");
+                    b.setUpdatedAt(now);
+                    bookingRepository.save(b);
+                }
+            }
+        } catch (Exception e) {
+            // Bỏ qua lỗi nếu có
+        }
+
         String verificationStatus = owner.getVerificationStatus();
         model.addAttribute("verificationStatus", verificationStatus);
         model.addAttribute("user", user);

@@ -81,6 +81,22 @@ public class AdminDashboardController {
         if (loggedInUser == null || !"ADMIN".equals(loggedInUser.getRole())) {
             return "redirect:/login";
         }
+
+        // Tự động chuyển các booking CONFIRMED đã quá giờ checkout (12:00 trưa) sang COMPLETED
+        try {
+            List<Booking> confirmedBookings = bookingRepository.findByStatusInOrderByCreatedAtDesc(java.util.Arrays.asList("CONFIRMED"));
+            LocalDateTime now = LocalDateTime.now();
+            for (Booking b : confirmedBookings) {
+                if (b.getCheckOutDate() != null
+                        && b.getCheckOutDate().atTime(12, 0).isBefore(now)) {
+                    b.setStatus("COMPLETED");
+                    b.setUpdatedAt(now);
+                    bookingRepository.save(b);
+                }
+            }
+        } catch (Exception e) {
+            // Bỏ qua lỗi nếu có
+        }
         
         if ("hotelApprovalPanel".equals(tab)) {
             tab = "hotelOwnerAccounts";
