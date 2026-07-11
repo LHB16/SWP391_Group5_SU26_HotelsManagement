@@ -438,7 +438,7 @@
                                     <span class="text-muted custom-hl-price-desc" 
                                           th:text="${isFiltered} ? ' VND / ' + ${nights} + ' night' + (${nights > 1} ? 's' : '') : ' VND/night'"> VND/night</span>
                                 </div>
-                                <a th:href="@{/hotels/{id}/rooms(id=${hotel.id}, checkin=${checkin}, checkout=${checkout})}"
+                                <a th:href="@{/hotels/{id}/rooms(id=${hotel.id}, checkin=${checkin}, checkout=${checkout}, persons=${persons}, rooms=${rooms})}"
                                    target="_blank"
                                    class="btn btn-gold btn-sm text-nowrap custom-hl-view-btn">
                                     View Rooms
