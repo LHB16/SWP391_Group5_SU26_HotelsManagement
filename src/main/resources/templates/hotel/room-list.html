@@ -197,11 +197,11 @@
                                 <!-- Amenities -->
                                 <div class="room-amenities">
                                     <span class="amenity-badge">
-                                        <i class="bi bi-arrows-fullscreen me-1"></i>
+                                        <i data-lucide="maximize" class="me-1" style="width: 16px; height: 16px; vertical-align: middle;"></i>
                                         <span th:text="${room.acreage + ' m²'}">25 m²</span>
                                     </span>
                                     <span class="amenity-badge">
-                                        <i class="bi bi-people me-1"></i>
+                                        <i data-lucide="users" class="me-1" style="width: 16px; height: 16px; vertical-align: middle;"></i>
                                         <span th:text="${room.person + ' guest(s)'}">2 guest(s)</span>
                                     </span>
                                     <span class="amenity-badge">
@@ -209,7 +209,7 @@
                                         <span th:text="${room.bed + ' bed(s)'}">2 bed(s)</span>
                                     </span>
                                     <span class="amenity-badge">
-                                        <i class="bi bi-grid-3x3-gap me-1"></i>
+                                        <i data-lucide="layout-grid" class="me-1" style="width: 16px; height: 16px; vertical-align: middle;"></i>
                                         <span th:text="${room.numWindow + ' window(s)'}">2 window(s)</span>
                                     </span>
                                 </div>

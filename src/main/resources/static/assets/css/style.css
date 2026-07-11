@@ -15704,6 +15704,13 @@ input[type="date"]::-webkit-datetime-edit {
   margin-bottom: 20px;
 }
 
+.room-amenities i,
+.room-amenities svg,
+.badge-specs i,
+.badge-specs svg {
+  color: var(--gold-dark) !important;
+}
+
 .amenity-badge {
   display: inline-flex;
   align-items: center;
