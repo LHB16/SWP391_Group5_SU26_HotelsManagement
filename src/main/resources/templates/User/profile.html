@@ -20,7 +20,7 @@
                 </div>
 
                 <div class="row g-4">
-                    <!-- Cột Trái: Thông tin tổng quan (Quick Info Card) -->
+                    <!-- Cột Trái: Thông tin tổng quan (Quick Info Card) + Tab Bar Menu -->
                     <div class="col-lg-4">
                         <div class="card border-0 shadow-sm p-4 text-center" style="border-radius: 12px; background-color: #ffffff; border: 1px solid #eff4ff !important;">
                             <div class="d-flex flex-column align-items-center">
@@ -33,11 +33,89 @@
                                       th:text="${user.role}">ROLE</span>
                             </div>
                         </div>
+
+                        <!-- Menu Tabs cho HOTEL_OWNER chuyển đổi giữa các mục -->
+                        <div th:if="${user.role == 'HOTEL_OWNER'}" class="card border-0 shadow-sm mt-3 p-2" style="border-radius: 12px; background-color: #ffffff; border: 1px solid #eff4ff !important;">
+                            <div class="nav flex-column nav-pills" role="tablist">
+                                <button class="nav-link text-start d-flex align-items-center gap-2 py-3 px-3 border-0 mb-1 active-profile-tab" 
+                                        id="tab-personal-btn"
+                                        style="border-radius: 8px; font-weight: 600; font-size: 14px; background: #0a1628; color: #ffffff; transition: all 0.2s; width: 100%;"
+                                        onclick="switchProfileTab('personal')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                    <span>Personal Information</span>
+                                </button>
+                                <button class="nav-link text-start d-flex align-items-center gap-2 py-3 px-3 border-0" 
+                                        id="tab-bank-btn"
+                                        style="border-radius: 8px; font-weight: 600; font-size: 14px; background: transparent; color: #0a1628; transition: all 0.2s; width: 100%;"
+                                        onclick="switchProfileTab('bank')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-banknote"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+                                    <span>Bank Account</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Cột Phải: Biểu mẫu thông tin chi tiết -->
                     <div class="col-lg-8">
-                        <div class="card border-0 shadow-sm" style="border-radius: 12px; background-color: #ffffff; border: 1px solid #eff4ff !important; overflow: hidden;">
+                        <!-- Bank Account Information Card (lồng vào cột phải và mặc định ẩn để tab Personal Information hiển thị) -->
+                        <div id="bankInfoPanel" th:if="${user.role == 'HOTEL_OWNER'}" class="card border-0 shadow-sm mt-0 mb-3" style="border-radius: 12px; background-color: #ffffff; border: 1px solid #eff4ff !important; overflow: hidden; display: none;">
+                            <!-- Header Card -->
+                            <div class="card-header border-0 py-3 px-4 d-flex align-items-center gap-2" style="background-color: #0a1628;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9a96e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-banknote"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+                                <h5 class="card-title mb-0 text-white fw-semibold" style="font-size: 16px;">Bank Account for Payout</h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <p class="text-muted small mb-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+                                    This information will be used by Admin when transferring payout to you. Make sure it is accurate.
+                                </p>
+                                <div id="bank-info-view-group">
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label text-muted fw-semibold" style="font-size: 11px; letter-spacing: 0.5px;">BANK NAME</label>
+                                            <input type="text" id="bank-name-display" class="form-control" style="background-color: #f8fafc; border-color: #e2e8f0;" readonly/>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label text-muted fw-semibold" style="font-size: 11px; letter-spacing: 0.5px;">ACCOUNT NUMBER</label>
+                                            <input type="text" id="bank-number-display" class="form-control" style="background-color: #f8fafc; border-color: #e2e8f0;" readonly/>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label text-muted fw-semibold" style="font-size: 11px; letter-spacing: 0.5px;">ACCOUNT HOLDER (IN CAPS)</label>
+                                            <input type="text" id="bank-holder-display" class="form-control" style="background-color: #f8fafc; border-color: #e2e8f0;" readonly/>
+                                        </div>
+                                    </div>
+                                    <button id="btn-edit-bank" class="btn btn-sm text-white" style="background-color: #0a1628; padding: 8px 18px; border-radius: 8px; font-weight: 500;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Edit Bank Info
+                                    </button>
+                                </div>
+
+                                <div id="bank-info-edit-group" style="display:none;">
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label text-muted fw-semibold" style="font-size: 11px; letter-spacing: 0.5px;">BANK NAME <span class="text-danger">*</span></label>
+                                            <input type="text" id="bank-name-input" class="form-control" placeholder="e.g. Vietcombank" style="border-color: #0a1628;"/>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label text-muted fw-semibold" style="font-size: 11px; letter-spacing: 0.5px;">ACCOUNT NUMBER <span class="text-danger">*</span></label>
+                                            <input type="text" id="bank-number-input" class="form-control" placeholder="e.g. 12345678" style="border-color: #0a1628;"/>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label text-muted fw-semibold" style="font-size: 11px; letter-spacing: 0.5px;">ACCOUNT HOLDER <span class="text-danger">*</span></label>
+                                            <input type="text" id="bank-holder-input" class="form-control" placeholder="e.g. NGUYEN VAN A" style="border-color: #0a1628;" oninput="this.value = this.value.toUpperCase()"/>
+                                        </div>
+                                    </div>
+                                    <span id="bank-error-msg" class="text-danger small d-block mb-2" style="display:none !important;"></span>
+                                    <div class="d-flex gap-2">
+                                        <button id="btn-save-bank" class="btn btn-sm text-white" style="background-color: #0a1628; padding: 8px 18px; border-radius: 8px; font-weight: 500;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save Bank Info
+                                        </button>
+                                        <button id="btn-cancel-bank" class="btn btn-sm btn-outline-secondary" style="padding: 8px 18px; border-radius: 8px;">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="personalInfoPanel" class="card border-0 shadow-sm" style="border-radius: 12px; background-color: #ffffff; border: 1px solid #eff4ff !important; overflow: hidden;">
                             <!-- Header Card -->
                             <div class="card-header border-0 py-3 px-4 d-flex align-items-center gap-2" style="background-color: #0a1628;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9a96e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-cog"><circle cx="18" cy="15" r="3"/><circle cx="9" cy="7" r="4"/><path d="M10 15H6a4 4 0 0 0-4 4v2h10"/><path d="m21.7 16.4-.9-.3"/><path d="m15.2 13.9-.9-.3"/><path d="m16.6 18.7.3-.9"/><path d="m19.1 12.2.3-.9"/><path d="m20 13.7.7-.7"/><path d="m16 16.3.7-.7"/><path d="m16.7 14.3-.7-.7"/><path d="m20 15.7-.7-.7"/></svg>
@@ -206,9 +284,16 @@
                                 </div>
                             </div>
                         </div>
+                        
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+
+        <!-- Hidden: Dữ liệu ngân hàng hiện tại từ Server để khởi tạo JS -->
+        <div id="bank-data-server" style="display:none;"
+             th:if="${user.role == 'HOTEL_OWNER'}"
+             th:attr="data-bank-name=${bankName}, data-bank-number=${bankAccountNumber}, data-bank-holder=${bankAccountHolder}">
         </div>
     </main>
 
@@ -271,6 +356,25 @@
                     <button type="button" class="btn text-white w-100" data-bs-dismiss="modal" 
                             style="background-color: #ef4444; border-radius: 8px; font-weight: 600; padding: 10px;">
                         Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal thông báo thành công dùng chung cho các tác vụ AJAX -->
+    <div class="modal fade" id="ajaxSuccessModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow border-0" style="border-radius: 14px;">
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3" style="color: #10b981;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                    </div>
+                    <h4 class="modal-title fw-bold mb-2" style="color: #0f172a;">Success!</h4>
+                    <p id="ajaxSuccessMessage" class="text-muted mb-4">Action completed successfully.</p>
+                    <button type="button" class="btn text-white w-100" data-bs-dismiss="modal" 
+                            style="background-color: #0a1628; border-radius: 8px; font-weight: 600; padding: 10px;">
+                        OK
                     </button>
                 </div>
             </div>
@@ -564,5 +668,153 @@
             }
         });
     </script>
+
+    <!-- Script Bank Info cho HOTEL_OWNER -->
+    <script th:if="${user.role == 'HOTEL_OWNER'}">
+        document.addEventListener("DOMContentLoaded", function() {
+            const serverData = document.getElementById('bank-data-server');
+            const nameDisplay  = document.getElementById('bank-name-display');
+            const numberDisplay = document.getElementById('bank-number-display');
+            const holderDisplay = document.getElementById('bank-holder-display');
+            const nameInput    = document.getElementById('bank-name-input');
+            const numberInput  = document.getElementById('bank-number-input');
+            const holderInput  = document.getElementById('bank-holder-input');
+            const viewGroup    = document.getElementById('bank-info-view-group');
+            const editGroup    = document.getElementById('bank-info-edit-group');
+            const errMsg       = document.getElementById('bank-error-msg');
+            const btnEdit      = document.getElementById('btn-edit-bank');
+            const btnSave      = document.getElementById('btn-save-bank');
+            const btnCancel    = document.getElementById('btn-cancel-bank');
+
+            // Khởi tạo dữ liệu từ server
+            if (serverData) {
+                const initName   = serverData.getAttribute('data-bank-name')   || '';
+                const initNumber = serverData.getAttribute('data-bank-number') || '';
+                const initHolder = serverData.getAttribute('data-bank-holder') || '';
+                if (nameDisplay) nameDisplay.value   = initName;
+                if (numberDisplay) numberDisplay.value = initNumber;
+                if (holderDisplay) holderDisplay.value = initHolder;
+                if (nameInput) nameInput.value   = initName;
+                if (numberInput) numberInput.value = initNumber;
+                if (holderInput) holderInput.value = initHolder;
+            }
+
+            // Nút Edit
+            if (btnEdit) {
+                btnEdit.addEventListener('click', function() {
+                    viewGroup.style.display = 'none';
+                    editGroup.style.display = 'block';
+                    errMsg.style.display = 'none';
+                    if (nameInput) nameInput.focus();
+                });
+            }
+
+            // Nút Cancel
+            if (btnCancel) {
+                btnCancel.addEventListener('click', function() {
+                    if (nameInput) nameInput.value = nameDisplay ? nameDisplay.value : '';
+                    if (numberInput) numberInput.value = numberDisplay ? numberDisplay.value : '';
+                    if (holderInput) holderInput.value = holderDisplay ? holderDisplay.value : '';
+                    editGroup.style.display = 'none';
+                    viewGroup.style.display = 'block';
+                    errMsg.style.display = 'none';
+                });
+            }
+
+            // Nút Save
+            if (btnSave) {
+                btnSave.addEventListener('click', function() {
+                    const bankName   = nameInput ? nameInput.value.trim() : '';
+                    const bankNumber = numberInput ? numberInput.value.trim() : '';
+                    const bankHolder = holderInput ? holderInput.value.trim() : '';
+
+                    if (!bankName || !bankNumber || !bankHolder) {
+                        errMsg.textContent = 'All bank info fields are required.';
+                        errMsg.style.display = 'block';
+                        return;
+                    }
+
+                    btnSave.disabled = true;
+                    errMsg.style.display = 'none';
+
+                    const formData = new URLSearchParams();
+                    formData.append('bankName', bankName);
+                    formData.append('bankAccountNumber', bankNumber);
+                    formData.append('bankAccountHolder', bankHolder);
+
+                    fetch('/profile/save-bank-info', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: formData
+                    })
+                    .then(res => {
+                        if (!res.ok) return res.text().then(t => { throw new Error(t); });
+                        return res.text();
+                    })
+                    .then(() => {
+                        // Cập nhật view
+                        if (nameDisplay) nameDisplay.value = bankName;
+                        if (numberDisplay) numberDisplay.value = bankNumber;
+                        if (holderDisplay) holderDisplay.value = bankHolder;
+                        editGroup.style.display = 'none';
+                        viewGroup.style.display = 'block';
+                        btnSave.disabled = false;
+
+                        // Thay thế alert cũ bằng hiển thị Bootstrap Modal
+                        const msgEl = document.getElementById('ajaxSuccessMessage');
+                        if (msgEl) {
+                            msgEl.textContent = 'Bank information updated successfully!';
+                        }
+                        const successModal = new bootstrap.Modal(document.getElementById('ajaxSuccessModal'));
+                        successModal.show();
+                    })
+                    .catch(err => {
+                        errMsg.textContent = 'Error: ' + err.message;
+                        errMsg.style.display = 'block';
+                        btnSave.disabled = false;
+                    });
+                });
+            }
+        });
+
+        // Hàm chuyển đổi Tab Profile
+        function switchProfileTab(tabName) {
+            const personalCard = document.getElementById('personalInfoPanel');             // Personal Information
+            const bankCard = document.getElementById('bankInfoPanel');                    // Bank Account
+            const personalBtn = document.getElementById('tab-personal-btn');
+            const bankBtn = document.getElementById('tab-bank-btn');
+
+            if (tabName === 'personal') {
+                if (personalCard) personalCard.style.display = 'block';
+                if (bankCard) bankCard.style.display = 'none';
+
+                // Thay đổi style nút personal hoạt động
+                if (personalBtn) {
+                    personalBtn.style.background = '#0a1628';
+                    personalBtn.style.color = '#ffffff';
+                }
+                // Reset nút bank
+                if (bankBtn) {
+                    bankBtn.style.background = 'transparent';
+                    bankBtn.style.color = '#0a1628';
+                }
+            } else if (tabName === 'bank') {
+                if (personalCard) personalCard.style.display = 'none';
+                if (bankCard) bankCard.style.display = 'block';
+
+                // Thay đổi style nút bank hoạt động
+                if (bankBtn) {
+                    bankBtn.style.background = '#0a1628';
+                    bankBtn.style.color = '#ffffff';
+                }
+                // Reset nút personal
+                if (personalBtn) {
+                    personalBtn.style.background = 'transparent';
+                    personalBtn.style.color = '#0a1628';
+                }
+            }
+        }
+    </script>
 </body>
 </html>
+

@@ -141,41 +141,48 @@ BEGIN TRY
     IF NOT EXISTS (SELECT 1 FROM hotel_owners WHERE user_account_id = @owner1_user_id)
         INSERT INTO hotel_owners (
             user_account_id, full_name, phone, address, id_card, tax_id,
-            verification_status, verified_at, rejection_reason, id_card_document
+            verification_status, verified_at, rejection_reason, id_card_document,
+            bank_name, bank_account_number, bank_account_holder
         )
         VALUES (
             @owner1_user_id, N'Lê Thảo Điểm', N'+84912000001',
             N'12 Hai Bà Trưng, Ninh Kiều, Cần Thơ',
             N'092345678901', N'TAX-TD-001',
             N'APPROVED', DATEADD(DAY, -40, GETDATE()), NULL,
-            N'/docs/owners/owner_thaodiem_id_card.pdf'
+            N'/docs/owners/owner_thaodiem_id_card.pdf',
+            N'Vietcombank', N'1234567890', N'LE THAO DIEM'
         );
 
     IF NOT EXISTS (SELECT 1 FROM hotel_owners WHERE user_account_id = @owner2_user_id)
         INSERT INTO hotel_owners (
             user_account_id, full_name, phone, address, id_card, tax_id,
-            verification_status, verified_at, rejection_reason, id_card_document
+            verification_status, verified_at, rejection_reason, id_card_document,
+            bank_name, bank_account_number, bank_account_holder
         )
         VALUES (
             @owner2_user_id, N'Phạm Nhật Minh', N'+84912000002',
             N'88 Trần Văn Khéo, Ninh Kiều, Cần Thơ',
             N'092345678902', N'TAX-SUN-002',
             N'APPROVED', DATEADD(DAY, -35, GETDATE()), NULL,
-            N'/docs/owners/owner_sunhotel_id_card.pdf'
+            N'/docs/owners/owner_sunhotel_id_card.pdf',
+            N'Techcombank', N'9876543210', N'PHAM NHAT MINH'
         );
 
     IF NOT EXISTS (SELECT 1 FROM hotel_owners WHERE user_account_id = @owner3_user_id)
         INSERT INTO hotel_owners (
             user_account_id, full_name, phone, address, id_card, tax_id,
-            verification_status, verified_at, rejection_reason, id_card_document
+            verification_status, verified_at, rejection_reason, id_card_document,
+            bank_name, bank_account_number, bank_account_holder
         )
         VALUES (
             @owner3_user_id, N'Võ Ngọc Rose', N'+84912000003',
             N'25 Nguyễn Văn Cừ, Ninh Kiều, Cần Thơ',
             N'092345678903', N'TAX-ROSE-003',
             N'APPROVED', DATEADD(DAY, -30, GETDATE()), NULL,
-            N'/docs/owners/owner_rose_id_card.pdf'
+            N'/docs/owners/owner_rose_id_card.pdf',
+            N'MB Bank', N'5566778899', N'VO NGOC ROSE'
         );
+
 
     IF NOT EXISTS (SELECT 1 FROM customers WHERE user_account_id = @customer1_user_id)
         INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth, gender)

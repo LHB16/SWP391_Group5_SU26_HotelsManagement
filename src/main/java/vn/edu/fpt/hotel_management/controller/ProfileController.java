@@ -73,6 +73,15 @@ public class ProfileController {
         userInDb.setFullName(getFullNameByRole(userInDb));
         userInDb.setPhone(getPhoneByRole(userInDb));
 
+        // Nếu là HOTEL_OWNER, truyền thông tin ngân hàng vào model
+        if ("HOTEL_OWNER".equalsIgnoreCase(userInDb.getRole())) {
+            hotelOwnerRepository.findByUserAccount(userInDb).ifPresent(owner -> {
+                model.addAttribute("bankName", owner.getBankName() != null ? owner.getBankName() : "");
+                model.addAttribute("bankAccountNumber", owner.getBankAccountNumber() != null ? owner.getBankAccountNumber() : "");
+                model.addAttribute("bankAccountHolder", owner.getBankAccountHolder() != null ? owner.getBankAccountHolder() : "");
+            });
+        }
+
         model.addAttribute("user", userInDb);
         return "User/profile";
     }
@@ -493,6 +502,48 @@ public class ProfileController {
     public String cancelEdit(HttpSession session) {
         clearEmailChangeSession(session);
         return "redirect:/profile";
+    }
+
+    // Lưu thông tin ngân hàng của Owner (AJAX - không cần OTP)
+    @PostMapping("/profile/save-bank-info")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<?> saveBankInfo(
+            @RequestParam("bankName") String bankName,
+            @RequestParam("bankAccountNumber") String bankAccountNumber,
+            @RequestParam("bankAccountHolder") String bankAccountHolder,
+            HttpSession session) {
+
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return org.springframework.http.ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        if (!"HOTEL_OWNER".equalsIgnoreCase(loggedInUser.getRole())) {
+            return org.springframework.http.ResponseEntity.status(403).body("Forbidden: Only Hotel Owner can update bank info");
+        }
+
+        if (bankName == null || bankName.isBlank() ||
+            bankAccountNumber == null || bankAccountNumber.isBlank() ||
+            bankAccountHolder == null || bankAccountHolder.isBlank()) {
+            return org.springframework.http.ResponseEntity.badRequest().body("All bank info fields are required");
+        }
+
+        try {
+            User userInDb = userRepository.findById(loggedInUser.getId())
+                    .orElseThrow(() -> new RuntimeException("Account not found!"));
+
+            HotelOwner owner = hotelOwnerRepository.findByUserAccount(userInDb)
+                    .orElseThrow(() -> new RuntimeException("Hotel owner profile not found!"));
+
+            owner.setBankName(bankName.trim());
+            owner.setBankAccountNumber(bankAccountNumber.trim());
+            owner.setBankAccountHolder(bankAccountHolder.trim().toUpperCase());
+            hotelOwnerRepository.save(owner);
+
+            return org.springframework.http.ResponseEntity.ok("success");
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.status(500).body(e.getMessage());
+        }
     }
 
     private void clearEmailChangeSession(HttpSession session) {

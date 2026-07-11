@@ -75,6 +75,12 @@ CREATE TABLE hotel_owners (
     verified_at DATETIME2 NULL,
     rejection_reason NVARCHAR(MAX) NULL,
     id_card_document NVARCHAR(500) NULL,
+    -- =====================================================
+    -- PAYOUT: Thông tin ngân hàng của Owner để nhận đối soát
+    -- =====================================================
+    bank_name NVARCHAR(255) NULL,
+    bank_account_number NVARCHAR(50) NULL,
+    bank_account_holder NVARCHAR(255) NULL,
     CONSTRAINT CK_hotel_owners_verification_status CHECK (
         verification_status IS NULL OR verification_status IN (N'PENDING', N'APPROVED', N'REJECTED')
     )
@@ -251,10 +257,23 @@ CREATE TABLE bookings (
     created_at DATETIME2 NOT NULL CONSTRAINT DF_bookings_created_at DEFAULT GETDATE(),
     updated_at DATETIME2 NULL,
     quantity INT NOT NULL CONSTRAINT DF_bookings_quantity DEFAULT 1,
+    -- =====================================================
+    -- PAYOUT: Thông tin đối soát tiền cho Owner
+    -- =====================================================
+    platform_fee_percent DECIMAL(5,2) NULL,           -- % phí sàn (mặc định 10%)
+    platform_fee_amount DECIMAL(38,2) NULL,            -- Số tiền phí sàn giữ lại
+    owner_payout_amount DECIMAL(38,2) NULL,            -- Số tiền chuyển cho Owner
+    payout_status NVARCHAR(50) NULL,                   -- PENDING | PAID
+    payout_at DATETIME2 NULL,                          -- Thời điểm Admin xác nhận chuyển khoản
+    -- Snapshot ngân hàng (giữ nguyên lịch sử kể cả khi Owner đổi STK)
+    payout_bank_name NVARCHAR(255) NULL,
+    payout_bank_account_number NVARCHAR(50) NULL,
+    payout_bank_account_holder NVARCHAR(255) NULL,
     CONSTRAINT CK_bookings_num_nights CHECK (num_nights IS NULL OR num_nights > 0),
     CONSTRAINT CK_bookings_total_price CHECK (total_price IS NULL OR total_price >= 0),
     CONSTRAINT CK_bookings_date CHECK (check_in_date IS NULL OR check_out_date IS NULL OR check_out_date > check_in_date),
     CONSTRAINT CK_bookings_quantity CHECK (quantity > 0),
+    CONSTRAINT CK_bookings_payout_status CHECK (payout_status IS NULL OR payout_status IN (N'PENDING', N'PAID')),
     CONSTRAINT CK_bookings_status CHECK (
         status IS NULL OR status IN (N'PENDING', N'CONFIRMED', N'COMPLETED', N'CANCELLED', N'REJECTED', N'EXPIRED')
     )

@@ -205,8 +205,34 @@ public class OwnerController {
             map.put("paymentStatus", (b.getPayment() != null && b.getPayment().getStatus() != null)
                     ? b.getPayment().getStatus() : "PENDING");
             map.put("createdAt", b.getCreatedAt() != null ? b.getCreatedAt().toString() : null);
+            // Thông tin payout
+            map.put("payoutStatus", b.getPayoutStatus() != null ? b.getPayoutStatus() : "PENDING");
+            map.put("ownerPayoutAmount", b.getOwnerPayoutAmount());
+            map.put("platformFeePercent", b.getPlatformFeePercent());
+            map.put("payoutAt", b.getPayoutAt() != null ? b.getPayoutAt().toString() : null);
+            map.put("payoutBankName", b.getPayoutBankName());
+            map.put("payoutBankAccountNumber", b.getPayoutBankAccountNumber());
+            map.put("payoutBankAccountHolder", b.getPayoutBankAccountHolder());
             return map;
         }).collect(Collectors.toList());
+
+        // Đếm số booking COMPLETED đã được thanh toán nhưng payout chưa xử lý
+        long pendingPayoutCount = 0;
+        long completedPayoutCount = 0;
+        if (!hotelIds.isEmpty()) {
+            for (Booking b : bookingRepository.findByHotelIds(hotelIds)) {
+                if ("COMPLETED".equals(b.getStatus())
+                        && b.getPayment() != null && "PAID".equals(b.getPayment().getStatus())) {
+                    if ("PAID".equals(b.getPayoutStatus())) {
+                        completedPayoutCount++;
+                    } else {
+                        pendingPayoutCount++;
+                    }
+                }
+            }
+        }
+        model.addAttribute("pendingPayoutCount", pendingPayoutCount);
+        model.addAttribute("completedPayoutCount", completedPayoutCount);
 
         // ===== PROMOTIONS =====
         Map<Integer, List<Promotion>> promotionsByHotel = new HashMap<>();

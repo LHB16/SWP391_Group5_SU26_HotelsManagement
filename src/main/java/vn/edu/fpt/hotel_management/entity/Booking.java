@@ -66,6 +66,34 @@ public class Booking {
     @Column(name = "quantity")
     private Integer quantity = 1;
 
+    // =====================================================
+    // PAYOUT: Thông tin đối soát tiền cho Owner
+    // =====================================================
+    @Column(name = "platform_fee_percent")
+    private BigDecimal platformFeePercent;
+
+    @Column(name = "platform_fee_amount")
+    private BigDecimal platformFeeAmount;
+
+    @Column(name = "owner_payout_amount")
+    private BigDecimal ownerPayoutAmount;
+
+    @Column(name = "payout_status")
+    private String payoutStatus; // PENDING | PAID
+
+    @Column(name = "payout_at")
+    private LocalDateTime payoutAt;
+
+    // Snapshot ngân hàng tại thời điểm đối soát
+    @Column(name = "payout_bank_name")
+    private String payoutBankName;
+
+    @Column(name = "payout_bank_account_number")
+    private String payoutBankAccountNumber;
+
+    @Column(name = "payout_bank_account_holder")
+    private String payoutBankAccountHolder;
+
     public Booking() {
     }
 
@@ -218,4 +246,31 @@ public class Booking {
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
     }
+
+    // =====================================================
+    // PAYOUT Getters & Setters
+    // =====================================================
+    public BigDecimal getPlatformFeePercent() { return platformFeePercent; }
+    public void setPlatformFeePercent(BigDecimal platformFeePercent) { this.platformFeePercent = platformFeePercent; }
+
+    public BigDecimal getPlatformFeeAmount() { return platformFeeAmount; }
+    public void setPlatformFeeAmount(BigDecimal platformFeeAmount) { this.platformFeeAmount = platformFeeAmount; }
+
+    public BigDecimal getOwnerPayoutAmount() { return ownerPayoutAmount; }
+    public void setOwnerPayoutAmount(BigDecimal ownerPayoutAmount) { this.ownerPayoutAmount = ownerPayoutAmount; }
+
+    public String getPayoutStatus() { return payoutStatus; }
+    public void setPayoutStatus(String payoutStatus) { this.payoutStatus = payoutStatus; }
+
+    public LocalDateTime getPayoutAt() { return payoutAt; }
+    public void setPayoutAt(LocalDateTime payoutAt) { this.payoutAt = payoutAt; }
+
+    public String getPayoutBankName() { return payoutBankName; }
+    public void setPayoutBankName(String payoutBankName) { this.payoutBankName = payoutBankName; }
+
+    public String getPayoutBankAccountNumber() { return payoutBankAccountNumber; }
+    public void setPayoutBankAccountNumber(String payoutBankAccountNumber) { this.payoutBankAccountNumber = payoutBankAccountNumber; }
+
+    public String getPayoutBankAccountHolder() { return payoutBankAccountHolder; }
+    public void setPayoutBankAccountHolder(String payoutBankAccountHolder) { this.payoutBankAccountHolder = payoutBankAccountHolder; }
 }
