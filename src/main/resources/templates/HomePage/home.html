@@ -40,7 +40,7 @@
                             <label class="search-pill-label">Enter City:</label>
                             <div class="search-pill-input-wrapper">
                                 <i data-lucide="map-pin" style="width: 18px; height: 18px;"></i>
-                                <input type="text" name="search" id="destInput" class="search-pill-input" placeholder="City, hotel, or place" autocomplete="off" />
+                                <input type="text" name="search" id="destInput" class="search-pill-input" placeholder="Enter City..." autocomplete="off" />
                             </div>
 
                             <!-- Destination Autocomplete suggestions dropdown (Traveloka style) -->
@@ -488,31 +488,6 @@
                 }
             }
             updateGuestsDisplay();
-
-            // Destination Suggestions Autocomplete Dropdown
-            const destInput = document.getElementById('destInput');
-            const destDropdown = document.getElementById('destSuggestions');
-            if (destInput && destDropdown) {
-                destInput.addEventListener('focus', function() {
-                    destDropdown.classList.remove('d-none');
-                });
-                
-                // Hide dropdown when clicking outside
-                document.addEventListener('click', function(e) {
-                    if (!destInput.contains(e.target) && !destDropdown.contains(e.target)) {
-                        destDropdown.classList.add('d-none');
-                    }
-                });
-                
-                // Handle suggestion click
-                const items = destDropdown.querySelectorAll('.suggestion-item');
-                items.forEach(item => {
-                    item.addEventListener('click', function() {
-                        destInput.value = this.getAttribute('data-val');
-                        destDropdown.classList.add('d-none');
-                    });
-                });
-            }
         });
     </script>
     <!-- Infinite circular card slider (transform-based, buttons fully visible) -->

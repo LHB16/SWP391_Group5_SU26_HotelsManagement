@@ -40,11 +40,51 @@
                         <input type="hidden" name="persons" id="hiddenPersons" th:value="${persons}" />
                         <input type="hidden" name="rooms" id="hiddenRooms" th:value="${rooms}" />
                         <!-- Field 1: Destination -->
-                        <div class="search-pill-col search-pill-col-destination">
+                        <div class="search-pill-col search-pill-col-destination position-relative">
                             <label class="search-pill-label">Enter City:</label>
                             <div class="search-pill-input-wrapper">
                                 <i data-lucide="map-pin" style="width: 18px; height: 18px;"></i>
-                                <input type="text" name="search" class="search-pill-input" placeholder="Enter City..." autocomplete="off" th:value="${search}" />
+                                <input type="text" name="search" id="destInput" class="search-pill-input" placeholder="Enter City..." autocomplete="off" th:value="${search}" />
+                            </div>
+
+                            <!-- Destination Autocomplete suggestions dropdown (Traveloka style) -->
+                            <div id="destSuggestions" class="guests-dropdown-card d-none" style="width: 100%; top: calc(100% + 5px); left: 0; z-index: 1000; max-height: 250px; overflow-y: auto; padding: 8px 0;">
+                                <div class="px-3 py-1 text-muted small fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.05em;">Popular Cities</div>
+                                <div class="suggestion-item px-3 py-2" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" data-val="Cần Thơ">
+                                    <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #c9a96e;"></i>
+                                    <div>
+                                        <span class="fw-semibold text-dark">Cần Thơ</span>
+                                        <span class="text-muted d-block small" style="font-size: 0.75rem;">Mekong Delta, Vietnam</span>
+                                    </div>
+                                </div>
+                                <div class="suggestion-item px-3 py-2" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" data-val="Đà Nẵng">
+                                    <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #c9a96e;"></i>
+                                    <div>
+                                        <span class="fw-semibold text-dark">Đà Nẵng</span>
+                                        <span class="text-muted d-block small" style="font-size: 0.75rem;">Central Coast, Vietnam</span>
+                                    </div>
+                                </div>
+                                <div class="suggestion-item px-3 py-2" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" data-val="Hồ Chí Minh">
+                                    <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #c9a96e;"></i>
+                                    <div>
+                                        <span class="fw-semibold text-dark">Hồ Chí Minh</span>
+                                        <span class="text-muted d-block small" style="font-size: 0.75rem;">Southern Region, Vietnam</span>
+                                    </div>
+                                </div>
+                                <div class="suggestion-item px-3 py-2" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" data-val="Đà Lạt">
+                                    <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #c9a96e;"></i>
+                                    <div>
+                                        <span class="fw-semibold text-dark">Đà Lạt</span>
+                                        <span class="text-muted d-block small" style="font-size: 0.75rem;">Central Highlands, Vietnam</span>
+                                    </div>
+                                </div>
+                                <div class="suggestion-item px-3 py-2" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" data-val="Hà Nội">
+                                    <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #c9a96e;"></i>
+                                    <div>
+                                        <span class="fw-semibold text-dark">Hà Nội</span>
+                                        <span class="text-muted d-block small" style="font-size: 0.75rem;">Capital City, Vietnam</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <!-- Field 2: Check-in Date -->
