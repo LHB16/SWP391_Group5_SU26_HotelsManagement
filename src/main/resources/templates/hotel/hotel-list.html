@@ -30,8 +30,92 @@
     </div>
 </section>
 
+<!-- Search widget card (Traveloka Pill Style - Embedded in Hotel List) -->
+<div class="bg-cream pb-4 search-widget-wrapper">
+    <div class="container-fluid px-4">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <div class="search-card-traveloka">
+                    <form th:action="@{/hotels}" method="get" class="search-pill-container">
+                        <input type="hidden" name="persons" id="hiddenPersons" th:value="${persons}" />
+                        <input type="hidden" name="rooms" id="hiddenRooms" th:value="${rooms}" />
+                        <!-- Field 1: Destination -->
+                        <div class="search-pill-col search-pill-col-destination">
+                            <label class="search-pill-label">Enter City:</label>
+                            <div class="search-pill-input-wrapper">
+                                <i data-lucide="map-pin" style="width: 18px; height: 18px;"></i>
+                                <input type="text" name="search" class="search-pill-input" placeholder="Enter City..." autocomplete="off" th:value="${search}" />
+                            </div>
+                        </div>
+                        <!-- Field 2: Check-in Date -->
+                        <div class="search-pill-col">
+                            <label class="search-pill-label">Check-in Date:</label>
+                            <div class="search-pill-input-wrapper">
+                                <i data-lucide="calendar" style="width: 18px; height: 18px;"></i>
+                                <input type="text" name="checkin" id="checkinInput" class="search-pill-input" readonly placeholder="Choose Date" th:value="${checkin}" />
+                            </div>
+                        </div>
+                        <!-- Field 3: Check-out Date -->
+                        <div class="search-pill-col">
+                            <label class="search-pill-label">Check-out Date:</label>
+                            <div class="search-pill-input-wrapper">
+                                <i data-lucide="calendar" style="width: 18px; height: 18px;"></i>
+                                <input type="text" name="checkout" id="checkoutInput" class="search-pill-input" readonly placeholder="Choose Date" th:value="${checkout}" />
+                            </div>
+                        </div>
+                        <!-- Field 4: Guests & Rooms -->
+                        <div class="search-pill-col position-relative">
+                            <label class="search-pill-label">Guests and Rooms:</label>
+                            <div class="search-pill-input-wrapper cursor-pointer" id="guestsPickerTrigger">
+                                <i data-lucide="users" style="width: 18px; height: 18px;"></i>
+                                <input type="text" id="guestsInputDisplay" class="search-pill-input cursor-pointer" readonly />
+                            </div>
+
+                            <!-- Popover Dropdown (Traveloka Style) -->
+                            <div id="guestsDropdown" class="guests-dropdown-card d-none">
+                                <!-- Person Row -->
+                                <div class="guests-dropdown-row">
+                                    <div class="guests-dropdown-label-box">
+                                        <i data-lucide="user" style="width: 18px; height: 18px; color: #0194f3;"></i>
+                                        <span class="fw-semibold">Person</span>
+                                    </div>
+                                    <div class="guests-counter-controls">
+                                        <button type="button" class="btn-counter-ctrl" id="btnPersonMinus">—</button>
+                                        <span class="counter-display" id="personCountDisplay" th:text="${persons}">1</span>
+                                        <button type="button" class="btn-counter-ctrl" id="btnPersonPlus">+</button>
+                                    </div>
+                                </div>
+                                <!-- Rooms Row -->
+                                <div class="guests-dropdown-row">
+                                    <div class="guests-dropdown-label-box">
+                                        <i data-lucide="door-open" style="width: 18px; height: 18px; color: #0194f3;"></i>
+                                        <span class="fw-semibold">Rooms</span>
+                                    </div>
+                                    <div class="guests-counter-controls">
+                                        <button type="button" class="btn-counter-ctrl" id="btnRoomMinus">—</button>
+                                        <span class="counter-display" id="roomCountDisplay" th:text="${rooms}">1</span>
+                                        <button type="button" class="btn-counter-ctrl" id="btnRoomPlus">+</button>
+                                    </div>
+                                </div>
+                                <!-- Action button -->
+                                <div class="text-end mt-3 border-top pt-2">
+                                    <button type="button" class="btn btn-primary btn-sm px-4 fw-bold btn-guests-done-theme" id="btnGuestsDone">Done</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Search Button -->
+                        <button type="submit" class="search-pill-btn-theme">
+                            <i data-lucide="search" style="width: 20px; height: 20px; stroke-width: 3;"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Main Content -->
-<main class="flex-grow-1 py-4 bg-cream">
+<main class="flex-grow-1 pb-4 bg-cream main-content-pt-0">
     <div class="container-fluid px-4">
 
         <!-- Flash messages -->
@@ -56,30 +140,15 @@
                     <div class="card-body">
                         <form th:action="@{/hotels}" method="get" id="filterForm">
 
-                            <!-- Check-in / Check-out -->
-                            <div class="mb-3">
-                                <label class="filter-section-label" for="filterCheckin">Check-in Date</label>
-                                <input type="text" name="checkin" id="filterCheckin"
-                                       class="form-control form-control-sm filter-input" th:value="${checkin}" th:data-min-date="${today}" placeholder="Select Check-in" />
-                            </div>
-                            <div class="mb-3">
-                                <label class="filter-section-label" for="filterCheckout">Check-out Date</label>
-                                <input type="text" name="checkout" id="filterCheckout"
-                                       class="form-control form-control-sm filter-input" th:value="${checkout}" th:data-min-date="${minCheckout}" placeholder="Select Check-out" />
-                            </div>
-
-
-                            <hr class="border-gold-faint my-3">
-
                             <!-- Star Rating -->
                             <div class="mb-3">
                                 <div class="filter-section-label">Star Rating</div>
-                                <div class="d-flex flex-wrap gap-1">
+                                <div class="d-flex gap-1 w-100">
                                     <th:block th:each="star : ${#numbers.sequence(1, 5)}">
                                         <input type="radio" class="btn-check" name="rating"
                                                th:id="${'star-' + star}" th:value="${star}"
                                                th:checked="${rating != null and rating == star}" />
-                                        <label class="hl-star-label" th:for="${'star-' + star}"
+                                        <label class="hl-star-label flex-fill text-center" th:for="${'star-' + star}"
                                                th:text="${star + ' ★'}">1 ★</label>
                                     </th:block>
                                 </div>
@@ -111,48 +180,66 @@
                             <!-- Hotel Facilities -->
                             <div class="mb-3">
                                 <div class="filter-section-label">Hotel Facilities</div>
-                                <div class="filter-btn-container" id="hotelFacilitiesContainer">
+                                <div class="filter-checkbox-group" id="hotelFacilitiesContainer">
                                     <!-- 5 Item đầu tiên (Hiện mặc định) -->
-                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-freeWifi" value="freeWifi" th:checked="${selectedHotelFacilities.contains('freeWifi')}" />
-                                    <label class="hl-filter-btn" for="h-fac-freeWifi">Free Wifi</label>
+                                    <div class="filter-checkbox-row">
+                                        <input type="checkbox" name="hotelFacilities" id="h-fac-freeWifi" value="freeWifi" th:checked="${selectedHotelFacilities.contains('freeWifi')}" />
+                                        <label for="h-fac-freeWifi">Free Wifi</label>
+                                    </div>
+                                    <div class="filter-checkbox-row">
+                                        <input type="checkbox" name="hotelFacilities" id="h-fac-swimmingPool" value="swimmingPool" th:checked="${selectedHotelFacilities.contains('swimmingPool')}" />
+                                        <label for="h-fac-swimmingPool">Pool</label>
+                                    </div>
+                                    <div class="filter-checkbox-row">
+                                        <input type="checkbox" name="hotelFacilities" id="h-fac-parking" value="parking" th:checked="${selectedHotelFacilities.contains('parking')}" />
+                                        <label for="h-fac-parking">Parking</label>
+                                    </div>
+                                    <div class="filter-checkbox-row">
+                                        <input type="checkbox" name="hotelFacilities" id="h-fac-restaurant" value="restaurant" th:checked="${selectedHotelFacilities.contains('restaurant')}" />
+                                        <label for="h-fac-restaurant">Restaurant</label>
+                                    </div>
+                                    <div class="filter-checkbox-row">
+                                        <input type="checkbox" name="hotelFacilities" id="h-fac-breakfastAvailable" value="breakfastAvailable" th:checked="${selectedHotelFacilities.contains('breakfastAvailable')}" />
+                                        <label for="h-fac-breakfastAvailable">Breakfast</label>
+                                    </div>
 
-                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-swimmingPool" value="swimmingPool" th:checked="${selectedHotelFacilities.contains('swimmingPool')}" />
-                                    <label class="hl-filter-btn" for="h-fac-swimmingPool">Pool</label>
-
-                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-parking" value="parking" th:checked="${selectedHotelFacilities.contains('parking')}" />
-                                    <label class="hl-filter-btn" for="h-fac-parking">Parking</label>
-
-                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-restaurant" value="restaurant" th:checked="${selectedHotelFacilities.contains('restaurant')}" />
-                                    <label class="hl-filter-btn" for="h-fac-restaurant">Restaurant</label>
-
-                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-breakfastAvailable" value="breakfastAvailable" th:checked="${selectedHotelFacilities.contains('breakfastAvailable')}" />
-                                    <label class="hl-filter-btn" for="h-fac-breakfastAvailable">Breakfast</label>
-
-                                    <!-- 7 Item sau -->
-                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-fitnessCentre" value="fitnessCentre" th:checked="${selectedHotelFacilities.contains('fitnessCentre')}" />
-                                    <label class="hl-filter-btn" for="h-fac-fitnessCentre">Gym</label>
-
-                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-nonSmokingRooms" value="nonSmokingRooms" th:checked="${selectedHotelFacilities.contains('nonSmokingRooms')}" />
-                                    <label class="hl-filter-btn" for="h-fac-nonSmokingRooms">Non-Smoking</label>
-
-                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-airportShuttle" value="airportShuttle" th:checked="${selectedHotelFacilities.contains('airportShuttle')}" />
-                                    <label class="hl-filter-btn" for="h-fac-airportShuttle">Shuttle</label>
-
-                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-spaWellnessCentre" value="spaWellnessCentre" th:checked="${selectedHotelFacilities.contains('spaWellnessCentre')}" />
-                                    <label class="hl-filter-btn" for="h-fac-spaWellnessCentre">Spa</label>
-
-                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-evChargingStation" value="evChargingStation" th:checked="${selectedHotelFacilities.contains('evChargingStation')}" />
-                                    <label class="hl-filter-btn" for="h-fac-evChargingStation">EV Charger</label>
-
-                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-wheelchairAccessible" value="wheelchairAccessible" th:checked="${selectedHotelFacilities.contains('wheelchairAccessible')}" />
-                                    <label class="hl-filter-btn" for="h-fac-wheelchairAccessible">Wheelchair</label>
-
-                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-barPub" value="barPub" th:checked="${selectedHotelFacilities.contains('barPub')}" />
-                                    <label class="hl-filter-btn" for="h-fac-barPub">Bar/Pub</label>
-
-                                    <input type="checkbox" class="btn-check" name="hotelFacilities" id="h-fac-rentVehicle" value="rentVehicle" th:checked="${selectedHotelFacilities.contains('rentVehicle')}" />
-                                    <label class="hl-filter-btn" for="h-fac-rentVehicle">Rent Vehicle</label>
+                                    <!-- 8 Item sau (Ẩn mặc định) -->
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="hotelFacilities" id="h-fac-fitnessCentre" value="fitnessCentre" th:checked="${selectedHotelFacilities.contains('fitnessCentre')}" />
+                                        <label for="h-fac-fitnessCentre">Gym</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="hotelFacilities" id="h-fac-nonSmokingRooms" value="nonSmokingRooms" th:checked="${selectedHotelFacilities.contains('nonSmokingRooms')}" />
+                                        <label for="h-fac-nonSmokingRooms">Non-Smoking</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="hotelFacilities" id="h-fac-airportShuttle" value="airportShuttle" th:checked="${selectedHotelFacilities.contains('airportShuttle')}" />
+                                        <label for="h-fac-airportShuttle">Shuttle</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="hotelFacilities" id="h-fac-spaWellnessCentre" value="spaWellnessCentre" th:checked="${selectedHotelFacilities.contains('spaWellnessCentre')}" />
+                                        <label for="h-fac-spaWellnessCentre">Spa</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="hotelFacilities" id="h-fac-evChargingStation" value="evChargingStation" th:checked="${selectedHotelFacilities.contains('evChargingStation')}" />
+                                        <label for="h-fac-evChargingStation">EV Charger</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="hotelFacilities" id="h-fac-wheelchairAccessible" value="wheelchairAccessible" th:checked="${selectedHotelFacilities.contains('wheelchairAccessible')}" />
+                                        <label for="h-fac-wheelchairAccessible">Wheelchair</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="hotelFacilities" id="h-fac-barPub" value="barPub" th:checked="${selectedHotelFacilities.contains('barPub')}" />
+                                        <label for="h-fac-barPub">Bar/Pub</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="hotelFacilities" id="h-fac-rentVehicle" value="rentVehicle" th:checked="${selectedHotelFacilities.contains('rentVehicle')}" />
+                                        <label for="h-fac-rentVehicle">Rent Vehicle</label>
+                                    </div>
                                 </div>
+                                <button type="button" class="show-more-btn" onclick="toggleFilterGroup(this, 'hotelFacilitiesContainer')" data-expanded="false">
+                                    Show all (+8) <i class="bi bi-chevron-down ms-1"></i>
+                                </button>
                             </div>
 
                             <hr class="border-gold-faint my-3">
@@ -160,25 +247,38 @@
                             <!-- Hotel Views -->
                             <div class="mb-3">
                                 <div class="filter-section-label">Hotel Views</div>
-                                <div class="filter-btn-container" id="hotelViewsContainer">
-                                    <input type="checkbox" class="btn-check" name="hotelViews" id="h-view-cityView" value="cityView" th:checked="${selectedHotelViews.contains('cityView')}" />
-                                    <label class="hl-filter-btn" for="h-view-cityView">City View</label>
+                                <div class="filter-checkbox-group" id="hotelViewsContainer">
+                                    <!-- 5 Item đầu tiên -->
+                                    <div class="filter-checkbox-row">
+                                        <input type="checkbox" name="hotelViews" id="h-view-cityView" value="cityView" th:checked="${selectedHotelViews.contains('cityView')}" />
+                                        <label for="h-view-cityView">City View</label>
+                                    </div>
+                                    <div class="filter-checkbox-row">
+                                        <input type="checkbox" name="hotelViews" id="h-view-beachView" value="beachView" th:checked="${selectedHotelViews.contains('beachView')}" />
+                                        <label for="h-view-beachView">Beach View</label>
+                                    </div>
+                                    <div class="filter-checkbox-row">
+                                        <input type="checkbox" name="hotelViews" id="h-view-gardenView" value="gardenView" th:checked="${selectedHotelViews.contains('gardenView')}" />
+                                        <label for="h-view-gardenView">Garden View</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="hotelViews" id="h-view-poolView" value="poolView" th:checked="${selectedHotelViews.contains('poolView')}" />
+                                        <label for="h-view-poolView">Pool View</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="hotelViews" id="h-view-mountainView" value="mountainView" th:checked="${selectedHotelViews.contains('mountainView')}" />
+                                        <label for="h-view-mountainView">Mountain View</label>
+                                    </div>
 
-                                    <input type="checkbox" class="btn-check" name="hotelViews" id="h-view-beachView" value="beachView" th:checked="${selectedHotelViews.contains('beachView')}" />
-                                    <label class="hl-filter-btn" for="h-view-beachView">Beach View</label>
-
-                                    <input type="checkbox" class="btn-check" name="hotelViews" id="h-view-gardenView" value="gardenView" th:checked="${selectedHotelViews.contains('gardenView')}" />
-                                    <label class="hl-filter-btn" for="h-view-gardenView">Garden View</label>
-
-                                    <input type="checkbox" class="btn-check" name="hotelViews" id="h-view-poolView" value="poolView" th:checked="${selectedHotelViews.contains('poolView')}" />
-                                    <label class="hl-filter-btn" for="h-view-poolView">Pool View</label>
-
-                                    <input type="checkbox" class="btn-check" name="hotelViews" id="h-view-mountainView" value="mountainView" th:checked="${selectedHotelViews.contains('mountainView')}" />
-                                    <label class="hl-filter-btn" for="h-view-mountainView">Mountain View</label>
-
-                                    <input type="checkbox" class="btn-check" name="hotelViews" id="h-view-riverView" value="riverView" th:checked="${selectedHotelViews.contains('riverView')}" />
-                                    <label class="hl-filter-btn" for="h-view-riverView">River View</label>
+                                    <!-- 1 Item sau -->
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="hotelViews" id="h-view-riverView" value="riverView" th:checked="${selectedHotelViews.contains('riverView')}" />
+                                        <label for="h-view-riverView">River View</label>
+                                    </div>
                                 </div>
+                                <button type="button" class="show-more-btn" onclick="toggleFilterGroup(this, 'hotelViewsContainer')" data-expanded="false">
+                                    Show all (+3) <i class="bi bi-chevron-down ms-1"></i>
+                                </button>
                             </div>
 
                             <hr class="border-gold-faint my-3">
@@ -186,67 +286,94 @@
                             <!-- Room Facilities -->
                             <div class="mb-4">
                                 <div class="filter-section-label">Room Facilities</div>
-                                <div class="filter-btn-container" id="roomFacilitiesContainer">
-                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-airConditioning" value="airConditioning" th:checked="${selectedRoomFacilities.contains('airConditioning')}" />
-                                    <label class="hl-filter-btn" for="r-fac-airConditioning">Air Conditioning</label>
+                                <div class="filter-checkbox-group" id="roomFacilitiesContainer">
+                                    <!-- 5 Item đầu tiên -->
+                                    <div class="filter-checkbox-row">
+                                        <input type="checkbox" name="roomFacilities" id="r-fac-airConditioning" value="airConditioning" th:checked="${selectedRoomFacilities.contains('airConditioning')}" />
+                                        <label for="r-fac-airConditioning">Air Conditioning</label>
+                                    </div>
+                                    <div class="filter-checkbox-row">
+                                        <input type="checkbox" name="roomFacilities" id="r-fac-television" value="television" th:checked="${selectedRoomFacilities.contains('television')}" />
+                                        <label for="r-fac-television">Television</label>
+                                    </div>
+                                    <div class="filter-checkbox-row">
+                                        <input type="checkbox" name="roomFacilities" id="r-fac-safetyDepositBox" value="safetyDepositBox" th:checked="${selectedRoomFacilities.contains('safetyDepositBox')}" />
+                                        <label for="r-fac-safetyDepositBox">Safety Box</label>
+                                    </div>
+                                    <div class="filter-checkbox-row">
+                                        <input type="checkbox" name="roomFacilities" id="r-fac-desk" value="desk" th:checked="${selectedRoomFacilities.contains('desk')}" />
+                                        <label for="r-fac-desk">Desk</label>
+                                    </div>
+                                    <div class="filter-checkbox-row">
+                                        <input type="checkbox" name="roomFacilities" id="r-fac-freeBottledWater" value="freeBottledWater" th:checked="${selectedRoomFacilities.contains('freeBottledWater')}" />
+                                        <label for="r-fac-freeBottledWater">Free Water</label>
+                                    </div>
 
-                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-television" value="television" th:checked="${selectedRoomFacilities.contains('television')}" />
-                                    <label class="hl-filter-btn" for="r-fac-television">Television</label>
-
-                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-safetyDepositBox" value="safetyDepositBox" th:checked="${selectedRoomFacilities.contains('safetyDepositBox')}" />
-                                    <label class="hl-filter-btn" for="r-fac-safetyDepositBox">Safety Box</label>
-
-                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-desk" value="desk" th:checked="${selectedRoomFacilities.contains('desk')}" />
-                                    <label class="hl-filter-btn" for="r-fac-desk">Desk</label>
-
-                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-freeBottledWater" value="freeBottledWater" th:checked="${selectedRoomFacilities.contains('freeBottledWater')}" />
-                                    <label class="hl-filter-btn" for="r-fac-freeBottledWater">Free Water</label>
-
-                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-freeToiletries" value="freeToiletries" th:checked="${selectedRoomFacilities.contains('freeToiletries')}" />
-                                    <label class="hl-filter-btn" for="r-fac-freeToiletries">Toiletries</label>
-
-                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-shower" value="shower" th:checked="${selectedRoomFacilities.contains('shower')}" />
-                                    <label class="hl-filter-btn" for="r-fac-shower">Shower</label>
-
-                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-bathrobe" value="bathrobe" th:checked="${selectedRoomFacilities.contains('bathrobe')}" />
-                                    <label class="hl-filter-btn" for="r-fac-bathrobe">Bathrobe</label>
-
-                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-toilet" value="toilet" th:checked="${selectedRoomFacilities.contains('toilet')}" />
-                                    <label class="hl-filter-btn" for="r-fac-toilet">Toilet</label>
-
-                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-towels" value="towels" th:checked="${selectedRoomFacilities.contains('towels')}" />
-                                    <label class="hl-filter-btn" for="r-fac-towels">Towels</label>
-
-                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-slippers" value="slippers" th:checked="${selectedRoomFacilities.contains('slippers')}" />
-                                    <label class="hl-filter-btn" for="r-fac-slippers">Slippers</label>
-
-                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-hairdryer" value="hairdryer" th:checked="${selectedRoomFacilities.contains('hairdryer')}" />
-                                    <label class="hl-filter-btn" for="r-fac-hairdryer">Hairdryer</label>
-
-                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-toiletPaper" value="toiletPaper" th:checked="${selectedRoomFacilities.contains('toiletPaper')}" />
-                                    <label class="hl-filter-btn" for="r-fac-toiletPaper">Toilet Paper</label>
-
-                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-telephone" value="telephone" th:checked="${selectedRoomFacilities.contains('telephone')}" />
-                                    <label class="hl-filter-btn" for="r-fac-telephone">Telephone</label>
-
-                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-iron" value="iron" th:checked="${selectedRoomFacilities.contains('iron')}" />
-                                    <label class="hl-filter-btn" for="r-fac-iron">Iron</label>
-
-                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-electricKettle" value="electricKettle" th:checked="${selectedRoomFacilities.contains('electricKettle')}" />
-                                    <label class="hl-filter-btn" for="r-fac-electricKettle">Electric Kettle</label>
-
-                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-cableChannels" value="cableChannels" th:checked="${selectedRoomFacilities.contains('cableChannels')}" />
-                                    <label class="hl-filter-btn" for="r-fac-cableChannels">Cable Channels</label>
-
-                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-wakeUpService" value="wakeUpService" th:checked="${selectedRoomFacilities.contains('wakeUpService')}" />
-                                    <label class="hl-filter-btn" for="r-fac-wakeUpService">Wake-up Service</label>
-
-                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-wardrobeCloset" value="wardrobeCloset" th:checked="${selectedRoomFacilities.contains('wardrobeCloset')}" />
-                                    <label class="hl-filter-btn" for="r-fac-wardrobeCloset">Wardrobe</label>
-
-                                    <input type="checkbox" class="btn-check" name="roomFacilities" id="r-fac-clothesRack" value="clothesRack" th:checked="${selectedRoomFacilities.contains('clothesRack')}" />
-                                    <label class="hl-filter-btn" for="r-fac-clothesRack">Clothes Rack</label>
+                                    <!-- 15 Item sau -->
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="roomFacilities" id="r-fac-freeToiletries" value="freeToiletries" th:checked="${selectedRoomFacilities.contains('freeToiletries')}" />
+                                        <label for="r-fac-freeToiletries">Toiletries</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="roomFacilities" id="r-fac-shower" value="shower" th:checked="${selectedRoomFacilities.contains('shower')}" />
+                                        <label for="r-fac-shower">Shower</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="roomFacilities" id="r-fac-bathrobe" value="bathrobe" th:checked="${selectedRoomFacilities.contains('bathrobe')}" />
+                                        <label for="r-fac-bathrobe">Bathrobe</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="roomFacilities" id="r-fac-toilet" value="toilet" th:checked="${selectedRoomFacilities.contains('toilet')}" />
+                                        <label for="r-fac-toilet">Toilet</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="roomFacilities" id="r-fac-towels" value="towels" th:checked="${selectedRoomFacilities.contains('towels')}" />
+                                        <label for="r-fac-towels">Towels</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="roomFacilities" id="r-fac-slippers" value="slippers" th:checked="${selectedRoomFacilities.contains('slippers')}" />
+                                        <label for="r-fac-slippers">Slippers</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="roomFacilities" id="r-fac-hairdryer" value="hairdryer" th:checked="${selectedRoomFacilities.contains('hairdryer')}" />
+                                        <label for="r-fac-hairdryer">Hairdryer</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="roomFacilities" id="r-fac-toiletPaper" value="toiletPaper" th:checked="${selectedRoomFacilities.contains('toiletPaper')}" />
+                                        <label for="r-fac-toiletPaper">Toilet Paper</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="roomFacilities" id="r-fac-telephone" value="telephone" th:checked="${selectedRoomFacilities.contains('telephone')}" />
+                                        <label for="r-fac-telephone">Telephone</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="roomFacilities" id="r-fac-iron" value="iron" th:checked="${selectedRoomFacilities.contains('iron')}" />
+                                        <label for="r-fac-iron">Iron</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="roomFacilities" id="r-fac-electricKettle" value="electricKettle" th:checked="${selectedRoomFacilities.contains('electricKettle')}" />
+                                        <label for="r-fac-electricKettle">Electric Kettle</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="roomFacilities" id="r-fac-cableChannels" value="cableChannels" th:checked="${selectedRoomFacilities.contains('cableChannels')}" />
+                                        <label for="r-fac-cableChannels">Cable Channels</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="roomFacilities" id="r-fac-wakeUpService" value="wakeUpService" th:checked="${selectedRoomFacilities.contains('wakeUpService')}" />
+                                        <label for="r-fac-wakeUpService">Wake-up Service</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="roomFacilities" id="r-fac-wardrobeCloset" value="wardrobeCloset" th:checked="${selectedRoomFacilities.contains('wardrobeCloset')}" />
+                                        <label for="r-fac-wardrobeCloset">Wardrobe</label>
+                                    </div>
+                                    <div class="filter-checkbox-row hidden-filter-item">
+                                        <input type="checkbox" name="roomFacilities" id="r-fac-clothesRack" value="clothesRack" th:checked="${selectedRoomFacilities.contains('clothesRack')}" />
+                                        <label for="r-fac-clothesRack">Clothes Rack</label>
+                                    </div>
                                 </div>
+                                <button type="button" class="show-more-btn" onclick="toggleFilterGroup(this, 'roomFacilitiesContainer')" data-expanded="false">
+                                    Show all (+15) <i class="bi bi-chevron-down ms-1"></i>
+                                </button>
                             </div>
 
                              <!-- Action buttons -->
@@ -292,9 +419,6 @@
                                 <span class="badge badge-star position-absolute top-0 start-0 m-2">
                                     <span th:text="${hotel.rating}">5</span> ★
                                 </span>
-                                <span class="badge position-absolute top-0 end-0 m-2"
-                                    th:classappend="${hotel.active} ? 'bg-success' : 'bg-danger'"
-                                    th:text="${hotel.active} ? 'Active' : 'Inactive'">Active</span>
                             </div>
 
                             <!-- Card body -->
@@ -335,7 +459,6 @@
 <footer th:replace="~{fragment/frag :: footer}"></footer>
 <div th:replace="~{fragment/frag :: scripts}"></div>
 <script th:src="@{/assets/js/filter.js?v=2}"></script>
-
-
+<script th:src="@{/assets/js/search-widget.js}"></script>
 </body>
 </html>

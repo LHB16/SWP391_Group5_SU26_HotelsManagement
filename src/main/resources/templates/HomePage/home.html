@@ -33,12 +33,14 @@
             <div class="col-lg-11 col-md-12">
                 <div class="search-card-traveloka">
                     <form th:action="@{/hotels}" method="get" class="search-pill-container">
+                        <input type="hidden" name="persons" id="hiddenPersons" value="1" />
+                        <input type="hidden" name="rooms" id="hiddenRooms" value="1" />
                         <!-- Field 1: Destination -->
                         <div class="search-pill-col" style="flex: 1.5;">
-                            <label class="search-pill-label">City, Destination, or Hotel Name:</label>
+                            <label class="search-pill-label">Enter City:</label>
                             <div class="search-pill-input-wrapper">
                                 <i data-lucide="map-pin" style="width: 18px; height: 18px;"></i>
-                                <input type="text" name="search" class="search-pill-input" placeholder="City, hotel, or place" autocomplete="off" />
+                                <input type="text" name="search" class="search-pill-input" placeholder="Enter City..." autocomplete="off" />
                             </div>
                         </div>
                         <!-- Field 2: Check-in Date -->
@@ -62,33 +64,21 @@
                             <label class="search-pill-label">Guests and Rooms:</label>
                             <div class="search-pill-input-wrapper" id="guestsPickerTrigger" style="cursor: pointer;">
                                 <i data-lucide="users" style="width: 18px; height: 18px;"></i>
-                                <input type="text" id="guestsInputDisplay" class="search-pill-input" value="2 Adults, 0 Children, 1 Room" readonly style="cursor: pointer;" />
+                                <input type="text" id="guestsInputDisplay" class="search-pill-input" value="1 Person, 1 Room" readonly style="cursor: pointer;" />
                             </div>
 
                             <!-- Popover Dropdown (Traveloka Style) -->
                             <div id="guestsDropdown" class="guests-dropdown-card d-none">
-                                <!-- Adults Row -->
+                                <!-- Person Row -->
                                 <div class="guests-dropdown-row">
                                     <div class="guests-dropdown-label-box">
                                         <i data-lucide="user" style="width: 18px; height: 18px; color: #0194f3;"></i>
-                                        <span class="fw-semibold">Adults</span>
+                                        <span class="fw-semibold">Person</span>
                                     </div>
                                     <div class="guests-counter-controls">
-                                        <button type="button" class="btn-counter-ctrl" id="btnAdultMinus">—</button>
-                                        <span class="counter-display" id="adultCountDisplay">2</span>
-                                        <button type="button" class="btn-counter-ctrl" id="btnAdultPlus">+</button>
-                                    </div>
-                                </div>
-                                <!-- Children Row -->
-                                <div class="guests-dropdown-row">
-                                    <div class="guests-dropdown-label-box">
-                                        <i data-lucide="baby" style="width: 18px; height: 18px; color: #0194f3;"></i>
-                                        <span class="fw-semibold">Children</span>
-                                    </div>
-                                    <div class="guests-counter-controls">
-                                        <button type="button" class="btn-counter-ctrl" id="btnChildMinus">—</button>
-                                        <span class="counter-display" id="childCountDisplay">0</span>
-                                        <button type="button" class="btn-counter-ctrl" id="btnChildPlus">+</button>
+                                        <button type="button" class="btn-counter-ctrl" id="btnPersonMinus">—</button>
+                                        <span class="counter-display" id="personCountDisplay">1</span>
+                                        <button type="button" class="btn-counter-ctrl" id="btnPersonPlus">+</button>
                                     </div>
                                 </div>
                                 <!-- Rooms Row -->
@@ -110,7 +100,7 @@
                             </div>
                         </div>
                         <!-- Search Button -->
-                        <button type="submit" class="search-pill-btn-orange">
+                        <button type="submit" class="search-pill-btn-theme">
                             <i data-lucide="search" style="width: 20px; height: 20px; stroke-width: 3;"></i>
                         </button>
                     </form>
@@ -309,120 +299,7 @@
     <footer th:replace="~{fragment/frag :: footer}"></footer>
     <div th:replace="~{fragment/frag :: scripts}"></div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            lucide.createIcons();
-
-            // Set default dates with Flatpickr
-            const checkinInput = document.getElementById('checkinInput');
-            const checkoutInput = document.getElementById('checkoutInput');
-            if (checkinInput && checkoutInput && typeof flatpickr === "function") {
-                const today = new Date();
-                const tomorrow = new Date();
-                tomorrow.setDate(today.getDate() + 1);
-
-                const checkinPicker = flatpickr(checkinInput, {
-                    dateFormat: "Y-m-d",
-                    altInput: true,
-                    altFormat: "d/m/Y",
-                    altInputClass: "search-pill-input",
-                    minDate: "today",
-                    defaultDate: today,
-                    onChange: function(selectedDates) {
-                        if (selectedDates[0]) {
-                            const next = new Date(selectedDates[0]);
-                            next.setDate(next.getDate() + 1);
-                            checkoutPicker.set("minDate", next);
-                            const cur = checkoutPicker.selectedDates[0];
-                            if (!cur || cur <= selectedDates[0]) {
-                                checkoutPicker.setDate(next);
-                            }
-                        }
-                    }
-                });
-
-                const checkoutPicker = flatpickr(checkoutInput, {
-                    dateFormat: "Y-m-d",
-                    altInput: true,
-                    altFormat: "d/m/Y",
-                    altInputClass: "search-pill-input",
-                    minDate: tomorrow,
-                    defaultDate: tomorrow
-                });
-            }
-
-            // Guests Picker Popover Toggle
-            const trigger = document.getElementById('guestsPickerTrigger');
-            const dropdown = document.getElementById('guestsDropdown');
-            const doneBtn = document.getElementById('btnGuestsDone');
-            
-            if (trigger && dropdown) {
-                trigger.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    dropdown.classList.toggle('d-none');
-                });
-                
-                dropdown.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                });
-                
-                document.addEventListener('click', function() {
-                    dropdown.classList.add('d-none');
-                });
-                
-                if (doneBtn) {
-                    doneBtn.addEventListener('click', function() {
-                        dropdown.classList.add('d-none');
-                    });
-                }
-            }
-
-            // Counter Logic
-            function setupCounter(minusId, plusId, displayId, min, max) {
-                const minusBtn = document.getElementById(minusId);
-                const plusBtn = document.getElementById(plusId);
-                const display = document.getElementById(displayId);
-                
-                if (minusBtn && plusBtn && display) {
-                    minusBtn.addEventListener('click', function() {
-                        let val = parseInt(display.textContent);
-                        if (val > min) {
-                            val--;
-                            display.textContent = val;
-                            updateGuestsDisplay();
-                        }
-                    });
-                    
-                    plusBtn.addEventListener('click', function() {
-                        let val = parseInt(display.textContent);
-                        if (val < max) {
-                            val++;
-                            display.textContent = val;
-                            updateGuestsDisplay();
-                        }
-                    });
-                }
-            }
-            
-            setupCounter('btnAdultMinus', 'btnAdultPlus', 'adultCountDisplay', 1, 10);
-            setupCounter('btnChildMinus', 'btnChildPlus', 'childCountDisplay', 0, 10);
-            setupCounter('btnRoomMinus', 'btnRoomPlus', 'roomCountDisplay', 1, 10);
-            
-            function updateGuestsDisplay() {
-                const adults = document.getElementById('adultCountDisplay').textContent;
-                const children = document.getElementById('childCountDisplay').textContent;
-                const rooms = document.getElementById('roomCountDisplay').textContent;
-                
-                const displayInput = document.getElementById('guestsInputDisplay');
-                if (displayInput) {
-                    const adultText = `${adults} Adult${parseInt(adults) > 1 ? 's' : ''}`;
-                    const childText = `${children} Child${parseInt(children) !== 1 ? 'ren' : ''}`;
-                    const roomText = `${rooms} Room${parseInt(rooms) > 1 ? 's' : ''}`;
-                    displayInput.value = `${adultText}, ${childText}, ${roomText}`;
-                }
-            }
-        });
-    </script>
+    <script th:src="@{/assets/js/search-widget.js}"></script>
 </body>
 
 </html>

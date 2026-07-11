@@ -2,15 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 
 <head th:replace="~{fragment/frag :: head}"></head>
-<style>
-    .room-type-title {
-        color: #c9a96e !important;
-        font-size: 1.45rem !important;
-        font-weight: 700 !important;
-        margin-bottom: 8px !important;
-        display: block !important;
-    }
-</style>
+
 
 <body class="d-flex flex-column min-vh-100">
     <nav th:replace="~{fragment/frag :: navBar}"></nav>
@@ -18,124 +10,133 @@
     <!-- ==================== HERO BANNER ==================== -->
     <section class="room-hero">
         <div class="container">
-            <h1 class="room-hero-title" th:text="${hotel.name}">Hotel Name</h1>
-            <p class="room-hero-subtitle">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-2">
+                <h1 class="room-hero-title mb-0" th:text="${hotel.name}">Hotel Name</h1>
+                
+                <!-- Group badge & chat -->
+                <div class="d-flex flex-column gap-2" style="min-width: 250px;">
+                    <div class="d-flex gap-2 justify-content-end">
+                        <span class="room-hero-badge">
+                            <i class="bi bi-star-fill text-gold me-1"></i>
+                            <span
+                                th:text="${avgRating > 0 ? avgRating + ' / 5 (' + totalReviews + ' reviews)' : hotel.rating + ' Stars'}">5
+                                Stars</span>
+                        </span>
+                        <span class="room-hero-badge">
+                            <i class="bi bi-door-open me-1"></i>
+                            <strong th:text="${totalResults}">0</strong>&nbsp;rooms found
+                        </span>
+                    </div>
+                    
+                    <!-- Chat with Owner Button -->
+                    <a href="javascript:void(0)"
+                       th:onclick="'window.handleChatClick(' + ${hotel.id} + ')'"
+                       class="btn btn-outline-gold btn-sm customer-support-hero-btn text-center"
+                       th:style="${user != null and user.role == 'HOTEL_OWNER'} ? 'background: #94a3b8 !important; border-color: #94a3b8 !important; color: #fff !important; pointer-events: none; cursor: not-allowed; opacity: 0.7;' : ''">
+                       <i data-lucide="message-square" class="me-1"
+                          style="width: 14px; height: 14px; stroke-width: 1.5; vertical-align: middle;"></i>
+                       Chat with Owner
+                    </a>
+                </div>
+            </div>
+            <p class="room-hero-subtitle mb-0">
                 <i class="bi bi-geo-alt me-1"></i>
                 <span th:text="${hotel.address}">Hotel Address</span>
             </p>
-            <div class="room-hero-divider"></div>
-
-            <div class="d-flex align-items-center gap-3 flex-wrap mt-3">
-                <span class="room-hero-badge">
-                    <i class="bi bi-star-fill text-gold me-1"></i>
-                    <span
-                        th:text="${avgRating > 0 ? avgRating + ' / 5 (' + totalReviews + ' reviews)' : hotel.rating + ' Stars'}">5
-                        Stars</span>
-                </span>
-                <span class="room-hero-badge">
-                    <i class="bi bi-door-open me-1"></i>
-                    <strong th:text="${totalResults}">0</strong>&nbsp;rooms found
-                </span>
-            </div>
         </div>
     </section>
 
+    <!-- Search widget card (Traveloka Pill Style - Embedded in Room List) -->
+    <div class="bg-cream pb-4 search-widget-wrapper">
+        <div class="container-fluid px-4">
+            <div class="row justify-content-center">
+                <div class="col-12">
+                    <div class="search-card-traveloka">
+                        <form th:action="@{/hotels/{id}/rooms(id=${hotel.id})}" method="get" class="search-pill-container">
+                            <input type="hidden" name="persons" id="hiddenPersons" th:value="${selectedPersons}" />
+                            <input type="hidden" name="rooms" id="hiddenRooms" th:value="${selectedRoomsCount}" />
+                            <!-- Field 1: Destination -->
+                            <div class="search-pill-col search-pill-col-destination">
+                                <label class="search-pill-label">City:</label>
+                                <div class="search-pill-input-wrapper">
+                                    <i data-lucide="map-pin" style="width: 18px; height: 18px;"></i>
+                                    <input type="text" name="search" class="search-pill-input" readonly th:value="${hotel.city}" />
+                                </div>
+                            </div>
+                            <!-- Field 2: Check-in Date -->
+                            <div class="search-pill-col">
+                                <label class="search-pill-label">Check-in Date:</label>
+                                <div class="search-pill-input-wrapper">
+                                    <i data-lucide="calendar" style="width: 18px; height: 18px;"></i>
+                                    <input type="text" name="checkin" id="checkinInput" class="search-pill-input" readonly placeholder="Choose Date" th:value="${checkin}" />
+                                </div>
+                            </div>
+                            <!-- Field 3: Check-out Date -->
+                            <div class="search-pill-col">
+                                <label class="search-pill-label">Check-out Date:</label>
+                                <div class="search-pill-input-wrapper">
+                                    <i data-lucide="calendar" style="width: 18px; height: 18px;"></i>
+                                    <input type="text" name="checkout" id="checkoutInput" class="search-pill-input" readonly placeholder="Choose Date" th:value="${checkout}" />
+                                </div>
+                            </div>
+                            <!-- Field 4: Guests & Rooms -->
+                            <div class="search-pill-col position-relative">
+                                <label class="search-pill-label">Guests and Rooms:</label>
+                                <div class="search-pill-input-wrapper cursor-pointer" id="guestsPickerTrigger">
+                                    <i data-lucide="users" style="width: 18px; height: 18px;"></i>
+                                    <input type="text" id="guestsInputDisplay" class="search-pill-input cursor-pointer" readonly />
+                                </div>
+
+                                <!-- Popover Dropdown (Traveloka Style) -->
+                                <div id="guestsDropdown" class="guests-dropdown-card d-none">
+                                    <!-- Person Row -->
+                                    <div class="guests-dropdown-row">
+                                        <div class="guests-dropdown-label-box">
+                                            <i data-lucide="user" style="width: 18px; height: 18px; color: #0194f3;"></i>
+                                            <span class="fw-semibold">Person</span>
+                                        </div>
+                                        <div class="guests-counter-controls">
+                                            <button type="button" class="btn-counter-ctrl" id="btnPersonMinus">—</button>
+                                            <span class="counter-display" id="personCountDisplay" th:text="${selectedPersons}">1</span>
+                                            <button type="button" class="btn-counter-ctrl" id="btnPersonPlus">+</button>
+                                        </div>
+                                    </div>
+                                    <!-- Rooms Row -->
+                                    <div class="guests-dropdown-row">
+                                        <div class="guests-dropdown-label-box">
+                                            <i data-lucide="door-open" style="width: 18px; height: 18px; color: #0194f3;"></i>
+                                            <span class="fw-semibold">Rooms</span>
+                                        </div>
+                                        <div class="guests-counter-controls">
+                                            <button type="button" class="btn-counter-ctrl" id="btnRoomMinus">—</button>
+                                            <span class="counter-display" id="roomCountDisplay" th:text="${selectedRoomsCount}">1</span>
+                                            <button type="button" class="btn-counter-ctrl" id="btnRoomPlus">+</button>
+                                        </div>
+                                    </div>
+                                    <!-- Action button -->
+                                    <div class="text-end mt-3 border-top pt-2">
+                                        <button type="button" class="btn btn-primary btn-sm px-4 fw-bold btn-guests-done-theme" id="btnGuestsDone">Done</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Search Button -->
+                            <button type="submit" class="search-pill-btn-theme">
+                                <i data-lucide="search" style="width: 20px; height: 20px; stroke-width: 3;"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ==================== MAIN CONTENT ==================== -->
-    <main class="flex-grow-1 py-4 bg-cream">
+    <main class="flex-grow-1 pb-4 bg-cream main-content-pt-0">
         <div class="container-fluid px-3 px-md-4">
             <div class="row g-4">
 
-                <!-- ===== FILTER SIDEBAR ===== -->
-                <div class="col-12 col-lg-3">
-                    <div class="card filter-sidebar-card">
-                        <div class="card-header text-gold">
-                            <i class="bi bi-funnel me-1"></i>
-                            Filter Rooms
-                        </div>
-                        <div class="card-body">
-                            <form th:action="@{/hotels/{id}/rooms(id=${hotel.id})}" method="get" id="roomFilterForm">
-
-                                <!-- Loại phòng -->
-                                <div class="mb-3">
-                                    <label class="filter-section-label" for="roomTypeSelect">Room Type</label>
-                                    <select name="types" id="roomTypeSelect" class="form-select form-select-sm">
-                                        <option value=""
-                                            th:selected="${selectedTypes == null or selectedTypes.isEmpty()}">All Types
-                                        </option>
-                                        <option th:each="t : ${allTypes}" th:value="${t}" th:text="${t}"
-                                            th:selected="${#lists.contains(selectedTypes, t)}"></option>
-                                    </select>
-                                </div>
-
-                                <!-- Check-in / Check-out -->
-                                <div class="mb-3">
-                                    <label class="filter-section-label" for="filterCheckin">Check-in Date</label>
-                                    <input type="text" name="checkin" id="filterCheckin"
-                                        class="form-control form-control-sm filter-input" th:value="${checkin}"
-                                        th:data-min-date="${today}" placeholder="Select Check-in" />
-                                </div>
-                                <div class="mb-3">
-                                    <label class="filter-section-label" for="filterCheckout">Check-out Date</label>
-                                    <input type="text" name="checkout" id="filterCheckout"
-                                        class="form-control form-control-sm filter-input" th:value="${checkout}"
-                                        th:data-min-date="${minCheckout}" placeholder="Select Check-out" />
-                                </div>
-
-                                <div class="d-grid gap-2 mt-4">
-                                    <button type="submit"
-                                        class="btn btn-gold btn-sm d-flex align-items-center justify-content-center"
-                                        id="roomFilterSubmit">
-                                        <i class="bi bi-search me-2"></i>
-                                        Search Rooms
-                                    </button>
-                                    <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}"
-                                        class="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center">
-                                        Clear Filters
-                                    </a>
-                                </div>
-                            </form>
-
-                            <!-- Customer Support inside the same sticky filter card to prevent overlap on scroll -->
-                            <hr class="customer-support-divider">
-                            <div class="text-center">
-                                <h6 class="fw-bold mb-2 customer-support-title">Customer Support</h6>
-                                <p class="text-muted mb-3 customer-support-desc">Have questions about rooms or services?
-                                    Chat directly with the hotel owner!</p>
-                                <a href="javascript:void(0)"
-                                    th:onclick="'window.handleChatClick(' + ${hotel.id} + ')'"
-                                    class="btn btn-outline-gold w-100 btn-sm customer-support-btn position-relative"
-                                    th:style="${user != null and user.role == 'HOTEL_OWNER'} ? 'background: #94a3b8 !important; border-color: #94a3b8 !important; color: #fff !important; pointer-events: none; cursor: not-allowed; opacity: 0.7;' : ''">
-                                    <i data-lucide="message-square" class="me-1"
-                                        style="width: 14px; height: 14px; stroke-width: 1.5; vertical-align: middle;"></i>
-                                    Chat with Owner
-                                    <span th:if="${hotelUnreadCount != null and hotelUnreadCount > 0}"
-                                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                        style="font-size: 0.7rem; padding: 3px 6px;">
-                                        <span th:text="${hotelUnreadCount}">0</span>
-                                    </span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- ===== DANH SÁCH PHÒNG ===== -->
-                <div class="col-12 col-lg-9">
-
-                    <!-- Results header -->
-                    <div class="results-header">
-                        <div>
-                            <div class="results-title">Room Listings</div>
-                            <div class="results-count">
-                                Found <strong th:text="${totalResults}">0</strong> room(s)
-                                <span th:if="${!selectedTypes.isEmpty()}">
-                                    &nbsp;· <span th:each="t, i : ${selectedTypes}">
-                                        <span th:text="${t}"></span><span th:if="${!i.last}">, </span>
-                                    </span>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="col-12">
 
 
 
@@ -172,10 +173,12 @@
                                     class="room-card-img-placeholder">
                                     <i class="bi bi-image text-muted fs-3"></i>
                                 </div>
-                                <!-- Wishlist Heart Button (chỉ cho account đã đăng nhập) -->
                                 <a th:if="${user != null}"
-                                    th:href="@{/wishlist/toggle(roomId=${room.id}, checkin=${checkin != null ? checkin : ''}, checkout=${checkout != null ? checkout : ''}, types=${selectedTypes != null and !selectedTypes.isEmpty() ? selectedTypes[0] : ''})}"
-                                    class="wishlist-heart-btn" title="Wishlist">
+                                   href="javascript:void(0)"
+                                   class="wishlist-heart-btn" title="Wishlist"
+                                   th:data-room-id="${room.id}"
+                                   th:data-checkin="${checkin}"
+                                   th:data-checkout="${checkout}">
                                     <i
                                         th:class="${wishlistRoomIds != null and wishlistRoomIds.contains(room.id)} ? 'bi bi-heart-fill pink-heart' : 'bi bi-heart pink-heart'"></i>
                                 </a>
@@ -204,7 +207,7 @@
                                         <span th:text="${room.person + ' guest(s)'}">2 guest(s)</span>
                                     </span>
                                     <span class="amenity-badge">
-                                        <i class="bi bi-door-closed me-1"></i>
+                                        <i class="bi bi-bed me-1"></i>
                                         <span th:text="${room.bed + ' bed(s)'}">2 bed(s)</span>
                                     </span>
                                     <span class="amenity-badge">
@@ -663,6 +666,7 @@
 
 
     <script th:src="@{/assets/js/filter.js?v=2}"></script>
+    <script th:src="@{/assets/js/search-widget.js}"></script>
     <script th:inline="javascript">
         document.addEventListener("DOMContentLoaded", function () {
             const hotelId = /*[[${hotel.id}]]*/ 0;
@@ -755,6 +759,44 @@
                         })
                         .catch(err => {
                             console.error("Error updating review status:", err);
+                        });
+                });
+            });
+
+            // AJAX toggle wishlist without reloading page or scrolling to top
+            document.querySelectorAll(".wishlist-heart-btn").forEach(btn => {
+                btn.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    const roomId = this.getAttribute("data-room-id");
+                    const checkin = this.getAttribute("data-checkin") || "";
+                    const checkout = this.getAttribute("data-checkout") || "";
+                    const icon = this.querySelector("i");
+
+                    fetch(`/api/wishlist/toggle?roomId=${roomId}&checkin=${checkin}&checkout=${checkout}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                if (data.active) {
+                                    icon.className = "bi bi-heart-fill pink-heart";
+                                    if (typeof window.showCustomToast === 'function') {
+                                        window.showCustomToast("Added to wishlist!", "success");
+                                    }
+                                } else {
+                                    icon.className = "bi bi-heart pink-heart";
+                                    if (typeof window.showCustomToast === 'function') {
+                                        window.showCustomToast("Removed from wishlist.", "success");
+                                    }
+                                }
+                            } else {
+                                if (typeof window.showCustomToast === 'function') {
+                                    window.showCustomToast(data.message || "An error occurred.", "error");
+                                } else {
+                                    alert(data.message || "An error occurred.");
+                                }
+                            }
+                        })
+                        .catch(err => {
+                            console.error("Error toggling wishlist:", err);
                         });
                 });
             });

@@ -15253,14 +15253,14 @@ input[type="date"]::-webkit-datetime-edit {
 /* ────────────────────────────────────────────────────────────
    Base / Reset
    ──────────────────────────────────────────────────────────── */
-/* [body{}] — font/background/color đã gộp vào block body tổng hợp bên dưới */
+/* [body{}] - font/background/color đã gộp vào block body tổng hợp bên dưới */
 
 /* ────────────────────────────────────────────────────────────
-   Hero Banner – đầu trang tên khách sạn
+   Hero Banner - đầu trang tên khách sạn
    ──────────────────────────────────────────────────────────── */
 .room-hero {
   background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 60%, #1e3a5f 100%);
-  padding: 56px 0 40px;
+  padding: 56px 0 85px;
   position: relative;
   overflow: hidden;
 }
@@ -21554,6 +21554,41 @@ h6,
   margin-top: 8px;
 }
 
+.filter-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.filter-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.filter-checkbox-row:hover {
+  color: var(--gold-dark);
+}
+
+.filter-checkbox-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--gold, #c9a96e);
+  cursor: pointer;
+}
+
+.filter-checkbox-row label {
+  cursor: pointer;
+  user-select: none;
+  font-weight: 500;
+  margin-bottom: 0;
+}
+
 .hidden-filter-item {
   display: none !important;
 }
@@ -23287,8 +23322,8 @@ td .discount-badge {
   border-color: #fca5a5 !important;
 }
 
-#tab-vietqr:checked~#shared-payment-timer,
-#tab-paypal:checked~#shared-payment-timer {
+#tab-vietqr:checked ~ #shared-payment-timer,
+#tab-paypal:checked ~ #shared-payment-timer {
   display: flex !important;
 }
 
@@ -23372,7 +23407,7 @@ body.overflow-hidden nav {
 }
 
 /* ============================================================
-   INBOX PAGE – PROFESSIONAL REDESIGN
+   INBOX PAGE - PROFESSIONAL REDESIGN
    ============================================================ */
 
 /* --- Sidebar top bar: title + icon-only back link --- */
@@ -24423,6 +24458,32 @@ body.overflow-hidden nav {
   transform: scale(0.98);
 }
 
+.search-pill-btn-theme {
+  width: 48px;
+  height: 48px;
+  background-color: var(--gold, #c9a96e);
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, transform 0.1s;
+  box-shadow: 0 4px 10px rgba(201, 169, 110, 0.35);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.search-pill-btn-theme:hover {
+  background-color: var(--gold-dark, #a8824e);
+  transform: scale(1.03);
+  color: #ffffff;
+}
+
+.search-pill-btn-theme:active {
+  transform: scale(0.98);
+}
+
 /* --- Guests Picker Dropdown --- */
 .guests-dropdown-card {
   position: absolute;
@@ -24550,7 +24611,7 @@ body.overflow-hidden nav {
 }
 
 .flatpickr-current-month .flatpickr-monthDropdown-months {
-  font-weight: 700 !important;
+  font-weight: 400 !important;
 }
 
 /* Custom styling for Flatpickr altInput when open/focused */
@@ -24560,4 +24621,90 @@ body.overflow-hidden nav {
   border-color: #c9a96e !important;
   box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.25) !important;
   border-radius: 4px;
+}
+
+/* Force Flatpickr Month and Year to be perfectly centered */
+.flatpickr-calendar .flatpickr-current-month {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  width: 100% !important;
+  left: 0 !important;
+  padding: 4px 0 0 0 !important;
+  text-align: center !important;
+}
+
+.flatpickr-calendar .flatpickr-current-month .numInputWrapper {
+  display: inline-block !important;
+  width: 65px !important;
+  position: relative !important;
+}
+
+.flatpickr-calendar .flatpickr-current-month input.cur-year {
+  text-align: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.flatpickr-calendar .flatpickr-current-month .flatpickr-monthDropdown-months {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Room list styling */
+.room-type-title {
+  color: #c9a96e !important;
+  font-size: 1.45rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 8px !important;
+  display: block !important;
+}
+
+/* Clean code helpers - Search widget styles */
+.search-widget-wrapper {
+  position: relative;
+  z-index: 10;
+}
+
+.search-pill-col-destination {
+  flex: 1.5 !important;
+}
+
+.main-content-pt-0 {
+  padding-top: 0 !important;
+}
+
+.btn-guests-done-theme {
+  background-color: #0194f3 !important;
+  border: none !important;
+  border-radius: 6px !important;
+}
+
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+/* Hero Banner Chat Button */
+.customer-support-hero-btn {
+  border: 1px solid #c9a96e !important;
+  color: #c9a96e !important;
+  font-weight: 600 !important;
+  padding: 5px 12px !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease-in-out !important;
+  width: 100% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0.82rem !important;
+}
+.customer-support-hero-btn:hover {
+  background-color: #c9a96e !important;
+  color: #ffffff !important;
+}
+
+/* Force month dropdown to have thin text */
+.flatpickr-calendar .flatpickr-current-month .flatpickr-monthDropdown-months {
+  font-weight: 400 !important;
 }

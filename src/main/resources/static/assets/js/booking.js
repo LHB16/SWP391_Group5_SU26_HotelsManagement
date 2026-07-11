@@ -82,12 +82,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (activeBtn) {
                     if (reqValue !== "") {
+                        activeBtn.classList.remove("bg-navy");
                         activeBtn.style.backgroundColor = "#c9a96e"; // Đổi sang màu gold
                         activeBtn.style.borderColor = "#c9a96e";
-                        activeBtn.innerHTML = '<i class="bi bi-chat-left-text-fill me-1"></i><span>Request Added</span>';
+                        activeBtn.style.color = "#ffffff";
+                        activeBtn.innerHTML = '<i class="bi bi-chat-left-text-fill me-1"></i><span>Note added</span>';
                     } else {
+                        activeBtn.classList.add("bg-navy");
                         activeBtn.style.backgroundColor = ""; // Về mặc định
                         activeBtn.style.borderColor = "";
+                        activeBtn.style.color = "";
                         activeBtn.innerHTML = '<i class="bi bi-chat-left-text me-1"></i><span>Special requests</span>';
                     }
                 }
@@ -108,8 +112,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (modalTextarea) modalTextarea.value = "";
 
                 if (activeBtn) {
+                    activeBtn.classList.add("bg-navy");
                     activeBtn.style.backgroundColor = "";
                     activeBtn.style.borderColor = "";
+                    activeBtn.style.color = "";
                     activeBtn.innerHTML = '<i class="bi bi-chat-left-text me-1"></i><span>Special requests</span>';
                 }
 
@@ -400,4 +406,15 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
+
+    // Auto-submit form when select quantities changes
+    const qtySelects = document.querySelectorAll("select[name='quantities']");
+    qtySelects.forEach(select => {
+        select.addEventListener("change", function () {
+            const checkoutForm = document.getElementById("bookingCheckoutForm");
+            if (checkoutForm) {
+                checkoutForm.submit();
+            }
+        });
+    });
 });

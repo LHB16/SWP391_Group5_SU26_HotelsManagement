@@ -42,12 +42,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     const dayStr = String(nextDay.getDate()).padStart(2, '0');
                     const nextDayStr = `${y}-${m}-${dayStr}`;
                     
-                    coPicker.set("minDate", nextDayStr);
-
                     const currentCheckout = coPicker.selectedDates[0];
-                    if (currentCheckout && currentCheckout <= d) {
+                    if (!currentCheckout || currentCheckout <= d) {
                         coPicker.setDate(nextDayStr);
                     }
+                    
+                    coPicker.set("minDate", nextDayStr);
                 }
             }
         });
