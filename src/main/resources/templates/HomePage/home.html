@@ -177,9 +177,7 @@
                         <!-- Slides -->
                         <div class="carousel-inner">
                             <div th:each="b, iterStat : ${banners}" class="carousel-item" th:classappend="${iterStat.index == 0} ? 'active' : ''">
-                                <a th:href="${b.linkUrl != null and !#strings.isEmpty(b.linkUrl)} ? ${b.linkUrl} : '#'" class="d-block w-100 h-100">
-                                    <img th:src="${b.imageUrl}" th:alt="${b.title}" class="d-block w-100 h-100 main-banner-img" />
-                                </a>
+                                <img th:src="${b.imageUrl}" th:alt="${b.title}" class="d-block w-100 h-100 main-banner-img" />
                             </div>
                         </div>
                         <!-- Controls -->
