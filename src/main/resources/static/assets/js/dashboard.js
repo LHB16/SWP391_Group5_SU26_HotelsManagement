@@ -152,14 +152,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
             hotelRevenueList.forEach(h => {
                 const percentage = maxRevenue > 0 ? (h.revenue / maxRevenue) * 100 : 0;
+                const isShortBar = percentage < 28;
                 const rowDiv = document.createElement("div");
                 rowDiv.className = "chart-row";
                 rowDiv.innerHTML = `
                     <div class="chart-hotel-name" title="${h.hotelName}">${h.hotelName}</div>
                     <div class="chart-bar-wrapper">
                         <div class="chart-bar" style="width: 0%;">
-                            <span class="chart-bar-value">${formatVND(h.revenue)}</span>
+                            ${!isShortBar ? `<span class="chart-bar-value" style="color:#fff;">${formatVND(h.revenue)}</span>` : ''}
                         </div>
+                        ${isShortBar ? `<span class="chart-bar-value chart-bar-value--outside">${formatVND(h.revenue)}</span>` : ''}
                     </div>
                 `;
                 cssChartContainer.appendChild(rowDiv);

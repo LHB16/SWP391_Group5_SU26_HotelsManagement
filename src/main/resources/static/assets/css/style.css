@@ -14516,11 +14516,15 @@ main {
   border-radius: 8px;
   height: 32px;
   position: relative;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
 }
 
 .chart-bar {
   background: var(--primary-gradient);
+  position: absolute;
+  top: 0;
+  left: 0;
   height: 100%;
   border-radius: 8px;
   width: 0%;
@@ -14528,6 +14532,7 @@ main {
   align-items: center;
   justify-content: flex-end;
   padding-right: 0.75rem;
+  z-index: 1;
 }
 
 .chart-bar-value {
@@ -22954,3 +22959,18 @@ td .discount-badge {
 .animate-fade-in {
     animation: fadeIn 0.25s ease both;
 }
+
+/* =============================================
+   Revenue Chart - Outside Bar Label (Short Bars)
+   ============================================= */
+.chart-bar-value--outside {
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #4f46e5;
+  padding-left: 8px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
