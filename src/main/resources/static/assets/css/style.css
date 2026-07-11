@@ -22943,3 +22943,14 @@ td .discount-badge {
   background-color: #4338ca;
   border-color: #4338ca;
 }
+
+/* =============================================
+   VietQR Toggle - Animate Fade In
+   ============================================= */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+    animation: fadeIn 0.25s ease both;
+}
