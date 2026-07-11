@@ -94,7 +94,7 @@ public class ProfileController {
             return "redirect:/profile";
         }
 
-        if ("phone".equals(field)) {
+        if ("phone".equals(field) || "fullName".equals(field)) {
             session.setAttribute("profileVerifiedForEdit", true);
             session.setAttribute("editField", field);
             return "redirect:/profile";
@@ -314,35 +314,21 @@ public class ProfileController {
         }
 
         try {
-            // Sinh OTP mới gửi đến email mới
-            String otp = otpService.generateOtp();
-
-            User userInDb = userRepository.findById(loggedInUser.getId())
-                    .orElseThrow(() -> new RuntimeException("Account not found!"));
-            userInDb.setOtp(otp);
-            userInDb.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
-            userInDb.setOtpType("UPDATE_PROFILE");
-            userRepository.save(userInDb);
-
-            // Gửi mã xác nhận đến Email mới (Bất đồng bộ)
-            final String targetEmail = newEmail;
-            final String otpCode = otp;
-            java.util.concurrent.CompletableFuture.runAsync(() -> {
-                try {
-                    emailService.sendProfileUpdateOtp(targetEmail, otpCode);
-                } catch (Exception e) {
-                    System.err.println("Error sending async new email update OTP: " + e.getMessage());
-                }
-            });
-
             // Lưu email mới tạm thời vào session và thiết lập cờ xác nhận email mới
             session.setAttribute("pendingNewEmail", newEmail);
             session.setAttribute("pendingNewEmailOtpRequest", true);
 
-            session.setAttribute("successMessage", "Verification OTP code is being sent to your new email!");
+            // Xóa OTP cũ trong DB để sẵn sàng cho việc sinh OTP mới ở trang GET
+            User userInDb = userRepository.findById(loggedInUser.getId())
+                    .orElseThrow(() -> new RuntimeException("Account not found!"));
+            userInDb.setOtp(null);
+            userInDb.setOtpExpiry(null);
+            userInDb.setOtpType(null);
+            userRepository.save(userInDb);
+
             return "redirect:/profile/verify-new-email";
         } catch (Exception e) {
-            session.setAttribute("errorMessage", "Error sending OTP to new email: " + e.getMessage());
+            session.setAttribute("errorMessage", "Error initializing email update: " + e.getMessage());
             return "redirect:/profile";
         }
     }
@@ -360,6 +346,34 @@ public class ProfileController {
 
         if (pendingNewEmailOtpRequest == null || !pendingNewEmailOtpRequest || pendingNewEmail == null) {
             return "redirect:/profile";
+        }
+
+        try {
+            User userInDb = userRepository.findById(loggedInUser.getId())
+                    .orElseThrow(() -> new RuntimeException("Account not found!"));
+            
+            // Chỉ sinh và gửi OTP nếu chưa có mã OTP hiện tại hoạt động hoặc mã đã hết hạn
+            if (userInDb.getOtp() == null || userInDb.getOtpExpiry() == null || userInDb.getOtpExpiry().isBefore(LocalDateTime.now())) {
+                String otp = otpService.generateOtp();
+                userInDb.setOtp(otp);
+                userInDb.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
+                userInDb.setOtpType("UPDATE_PROFILE");
+                userRepository.save(userInDb);
+
+                final String targetEmail = pendingNewEmail;
+                final String otpCode = otp;
+                java.util.concurrent.CompletableFuture.runAsync(() -> {
+                    try {
+                        emailService.sendProfileUpdateOtp(targetEmail, otpCode);
+                    } catch (Exception e) {
+                        System.err.println("Error sending async new email update OTP: " + e.getMessage());
+                    }
+                });
+
+                model.addAttribute("successMessage", "Verification OTP code is being sent to your new email!");
+            }
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Error: " + e.getMessage());
         }
 
         String successMsg = (String) session.getAttribute("successMessage");
