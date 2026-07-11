@@ -99,5 +99,31 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
 
     @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE b.customer.id = :customerId AND b.idPromotion = :idPromotion")
     boolean existsByCustomerIdAndIdPromotion(@Param("customerId") int customerId, @Param("idPromotion") int idPromotion);
-}
 
+    // =====================================================
+    // PAYOUT: Magic Methods cho Admin truy vấn đối soát
+    // =====================================================
+
+    /**
+     * Lấy danh sách booking cần đối soát (không tìm kiếm theo từ khoá).
+     * Điều kiện: booking đã COMPLETED, thanh toán đã PAID, theo trạng thái payout.
+     */
+    Page<Booking> findByStatusAndPayment_StatusAndPayoutStatusOrderByCheckOutDateDesc(
+            String status,
+            String paymentStatus,
+            String payoutStatus,
+            Pageable pageable
+    );
+
+    /**
+     * Lấy danh sách booking cần đối soát CÓ tìm kiếm theo tên khách sạn HOẶC tên Owner.
+     * Điều kiện giống phương thức trên nhưng thêm bộ lọc OR cho hotel.name và hotel.owner.fullName.
+     */
+    Page<Booking> findByStatusAndPayment_StatusAndPayoutStatusAndHotel_NameContainingIgnoreCaseOrStatusAndPayment_StatusAndPayoutStatusAndHotel_Owner_FullNameContainingIgnoreCaseOrderByCheckOutDateDesc(
+            String status1, String paymentStatus1, String payoutStatus1, String hotelName,
+            String status2, String paymentStatus2, String payoutStatus2, String ownerName,
+            Pageable pageable
+    );
+
+    long countByStatusAndPayment_StatusAndPayoutStatus(String status, String paymentStatus, String payoutStatus);
+}

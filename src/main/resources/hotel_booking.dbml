@@ -49,6 +49,10 @@ Table hotel_owners {
   verified_at DATETIME2 [note: 'Thời gian được xác minh.']
   rejection_reason NVARCHAR(MAX) [note: 'Lý do bị từ chối xác minh.']
   id_card_document NVARCHAR(500) [note: 'Đường dẫn giấy tờ tùy thân.']
+  // PAYOUT: Thông tin ngân hàng nhận đối soát từ Admin
+  bank_name NVARCHAR(255) [note: 'Tên ngân hàng của Owner để nhận tiền đối soát.']
+  bank_account_number NVARCHAR(50) [note: 'Số tài khoản ngân hàng của Owner.']
+  bank_account_holder NVARCHAR(255) [note: 'Tên chủ tài khoản ngân hàng (in hoa theo chuẩn ngân hàng).']
 }
 
 
@@ -189,14 +193,27 @@ Table bookings {
   hotel_id INT [note: 'Khóa ngoại liên kết đến bảng hotel.']
   phone NVARCHAR(20)
   full_name NVARCHAR(255)
+  email NVARCHAR(255) [note: 'Email của khách hàng dùng khi đặt phòng.']
+  id_promotion INT [note: 'Khóa ngoại liên kết đến bảng promotions (nếu có áp mã giảm giá).']
   check_in_date DATE
   check_out_date DATE
   num_nights INT
   total_price DECIMAL(38,2)
-  status NVARCHAR(50)
+  status NVARCHAR(50) [note: 'Trạng thái: PENDING, CONFIRMED, COMPLETED, CANCELLED, REJECTED, EXPIRED.']
   special_notes NVARCHAR(MAX)
   created_at DATETIME2
   updated_at DATETIME2
+  quantity INT [default: 1, note: 'Số lượng phòng đặt.']
+  // PAYOUT: Thông tin đối soát tiền cho Owner
+  platform_fee_percent DECIMAL(5,2) [note: '% phí sàn Admin thu (mặc định 10%).']
+  platform_fee_amount DECIMAL(38,2) [note: 'Số tiền phí sàn Admin giữ lại.']
+  owner_payout_amount DECIMAL(38,2) [note: 'Số tiền thực tế chuyển cho Owner.']
+  payout_status NVARCHAR(50) [note: 'Trạng thái đối soát: PENDING (chưa chuyển) hoặc PAID (đã chuyển).']
+  payout_at DATETIME2 [note: 'Thời điểm Admin xác nhận đã chuyển khoản cho Owner.']
+  // Snapshot ngân hàng – lưu tại thời điểm chuyển, không đổi khi Owner cập nhật STK sau
+  payout_bank_name NVARCHAR(255) [note: 'Snapshot: Tên ngân hàng tại thời điểm đối soát.']
+  payout_bank_account_number NVARCHAR(50) [note: 'Snapshot: Số tài khoản tại thời điểm đối soát.']
+  payout_bank_account_holder NVARCHAR(255) [note: 'Snapshot: Tên chủ tài khoản tại thời điểm đối soát.']
 }
 
 

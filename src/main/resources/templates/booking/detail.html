@@ -120,5 +120,11 @@
         });
     </script>
 
+    <!-- Nhúng thư viện JS (bootstrap bundle + main.js + flatpickr) -->
+    <div th:replace="~{fragment/frag :: scripts}"></div>
+
+    <!-- Global Popups -->
+    <th:block th:replace="~{fragment/frag :: alerts}"></th:block>
+
 </body>
 </html>

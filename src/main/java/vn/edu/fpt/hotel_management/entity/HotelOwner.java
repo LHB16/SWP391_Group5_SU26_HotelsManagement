@@ -45,6 +45,18 @@ public class HotelOwner {
     @org.hibernate.annotations.Formula("(CASE WHEN {alias}.verification_status = 'PENDING' OR (SELECT COUNT(*) FROM hotel h WHERE h.owner_id = {alias}.id AND h.approval_status = 'PENDING') > 0 THEN 0 ELSE 1 END)")
     private int pendingPriority;
 
+    // =====================================================
+    // PAYOUT: Thông tin ngân hàng để nhận đối soát từ Admin
+    // =====================================================
+    @Column(name = "bank_name")
+    private String bankName;
+
+    @Column(name = "bank_account_number")
+    private String bankAccountNumber;
+
+    @Column(name = "bank_account_holder")
+    private String bankAccountHolder;
+
     public HotelOwner() {
     }
 
@@ -83,4 +95,14 @@ public class HotelOwner {
 
     public String getIdCardDocument() { return idCardDocument; }
     public void setIdCardDocument(String idCardDocument) { this.idCardDocument = idCardDocument; }
+
+    // PAYOUT Getters & Setters
+    public String getBankName() { return bankName; }
+    public void setBankName(String bankName) { this.bankName = bankName; }
+
+    public String getBankAccountNumber() { return bankAccountNumber; }
+    public void setBankAccountNumber(String bankAccountNumber) { this.bankAccountNumber = bankAccountNumber; }
+
+    public String getBankAccountHolder() { return bankAccountHolder; }
+    public void setBankAccountHolder(String bankAccountHolder) { this.bankAccountHolder = bankAccountHolder; }
 }

@@ -81,6 +81,22 @@ public class AdminDashboardController {
         if (loggedInUser == null || !"ADMIN".equals(loggedInUser.getRole())) {
             return "redirect:/login";
         }
+
+        // Tự động chuyển các booking CONFIRMED đã quá giờ checkout (12:00 trưa) sang COMPLETED
+        try {
+            List<Booking> confirmedBookings = bookingRepository.findByStatusInOrderByCreatedAtDesc(java.util.Arrays.asList("CONFIRMED"));
+            LocalDateTime now = LocalDateTime.now();
+            for (Booking b : confirmedBookings) {
+                if (b.getCheckOutDate() != null
+                        && b.getCheckOutDate().atTime(12, 0).isBefore(now)) {
+                    b.setStatus("COMPLETED");
+                    b.setUpdatedAt(now);
+                    bookingRepository.save(b);
+                }
+            }
+        } catch (Exception e) {
+            // Bỏ qua lỗi nếu có
+        }
         
         if ("hotelApprovalPanel".equals(tab)) {
             tab = "hotelOwnerAccounts";
@@ -98,6 +114,11 @@ public class AdminDashboardController {
         // Tính tổng số lượng yêu cầu hoàn tiền đang chờ duyệt
         long pendingRefundCount = refundRepository.findByStatusOrderByRequestedAtAsc("PENDING").size();
         model.addAttribute("pendingRefundCount", pendingRefundCount);
+
+        // Tính tổng số lượng yêu cầu chuyển tiền/payout đang chờ duyệt
+        long pendingPayoutCount = bookingRepository.countByStatusAndPayment_StatusAndPayoutStatus("COMPLETED", "PAID", "PENDING");
+        model.addAttribute("pendingPayoutCount", pendingPayoutCount);
+
 
         // Khởi tạo các Pageable và biến chứa dữ liệu cần thiết
         Pageable defaultCustomerPageable = PageRequest.of(page, 5, Sort.by("userAccount.username").ascending());
@@ -351,7 +372,44 @@ public class AdminDashboardController {
             model.addAttribute("searchType", searchType);
         }
 
+        // --- Tab 9: payoutPanel (Đối soát & Chuyển tiền cho Owner) ---
+        if ("payoutPanel".equals(tab)) {
+            String filterPayoutStatus = (status != null && !status.isBlank()) ? status.toUpperCase() : "PENDING";
+            Pageable payoutPageable = PageRequest.of(page, 10);
 
+            Page<Booking> payoutBookingPage;
+            if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+                String query = searchQuery.trim();
+                // Tìm kiếm theo tên khách sạn HOẶC tên Owner bằng Magic Method
+                payoutBookingPage = bookingRepository
+                        .findByStatusAndPayment_StatusAndPayoutStatusAndHotel_NameContainingIgnoreCaseOrStatusAndPayment_StatusAndPayoutStatusAndHotel_Owner_FullNameContainingIgnoreCaseOrderByCheckOutDateDesc(
+                                "COMPLETED", "PAID", filterPayoutStatus, query,
+                                "COMPLETED", "PAID", filterPayoutStatus, query,
+                                payoutPageable
+                        );
+            } else {
+                payoutBookingPage = bookingRepository
+                        .findByStatusAndPayment_StatusAndPayoutStatusOrderByCheckOutDateDesc(
+                                "COMPLETED", "PAID", filterPayoutStatus, payoutPageable
+                        );
+            }
+
+            long paidPayoutCount = bookingRepository.countByStatusAndPayment_StatusAndPayoutStatus("COMPLETED", "PAID", "PAID");
+
+            model.addAttribute("payoutBookings", payoutBookingPage.getContent());
+            model.addAttribute("payoutCurrentPage", page);
+            model.addAttribute("payoutTotalPages", payoutBookingPage.getTotalPages());
+            model.addAttribute("payoutTotalElements", payoutBookingPage.getTotalElements());
+            model.addAttribute("filterPayoutStatus", filterPayoutStatus);
+            model.addAttribute("paidPayoutCount", paidPayoutCount);
+        } else {
+            model.addAttribute("payoutBookings", Collections.emptyList());
+            model.addAttribute("payoutCurrentPage", 0);
+            model.addAttribute("payoutTotalPages", 0);
+            model.addAttribute("payoutTotalElements", 0L);
+            model.addAttribute("filterPayoutStatus", "PENDING");
+            model.addAttribute("paidPayoutCount", 0L);
+        }
 
         // Hiển thị giao diện dashboard admin
         return "admin/dashboard";
@@ -898,5 +956,134 @@ public class AdminDashboardController {
         feedbackReplyRepository.delete(reply);
         redirectAttributes.addFlashAttribute("successMessage", "Deleted owner reply successfully.");
         return "redirect:/admin/dashboard?tab=ownerFeedbackPanel&page=" + page;
+    }
+
+    // =====================================================
+    // PAYOUT: API cho Admin đối soát chuyển tiền cho Owner
+    // =====================================================
+
+    /**
+     * API AJAX: Lấy thông tin ngân hàng hiện tại của Owner theo bookingId.
+     * Admin dùng để xem STK trước khi xác nhận chuyển.
+     */
+    @GetMapping("/admin/payout/get-bank-info")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public org.springframework.http.ResponseEntity<?> getBankInfoForPayout(
+            @RequestParam("bookingId") int bookingId,
+            @RequestParam(value = "feePercent", defaultValue = "10") double feePercent,
+            HttpSession session) {
+
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"ADMIN".equals(loggedInUser.getRole())) {
+            return org.springframework.http.ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking == null) {
+            return org.springframework.http.ResponseEntity.status(404).body("Booking not found");
+        }
+
+        HotelOwner owner = booking.getHotel() != null ? booking.getHotel().getOwner() : null;
+        if (owner == null) {
+            return org.springframework.http.ResponseEntity.status(404).body("Owner not found for this booking");
+        }
+
+        BigDecimal totalPrice = booking.getTotalPrice() != null ? booking.getTotalPrice() : BigDecimal.ZERO;
+        BigDecimal feePercentDecimal = BigDecimal.valueOf(feePercent).divide(BigDecimal.valueOf(100));
+        BigDecimal platformFeeAmount = totalPrice.multiply(feePercentDecimal).setScale(2, java.math.RoundingMode.HALF_UP);
+        BigDecimal ownerPayoutAmount = totalPrice.subtract(platformFeeAmount).setScale(2, java.math.RoundingMode.HALF_UP);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("bookingId", bookingId);
+        result.put("hotelName", booking.getHotel().getName());
+        result.put("ownerName", owner.getFullName());
+        result.put("bankName", owner.getBankName());
+        result.put("bankAccountNumber", owner.getBankAccountNumber());
+        result.put("bankAccountHolder", owner.getBankAccountHolder());
+        result.put("totalPrice", totalPrice);
+        result.put("platformFeePercent", feePercent);
+        result.put("platformFeeAmount", platformFeeAmount);
+        result.put("ownerPayoutAmount", ownerPayoutAmount);
+
+        return org.springframework.http.ResponseEntity.ok(result);
+    }
+
+    /**
+     * API AJAX: Admin xác nhận đã chuyển tiền cho Owner.
+     * Sẽ snapshot thông tin ngân hàng Owner tại thời điểm này vào booking.
+     */
+    @PostMapping("/admin/payout/process")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public org.springframework.http.ResponseEntity<?> processPayout(
+            @RequestParam("bookingId") int bookingId,
+            @RequestParam(value = "feePercent", defaultValue = "10") double feePercent,
+            HttpSession session) {
+
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"ADMIN".equals(loggedInUser.getRole())) {
+            return org.springframework.http.ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        try {
+            Booking booking = bookingRepository.findById(bookingId).orElse(null);
+            if (booking == null) {
+                return org.springframework.http.ResponseEntity.status(404).body("Booking not found");
+            }
+
+            if (!"COMPLETED".equals(booking.getStatus())) {
+                return org.springframework.http.ResponseEntity.badRequest().body("Booking must be COMPLETED to process payout");
+            }
+
+            if (booking.getPayment() == null || !"PAID".equals(booking.getPayment().getStatus())) {
+                return org.springframework.http.ResponseEntity.badRequest().body("Payment must be PAID to process payout");
+            }
+
+            if ("PAID".equals(booking.getPayoutStatus())) {
+                return org.springframework.http.ResponseEntity.badRequest().body("Payout already processed for this booking");
+            }
+
+            HotelOwner owner = booking.getHotel() != null ? booking.getHotel().getOwner() : null;
+            if (owner == null) {
+                return org.springframework.http.ResponseEntity.status(404).body("Owner not found");
+            }
+
+            if (owner.getBankAccountNumber() == null || owner.getBankAccountNumber().isBlank()) {
+                return org.springframework.http.ResponseEntity.badRequest()
+                        .body("Owner has not set up bank account information yet");
+            }
+
+            // Tính toán phí sàn và số tiền chuyển cho Owner
+            BigDecimal totalPrice = booking.getTotalPrice() != null ? booking.getTotalPrice() : BigDecimal.ZERO;
+            BigDecimal feePercentDecimal = BigDecimal.valueOf(feePercent).divide(BigDecimal.valueOf(100));
+            BigDecimal platformFeeAmount = totalPrice.multiply(feePercentDecimal).setScale(2, java.math.RoundingMode.HALF_UP);
+            BigDecimal ownerPayoutAmount = totalPrice.subtract(platformFeeAmount).setScale(2, java.math.RoundingMode.HALF_UP);
+
+            // Cập nhật thông tin payout vào booking
+            booking.setPlatformFeePercent(BigDecimal.valueOf(feePercent));
+            booking.setPlatformFeeAmount(platformFeeAmount);
+            booking.setOwnerPayoutAmount(ownerPayoutAmount);
+            booking.setPayoutStatus("PAID");
+            booking.setPayoutAt(LocalDateTime.now());
+
+            // SNAPSHOT thông tin ngân hàng tại thời điểm chuyển khoản
+            booking.setPayoutBankName(owner.getBankName());
+            booking.setPayoutBankAccountNumber(owner.getBankAccountNumber());
+            booking.setPayoutBankAccountHolder(owner.getBankAccountHolder());
+
+            bookingRepository.save(booking);
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", true);
+            result.put("message", "Payout processed successfully");
+            result.put("ownerPayoutAmount", ownerPayoutAmount);
+            result.put("platformFeeAmount", platformFeeAmount);
+            result.put("payoutBankName", owner.getBankName());
+            result.put("payoutBankAccountNumber", owner.getBankAccountNumber());
+            result.put("payoutBankAccountHolder", owner.getBankAccountHolder());
+
+            return org.springframework.http.ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.status(500).body("Error: " + e.getMessage());
+        }
     }
 }

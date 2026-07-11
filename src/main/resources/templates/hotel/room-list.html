@@ -467,118 +467,118 @@
                                                         </form>
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                            <!-- Response from Host -->
-                                            <div th:if="${repliesMap != null and repliesMap.containsKey(review.id)}"
-                                                class="ms-4 mt-3 p-3 rounded-3"
-                                                style="background-color: rgba(201, 169, 110, 0.06); border: 1px solid var(--gold-light);">
-                                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                                    <div class="d-flex align-items-center gap-2 fw-bold"
-                                                        style="font-size: 0.88rem; color: var(--gold-dark);">
-                                                        <span
-                                                            style="color: var(--gold); display: inline-flex; align-items: center;">
-                                                            <!-- SVG Bong bóng thoại đặc trưng từ Booking.com sử dụng màu vàng hệ thống -->
-                                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                                width="16px" height="16px" fill="currentColor">
-                                                                <path
-                                                                    d="M.75 24a.75.75 0 0 1-.53-.22.73.73 0 0 1-.15-.85l2.92-6.12A11.23 11.23 0 0 1 12.72 0a11.25 11.25 0 1 1-5.54 21l-6.11 2.93a.7.7 0 0 1-.32.07">
-                                                                </path>
-                                                            </svg>
-                                                        </span>
-                                                        <span>Response from Host:</span>
+                                                <!-- Response from Host -->
+                                                <div th:if="${repliesMap != null and repliesMap.containsKey(review.id)}"
+                                                    class="ms-4 mt-3 p-3 rounded-3"
+                                                    style="background-color: rgba(201, 169, 110, 0.06); border: 1px solid var(--gold-light);">
+                                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                                        <div class="d-flex align-items-center gap-2 fw-bold"
+                                                            style="font-size: 0.88rem; color: var(--gold-dark);">
+                                                            <span
+                                                                style="color: var(--gold); display: inline-flex; align-items: center;">
+                                                                <!-- SVG Bong bóng thoại đặc trưng từ Booking.com sử dụng màu vàng hệ thống -->
+                                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                                                    width="16px" height="16px" fill="currentColor">
+                                                                    <path
+                                                                        d="M.75 24a.75.75 0 0 1-.53-.22.73.73 0 0 1-.15-.85l2.92-6.12A11.23 11.23 0 0 1 12.72 0a11.25 11.25 0 1 1-5.54 21l-6.11 2.93a.7.7 0 0 1-.32.07">
+                                                                    </path>
+                                                                </svg>
+                                                            </span>
+                                                            <span>Response from Host:</span>
+                                                        </div>
+                                                        <div class="text-muted" style="font-size: 0.75rem;"
+                                                            th:text="${#temporals.format(repliesMap.get(review.id).createdAt, 'dd-MM-yyyy HH:mm')}">
+                                                            Date</div>
                                                     </div>
-                                                    <div class="text-muted" style="font-size: 0.75rem;"
-                                                        th:text="${#temporals.format(repliesMap.get(review.id).createdAt, 'dd-MM-yyyy HH:mm')}">
-                                                        Date</div>
-                                                </div>
-                                                <div class="ps-1">
-                                                    <p class="mb-0 text-secondary"
-                                                        style="font-size: 0.85rem; line-height: 1.5; white-space: pre-line;"
-                                                        th:text="${repliesMap.get(review.id).content}">Reply Content</p>
-                                                </div>
+                                                    <div class="ps-1">
+                                                        <p class="mb-0 text-secondary"
+                                                            style="font-size: 0.85rem; line-height: 1.5; white-space: pre-line;"
+                                                            th:text="${repliesMap.get(review.id).content}">Reply Content</p>
+                                                    </div>
 
-                                                <!-- Chỉnh sửa và Xóa phản hồi (Chỉ chủ khách sạn của khách sạn này được phép sửa/xóa) -->
-                                                <div th:if="${isHotelOwner}">
-                                                    <div
-                                                        class="text-end mt-2 d-flex justify-content-end gap-3 align-items-center">
-                                                        <button type="button"
-                                                            class="btn btn-sm btn-link text-gold p-0 fw-semibold text-decoration-none"
-                                                            style="font-size: 0.8rem;" data-bs-toggle="collapse"
-                                                            th:data-bs-target="${'#editReplyForm-' + review.id}">
-                                                            Edit Response
-                                                        </button>
-                                                        <form
-                                                            th:action="@{/hotels/{id}/reviews/{rid}/reply/delete(id=${hotel.id}, rid=${review.id})}"
-                                                            method="post" style="display: inline;"
-                                                            onsubmit="return confirm('Are you sure you want to delete this response?');">
-                                                            <button type="submit"
-                                                                class="btn btn-sm btn-link text-danger p-0 fw-semibold text-decoration-none"
-                                                                style="font-size: 0.8rem;">
-                                                                Delete Response
+                                                    <!-- Chỉnh sửa và Xóa phản hồi (Chỉ chủ khách sạn của khách sạn này được phép sửa/xóa) -->
+                                                    <div th:if="${isHotelOwner}">
+                                                        <div
+                                                            class="text-end mt-2 d-flex justify-content-end gap-3 align-items-center">
+                                                            <button type="button"
+                                                                class="btn btn-sm btn-link text-gold p-0 fw-semibold text-decoration-none"
+                                                                style="font-size: 0.8rem;" data-bs-toggle="collapse"
+                                                                th:data-bs-target="${'#editReplyForm-' + review.id}">
+                                                                Edit Response
                                                             </button>
-                                                        </form>
-                                                    </div>
-
-                                                    <!-- Form chỉnh sửa phản hồi -->
-                                                    <div class="collapse mt-2 text-start"
-                                                        th:id="${'editReplyForm-' + review.id}">
-                                                        <form
-                                                            th:action="@{/hotels/{id}/reviews/{rid}/reply/edit(id=${hotel.id}, rid=${review.id})}"
-                                                            method="post">
-                                                            <div class="mb-2">
-                                                                <textarea name="content"
-                                                                    class="form-control form-control-sm" rows="2"
-                                                                    th:text="${repliesMap.get(review.id).content}"
-                                                                    required></textarea>
-                                                            </div>
-                                                            <div class="d-flex justify-content-end gap-2">
-                                                                <button type="button"
-                                                                    class="btn btn-outline-secondary btn-sm"
-                                                                    data-bs-toggle="collapse"
-                                                                    th:data-bs-target="${'#editReplyForm-' + review.id}">Cancel</button>
+                                                            <form
+                                                                th:action="@{/hotels/{id}/reviews/{rid}/reply/delete(id=${hotel.id}, rid=${review.id})}"
+                                                                method="post" style="display: inline;"
+                                                                onsubmit="return confirm('Are you sure you want to delete this response?');">
                                                                 <button type="submit"
-                                                                    class="btn btn-gold btn-sm">Save</button>
-                                                            </div>
-                                                        </form>
+                                                                    class="btn btn-sm btn-link text-danger p-0 fw-semibold text-decoration-none"
+                                                                    style="font-size: 0.8rem;">
+                                                                    Delete Response
+                                                                </button>
+                                                            </form>
+                                                        </div>
+
+                                                        <!-- Form chỉnh sửa phản hồi -->
+                                                        <div class="collapse mt-2 text-start"
+                                                            th:id="${'editReplyForm-' + review.id}">
+                                                            <form
+                                                                th:action="@{/hotels/{id}/reviews/{rid}/reply/edit(id=${hotel.id}, rid=${review.id})}"
+                                                                method="post">
+                                                                <div class="mb-2">
+                                                                    <textarea name="content"
+                                                                        class="form-control form-control-sm" rows="2"
+                                                                        th:text="${repliesMap.get(review.id).content}"
+                                                                        required></textarea>
+                                                                </div>
+                                                                <div class="d-flex justify-content-end gap-2">
+                                                                    <button type="button"
+                                                                        class="btn btn-outline-secondary btn-sm"
+                                                                        data-bs-toggle="collapse"
+                                                                        th:data-bs-target="${'#editReplyForm-' + review.id}">Cancel</button>
+                                                                    <button type="submit"
+                                                                        class="btn btn-gold btn-sm">Save</button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                            <!-- Nút Reply (Chỉ hiển thị cho chủ khách sạn và khi chưa phản hồi) -->
-                                            <div th:if="${isHotelOwner and (repliesMap == null or !repliesMap.containsKey(review.id))}"
-                                                class="text-end mt-2">
-                                                <button type="button" class="btn btn-sm btn-outline-gold"
-                                                    data-bs-toggle="collapse"
-                                                    th:data-bs-target="${'#replyForm-' + review.id}">
-                                                    <i class="bi bi-reply me-1"></i> Reply
-                                                </button>
+                                                <!-- Nút Reply (Chỉ hiển thị cho chủ khách sạn và khi chưa phản hồi) -->
+                                                <div th:if="${isHotelOwner and (repliesMap == null or !repliesMap.containsKey(review.id))}"
+                                                    class="text-end mt-2">
+                                                    <button type="button" class="btn btn-sm btn-outline-gold"
+                                                        data-bs-toggle="collapse"
+                                                        th:data-bs-target="${'#replyForm-' + review.id}">
+                                                        <i class="bi bi-reply me-1"></i> Reply
+                                                    </button>
 
-                                                <!-- Form tạo phản hồi mới -->
-                                                <div class="collapse mt-2 text-start"
-                                                    th:id="${'replyForm-' + review.id}">
-                                                    <div class="card card-body bg-light border-0 p-3">
-                                                        <form
-                                                            th:action="@{/hotels/{id}/reviews/{rid}/reply(id=${hotel.id}, rid=${review.id})}"
-                                                            method="post">
-                                                            <div class="mb-2">
-                                                                <label
-                                                                    class="form-label small fw-semibold text-uppercase text-muted">Your
-                                                                    Response</label>
-                                                                <textarea name="content"
-                                                                    class="form-control form-control-sm" rows="3"
-                                                                    placeholder="Type your response to this guest..."
-                                                                    required></textarea>
-                                                            </div>
-                                                            <div class="d-flex justify-content-end gap-2">
-                                                                <button type="button"
-                                                                    class="btn btn-outline-secondary btn-sm"
-                                                                    data-bs-toggle="collapse"
-                                                                    th:data-bs-target="${'#replyForm-' + review.id}">Cancel</button>
-                                                                <button type="submit" class="btn btn-gold btn-sm">Submit
-                                                                    Reply</button>
-                                                            </div>
-                                                        </form>
+                                                    <!-- Form tạo phản hồi mới -->
+                                                    <div class="collapse mt-2 text-start"
+                                                        th:id="${'replyForm-' + review.id}">
+                                                        <div class="card card-body bg-light border-0 p-3">
+                                                            <form
+                                                                th:action="@{/hotels/{id}/reviews/{rid}/reply(id=${hotel.id}, rid=${review.id})}"
+                                                                method="post">
+                                                                <div class="mb-2">
+                                                                    <label
+                                                                        class="form-label small fw-semibold text-uppercase text-muted">Your
+                                                                        Response</label>
+                                                                    <textarea name="content"
+                                                                        class="form-control form-control-sm" rows="3"
+                                                                        placeholder="Type your response to this guest..."
+                                                                        required></textarea>
+                                                                </div>
+                                                                <div class="d-flex justify-content-end gap-2">
+                                                                    <button type="button"
+                                                                        class="btn btn-outline-secondary btn-sm"
+                                                                        data-bs-toggle="collapse"
+                                                                        th:data-bs-target="${'#replyForm-' + review.id}">Cancel</button>
+                                                                    <button type="submit" class="btn btn-gold btn-sm">Submit
+                                                                        Reply</button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>

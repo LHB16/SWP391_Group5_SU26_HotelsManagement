@@ -73,6 +73,15 @@ public class ProfileController {
         userInDb.setFullName(getFullNameByRole(userInDb));
         userInDb.setPhone(getPhoneByRole(userInDb));
 
+        // Nếu là HOTEL_OWNER, truyền thông tin ngân hàng vào model
+        if ("HOTEL_OWNER".equalsIgnoreCase(userInDb.getRole())) {
+            hotelOwnerRepository.findByUserAccount(userInDb).ifPresent(owner -> {
+                model.addAttribute("bankName", owner.getBankName() != null ? owner.getBankName() : "");
+                model.addAttribute("bankAccountNumber", owner.getBankAccountNumber() != null ? owner.getBankAccountNumber() : "");
+                model.addAttribute("bankAccountHolder", owner.getBankAccountHolder() != null ? owner.getBankAccountHolder() : "");
+            });
+        }
+
         model.addAttribute("user", userInDb);
         return "User/profile";
     }
@@ -212,23 +221,16 @@ public class ProfileController {
         }
     }
 
-    // Lưu Họ tên mới vào Database (không cần xác thực thêm)
+    // Lưu Họ tên mới vào Database (không cần xác thực thêm - AJAX)
     @PostMapping("/profile/save-fullname")
-    public String saveFullName(
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<?> saveFullName(
             @RequestParam("fullName") String fullName,
             HttpSession session) {
 
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
-            return "redirect:/login";
-        }
-
-        Boolean verified = (Boolean) session.getAttribute("profileVerifiedForEdit");
-        String editField = (String) session.getAttribute("editField");
-
-        if (verified == null || !verified || !"fullName".equals(editField)) {
-            session.setAttribute("errorMessage", "Unauthorized action!");
-            return "redirect:/profile";
+            return org.springframework.http.ResponseEntity.status(401).body("Unauthorized");
         }
 
         try {
@@ -243,11 +245,9 @@ public class ProfileController {
             session.removeAttribute("profileVerifiedForEdit");
             session.removeAttribute("editField");
 
-            session.setAttribute("successMessage", "Full Name updated successfully!");
-            return "redirect:/profile";
+            return org.springframework.http.ResponseEntity.ok("success");
         } catch (Exception e) {
-            session.setAttribute("errorMessage", "System error: " + e.getMessage());
-            return "redirect:/profile";
+            return org.springframework.http.ResponseEntity.status(500).body(e.getMessage());
         }
     }
 
@@ -314,35 +314,21 @@ public class ProfileController {
         }
 
         try {
-            // Sinh OTP mới gửi đến email mới
-            String otp = otpService.generateOtp();
-
-            User userInDb = userRepository.findById(loggedInUser.getId())
-                    .orElseThrow(() -> new RuntimeException("Account not found!"));
-            userInDb.setOtp(otp);
-            userInDb.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
-            userInDb.setOtpType("UPDATE_PROFILE");
-            userRepository.save(userInDb);
-
-            // Gửi mã xác nhận đến Email mới (Bất đồng bộ)
-            final String targetEmail = newEmail;
-            final String otpCode = otp;
-            java.util.concurrent.CompletableFuture.runAsync(() -> {
-                try {
-                    emailService.sendProfileUpdateOtp(targetEmail, otpCode);
-                } catch (Exception e) {
-                    System.err.println("Error sending async new email update OTP: " + e.getMessage());
-                }
-            });
-
             // Lưu email mới tạm thời vào session và thiết lập cờ xác nhận email mới
             session.setAttribute("pendingNewEmail", newEmail);
             session.setAttribute("pendingNewEmailOtpRequest", true);
 
-            session.setAttribute("successMessage", "Verification OTP code is being sent to your new email!");
+            // Xóa OTP cũ trong DB để sẵn sàng cho việc sinh OTP mới ở trang GET
+            User userInDb = userRepository.findById(loggedInUser.getId())
+                    .orElseThrow(() -> new RuntimeException("Account not found!"));
+            userInDb.setOtp(null);
+            userInDb.setOtpExpiry(null);
+            userInDb.setOtpType(null);
+            userRepository.save(userInDb);
+
             return "redirect:/profile/verify-new-email";
         } catch (Exception e) {
-            session.setAttribute("errorMessage", "Error sending OTP to new email: " + e.getMessage());
+            session.setAttribute("errorMessage", "Error initializing email update: " + e.getMessage());
             return "redirect:/profile";
         }
     }
@@ -360,6 +346,34 @@ public class ProfileController {
 
         if (pendingNewEmailOtpRequest == null || !pendingNewEmailOtpRequest || pendingNewEmail == null) {
             return "redirect:/profile";
+        }
+
+        try {
+            User userInDb = userRepository.findById(loggedInUser.getId())
+                    .orElseThrow(() -> new RuntimeException("Account not found!"));
+            
+            // Chỉ sinh và gửi OTP nếu chưa có mã OTP hiện tại hoạt động hoặc mã đã hết hạn
+            if (userInDb.getOtp() == null || userInDb.getOtpExpiry() == null || userInDb.getOtpExpiry().isBefore(LocalDateTime.now())) {
+                String otp = otpService.generateOtp();
+                userInDb.setOtp(otp);
+                userInDb.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
+                userInDb.setOtpType("UPDATE_PROFILE");
+                userRepository.save(userInDb);
+
+                final String targetEmail = pendingNewEmail;
+                final String otpCode = otp;
+                java.util.concurrent.CompletableFuture.runAsync(() -> {
+                    try {
+                        emailService.sendProfileUpdateOtp(targetEmail, otpCode);
+                    } catch (Exception e) {
+                        System.err.println("Error sending async new email update OTP: " + e.getMessage());
+                    }
+                });
+
+                model.addAttribute("successMessage", "Verification OTP code is being sent to your new email!");
+            }
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Error: " + e.getMessage());
         }
 
         String successMsg = (String) session.getAttribute("successMessage");
@@ -488,6 +502,48 @@ public class ProfileController {
     public String cancelEdit(HttpSession session) {
         clearEmailChangeSession(session);
         return "redirect:/profile";
+    }
+
+    // Lưu thông tin ngân hàng của Owner (AJAX - không cần OTP)
+    @PostMapping("/profile/save-bank-info")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<?> saveBankInfo(
+            @RequestParam("bankName") String bankName,
+            @RequestParam("bankAccountNumber") String bankAccountNumber,
+            @RequestParam("bankAccountHolder") String bankAccountHolder,
+            HttpSession session) {
+
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return org.springframework.http.ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        if (!"HOTEL_OWNER".equalsIgnoreCase(loggedInUser.getRole())) {
+            return org.springframework.http.ResponseEntity.status(403).body("Forbidden: Only Hotel Owner can update bank info");
+        }
+
+        if (bankName == null || bankName.isBlank() ||
+            bankAccountNumber == null || bankAccountNumber.isBlank() ||
+            bankAccountHolder == null || bankAccountHolder.isBlank()) {
+            return org.springframework.http.ResponseEntity.badRequest().body("All bank info fields are required");
+        }
+
+        try {
+            User userInDb = userRepository.findById(loggedInUser.getId())
+                    .orElseThrow(() -> new RuntimeException("Account not found!"));
+
+            HotelOwner owner = hotelOwnerRepository.findByUserAccount(userInDb)
+                    .orElseThrow(() -> new RuntimeException("Hotel owner profile not found!"));
+
+            owner.setBankName(bankName.trim());
+            owner.setBankAccountNumber(bankAccountNumber.trim());
+            owner.setBankAccountHolder(bankAccountHolder.trim().toUpperCase());
+            hotelOwnerRepository.save(owner);
+
+            return org.springframework.http.ResponseEntity.ok("success");
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.status(500).body(e.getMessage());
+        }
     }
 
     private void clearEmailChangeSession(HttpSession session) {

@@ -154,6 +154,7 @@
                                     <th>Total</th>
                                     <th>Status</th>
                                     <th>Payment</th>
+                                    <th>Payout</th>
                                 </tr>
                                 </thead>
                                 <tbody id="bookingTableBody">
@@ -188,9 +189,20 @@
                                                                  (${b.paymentStatus == 'REFUNDED'} ? 'bg-info-light text-info border-info' : 'bg-light-secondary text-secondary border-secondary')))"
                                                   th:text="${b.paymentStatus}">PAYMENT</span>
                                     </td>
+                                    <!-- Cột Payout: chỉ hiển thị khi bookingStatus == COMPLETED -->
+                                    <td style="padding: 8px 10px; white-space: nowrap; text-align: center;">
+                                        <span th:if="${b.bookingStatus != 'COMPLETED'}" class="text-muted" style="font-size:0.75rem;">-</span>
+                                        <button th:if="${b.bookingStatus == 'COMPLETED' && b.payoutStatus == 'PAID'}"
+                                                class="badge bg-success border-0"
+                                                style="cursor:pointer; padding: 5px 10px; border-radius: 20px; font-size: 0.72rem;"
+                                                th:attr="onclick='openOwnerPayoutDetail(' + ${b.bookingId} + ', \'' + ${b.payoutBankName} + '\', \'' + ${b.payoutBankAccountNumber} + '\', \'' + ${b.payoutBankAccountHolder} + '\', ' + ${b.ownerPayoutAmount} + ', ' + ${b.platformFeePercent} + ', \'' + (${b.payoutAt} != null ? ${b.payoutAt} : '') + '\')'">PAID ↗</button>
+                                        <span th:if="${b.bookingStatus == 'COMPLETED' && b.payoutStatus != 'PAID'}" 
+                                              class="badge bg-warning text-dark"
+                                              style="padding: 5px 10px; border-radius: 20px; font-size: 0.72rem;">PENDING</span>
+                                    </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(recentBookings)}">
-                                    <td colspan="9" class="text-center text-muted py-5">
+                                    <td colspan="10" class="text-center text-muted py-5">
                                         <i data-lucide="inbox" class="d-block mx-auto mb-2" style="width: 40px; height: 40px; opacity: 0.4;"></i>
                                         No bookings found.
                                     </td>
@@ -874,5 +886,40 @@
 <script th:src="@{/assets/js/owner-dashboard.js}"></script>
 <script th:src="@{/assets/js/promotion.js}"></script>
 
+<!-- Modal: Chi tiết Payout đã nhận -->
+<div class="modal fade" id="ownerPayoutDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow border-0" style="border-radius: 14px;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" style="color:#0f172a;">
+                    <i data-lucide="banknote" style="stroke-width:1.5; width:20px; height:20px; color:#10b981;"></i>
+                    Payout Received
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 pb-1">
+                <div class="alert alert-success border-0 py-2 px-3 mb-3" style="background:#f0fdf4; border-radius:8px;">
+                    <small class="text-success fw-semibold">Admin has processed this payout to your bank account.</small>
+                </div>
+                <table class="table table-borderless table-sm">
+                    <tr><td class="text-muted small" style="width:140px;">Bank Name</td><td class="fw-semibold" id="opd-bankName">-</td></tr>
+                    <tr><td class="text-muted small">Account Number</td><td class="fw-semibold" id="opd-accountNumber">-</td></tr>
+                    <tr><td class="text-muted small">Account Holder</td><td class="fw-semibold" id="opd-accountHolder">-</td></tr>
+                    <tr><td class="text-muted small">Platform Fee</td><td class="fw-semibold text-muted" id="opd-feePercent">-</td></tr>
+                    <tr>
+                        <td class="text-muted small">Amount Received</td>
+                        <td class="fw-bold text-success fs-6" id="opd-payoutAmount">-</td>
+                    </tr>
+                    <tr><td class="text-muted small">Transferred At</td><td class="small text-muted" id="opd-payoutAt">-</td></tr>
+                </table>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
+

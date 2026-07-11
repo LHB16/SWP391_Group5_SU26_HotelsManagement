@@ -346,3 +346,34 @@ function formatAllBookingDates() {
         }
     });
 }
+
+// ============================================================
+// OPEN PAYOUT DETAIL MODAL FOR OWNER
+// ============================================================
+window.openOwnerPayoutDetail = function(bookingId, bankName, accountNumber, accountHolder, payoutAmount, feePercent, payoutAt) {
+    const elBankName = document.getElementById('opd-bankName');
+    const elAccountNumber = document.getElementById('opd-accountNumber');
+    const elAccountHolder = document.getElementById('opd-accountHolder');
+    const elFeePercent = document.getElementById('opd-feePercent');
+    const elPayoutAmount = document.getElementById('opd-payoutAmount');
+    const elPayoutAt = document.getElementById('opd-payoutAt');
+
+    if (elBankName) elBankName.textContent = bankName || 'N/A';
+    if (elAccountNumber) elAccountNumber.textContent = accountNumber || 'N/A';
+    if (elAccountHolder) elAccountHolder.textContent = accountHolder || 'N/A';
+    if (elFeePercent) elFeePercent.textContent = (feePercent || 10) + '%';
+
+    const fmt = new Intl.NumberFormat('vi-VN', { style: 'decimal', minimumFractionDigits: 0 });
+    if (elPayoutAmount) {
+        elPayoutAmount.textContent = (payoutAmount ? fmt.format(payoutAmount) : '0') + ' VND';
+    }
+    if (elPayoutAt) {
+        elPayoutAt.textContent = payoutAt ? payoutAt.replace('T', ' ').substring(0, 19) : 'N/A';
+    }
+
+    const modalEl = document.getElementById('ownerPayoutDetailModal');
+    if (modalEl) {
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+};
