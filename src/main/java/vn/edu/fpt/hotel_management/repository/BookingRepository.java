@@ -62,8 +62,7 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
 
     // ===== FILTER METHODS FOR BOOKINGS =====
 
-    @Query("SELECT b FROM Booking b WHERE b.hotel.id IN :hotelIds ORDER BY b.createdAt DESC")
-    List<Booking> findByHotelIds(@Param("hotelIds") List<Integer> hotelIds);
+    List<Booking> findByHotelIdInOrderByCreatedAtDesc(List<Integer> hotelIds);
 
     @Query("SELECT b FROM Booking b WHERE b.hotel.id IN :hotelIds AND (LOWER(b.fullName) LIKE LOWER(CONCAT('%', :customerName, '%')) OR (b.fullName IS NULL AND LOWER(b.customer.fullName) LIKE LOWER(CONCAT('%', :customerName, '%')))) ORDER BY b.createdAt DESC")
     List<Booking> findByHotelIdsAndCustomerName(
@@ -71,23 +70,11 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
             @Param("customerName") String customerName
     );
 
-    @Query("SELECT b FROM Booking b WHERE b.hotel.id IN :hotelIds AND b.status = :status ORDER BY b.createdAt DESC")
-    List<Booking> findByHotelIdsAndStatus(
-            @Param("hotelIds") List<Integer> hotelIds,
-            @Param("status") String status
-    );
+    List<Booking> findByHotelIdInAndStatusOrderByCreatedAtDesc(List<Integer> hotelIds, String status);
 
-    @Query("SELECT b FROM Booking b WHERE b.hotel.id IN :hotelIds AND b.checkInDate = :checkInDate ORDER BY b.createdAt DESC")
-    List<Booking> findByHotelIdsAndCheckInDate(
-            @Param("hotelIds") List<Integer> hotelIds,
-            @Param("checkInDate") LocalDate checkInDate
-    );
+    List<Booking> findByHotelIdInAndCheckInDateOrderByCreatedAtDesc(List<Integer> hotelIds, LocalDate checkInDate);
 
-    @Query("SELECT b FROM Booking b WHERE b.hotel.id IN :hotelIds AND b.checkOutDate = :checkOutDate ORDER BY b.createdAt DESC")
-    List<Booking> findByHotelIdsAndCheckOutDate(
-            @Param("hotelIds") List<Integer> hotelIds,
-            @Param("checkOutDate") LocalDate checkOutDate
-    );
+    List<Booking> findByHotelIdInAndCheckOutDateOrderByCreatedAtDesc(List<Integer> hotelIds, LocalDate checkOutDate);
 
     List<Booking> findByCustomerIdAndStatusContainingIgnoreCaseAndRoomTypeContainingIgnoreCaseAndCheckInDateLessThanEqualAndCheckOutDateGreaterThanEqualOrderByCreatedAtDesc(
             int customerId,
