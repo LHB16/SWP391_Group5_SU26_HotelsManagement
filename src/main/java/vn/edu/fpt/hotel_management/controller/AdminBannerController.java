@@ -29,7 +29,7 @@ public class AdminBannerController {
             @RequestParam(value = "bannerImage", required = false) MultipartFile file,
             @RequestParam(value = "imageUrl", required = false) String imageUrl,
             @RequestParam(value = "title", required = false) String title,
-            @RequestParam("linkUrl") String linkUrl,
+            @RequestParam(value = "linkUrl", required = false) String linkUrl,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
 
@@ -77,7 +77,7 @@ public class AdminBannerController {
         Banner banner = new Banner();
         banner.setImageUrl(finalImageUrl);
         banner.setTitle(title != null ? title.trim() : "");
-        banner.setLinkUrl(linkUrl.trim());
+        banner.setLinkUrl(linkUrl != null ? linkUrl.trim() : "");
         banner.setActive(true);
 
         bannerRepository.save(banner);

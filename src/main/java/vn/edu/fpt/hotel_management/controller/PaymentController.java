@@ -339,7 +339,7 @@ public class PaymentController {
         Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
         LocalDateTime qrExpiresAt;
         if (payment == null) {
-            qrExpiresAt = LocalDateTime.now().plusMinutes(15); // QR hết hạn sau 15 phút
+            qrExpiresAt = LocalDateTime.now().plusMinutes(1); // QR hết hạn sau 15 phút
             payment = new Payment();
             payment.setBooking(parentBooking);
             payment.setAmount(grandTotalPrice); // Sử dụng giá trị tổng cộng cho Payment

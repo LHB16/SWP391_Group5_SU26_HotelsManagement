@@ -7,12 +7,16 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import vn.edu.fpt.hotel_management.entity.Banner;
 import vn.edu.fpt.hotel_management.entity.Hotel;
+import vn.edu.fpt.hotel_management.entity.Promotion;
 import vn.edu.fpt.hotel_management.entity.User;
 import vn.edu.fpt.hotel_management.repository.BannerRepository;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
+import vn.edu.fpt.hotel_management.repository.PromotionRepository;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class HomeController {
@@ -22,6 +26,9 @@ public class HomeController {
 
     @Autowired
     private BannerRepository bannerRepository;
+
+    @Autowired
+    private PromotionRepository promotionRepository;
 
     @GetMapping({"/", "/home"})
     public String showHomePage(HttpSession session, Model model) {
@@ -44,6 +51,19 @@ public class HomeController {
             promoHotels = promoHotels.subList(0, 6);
         }
         model.addAttribute("promoHotels", promoHotels);
+
+        // 4. Build a map of hotelId -> best discount percent for the promo badge
+        Map<Integer, Integer> promoDiscountMap = new HashMap<>();
+        LocalDate today = LocalDate.now();
+        for (Hotel h : promoHotels) {
+            List<Promotion> promos = promotionRepository.findActivePromotionsByHotelId(h.getId(), today);
+            promos.stream()
+                  .filter(p -> p.getDiscountPercent() != null)
+                  .mapToInt(p -> p.getDiscountPercent().intValue())
+                  .max()
+                  .ifPresent(max -> promoDiscountMap.put(h.getId(), max));
+        }
+        model.addAttribute("promoDiscountMap", promoDiscountMap);
 
         return "HomePage/home";
     }
