@@ -1,4 +1,4 @@
-﻿package vn.edu.fpt.hotel_management.controller;
+package vn.edu.fpt.hotel_management.controller;
 
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
