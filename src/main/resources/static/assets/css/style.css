@@ -23092,8 +23092,6 @@ td .discount-badge {
   transition: all 0.2s ease !important;
 }
 
-}
-
 /* Tiêu đề loại phòng - Trang danh sách phòng */
 .room-type-title {
   color: var(--gold) !important;
@@ -23164,11 +23162,19 @@ td .discount-badge {
    VietQR Toggle - Animate Fade In
    ============================================= */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 .animate-fade-in {
-    animation: fadeIn 0.25s ease both;
+  animation: fadeIn 0.25s ease both;
 }
 
 /* =============================================
@@ -23355,8 +23361,8 @@ td .discount-badge {
   border-color: #fca5a5 !important;
 }
 
-#tab-vietqr:checked ~ #shared-payment-timer,
-#tab-paypal:checked ~ #shared-payment-timer {
+#tab-vietqr:checked~#shared-payment-timer,
+#tab-paypal:checked~#shared-payment-timer {
   display: flex !important;
 }
 
@@ -24743,6 +24749,7 @@ body.overflow-hidden nav {
   justify-content: center !important;
   font-size: 0.82rem !important;
 }
+
 .customer-support-hero-btn:hover {
   background-color: #c9a96e !important;
   color: #ffffff !important;
@@ -24808,7 +24815,8 @@ body.overflow-hidden nav {
   color: var(--gold);
 }
 
-.slider-btn i, .slider-btn svg {
+.slider-btn i,
+.slider-btn svg {
   width: 20px;
   height: 20px;
   stroke-width: 2.5;
