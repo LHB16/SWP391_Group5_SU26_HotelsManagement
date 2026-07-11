@@ -49,8 +49,7 @@
                                     <div
                                         class="card-header booking-room-hotel-header py-2 px-3 text-center text-white fw-bold booking-hotel-header-styled border-0">
                                         <span
-                                            th:text="${(hotelMap != null ? hotelMap.get(room.hotelId) : '') + ': ' + (hotelAddressMap != null ? hotelAddressMap.get(room.hotelId) : '')}">Hotel
-                                            Name: Address</span>
+                                            th:text="${hotelMap != null ? hotelMap.get(room.hotelId) : ''}">Hotel Name</span>
                                     </div>
 
                                     <!-- HÀNG 2: Gồm check in, check out, select room và nút Filter -->
