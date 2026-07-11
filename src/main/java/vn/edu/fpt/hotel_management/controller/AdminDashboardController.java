@@ -115,6 +115,11 @@ public class AdminDashboardController {
         long pendingRefundCount = refundRepository.findByStatusOrderByRequestedAtAsc("PENDING").size();
         model.addAttribute("pendingRefundCount", pendingRefundCount);
 
+        // Tính tổng số lượng yêu cầu chuyển tiền/payout đang chờ duyệt
+        long pendingPayoutCount = bookingRepository.countByStatusAndPayment_StatusAndPayoutStatus("COMPLETED", "PAID", "PENDING");
+        model.addAttribute("pendingPayoutCount", pendingPayoutCount);
+
+
         // Khởi tạo các Pageable và biến chứa dữ liệu cần thiết
         Pageable defaultCustomerPageable = PageRequest.of(page, 5, Sort.by("userAccount.username").ascending());
         Pageable defaultOwnerPageable = PageRequest.of(page, 5, Sort.by("userAccount.username").ascending());
@@ -389,23 +394,13 @@ public class AdminDashboardController {
                         );
             }
 
-            long pendingPayoutCount = bookingRepository
-                    .findByStatusAndPayment_StatusAndPayoutStatusOrderByCheckOutDateDesc(
-                            "COMPLETED", "PAID", "PENDING",
-                            PageRequest.of(0, Integer.MAX_VALUE)
-                    ).getTotalElements();
-            long paidPayoutCount = bookingRepository
-                    .findByStatusAndPayment_StatusAndPayoutStatusOrderByCheckOutDateDesc(
-                            "COMPLETED", "PAID", "PAID",
-                            PageRequest.of(0, Integer.MAX_VALUE)
-                    ).getTotalElements();
+            long paidPayoutCount = bookingRepository.countByStatusAndPayment_StatusAndPayoutStatus("COMPLETED", "PAID", "PAID");
 
             model.addAttribute("payoutBookings", payoutBookingPage.getContent());
             model.addAttribute("payoutCurrentPage", page);
             model.addAttribute("payoutTotalPages", payoutBookingPage.getTotalPages());
             model.addAttribute("payoutTotalElements", payoutBookingPage.getTotalElements());
             model.addAttribute("filterPayoutStatus", filterPayoutStatus);
-            model.addAttribute("pendingPayoutCount", pendingPayoutCount);
             model.addAttribute("paidPayoutCount", paidPayoutCount);
         } else {
             model.addAttribute("payoutBookings", Collections.emptyList());
@@ -413,7 +408,6 @@ public class AdminDashboardController {
             model.addAttribute("payoutTotalPages", 0);
             model.addAttribute("payoutTotalElements", 0L);
             model.addAttribute("filterPayoutStatus", "PENDING");
-            model.addAttribute("pendingPayoutCount", 0L);
             model.addAttribute("paidPayoutCount", 0L);
         }
 

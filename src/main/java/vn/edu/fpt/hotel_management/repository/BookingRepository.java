@@ -124,5 +124,6 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
             String status2, String paymentStatus2, String payoutStatus2, String ownerName,
             Pageable pageable
     );
-}
 
+    long countByStatusAndPayment_StatusAndPayoutStatus(String status, String paymentStatus, String payoutStatus);
+}
