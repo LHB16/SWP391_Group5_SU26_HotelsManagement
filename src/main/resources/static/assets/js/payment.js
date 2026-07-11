@@ -15,6 +15,14 @@
             return (m < 10 ? '0' : '') + m + ':' + (ss < 10 ? '0' : '') + ss;
         }
         
+        function showExpiredOverlay() {
+            var modalEl = document.getElementById('paymentExpiredModal');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                var modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            }
+        }
+
         el.textContent = fmt(secs);
         let timerInterval = null;
         
@@ -26,6 +34,7 @@
                     el.textContent = '00:00'; 
                     clearInterval(timerInterval); 
                     timerInterval = null;
+                    showExpiredOverlay();   // ← Show expired modal immediately
                     return; 
                 }
                 el.textContent = fmt(secs);

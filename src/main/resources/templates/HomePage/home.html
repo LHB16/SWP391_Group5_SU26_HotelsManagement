@@ -33,14 +33,52 @@
             <div class="col-lg-11 col-md-12">
                 <div class="search-card-traveloka">
                     <form th:action="@{/hotels}" method="get" class="search-pill-container">
-                        <input type="hidden" name="persons" id="hiddenPersons" value="1" />
-                        <input type="hidden" name="rooms" id="hiddenRooms" value="1" />
                         <!-- Field 1: Destination -->
-                        <div class="search-pill-col" style="flex: 1.5;">
-                            <label class="search-pill-label">Enter City:</label>
+                        <div class="search-pill-col position-relative" style="flex: 1.5;">
+                            <label class="search-pill-label">City, Destination, or Hotel Name:</label>
                             <div class="search-pill-input-wrapper">
                                 <i data-lucide="map-pin" style="width: 18px; height: 18px;"></i>
-                                <input type="text" name="search" class="search-pill-input" placeholder="Enter City..." autocomplete="off" />
+                                <input type="text" name="search" id="destInput" class="search-pill-input" placeholder="City, hotel, or place" autocomplete="off" />
+                            </div>
+
+                            <!-- Destination Autocomplete suggestions dropdown (Traveloka style) -->
+                            <div id="destSuggestions" class="guests-dropdown-card d-none" style="width: 100%; top: calc(100% + 5px); left: 0; z-index: 1000; max-height: 250px; overflow-y: auto; padding: 8px 0;">
+                                <div class="px-3 py-1 text-muted small fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.05em;">Popular Cities</div>
+                                <div class="suggestion-item px-3 py-2" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" data-val="Cần Thơ">
+                                    <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #c9a96e;"></i>
+                                    <div>
+                                        <span class="fw-semibold text-dark">Cần Thơ</span>
+                                        <span class="text-muted d-block small" style="font-size: 0.75rem;">Mekong Delta, Vietnam</span>
+                                    </div>
+                                </div>
+                                <div class="suggestion-item px-3 py-2" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" data-val="Đà Nẵng">
+                                    <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #c9a96e;"></i>
+                                    <div>
+                                        <span class="fw-semibold text-dark">Đà Nẵng</span>
+                                        <span class="text-muted d-block small" style="font-size: 0.75rem;">Central Coast, Vietnam</span>
+                                    </div>
+                                </div>
+                                <div class="suggestion-item px-3 py-2" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" data-val="Hồ Chí Minh">
+                                    <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #c9a96e;"></i>
+                                    <div>
+                                        <span class="fw-semibold text-dark">Hồ Chí Minh</span>
+                                        <span class="text-muted d-block small" style="font-size: 0.75rem;">Southern Region, Vietnam</span>
+                                    </div>
+                                </div>
+                                <div class="suggestion-item px-3 py-2" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" data-val="Đà Lạt">
+                                    <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #c9a96e;"></i>
+                                    <div>
+                                        <span class="fw-semibold text-dark">Đà Lạt</span>
+                                        <span class="text-muted d-block small" style="font-size: 0.75rem;">Central Highlands, Vietnam</span>
+                                    </div>
+                                </div>
+                                <div class="suggestion-item px-3 py-2" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" data-val="Hà Nội">
+                                    <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #c9a96e;"></i>
+                                    <div>
+                                        <span class="fw-semibold text-dark">Hà Nội</span>
+                                        <span class="text-muted d-block small" style="font-size: 0.75rem;">Capital City, Vietnam</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <!-- Field 2: Check-in Date -->
@@ -64,21 +102,33 @@
                             <label class="search-pill-label">Guests and Rooms:</label>
                             <div class="search-pill-input-wrapper" id="guestsPickerTrigger" style="cursor: pointer;">
                                 <i data-lucide="users" style="width: 18px; height: 18px;"></i>
-                                <input type="text" id="guestsInputDisplay" class="search-pill-input" value="1 Person, 1 Room" readonly style="cursor: pointer;" />
+                                <input type="text" id="guestsInputDisplay" class="search-pill-input" value="2 Adults, 0 Children, 1 Room" readonly style="cursor: pointer;" />
                             </div>
 
                             <!-- Popover Dropdown (Traveloka Style) -->
                             <div id="guestsDropdown" class="guests-dropdown-card d-none">
-                                <!-- Person Row -->
+                                <!-- Adults Row -->
                                 <div class="guests-dropdown-row">
                                     <div class="guests-dropdown-label-box">
                                         <i data-lucide="user" style="width: 18px; height: 18px; color: #0194f3;"></i>
-                                        <span class="fw-semibold">Person</span>
+                                        <span class="fw-semibold">Adults</span>
                                     </div>
                                     <div class="guests-counter-controls">
-                                        <button type="button" class="btn-counter-ctrl" id="btnPersonMinus">—</button>
-                                        <span class="counter-display" id="personCountDisplay">1</span>
-                                        <button type="button" class="btn-counter-ctrl" id="btnPersonPlus">+</button>
+                                        <button type="button" class="btn-counter-ctrl" id="btnAdultMinus">—</button>
+                                        <span class="counter-display" id="adultCountDisplay">2</span>
+                                        <button type="button" class="btn-counter-ctrl" id="btnAdultPlus">+</button>
+                                    </div>
+                                </div>
+                                <!-- Children Row -->
+                                <div class="guests-dropdown-row">
+                                    <div class="guests-dropdown-label-box">
+                                        <i data-lucide="baby" style="width: 18px; height: 18px; color: #0194f3;"></i>
+                                        <span class="fw-semibold">Children</span>
+                                    </div>
+                                    <div class="guests-counter-controls">
+                                        <button type="button" class="btn-counter-ctrl" id="btnChildMinus">—</button>
+                                        <span class="counter-display" id="childCountDisplay">0</span>
+                                        <button type="button" class="btn-counter-ctrl" id="btnChildPlus">+</button>
                                     </div>
                                 </div>
                                 <!-- Rooms Row -->
@@ -100,7 +150,7 @@
                             </div>
                         </div>
                         <!-- Search Button -->
-                        <button type="submit" class="search-pill-btn-theme">
+                        <button type="submit" class="search-pill-btn-orange">
                             <i data-lucide="search" style="width: 20px; height: 20px; stroke-width: 3;"></i>
                         </button>
                     </form>
@@ -111,185 +161,219 @@
         <div style="margin-top: 50px;"></div>
 
         <!-- 1. Centered Large Banner Carousel Slider -->
-        <div class="banner-slider-wrapper mb-5">
-            <!-- Banners Slider (Bootstrap Carousel) -->
-            <div th:if="${banners != null and !#lists.isEmpty(banners)}" id="bannerCarousel" class="carousel slide banner-slider-container" data-bs-ride="carousel" data-bs-interval="3500">
-                <!-- Indicators -->
-                <div class="carousel-indicators" th:if="${#lists.size(banners) > 1}">
-                    <button type="button" th:each="b, iterStat : ${banners}" 
-                            data-bs-target="#bannerCarousel" 
-                            th:data-bs-slide-to="${iterStat.index}" 
-                            th:classappend="${iterStat.index == 0} ? 'active' : ''"
-                            th:attr="aria-label='Slide ' + ${iterStat.index + 1}"></button>
-                </div>
-                <!-- Slides -->
-                <div class="carousel-inner">
-                    <div th:each="b, iterStat : ${banners}" class="carousel-item" th:classappend="${iterStat.index == 0} ? 'active' : ''">
-                        <a th:href="${b.linkUrl != null and !#strings.isEmpty(b.linkUrl)} ? ${b.linkUrl} : '#'" class="d-block w-100 h-100">
-                            <img th:src="${b.imageUrl}" th:alt="${b.title}" class="d-block w-100 h-100 banner-img-element" />
-                        </a>
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-11 col-md-12">
+                <div class="banner-slider-wrapper">
+                    <!-- Banners Slider (Bootstrap Carousel) -->
+                    <div th:if="${banners != null and !#lists.isEmpty(banners)}" id="bannerCarousel" class="carousel slide banner-slider-container" data-bs-ride="carousel" data-bs-interval="3500">
+                        <!-- Indicators -->
+                        <div class="carousel-indicators" th:if="${#lists.size(banners) > 1}">
+                            <button type="button" th:each="b, iterStat : ${banners}" 
+                                    data-bs-target="#bannerCarousel" 
+                                    th:data-bs-slide-to="${iterStat.index}" 
+                                    th:classappend="${iterStat.index == 0} ? 'active' : ''"
+                                    th:attr="aria-label='Slide ' + ${iterStat.index + 1}"></button>
+                        </div>
+                        <!-- Slides -->
+                        <div class="carousel-inner">
+                            <div th:each="b, iterStat : ${banners}" class="carousel-item" th:classappend="${iterStat.index == 0} ? 'active' : ''">
+                                <img th:src="${b.imageUrl}" th:alt="${b.title}" class="d-block w-100 h-100 main-banner-img" />
+                            </div>
+                        </div>
+                        <!-- Controls -->
+                        <button class="carousel-control-prev" type="button" data-bs-target="#bannerCarousel" data-bs-slide="prev" th:if="${#lists.size(banners) > 1}">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#bannerCarousel" data-bs-slide="next" th:if="${#lists.size(banners) > 1}">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
                     </div>
-                </div>
-                <!-- Controls -->
-                <button class="carousel-control-prev" type="button" data-bs-target="#bannerCarousel" data-bs-slide="prev" th:if="${#lists.size(banners) > 1}">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Previous</span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#bannerCarousel" data-bs-slide="next" th:if="${#lists.size(banners) > 1}">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Next</span>
-                </button>
-            </div>
 
-            <!-- Fallback Sample Banners Slider if none are defined by admin -->
-            <div th:if="${banners == null or #lists.isEmpty(banners)}" id="bannerCarouselFallback" class="carousel slide banner-slider-container" data-bs-ride="carousel" data-bs-interval="3500">
-                <div class="carousel-indicators">
-                    <button type="button" data-bs-target="#bannerCarouselFallback" data-bs-slide-to="0" class="active" aria-label="Slide 1"></button>
-                    <button type="button" data-bs-target="#bannerCarouselFallback" data-bs-slide-to="1" aria-label="Slide 2"></button>
-                </div>
-                <div class="carousel-inner">
-                    <div class="carousel-item active">
-                        <img src="https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=960&h=260&fit=crop&q=80" alt="Summer Promo" class="d-block w-100 h-100 banner-img-element" />
+                    <!-- Fallback Sample Banners Slider if none are defined by admin -->
+                    <div th:if="${banners == null or #lists.isEmpty(banners)}" id="bannerCarouselFallback" class="carousel slide banner-slider-container" data-bs-ride="carousel" data-bs-interval="3500">
+                        <div class="carousel-indicators">
+                            <button type="button" data-bs-target="#bannerCarouselFallback" data-bs-slide-to="0" class="active" aria-label="Slide 1"></button>
+                            <button type="button" data-bs-target="#bannerCarouselFallback" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                        </div>
+                        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                                <img src="https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=960&h=260&fit=crop&q=80" alt="Summer Promo" class="d-block w-100 h-100 main-banner-img" />
+                            </div>
+                            <div class="carousel-item">
+                                <img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=960&h=260&fit=crop&q=80" alt="Local Deals" class="d-block w-100 h-100 main-banner-img" />
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#bannerCarouselFallback" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#bannerCarouselFallback" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
                     </div>
-                    <div class="carousel-item">
-                        <img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=960&h=260&fit=crop&q=80" alt="Local Deals" class="d-block w-100 h-100 banner-img-element" />
-                    </div>
                 </div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#bannerCarouselFallback" data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Previous</span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#bannerCarouselFallback" data-bs-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Next</span>
-                </button>
             </div>
         </div>
 
         <!-- 2. Highly Rated Hotels (Đánh giá cao) -->
-        <div th:if="${topRatedHotels != null and !#lists.isEmpty(topRatedHotels)}">
-            <div class="section-header">
-                <div>
-                    <h3 class="section-title">Top Rated Stays</h3>
-                    <p class="section-subtitle">Loved by guests, highly rated on rating score.</p>
+        <div th:if="${topRatedHotels != null and !#lists.isEmpty(topRatedHotels)}" class="row justify-content-center mb-5">
+            <div class="col-lg-11 col-md-12">
+                <div class="section-header">
+                    <div>
+                        <h3 class="section-title">Top Rated Stays</h3>
+                        <p class="section-subtitle">Loved by guests, highly rated on rating score.</p>
+                    </div>
                 </div>
-            </div>
-            <div class="hotel-grid-row">
-                <a th:each="h : ${topRatedHotels}" th:href="@{/hotels/{id}/rooms(id=${h.id})}" class="hotel-premium-card">
-                    <div class="hotel-card-image-box">
-                        <img th:src="${h.imageUrl != null and !#strings.isEmpty(h.imageUrl)} ? ${h.imageUrl} : '/assets/images/hotel-placeholder.jpg'" alt="Hotel image" class="hotel-card-image" />
-                        <div class="hotel-rating-overlay">
-                            <span style="color: #facc15;">★</span>
-                            <span th:text="${h.rating}">4.8</span>
-                        </div>
-                    </div>
-                    <div class="hotel-card-body">
-                        <h5 class="hotel-card-title" th:text="${h.name}">Hotel Name</h5>
-                        <div class="hotel-card-location">
-                            <i data-lucide="map-pin" style="width: 14px; height: 14px; color: #94a3b8;"></i>
-                            <span th:text="${h.city}">Can Tho</span>
-                        </div>
-                        <div class="hotel-card-price-section">
-                            <div>
-                                <span class="price-label">Price starting from</span>
-                                <span class="price-value-amount">View Rooms</span>
+                <div class="slider-wrapper">
+                    <button type="button" class="slider-btn prev-btn">
+                        <i data-lucide="chevron-left"></i>
+                    </button>
+                    <div class="slider-container">
+                        <a th:each="h : ${topRatedHotels}" th:href="@{/hotels/{id}/rooms(id=${h.id})}" class="hotel-premium-card">
+                            <div class="hotel-card-image-box">
+                                <img th:src="${h.imageUrl != null and !#strings.isEmpty(h.imageUrl)} ? ${h.imageUrl} : @{/assets/images/hotel/no-hotel.jpg}" alt="Hotel image" class="hotel-card-image" />
+                                <div class="hotel-rating-overlay">
+                                    <span style="color: #facc15;">★</span>
+                                    <span th:text="${h.rating}">4.8</span>
+                                </div>
                             </div>
-                            <i data-lucide="chevron-right" style="width: 18px; height: 18px; color: var(--traveloka-blue);"></i>
-                        </div>
+                            <div class="hotel-card-body">
+                                <h5 class="hotel-card-title" th:text="${h.name}">Hotel Name</h5>
+                                <div class="hotel-card-location">
+                                    <i data-lucide="map-pin" style="width: 14px; height: 14px; color: #94a3b8;"></i>
+                                    <span th:text="${h.city}">Can Tho</span>
+                                </div>
+                                <div class="hotel-card-price-section">
+                                    <div>
+                                        <span class="price-label">Price starting from</span>
+                                        <span class="price-value-amount">View Rooms</span>
+                                    </div>
+                                    <i data-lucide="chevron-right" style="width: 18px; height: 18px; color: var(--gold);"></i>
+                                </div>
+                            </div>
+                        </a>
                     </div>
-                </a>
+                    <button type="button" class="slider-btn next-btn">
+                        <i data-lucide="chevron-right"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
         <!-- 3. Big Deals Hotels (Ưu đãi lớn) -->
-        <div th:if="${promoHotels != null and !#lists.isEmpty(promoHotels)}">
-            <div class="section-header">
-                <div>
-                    <h3 class="section-title">Big Promotion Deals</h3>
-                    <p class="section-subtitle">Hotels offering hot discount promotions right now.</p>
+        <div th:if="${promoHotels != null and !#lists.isEmpty(promoHotels)}" class="row justify-content-center mb-5">
+            <div class="col-lg-11 col-md-12">
+                <div class="section-header">
+                    <div>
+                        <h3 class="section-title">Big Promotion Deals</h3>
+                        <p class="section-subtitle">Hotels offering hot discount promotions right now.</p>
+                    </div>
                 </div>
-            </div>
-            <div class="hotel-grid-row">
-                <a th:each="h : ${promoHotels}" th:href="@{/hotels/{id}/rooms(id=${h.id})}" class="hotel-premium-card">
-                    <div class="hotel-card-image-box">
-                        <img th:src="${h.imageUrl != null and !#strings.isEmpty(h.imageUrl)} ? ${h.imageUrl} : '/assets/images/hotel-placeholder.jpg'" alt="Hotel image" class="hotel-card-image" />
-                        <div class="hotel-promo-badge">PROMO</div>
-                        <div class="hotel-rating-overlay">
-                            <span style="color: #facc15;">★</span>
-                            <span th:text="${h.rating}">4.8</span>
-                        </div>
-                    </div>
-                    <div class="hotel-card-body">
-                        <h5 class="hotel-card-title" th:text="${h.name}">Hotel Name</h5>
-                        <div class="hotel-card-location">
-                            <i data-lucide="map-pin" style="width: 14px; height: 14px; color: #94a3b8;"></i>
-                            <span th:text="${h.city}">Da Nang</span>
-                        </div>
-                        <div class="hotel-card-price-section">
-                            <div>
-                                <span class="price-label">Get exclusive discounts</span>
-                                <span class="price-value-amount">View Details</span>
+                <div class="slider-wrapper">
+                    <button type="button" class="slider-btn prev-btn">
+                        <i data-lucide="chevron-left"></i>
+                    </button>
+                    <div class="slider-container">
+                        <a th:each="h : ${promoHotels}" th:href="@{/hotels/{id}/rooms(id=${h.id})}" class="hotel-premium-card">
+                            <div class="hotel-card-image-box">
+                                <img th:src="${h.imageUrl != null and !#strings.isEmpty(h.imageUrl)} ? ${h.imageUrl} : @{/assets/images/hotel/no-hotel.jpg}" alt="Hotel image" class="hotel-card-image" />
+                                <div class="hotel-promo-badge"
+                                     th:with="disc=${promoDiscountMap != null ? promoDiscountMap.get(h.id) : null}"
+                                     th:text="${disc != null} ? |Save ${disc}%| : 'PROMO'">PROMO</div>
+                                <div class="hotel-rating-overlay">
+                                    <span style="color: #facc15;">★</span>
+                                    <span th:text="${h.rating}">4.8</span>
+                                </div>
                             </div>
-                            <i data-lucide="chevron-right" style="width: 18px; height: 18px; color: #ef4444;"></i>
-                        </div>
+                            <div class="hotel-card-body">
+                                <h5 class="hotel-card-title" th:text="${h.name}">Hotel Name</h5>
+                                <div class="hotel-card-location">
+                                    <i data-lucide="map-pin" style="width: 14px; height: 14px; color: #94a3b8;"></i>
+                                    <span th:text="${h.city}">Da Nang</span>
+                                </div>
+                                <div class="hotel-card-price-section">
+                                    <div>
+                                        <span class="price-label">Get exclusive discounts</span>
+                                        <span class="price-value-amount">View Details</span>
+                                    </div>
+                                    <i data-lucide="chevron-right" style="width: 18px; height: 18px; color: var(--gold);"></i>
+                                </div>
+                            </div>
+                        </a>
                     </div>
-                </a>
+                    <button type="button" class="slider-btn next-btn">
+                        <i data-lucide="chevron-right"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
         <!-- 4. Famous Destinations (Địa điểm nổi tiếng) -->
-        <div>
-            <div class="section-header">
-                <div>
-                    <h3 class="section-title">Popular Destinations</h3>
-                    <p class="section-subtitle">Explore stays in the most visited cities.</p>
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-11 col-md-12">
+                <div class="section-header">
+                    <div>
+                        <h3 class="section-title">Popular Destinations</h3>
+                        <p class="section-subtitle">Explore stays in the most visited cities.</p>
+                    </div>
                 </div>
-            </div>
-            <div class="destination-grid">
-                <!-- Can Tho -->
-                <a th:href="@{/hotels(search='Can Tho')}" class="dest-card">
-                    <img src="https://images.unsplash.com/photo-1628108422325-110fa9560417?w=300&h=400&fit=crop&q=80" alt="Cần Thơ" class="dest-card-img" />
-                    <div class="dest-card-overlay">
-                        <div class="dest-card-name">Cần Thơ</div>
-                        <div class="dest-card-count">Riverside Hotels</div>
-                    </div>
-                </a>
+                <div class="slider-wrapper">
+                    <button type="button" class="slider-btn prev-btn">
+                        <i data-lucide="chevron-left"></i>
+                    </button>
+                    <div class="slider-container destination-slider">
+                        <!-- Can Tho -->
+                        <a th:href="@{/hotels(search='Cần Thơ')}" class="dest-card">
+                            <img th:src="@{/assets/images/placename/CT.webp}" alt="Cần Thơ" class="dest-card-img" />
+                            <div class="dest-card-overlay">
+                                <div class="dest-card-name">Cần Thơ</div>
+                                <div class="dest-card-count">Riverside Hotels</div>
+                            </div>
+                        </a>
 
-                <!-- Da Nang -->
-                <a th:href="@{/hotels(search='Da Nang')}" class="dest-card">
-                    <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=300&h=400&fit=crop&q=80" alt="Đà Nẵng" class="dest-card-img" />
-                    <div class="dest-card-overlay">
-                        <div class="dest-card-name">Đà Nẵng</div>
-                        <div class="dest-card-count">Coastal Stays</div>
-                    </div>
-                </a>
+                        <!-- Da Nang -->
+                        <a th:href="@{/hotels(search='Đà Nẵng')}" class="dest-card">
+                            <img th:src="@{/assets/images/placename/DN.webp}" alt="Đà Nẵng" class="dest-card-img" />
+                            <div class="dest-card-overlay">
+                                <div class="dest-card-name">Đà Nẵng</div>
+                                <div class="dest-card-count">Coastal Stays</div>
+                            </div>
+                        </a>
 
-                <!-- HCM -->
-                <a th:href="@{/hotels(search='Ho Chi Minh')}" class="dest-card">
-                    <img src="https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=300&h=400&fit=crop&q=80" alt="Hồ Chí Minh" class="dest-card-img" />
-                    <div class="dest-card-overlay">
-                        <div class="dest-card-name">TP. Hồ Chí Minh</div>
-                        <div class="dest-card-count">City Center Stays</div>
-                    </div>
-                </a>
+                        <!-- HCM -->
+                        <a th:href="@{/hotels(search='Hồ Chí Minh')}" class="dest-card">
+                            <img th:src="@{/assets/images/placename/HCM.jpg}" alt="TP. Hồ Chí Minh" class="dest-card-img" />
+                            <div class="dest-card-overlay">
+                                <div class="dest-card-name">TP. Hồ Chí Minh</div>
+                                <div class="dest-card-count">City Center Stays</div>
+                            </div>
+                        </a>
 
-                <!-- Da Lat -->
-                <a th:href="@{/hotels(search='Da Lat')}" class="dest-card">
-                    <img src="https://images.unsplash.com/photo-1598977123418-45f04b615e0e?w=300&h=400&fit=crop&q=80" alt="Đà Lạt" class="dest-card-img" />
-                    <div class="dest-card-overlay">
-                        <div class="dest-card-name">Đà Lạt</div>
-                        <div class="dest-card-count">Pine Forest Retreats</div>
-                    </div>
-                </a>
+                        <!-- Da Lat -->
+                        <a th:href="@{/hotels(search='Đà Lạt')}" class="dest-card">
+                            <img th:src="@{/assets/images/placename/DL.webp}" alt="Đà Lạt" class="dest-card-img" />
+                            <div class="dest-card-overlay">
+                                <div class="dest-card-name">Đà Lạt</div>
+                                <div class="dest-card-count">Pine Forest Retreats</div>
+                            </div>
+                        </a>
 
-                <!-- Ha Noi -->
-                <a th:href="@{/hotels(search='Ha Noi')}" class="dest-card">
-                    <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?w=300&h=400&fit=crop&q=80" alt="Hà Nội" class="dest-card-img" />
-                    <div class="dest-card-overlay">
-                        <div class="dest-card-name">Hà Nội</div>
-                        <div class="dest-card-count">Historic Boutique Hotels</div>
+                        <!-- Ha Noi -->
+                        <a th:href="@{/hotels(search='Hà Nội')}" class="dest-card">
+                            <img th:src="@{/assets/images/placename/HN.webp}" alt="Hà Nội" class="dest-card-img" />
+                            <div class="dest-card-overlay">
+                                <div class="dest-card-name">Hà Nội</div>
+                                <div class="dest-card-count">Historic Boutique Hotels</div>
+                            </div>
+                        </a>
                     </div>
-                </a>
+                    <button type="button" class="slider-btn next-btn">
+                        <i data-lucide="chevron-right"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -299,7 +383,147 @@
     <footer th:replace="~{fragment/frag :: footer}"></footer>
     <div th:replace="~{fragment/frag :: scripts}"></div>
 
-    <script th:src="@{/assets/js/search-widget.js}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+
+            // Set default dates with Flatpickr
+            const checkinInput = document.getElementById('checkinInput');
+            const checkoutInput = document.getElementById('checkoutInput');
+            if (checkinInput && checkoutInput && typeof flatpickr === "function") {
+                const today = new Date();
+                const tomorrow = new Date();
+                tomorrow.setDate(today.getDate() + 1);
+
+                const checkinPicker = flatpickr(checkinInput, {
+                    dateFormat: "Y-m-d",
+                    altInput: true,
+                    altFormat: "d/m/Y",
+                    altInputClass: "search-pill-input",
+                    minDate: "today",
+                    defaultDate: today,
+                    onChange: function(selectedDates) {
+                        if (selectedDates[0]) {
+                            const next = new Date(selectedDates[0]);
+                            next.setDate(next.getDate() + 1);
+                            checkoutPicker.set("minDate", next);
+                            const cur = checkoutPicker.selectedDates[0];
+                            if (!cur || cur <= selectedDates[0]) {
+                                checkoutPicker.setDate(next);
+                            }
+                        }
+                    }
+                });
+
+                const checkoutPicker = flatpickr(checkoutInput, {
+                    dateFormat: "Y-m-d",
+                    altInput: true,
+                    altFormat: "d/m/Y",
+                    altInputClass: "search-pill-input",
+                    minDate: tomorrow,
+                    defaultDate: tomorrow
+                });
+            }
+
+            // Guests Picker Popover Toggle
+            const trigger = document.getElementById('guestsPickerTrigger');
+            const dropdown = document.getElementById('guestsDropdown');
+            const doneBtn = document.getElementById('btnGuestsDone');
+            
+            if (trigger && dropdown) {
+                trigger.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('d-none');
+                });
+                
+                dropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+                
+                document.addEventListener('click', function() {
+                    dropdown.classList.add('d-none');
+                });
+                
+                if (doneBtn) {
+                    doneBtn.addEventListener('click', function() {
+                        dropdown.classList.add('d-none');
+                    });
+                }
+            }
+
+            // Counter Logic
+            function setupCounter(minusId, plusId, displayId, min, max) {
+                const minusBtn = document.getElementById(minusId);
+                const plusBtn = document.getElementById(plusId);
+                const display = document.getElementById(displayId);
+                
+                if (minusBtn && plusBtn && display) {
+                    minusBtn.addEventListener('click', function() {
+                        let val = parseInt(display.textContent);
+                        if (val > min) {
+                            val--;
+                            display.textContent = val;
+                            updateGuestsDisplay();
+                        }
+                    });
+                    
+                    plusBtn.addEventListener('click', function() {
+                        let val = parseInt(display.textContent);
+                        if (val < max) {
+                            val++;
+                            display.textContent = val;
+                            updateGuestsDisplay();
+                        }
+                    });
+                }
+            }
+            
+            setupCounter('btnAdultMinus', 'btnAdultPlus', 'adultCountDisplay', 1, 10);
+            setupCounter('btnChildMinus', 'btnChildPlus', 'childCountDisplay', 0, 10);
+            setupCounter('btnRoomMinus', 'btnRoomPlus', 'roomCountDisplay', 1, 10);
+            
+            function updateGuestsDisplay() {
+                const adults = document.getElementById('adultCountDisplay').textContent;
+                const children = document.getElementById('childCountDisplay').textContent;
+                const rooms = document.getElementById('roomCountDisplay').textContent;
+                
+                const displayInput = document.getElementById('guestsInputDisplay');
+                if (displayInput) {
+                    const adultText = `${adults} Adult${parseInt(adults) > 1 ? 's' : ''}`;
+                    const childText = `${children} Child${parseInt(children) !== 1 ? 'ren' : ''}`;
+                    const roomText = `${rooms} Room${parseInt(rooms) > 1 ? 's' : ''}`;
+                    displayInput.value = `${adultText}, ${childText}, ${roomText}`;
+                }
+            }
+
+            // Destination Suggestions Autocomplete Dropdown
+            const destInput = document.getElementById('destInput');
+            const destDropdown = document.getElementById('destSuggestions');
+            if (destInput && destDropdown) {
+                destInput.addEventListener('focus', function() {
+                    destDropdown.classList.remove('d-none');
+                });
+                
+                // Hide dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!destInput.contains(e.target) && !destDropdown.contains(e.target)) {
+                        destDropdown.classList.add('d-none');
+                    }
+                });
+                
+                // Handle suggestion click
+                const items = destDropdown.querySelectorAll('.suggestion-item');
+                items.forEach(item => {
+                    item.addEventListener('click', function() {
+                        destInput.value = this.getAttribute('data-val');
+                        destDropdown.classList.add('d-none');
+                    });
+                });
+            }
+        });
+    </script>
+    <!-- Infinite circular card slider (transform-based, buttons fully visible) -->
+    <script th:src="@{/assets/js/home-slider.js}"></script>
 </body>
 
-</html>
+</html>
