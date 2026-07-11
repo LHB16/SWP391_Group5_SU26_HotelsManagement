@@ -1153,10 +1153,6 @@
                                 </h5>
                                 <form th:action="@{/admin/banners/add}" method="post" enctype="multipart/form-data">
                                     <div class="mb-3">
-                                        <label class="form-label small fw-semibold text-uppercase text-muted">Banner Title</label>
-                                        <input type="text" name="title" class="form-control" placeholder="Enter banner title" style="border-radius: 6px;" />
-                                    </div>
-                                    <div class="mb-3">
                                         <label class="form-label small fw-semibold text-uppercase text-muted">Upload Image File (320x50 recommended)</label>
                                         <input type="file" name="bannerImage" accept="image/*" class="form-control" style="border-radius: 6px;" />
                                     </div>
@@ -1184,7 +1180,6 @@
                                         <thead class="table-light">
                                             <tr>
                                                 <th scope="col" style="font-size: 0.75rem; font-weight: 700; color: #475569;" class="text-uppercase">Preview</th>
-                                                <th scope="col" style="font-size: 0.75rem; font-weight: 700; color: #475569;" class="text-uppercase">Title</th>
                                                 <th scope="col" style="font-size: 0.75rem; font-weight: 700; color: #475569;" class="text-uppercase text-center">Status</th>
                                                 <th scope="col" style="font-size: 0.75rem; font-weight: 700; color: #475569;" class="text-uppercase text-end">Actions</th>
                                             </tr>
@@ -1193,9 +1188,6 @@
                                             <tr th:each="b : ${banners}">
                                                 <td>
                                                     <img th:src="${b.imageUrl}" th:alt="${b.title}" style="width: 160px; height: 25px; object-fit: cover; border-radius: 4px; border: 1px solid #cbd5e1;" />
-                                                </td>
-                                                <td>
-                                                    <span class="fw-semibold text-dark d-block" style="font-size: 0.85rem;" th:text="${b.title}">Banner Title</span>
                                                 </td>
                                                 <td class="text-center">
                                                     <span th:if="${b.active}" class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill" style="font-size: 0.7rem; font-weight: 600;">Visible</span>
