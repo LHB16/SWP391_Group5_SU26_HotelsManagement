@@ -42,7 +42,7 @@
         const tabVietQR = document.getElementById('tab-vietqr');
         const tabPaypal = document.getElementById('tab-paypal');
         
-        if (tabVietQR && tabVietQR.checked) {
+        if ((tabVietQR && tabVietQR.checked) || (tabPaypal && tabPaypal.checked)) {
             startTimer();
         }
         
@@ -51,7 +51,7 @@
                 if (this.checked) startTimer();
             });
             tabPaypal.addEventListener('change', function() {
-                if (this.checked) pauseTimer();
+                if (this.checked) startTimer();
             });
         }
     }

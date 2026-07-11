@@ -101,10 +101,21 @@ public class ChatController {
         return "booking/chat-messages";
     }
 
+    @GetMapping("/api/chat/unread-count")
+    @ResponseBody
+    public long getUnreadCount(HttpSession session) {
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return 0;
+        }
+        return messageRepository.countByReceiverIdAndIsReadFalse(loggedInUser.getId());
+    }
+
     @PostMapping("/customer/chat/send")
     public String customerSendMessage(@RequestParam("hotelId") int hotelId,
                                       @RequestParam(value = "content", required = false) String content,
                                       @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+                                      @RequestParam(value = "widget", required = false, defaultValue = "false") boolean isWidget,
                                       HttpSession session) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
@@ -112,7 +123,7 @@ public class ChatController {
         }
 
         Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
-        if (hotel != null) {
+        if (hotel != null && hotel.isActive() && "APPROVED".equals(hotel.getApprovalStatus())) {
             boolean hasContent = content != null && !content.trim().isEmpty();
             boolean hasImage = imageFile != null && !imageFile.isEmpty();
 
@@ -136,6 +147,9 @@ public class ChatController {
             }
         }
 
+        if (isWidget) {
+            return "redirect:/chat/inbox?hotelId=" + hotelId + "&widget=true";
+        }
         return "redirect:/customer/chat?hotelId=" + hotelId;
     }
 
@@ -144,12 +158,59 @@ public class ChatController {
     @GetMapping("/chat/inbox")
     public String ownerChatPage(@RequestParam(value = "hotelId", required = false) Integer hotelId,
                                 @RequestParam(value = "customerId", required = false) Integer customerId,
+                                @RequestParam(value = "widget", required = false, defaultValue = "false") boolean isWidget,
                                 HttpSession session,
                                 Model model) {
+        model.addAttribute("isWidget", isWidget);
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
             return "redirect:/login";
         }
+
+        if ("CUSTOMER".equals(loggedInUser.getRole())) {
+            // Customer inbox logic
+            int customerUserId = loggedInUser.getId();
+            List<Message> allCustomerMessages = messageRepository.findBySenderIdOrReceiverIdOrderBySentAtDesc(customerUserId, customerUserId);
+
+            List<Hotel> hotels = new ArrayList<>();
+            Set<Integer> addedHotelIds = new HashSet<>();
+            for (Message m : allCustomerMessages) {
+                Hotel h = m.getHotel();
+                if (h != null && !addedHotelIds.contains(h.getId())) {
+                    addedHotelIds.add(h.getId());
+                    hotels.add(h);
+                }
+            }
+            model.addAttribute("hotels", hotels);
+
+            Hotel activeHotel = null;
+            if (hotelId != null) {
+                activeHotel = hotelRepository.findById(hotelId).orElse(null);
+            }
+            if (activeHotel == null && !hotels.isEmpty()) {
+                activeHotel = hotels.get(0);
+            }
+            model.addAttribute("activeHotel", activeHotel);
+
+            // Kiểm tra khách sạn có đang hoạt động không (active AND approved)
+            boolean isActiveHotel = activeHotel != null
+                    && activeHotel.isActive()
+                    && "APPROVED".equals(activeHotel.getApprovalStatus());
+            model.addAttribute("isActiveHotel", isActiveHotel);
+
+            // Count unread messages for each hotel
+            Map<Integer, Long> unreadHotelCountsMap = new HashMap<>();
+            for (Hotel h : hotels) {
+                int ownerUserId = h.getOwner().getUserAccount().getId();
+                long count = messageRepository.findByHotelIdAndSenderIdAndReceiverIdAndIsReadFalse(h.getId(), ownerUserId, customerUserId).size();
+                unreadHotelCountsMap.put(h.getId(), count);
+            }
+            model.addAttribute("unreadHotelCountsMap", unreadHotelCountsMap);
+            model.addAttribute("user", loggedInUser);
+
+            return "owner/inbox";
+        }
+
         if (!"HOTEL_OWNER".equals(loggedInUser.getRole())) {
             return "redirect:/home";
         }
@@ -210,6 +271,14 @@ public class ChatController {
             }
         }
         model.addAttribute("customers", customers);
+
+        // Count unread messages for each customer
+        Map<Integer, Long> unreadCountsMap = new HashMap<>();
+        for (User partner : customers) {
+            long count = messageRepository.findByHotelIdAndSenderIdAndReceiverIdAndIsReadFalse(activeHotelId, partner.getId(), ownerUserId).size();
+            unreadCountsMap.put(partner.getId(), count);
+        }
+        model.addAttribute("unreadCountsMap", unreadCountsMap);
 
         User activeCustomer = null;
         if (customerId != null) {

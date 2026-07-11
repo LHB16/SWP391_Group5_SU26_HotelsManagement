@@ -32,6 +32,7 @@ public class RoomController {
     private final BookingRepository bookingRepository;
     private final FeedbackReplyRepository feedbackReplyRepository;
     private final FeedbackVoteRepository feedbackVoteRepository;
+    private final MessageRepository messageRepository;
 
     private static final String ROOM_IMAGE_SUBDIR = "assets/images/room";
 
@@ -45,7 +46,8 @@ public class RoomController {
                           OwnerService ownerService,
                           BookingRepository bookingRepository,
                           FeedbackReplyRepository feedbackReplyRepository,
-                          FeedbackVoteRepository feedbackVoteRepository) {
+                          FeedbackVoteRepository feedbackVoteRepository,
+                          MessageRepository messageRepository) {
         this.roomRepository = roomRepository;
         this.hotelRepository = hotelRepository;
         this.reviewRepository = reviewRepository;
@@ -57,6 +59,7 @@ public class RoomController {
         this.bookingRepository = bookingRepository;
         this.feedbackReplyRepository = feedbackReplyRepository;
         this.feedbackVoteRepository = feedbackVoteRepository;
+        this.messageRepository = messageRepository;
     }
 
     // ===== RESOLVE STATIC DIR =====
@@ -274,6 +277,12 @@ public class RoomController {
         model.addAttribute("bookingId", bookingId);
         model.addAttribute("defaultRoomId", defaultRoomId);
         model.addAttribute("userVotesMap", userVotesMap);
+
+        long hotelUnreadCount = 0;
+        if (loggedInUser != null) {
+            hotelUnreadCount = messageRepository.countByHotelIdAndReceiverIdAndIsReadFalse(id, loggedInUser.getId());
+        }
+        model.addAttribute("hotelUnreadCount", hotelUnreadCount);
 
         return "hotel/room-list";
     }

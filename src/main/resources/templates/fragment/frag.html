@@ -57,12 +57,30 @@
 
                 <th:block th:if="${session.loggedInUser != null}">
                     <li class="nav-item avatar-dropdown">
-                        <div class="avatar-btn" id="avatarBtn" th:text="${session.loggedInUser.fullName}">User</div>
+                        <div class="avatar-btn position-relative" id="avatarBtn">
+                            <span th:text="${session.loggedInUser.fullName}">User</span>
+                            <span id="navbar-avatar-dot"
+                                  th:classappend="${unreadMessageCount != null and unreadMessageCount > 0} ? '' : 'd-none'"
+                                  class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"
+                                  style="width: 8px; height: 8px; margin-top: 2px;">
+                            </span>
+                        </div>
                         <div class="avatar-menu" id="avatarMenu">
                             <div class="px-3 py-2 text-muted border-bottom" style="font-size: 13px;">
                                 Hi, <span th:text="${session.loggedInUser.fullName}">User</span>
                             </div>
                             <a class="avatar-menu-item" th:href="@{/profile}">Profile</a>
+                            <a class="avatar-menu-item d-flex align-items-center justify-content-between"
+                               th:if="${session.loggedInUser.role == 'CUSTOMER'}"
+                               href="javascript:void(0)"
+                               onclick="if(typeof window.openChatWidget === 'function') { window.openChatWidget(''); }">
+                                <span>Inbox (Chat)</span>
+                                <span id="navbar-menu-badge"
+                                      th:classappend="${unreadMessageCount != null and unreadMessageCount > 0} ? '' : 'd-none'"
+                                      class="badge bg-danger rounded-pill"
+                                      style="font-size: 0.7rem; padding: 3px 6px;"
+                                      th:text="${unreadMessageCount}">0</span>
+                            </a>
                             <a class="avatar-menu-item"
                                th:if="${session.loggedInUser.role != 'ADMIN' && session.loggedInUser.role != 'HOTEL_OWNER'}"
                                th:href="@{/wishlist}">Wishlist</a>
@@ -77,6 +95,118 @@
             </ul>
         </div>
     </div>
+    <!-- Floating Chat Widget for Customers -->
+    <div th:if="${session.loggedInUser != null and session.loggedInUser.role == 'CUSTOMER'}"
+         id="customer-chat-widget"
+         class="position-fixed customer-chat-widget-container">
+        
+        <!-- Expanded Chat Popover Window -->
+        <div id="chat-widget-window"
+             class="card shadow-lg border-0 d-none chat-widget-window-popover">
+            <!-- Header -->
+            <div class="card-header bg-dark text-white d-flex align-items-center justify-content-between py-3 chat-widget-header-bar">
+                <div class="d-flex align-items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span class="fw-bold chat-widget-header-title"
+                          th:text="${unreadMessageCount != null and unreadMessageCount > 0} ? 'Chat (' + ${unreadMessageCount} + ')' : 'Chat'">
+                        Chat
+                    </span>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <button id="chat-widget-minimize-btn" class="btn btn-link text-white p-0 d-flex align-items-center chat-widget-header-minimize-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>
+                    <button id="chat-widget-close-btn" class="btn btn-link text-white p-0 d-flex align-items-center chat-widget-header-close-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+            <!-- Iframe container -->
+            <div class="card-body p-0 chat-widget-iframe-wrapper">
+                <iframe id="chat-widget-iframe" src="" class="w-100 h-100 border-0"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script th:if="${session.loggedInUser != null and session.loggedInUser.role == 'CUSTOMER'}">
+        window.openChatWidget = function (hotelId) {
+            const chatWindow = document.getElementById("chat-widget-window");
+            const chatIframe = document.getElementById("chat-widget-iframe");
+            if (chatWindow && chatIframe) {
+                chatWindow.classList.remove("d-none");
+                chatWindow.classList.remove("minimized");
+                const url = hotelId ? `/chat/inbox?hotelId=${hotelId}&widget=true` : `/chat/inbox?widget=true`;
+                chatIframe.setAttribute("src", url);
+            }
+        };
+
+        window.updateUnreadCount = function () {
+            fetch('/api/chat/unread-count')
+                .then(response => response.json())
+                .then(count => {
+                    const titleEl = document.querySelector('.chat-widget-header-title');
+                    if (titleEl) {
+                        titleEl.textContent = count > 0 ? `Chat (${count})` : 'Chat';
+                    }
+                    const menuBadge = document.getElementById('navbar-menu-badge');
+                    if (menuBadge) {
+                        if (count > 0) {
+                            menuBadge.textContent = count;
+                            menuBadge.classList.remove('d-none');
+                        } else {
+                            menuBadge.classList.add('d-none');
+                        }
+                    }
+                    const avatarDot = document.getElementById('navbar-avatar-dot');
+                    if (avatarDot) {
+                        if (count > 0) {
+                            avatarDot.classList.remove('d-none');
+                        } else {
+                            avatarDot.classList.add('d-none');
+                        }
+                    }
+                })
+                .catch(err => console.error('Error fetching unread count:', err));
+        };
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const chatWindow = document.getElementById("chat-widget-window");
+            const closeBtn = document.getElementById("chat-widget-close-btn");
+            const minimizeBtn = document.getElementById("chat-widget-minimize-btn");
+
+            if (closeBtn && chatWindow) {
+                closeBtn.addEventListener("click", function () {
+                    chatWindow.classList.add("d-none");
+                });
+            }
+
+            if (minimizeBtn && chatWindow) {
+                minimizeBtn.addEventListener("click", function () {
+                    chatWindow.classList.toggle("minimized");
+                });
+            }
+        });
+    </script>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.isUserLoggedIn = [[${session.loggedInUser != null}]];
+        window.userRole = [[${session.loggedInUser != null ? session.loggedInUser.role : ''}]];
+        
+        window.handleChatClick = function(hotelId) {
+            if (!window.isUserLoggedIn) {
+                window.location.href = /*[[@{/login}]]*/ '/login';
+                return;
+            }
+            if (window.userRole === 'HOTEL_OWNER') {
+                return;
+            }
+            if (typeof window.openChatWidget === 'function') {
+                window.openChatWidget(hotelId);
+            }
+        };
+        /*]]>*/
+    </script>
 </nav>
 
 <footer th:fragment="footer" class="bg-dark text-white text-center py-3 mt-auto">
@@ -95,6 +225,64 @@
             }
         });
     </script>
+
+    <!-- Global Toast Container for floating alert popups -->
+    <div id="global-toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;"></div>
+
+    <script th:inline="javascript">
+        (function() {
+            function showToast(message, type) {
+                const container = document.getElementById('global-toast-container');
+                if (!container) return;
+                
+                const toast = document.createElement('div');
+                toast.className = 'custom-toast-card ' + (type === 'success' ? 'toast-success' : 'toast-error');
+                
+                const icon = type === 'success' 
+                    ? '<i class="bi bi-check-circle-fill me-2" style="font-size: 1.15rem; color: #10b981; vertical-align: middle;"></i>' 
+                    : '<i class="bi bi-exclamation-triangle-fill me-2" style="font-size: 1.15rem; color: #ef4444; vertical-align: middle;"></i>';
+                
+                toast.innerHTML = `
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            ${icon}
+                            <span class="toast-message-text" style="font-weight: 500; font-size: 0.9rem; margin-top: 1px;">${message}</span>
+                        </div>
+                        <button type="button" class="btn-close ms-3" style="font-size: 0.75rem; filter: opacity(0.5); pointer-events: auto; background: none; border: none; padding: 0; color: inherit; line-height: 1;" onclick="this.closest('.custom-toast-card').remove();">&times;</button>
+                    </div>
+                `;
+                
+                container.appendChild(toast);
+                
+                // Auto dismiss after 4 seconds
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.classList.add('toast-fade-out');
+                        setTimeout(() => toast.remove(), 300);
+                    }
+                }, 4000);
+            }
+            
+            window.showCustomToast = showToast;
+            
+            // Override native alert to show professional toast notification
+            window.alert = function(msg) {
+                showToast(msg, 'error');
+            };
+
+            // Trigger automatically if model success/error attributes exist
+            const successMsg = /*[[${successMessage}]]*/ null;
+            const errorMsg = /*[[${errorMessage}]]*/ null;
+            
+            if (successMsg) {
+                showToast(successMsg, 'success');
+            }
+            if (errorMsg) {
+                showToast(errorMsg, 'error');
+            }
+        })();
+    </script>
+
 </th:block>
 
 <th:block th:fragment="alerts">

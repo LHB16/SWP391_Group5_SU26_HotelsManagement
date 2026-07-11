@@ -30,6 +30,7 @@ import vn.edu.fpt.hotel_management.repository.HotelVerificationDocumentRepositor
 import vn.edu.fpt.hotel_management.repository.FeedbackReplyRepository;
 import vn.edu.fpt.hotel_management.repository.ReviewRepository;
 import vn.edu.fpt.hotel_management.repository.RefundRepository;
+import vn.edu.fpt.hotel_management.repository.BannerRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -38,6 +39,9 @@ import java.util.stream.Collectors;
 
 @Controller
 public class AdminDashboardController {
+
+    @Autowired
+    private BannerRepository bannerRepository;
 
     @Autowired
     private HotelRepository hotelRepository;
@@ -364,6 +368,11 @@ public class AdminDashboardController {
             model.addAttribute("refundCurrentPage", "refundPanel".equals(tab) ? page : 0);
             model.addAttribute("refundTotalPages", refundPage.getTotalPages());
             model.addAttribute("totalCount", refundPage.getTotalElements());
+        }
+        
+        // --- Tab 9: bannerPanel (Quản lý Banners) ---
+        if ("bannerPanel".equals(tab)) {
+            model.addAttribute("banners", bannerRepository.findAll());
         }
 
         // --- Lưu lại thông tin search nếu có ---
