@@ -141,14 +141,16 @@
                                 </td>
                                 <td>
                                     <span class="badge-status"
-                                          th:classappend="${b.bookingStatus == 'CONFIRMED' || b.bookingStatus == 'CHECKED_OUT'} ? 'badge-status-success' :
-                                                         (${b.bookingStatus == 'PENDING' || b.bookingStatus == 'CHECKED_IN'} ? 'badge-status-warning' : 'badge-status-danger')"
+                                          th:classappend="${b.bookingStatus == 'CONFIRMED' || b.bookingStatus == 'CHECKED_OUT' || b.bookingStatus == 'COMPLETED'} ? 'badge-status-success' :
+                                                         (${b.bookingStatus == 'PENDING' || b.bookingStatus == 'CHECKED_IN'} ? 'badge-status-warning' :
+                                                         (${b.bookingStatus == 'EXPIRED'} ? 'badge-status-neutral' : 'badge-status-danger'))"
                                           th:text="${b.bookingStatus}">STATUS</span>
                                 </td>
                                 <td>
                                     <span class="badge-status"
-                                          th:classappend="${b.paymentStatus == 'SUCCESS'} ? 'badge-status-success' :
-                                                         (${b.paymentStatus == 'PENDING'} ? 'badge-status-warning' : 'badge-status-danger')"
+                                          th:classappend="${b.paymentStatus == 'SUCCESS' || b.paymentStatus == 'PAID'} ? 'badge-status-success' :
+                                                         (${b.paymentStatus == 'PENDING'} ? 'badge-status-warning' :
+                                                         (${b.paymentStatus == 'EXPIRED' || b.paymentStatus == 'REFUNDED'} ? 'badge-status-neutral' : 'badge-status-danger'))"
                                           th:text="${b.paymentStatus}">STATUS</span>
                                 </td>
                             </tr>
