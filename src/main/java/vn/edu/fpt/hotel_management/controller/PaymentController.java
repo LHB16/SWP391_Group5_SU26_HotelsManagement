@@ -219,6 +219,7 @@ public class PaymentController {
         BigDecimal totalSubtotal = BigDecimal.ZERO;
         BigDecimal originalSubtotal = BigDecimal.ZERO;
         java.util.List<BigDecimal> roomSubtotals = new java.util.ArrayList<>();
+        java.util.List<java.util.Map<String, Object>> detailedDiscounts = new java.util.ArrayList<>();
 
         for (int i = 0; i < validRoomIds.size(); i++) {
             Room r = roomRepository.findById(validRoomIds.get(i)).orElse(null);
@@ -238,6 +239,13 @@ public class PaymentController {
                         BigDecimal discountRate = promo.getDiscountPercent().divide(BigDecimal.valueOf(100));
                         BigDecimal discountAmount = rSubOriginal.multiply(discountRate);
                         rSub = rSubOriginal.subtract(discountAmount);
+
+                        if (discountAmount.compareTo(BigDecimal.ZERO) > 0) {
+                            java.util.Map<String, Object> dMap = new java.util.HashMap<>();
+                            dMap.put("title", promo.getTitle());
+                            dMap.put("amount", discountAmount);
+                            detailedDiscounts.add(dMap);
+                        }
                     }
                 }
             }
@@ -379,6 +387,7 @@ public class PaymentController {
 
         model.addAttribute("originalSubtotal", originalSubtotal);
         model.addAttribute("discount", totalDiscount);
+        model.addAttribute("detailedDiscounts", detailedDiscounts);
         model.addAttribute("bookingsList", bookingsList);
         model.addAttribute("bookingQuantitiesMap", bookingQuantitiesMap);
 
@@ -577,6 +586,8 @@ public class PaymentController {
         BigDecimal serviceFee = BigDecimal.ZERO;
         BigDecimal grandTotalPrice = BigDecimal.ZERO;
 
+        java.util.List<java.util.Map<String, Object>> detailedDiscounts = new java.util.ArrayList<>();
+
         for (Booking b : bookingsList) {
             BigDecimal bTotalPrice = b.getTotalPrice();
             boolean isParent = (b.getSpecialNotes() == null
@@ -606,6 +617,21 @@ public class PaymentController {
             totalTax = totalTax.add(bTax);
             serviceFee = serviceFee.add(bServiceFee);
             grandTotalPrice = grandTotalPrice.add(bTotalPrice);
+
+            // Thu thập detailed discount từ db
+            if (b.getIdPromotion() != null && b.getIdPromotion() > 0) {
+                Promotion promo = promotionRepository.findById(b.getIdPromotion()).orElse(null);
+                if (promo != null) {
+                    BigDecimal discountRate = promo.getDiscountPercent().divide(BigDecimal.valueOf(100));
+                    BigDecimal discountAmount = bOriginalSubtotal.multiply(discountRate);
+                    if (discountAmount.compareTo(BigDecimal.ZERO) > 0) {
+                        java.util.Map<String, Object> dMap = new java.util.HashMap<>();
+                        dMap.put("title", promo.getTitle());
+                        dMap.put("amount", discountAmount);
+                        detailedDiscounts.add(dMap);
+                    }
+                }
+            }
         }
 
         BigDecimal totalDiscount = originalSubtotal.subtract(totalSubtotal);
@@ -631,6 +657,7 @@ public class PaymentController {
 
         model.addAttribute("originalSubtotal", originalSubtotal);
         model.addAttribute("discount", totalDiscount);
+        model.addAttribute("detailedDiscounts", detailedDiscounts);
         model.addAttribute("bookingsList", bookingsList);
         model.addAttribute("bookingQuantitiesMap", bookingQuantitiesMap);
 
