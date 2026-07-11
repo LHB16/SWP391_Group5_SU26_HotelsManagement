@@ -180,15 +180,15 @@ public class OwnerController {
         } else if (searchCustomer != null && !searchCustomer.trim().isEmpty()) {
             filteredBookings = bookingRepository.findByHotelIdsAndCustomerName(hotelIds, searchCustomer.trim());
         } else if (filterHotel != null && filterHotel > 0) {
-            filteredBookings = bookingRepository.findByHotelIds(List.of(filterHotel));
+            filteredBookings = bookingRepository.findByHotelIdInOrderByCreatedAtDesc(List.of(filterHotel));
         } else if (filterStatus != null && !filterStatus.isEmpty() && !filterStatus.equals("all")) {
-            filteredBookings = bookingRepository.findByHotelIdsAndStatus(hotelIds, filterStatus);
+            filteredBookings = bookingRepository.findByHotelIdInAndStatusOrderByCreatedAtDesc(hotelIds, filterStatus);
         } else if (checkinDate != null) {
-            filteredBookings = bookingRepository.findByHotelIdsAndCheckInDate(hotelIds, checkinDate);
+            filteredBookings = bookingRepository.findByHotelIdInAndCheckInDateOrderByCreatedAtDesc(hotelIds, checkinDate);
         } else if (checkoutDate != null) {
-            filteredBookings = bookingRepository.findByHotelIdsAndCheckOutDate(hotelIds, checkoutDate);
+            filteredBookings = bookingRepository.findByHotelIdInAndCheckOutDateOrderByCreatedAtDesc(hotelIds, checkoutDate);
         } else {
-            filteredBookings = bookingRepository.findByHotelIds(hotelIds);
+            filteredBookings = bookingRepository.findByHotelIdInOrderByCreatedAtDesc(hotelIds);
         }
 
         // Calculate total bookings and revenue
@@ -236,7 +236,7 @@ public class OwnerController {
         long pendingPayoutCount = 0;
         long completedPayoutCount = 0;
         if (!hotelIds.isEmpty()) {
-            for (Booking b : bookingRepository.findByHotelIds(hotelIds)) {
+            for (Booking b : bookingRepository.findByHotelIdInOrderByCreatedAtDesc(hotelIds)) {
                 if ("COMPLETED".equals(b.getStatus())
                         && b.getPayment() != null && "PAID".equals(b.getPayment().getStatus())) {
                     if ("PAID".equals(b.getPayoutStatus())) {
