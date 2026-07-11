@@ -4,7 +4,7 @@
 <head th:replace="~{fragment/frag :: head}"></head>
 
 
-<body class="d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100" th:data-hotel-id="${hotel.id}">
     <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
     <!-- ==================== HERO BANNER ==================== -->
@@ -45,7 +45,7 @@
     </section>
 
     <!-- Search widget card (Traveloka Pill Style - Embedded in Room List) -->
-    <div class="bg-cream pb-4 search-widget-wrapper">
+    <div class="bg-cream pb-4 search-widget-wrapper" style="position: relative; z-index: 999;">
         <div class="container-fluid px-4">
             <div class="row justify-content-center">
                 <div class="col-12">
@@ -284,7 +284,7 @@
                                 </div>
 
                                 <div th:if="${reviews != null and !reviews.isEmpty()}">
-                                    <div th:each="review : ${reviews}" class="review-item-card">
+                                    <div th:each="review : ${reviews}" class="review-item-card" th:id="'review-' + ${review.id}">
                                         <div class="d-flex align-items-start gap-3">
                                             <div class="review-user-avatar"
                                                 th:text="${#strings.substring(review.userFullName,0,1)}">U</div>
@@ -665,141 +665,7 @@
 
     <script th:src="@{/assets/js/filter.js?v=2}"></script>
     <script th:src="@{/assets/js/search-widget.js}"></script>
-    <script th:inline="javascript">
-        document.addEventListener("DOMContentLoaded", function () {
-            const hotelId = /*[[${hotel.id}]]*/ 0;
-
-            document.querySelectorAll(".vote-btn").forEach(button => {
-                button.addEventListener("click", function (e) {
-                    e.preventDefault();
-                    const reviewId = this.getAttribute("data-review-id");
-                    const voteType = this.getAttribute("data-vote-type");
-                    const currentButton = this;
-
-                    const parentDiv = this.parentElement;
-                    const otherButton = parentDiv.querySelector(`.vote-btn[data-vote-type="${voteType === 'UPVOTE' ? 'DOWNVOTE' : 'UPVOTE'}"]`);
-
-                    const formData = new FormData();
-                    formData.append("type", voteType);
-
-                    fetch(`/hotels/${hotelId}/reviews/${reviewId}/vote`, {
-                        method: "POST",
-                        body: formData
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                // Cập nhật số hiển thị
-                                parentDiv.querySelector('.vote-btn[data-vote-type="UPVOTE"] .vote-count').textContent = data.upvotes;
-                                parentDiv.querySelector('.vote-btn[data-vote-type="DOWNVOTE"] .vote-count').textContent = data.downvotes;
-
-                                // Cập nhật trạng thái active
-                                if (data.userVote === "UPVOTE") {
-                                    currentButton.classList.add("active-vote");
-                                    if (otherButton) otherButton.classList.remove("active-vote");
-                                } else if (data.userVote === "DOWNVOTE") {
-                                    currentButton.classList.add("active-vote");
-                                    if (otherButton) otherButton.classList.remove("active-vote");
-                                } else {
-                                    currentButton.classList.remove("active-vote");
-                                    if (otherButton) otherButton.classList.remove("active-vote");
-                                }
-                            } else {
-                                if (typeof window.showCustomToast === 'function') {
-                                    window.showCustomToast(data.message || "An error occurred.", "error");
-                                } else {
-                                    alert(data.message || "An error occurred.");
-                                }
-                            }
-                        })
-                        .catch(err => {
-                            console.error("Error voting:", err);
-                        });
-                });
-            });
-
-            document.querySelectorAll(".toggle-status-btn").forEach(button => {
-                button.addEventListener("click", function (e) {
-                    e.preventDefault();
-                    const reviewId = this.getAttribute("data-review-id");
-                    const currentStatus = this.getAttribute("data-status");
-                    const targetStatus = currentStatus === "VISIBLE" ? "HIDDEN" : "VISIBLE";
-                    const currentButton = this;
-
-                    const formData = new FormData();
-                    formData.append("status", targetStatus);
-
-                    fetch(`/hotels/${hotelId}/reviews/${reviewId}/status`, {
-                        method: "POST",
-                        body: formData
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                currentButton.setAttribute("data-status", data.status);
-                                currentButton.textContent = data.status === "VISIBLE" ? "Hide" : "Show";
-
-                                const badgeContainer = document.querySelector(`.status-badge-container[data-review-id="${reviewId}"]`);
-                                if (badgeContainer) {
-                                    if (data.status === "HIDDEN") {
-                                        badgeContainer.innerHTML = '<span class="badge bg-secondary text-white" style="font-size: 0.7rem; border-radius: 4px; padding: 2px 6px;">HIDDEN</span>';
-                                    } else {
-                                        badgeContainer.innerHTML = '';
-                                    }
-                                }
-                            } else {
-                                if (typeof window.showCustomToast === 'function') {
-                                    window.showCustomToast(data.message || "An error occurred.", "error");
-                                } else {
-                                    alert(data.message || "An error occurred.");
-                                }
-                            }
-                        })
-                        .catch(err => {
-                            console.error("Error updating review status:", err);
-                        });
-                });
-            });
-
-            // AJAX toggle wishlist without reloading page or scrolling to top
-            document.querySelectorAll(".wishlist-heart-btn").forEach(btn => {
-                btn.addEventListener("click", function(e) {
-                    e.preventDefault();
-                    const roomId = this.getAttribute("data-room-id");
-                    const checkin = this.getAttribute("data-checkin") || "";
-                    const checkout = this.getAttribute("data-checkout") || "";
-                    const icon = this.querySelector("i");
-
-                    fetch(`/api/wishlist/toggle?roomId=${roomId}&checkin=${checkin}&checkout=${checkout}`)
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                if (data.active) {
-                                    icon.className = "bi bi-heart-fill pink-heart";
-                                    if (typeof window.showCustomToast === 'function') {
-                                        window.showCustomToast("Added to wishlist!", "success");
-                                    }
-                                } else {
-                                    icon.className = "bi bi-heart pink-heart";
-                                    if (typeof window.showCustomToast === 'function') {
-                                        window.showCustomToast("Removed from wishlist.", "success");
-                                    }
-                                }
-                            } else {
-                                if (typeof window.showCustomToast === 'function') {
-                                    window.showCustomToast(data.message || "An error occurred.", "error");
-                                } else {
-                                    alert(data.message || "An error occurred.");
-                                }
-                            }
-                        })
-                        .catch(err => {
-                            console.error("Error toggling wishlist:", err);
-                        });
-                });
-            });
-        });
-    </script>
+    <script th:src="@{/assets/js/view-list-room.js}"></script>
 </body>
 
 </html>

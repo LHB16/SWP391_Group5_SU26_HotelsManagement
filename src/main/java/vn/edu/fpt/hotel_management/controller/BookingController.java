@@ -1096,6 +1096,10 @@ public class BookingController {
         }
 
         boolean hasFeedback = reviewRepository.existsByBookingId(booking.getId());
+        if (hasFeedback) {
+            Review review = reviewRepository.findByBookingId(booking.getId());
+            model.addAttribute("review", review);
+        }
 
         model.addAttribute("booking", booking);
         model.addAttribute("hotel", booking.getHotel());
