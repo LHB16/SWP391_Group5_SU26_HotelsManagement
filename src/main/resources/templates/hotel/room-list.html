@@ -171,15 +171,15 @@
                                     class="room-card-img-placeholder">
                                     <i class="bi bi-image text-muted fs-3"></i>
                                 </div>
-                                <a th:if="${user != null}"
-                                   href="javascript:void(0)"
-                                   class="wishlist-heart-btn" title="Wishlist"
-                                   th:data-room-id="${room.id}"
-                                   th:data-checkin="${checkin}"
-                                   th:data-checkout="${checkout}">
+                                <div th:if="${user != null}"
+                                     class="wishlist-heart-btn" title="Wishlist"
+                                     style="cursor: pointer;"
+                                     th:data-room-id="${room.id}"
+                                     th:data-checkin="${checkin}"
+                                     th:data-checkout="${checkout}">
                                     <i
                                         th:class="${wishlistRoomIds != null and wishlistRoomIds.contains(room.id)} ? 'bi bi-heart-fill pink-heart' : 'bi bi-heart pink-heart'"></i>
-                                </a>
+                                </div>
                             </div>
 
                             <!-- Thông tin -->
@@ -205,7 +205,7 @@
                                         <span th:text="${room.person + ' guest(s)'}">2 guest(s)</span>
                                     </span>
                                     <span class="amenity-badge">
-                                        <i class="bi bi-bed me-1"></i>
+                                        <i data-lucide="bed" class="me-1" style="width: 16px; height: 16px; vertical-align: middle;"></i>
                                         <span th:text="${room.bed + ' bed(s)'}">2 bed(s)</span>
                                     </span>
                                     <span class="amenity-badge">
