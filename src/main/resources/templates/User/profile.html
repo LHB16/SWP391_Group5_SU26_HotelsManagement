@@ -102,34 +102,33 @@
                                         </div>
 
                                         <!-- 2. FULL NAME -->
-                                        <div class="mb-4">
+                                        <div class="mb-4" id="fullname-container">
                                             <label class="form-label text-muted fw-semibold profile-label-sm d-flex align-items-center gap-2">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tag"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l4.72-4.72c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M6 8h.01"/></svg>
                                                 FULL NAME
                                             </label>
                                             
-                                            <!-- Chế độ xem Full Name (Không ở trạng thái sửa Full Name) -->
-                                            <div th:if="${session.profileVerifiedForEdit != true || session.editField != 'fullName'}" class="input-group">
-                                                <input type="text" class="form-control profile-input-readonly" th:value="${user.fullName}" readonly style="border-right: none; background-color: #f8fafc !important; border-color: #e2e8f0 !important;"/>
-                                                <a th:href="@{/profile/edit-request(field='fullName')}" class="btn d-flex align-items-center justify-content-center" title="Edit Full Name" style="border: 1px solid #e2e8f0; border-left: none; background-color: #f8fafc; color: #0a1628; padding-left: 14px; padding-right: 14px; border-top-right-radius: 8px; border-bottom-right-radius: 8px;">
+                                            <!-- Chế độ xem Full Name -->
+                                            <div id="fullname-view-group" class="input-group" style="display: flex;">
+                                                <input type="text" id="fullname-display-input" class="form-control profile-input-readonly" th:value="${user.fullName}" readonly style="border-right: none; background-color: #f8fafc !important; border-color: #e2e8f0 !important;"/>
+                                                <button type="button" id="btn-edit-fullname" class="btn d-flex align-items-center justify-content-center" title="Edit Full Name" style="border: 1px solid #e2e8f0; border-left: none; background-color: #f8fafc; color: #0a1628; padding-left: 14px; padding-right: 14px; border-top-right-radius: 8px; border-bottom-right-radius: 8px;">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                                                </a>
+                                                </button>
                                             </div>
 
-                                            <!-- Chế độ sửa Full Name (Đang mở khóa sửa Full Name) -->
-                                            <div th:if="${session.profileVerifiedForEdit == true && session.editField == 'fullName'}">
-                                                <form th:action="@{/profile/save-fullname}" method="POST">
-                                                    <input type="text" class="form-control profile-input-editable mb-2" id="fullName" name="fullName" th:value="${user.fullName}" required style="border-color: #0a1628 !important;"/>
-                                                    <div class="d-flex gap-2">
-                                                        <button type="submit" class="btn btn-sm text-white profile-btn-primary d-flex align-items-center gap-2" style="width: auto; padding: 8px 16px !important; background-color: #0a1628 !important; border-color: #0a1628 !important;">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                                                            Save
-                                                        </button>
-                                                        <a th:href="@{/profile/cancel-edit}" class="btn btn-sm btn-outline-secondary profile-btn-secondary d-flex align-items-center justify-content-center" style="width: auto; padding: 8px 16px !important;">
-                                                            Cancel
-                                                        </a>
-                                                    </div>
-                                                </form>
+                                            <!-- Chế độ sửa Full Name -->
+                                            <div id="fullname-edit-group" style="display: none;">
+                                                <input type="text" class="form-control profile-input-editable mb-2" id="fullname-edit-input" th:value="${user.fullName}" required style="border-color: #0a1628 !important;"/>
+                                                <div class="d-flex gap-2">
+                                                    <button type="button" id="btn-save-fullname" class="btn btn-sm text-white profile-btn-primary d-flex align-items-center gap-2" style="width: auto; padding: 8px 16px !important; background-color: #0a1628 !important; border-color: #0a1628 !important;">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                                                        Save
+                                                    </button>
+                                                    <button type="button" id="btn-cancel-fullname" class="btn btn-sm btn-outline-secondary profile-btn-secondary d-flex align-items-center justify-content-center" style="width: auto; padding: 8px 16px !important;">
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                                <span id="fullname-error-msg" class="text-danger small mt-1" style="display: none;"></span>
                                             </div>
                                         </div>
 
@@ -483,6 +482,83 @@
                         phoneErrorMsg.textContent = error.message;
                         phoneErrorMsg.style.display = "block";
                         btnSavePhone.disabled = false;
+                    });
+                });
+            }
+
+            // JS xử lý cho Full Name (AJAX)
+            const btnEditFullname = document.getElementById("btn-edit-fullname");
+            const btnCancelFullname = document.getElementById("btn-cancel-fullname");
+            const btnSaveFullname = document.getElementById("btn-save-fullname");
+            const fullnameViewGroup = document.getElementById("fullname-view-group");
+            const fullnameEditGroup = document.getElementById("fullname-edit-group");
+            const fullnameDisplayInput = document.getElementById("fullname-display-input");
+            const fullnameEditInput = document.getElementById("fullname-edit-input");
+            const fullnameErrorMsg = document.getElementById("fullname-error-msg");
+            const quickInfoFullname = document.querySelector(".col-lg-4 h4.fw-bold");
+
+            if (btnEditFullname && btnCancelFullname && btnSaveFullname) {
+                btnEditFullname.addEventListener("click", function() {
+                    fullnameViewGroup.style.display = "none";
+                    fullnameEditGroup.style.display = "block";
+                    fullnameErrorMsg.style.display = "none";
+                    fullnameEditInput.focus();
+                });
+
+                btnCancelFullname.addEventListener("click", function() {
+                    fullnameEditInput.value = fullnameDisplayInput.value;
+                    fullnameViewGroup.style.display = "flex";
+                    fullnameEditGroup.style.display = "none";
+                    fullnameErrorMsg.style.display = "none";
+                });
+
+                btnSaveFullname.addEventListener("click", function() {
+                    const fullnameValue = fullnameEditInput.value.trim();
+                    if (!fullnameValue) {
+                        fullnameErrorMsg.textContent = "Full name is required.";
+                        fullnameErrorMsg.style.display = "block";
+                        return;
+                    }
+
+                    btnSaveFullname.disabled = true;
+                    fullnameErrorMsg.style.display = "none";
+
+                    const formData = new URLSearchParams();
+                    formData.append("fullName", fullnameValue);
+
+                    const csrfToken = document.querySelector('input[name="_csrf"]')?.value;
+                    if (csrfToken) {
+                        formData.append("_csrf", csrfToken);
+                    }
+
+                    fetch("/profile/save-fullname", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            return response.text();
+                        } else {
+                            throw new Error("Failed to update full name.");
+                        }
+                    })
+                    .then(data => {
+                        fullnameDisplayInput.value = fullnameValue;
+                        if (quickInfoFullname) {
+                            quickInfoFullname.textContent = fullnameValue;
+                        }
+                        fullnameViewGroup.style.display = "flex";
+                        fullnameEditGroup.style.display = "none";
+                        btnSaveFullname.disabled = false;
+                        alert("Full name updated successfully!");
+                    })
+                    .catch(error => {
+                        fullnameErrorMsg.textContent = error.message;
+                        fullnameErrorMsg.style.display = "block";
+                        btnSaveFullname.disabled = false;
                     });
                 });
             }

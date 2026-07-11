@@ -94,7 +94,7 @@ public class ProfileController {
             return "redirect:/profile";
         }
 
-        if ("phone".equals(field) || "fullName".equals(field)) {
+        if ("phone".equals(field)) {
             session.setAttribute("profileVerifiedForEdit", true);
             session.setAttribute("editField", field);
             return "redirect:/profile";
@@ -212,23 +212,16 @@ public class ProfileController {
         }
     }
 
-    // Lưu Họ tên mới vào Database (không cần xác thực thêm)
+    // Lưu Họ tên mới vào Database (không cần xác thực thêm - AJAX)
     @PostMapping("/profile/save-fullname")
-    public String saveFullName(
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<?> saveFullName(
             @RequestParam("fullName") String fullName,
             HttpSession session) {
 
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
-            return "redirect:/login";
-        }
-
-        Boolean verified = (Boolean) session.getAttribute("profileVerifiedForEdit");
-        String editField = (String) session.getAttribute("editField");
-
-        if (verified == null || !verified || !"fullName".equals(editField)) {
-            session.setAttribute("errorMessage", "Unauthorized action!");
-            return "redirect:/profile";
+            return org.springframework.http.ResponseEntity.status(401).body("Unauthorized");
         }
 
         try {
@@ -243,11 +236,9 @@ public class ProfileController {
             session.removeAttribute("profileVerifiedForEdit");
             session.removeAttribute("editField");
 
-            session.setAttribute("successMessage", "Full Name updated successfully!");
-            return "redirect:/profile";
+            return org.springframework.http.ResponseEntity.ok("success");
         } catch (Exception e) {
-            session.setAttribute("errorMessage", "System error: " + e.getMessage());
-            return "redirect:/profile";
+            return org.springframework.http.ResponseEntity.status(500).body(e.getMessage());
         }
     }
 
