@@ -22,8 +22,7 @@
                         </div>
 
                         <!-- Thông báo lỗi (nếu có) -->
-                        <div th:if="${session.errorMessage}" class="alert alert-danger mb-3" th:text="${session.errorMessage}"></div>
-                        <div th:if="${session.successMessage}" class="alert alert-success mb-3" th:text="${session.successMessage}"></div>
+
 
                         <form th:action="@{/booking/{bookingId}/feedback(bookingId=${booking.id})}" method="post">
                             <!-- Họ và tên khách hàng -->
@@ -62,7 +61,7 @@
                             <!-- Ý kiến phản hồi (Comment) -->
                             <div class="mb-4">
                                 <label for="commentTextarea" class="form-label small fw-semibold text-uppercase text-muted">Your Review Comment</label>
-                                <textarea class="form-control" id="commentTextarea" name="comment" rows="5" placeholder="Write your review here..." required style="border-radius: 6px; border: 1px solid #cbd5e1;"></textarea>
+                                <textarea class="form-control" id="commentTextarea" name="comment" rows="4" placeholder="Write your review here..." style="border-radius: 6px; border: 1px solid #cbd5e1; resize: none; overflow-y: auto; min-height: 120px; max-height: 250px;"></textarea>
                             </div>
 
                             <!-- Nút gửi -->
@@ -74,43 +73,25 @@
                 </div>
             </div>
         </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const ta = document.getElementById('commentTextarea');
+                if (ta) {
+                    function autoResize() {
+                        ta.style.height = 'auto';
+                        ta.style.height = Math.min(ta.scrollHeight, 250) + 'px';
+                    }
+                    ta.addEventListener('input', autoResize);
+                    autoResize(); // Initial sizing if any
+                }
+            });
+        </script>
     </main>
 
     <!-- Footer -->
     <footer th:replace="~{fragment/frag :: footer}"></footer>
 
-    <!-- CSS bổ sung cho trang Feedback -->
-    <style>
-        .star-rating-form {
-            display: flex;
-            flex-direction: row-reverse;
-            justify-content: center;
-            gap: 8px;
-            font-size: 2.2rem;
-            margin-top: -5px;
-        }
-        .star-rating-form input {
-            display: none;
-        }
-        .star-rating-form label {
-            color: #cbd5e1;
-            cursor: pointer;
-            transition: color 0.15s ease;
-        }
-        .star-rating-form input:checked ~ label,
-        .star-rating-form label:hover,
-        .star-rating-form label:hover ~ label {
-            color: var(--gold);
-        }
-        .text-navy {
-            color: #1e293b !important;
-        }
-        .text-gold {
-            color: var(--gold) !important;
-        }
-        .btn-gold:hover {
-            opacity: 0.9;
-        }
-    </style>
+
 </body>
 </html>

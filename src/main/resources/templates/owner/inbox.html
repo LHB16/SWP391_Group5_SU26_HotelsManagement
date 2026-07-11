@@ -5,105 +5,329 @@
     <th:block th:replace="~{fragment/frag :: head}"></th:block>
 </head>
 
-<body class="d-flex flex-column h-100 bg-cream">
-    <nav th:replace="~{fragment/frag :: navBar}"></nav>
+<body th:class="${param.widget != null and param.widget[0] == 'true'} ? 'd-flex flex-column h-100 bg-white p-0 m-0 overflow-hidden' : 'd-flex flex-column h-100 bg-cream'">
+    <nav th:if="${param.widget == null or param.widget[0] != 'true'}" th:replace="~{fragment/frag :: navBar}"></nav>
 
-    <main class="flex-shrink-0 container-fluid my-4">
-        <div class="row g-4">
+    <main th:class="${param.widget != null and param.widget[0] == 'true'} ? 'w-100 h-100 p-0 m-0' : 'flex-shrink-0 py-4'">
+        <!-- NON-WIDGET: full page wrapper -->
+        <div th:if="${param.widget == null or param.widget[0] != 'true'}" class="container-fluid px-4">
 
-            <!-- CỘT 1: DANH SÁCH KHÁCH HÀNG CHAT -->
-            <div class="col-lg-3 col-md-4 mb-4">
-                
-                <!-- Nút quay lại Dashboard -->
-                <div class="mb-3">
-                    <a th:href="@{/owner/dashboard}" class="btn btn-outline-dark w-100 d-flex align-items-center justify-content-center gap-2 py-2" style="font-weight: 500;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-                        <span>Back to Dashboard</span>
-                    </a>
-                </div>
+            <!-- Main 2-column panel -->
+            <div class="inbox-panel-wrapper">
 
-                <!-- Khối hiển thị danh sách khách hàng đang chat với khách sạn được chọn -->
-                <div th:if="${activeHotel != null}" class="card shadow-sm border-0 inbox-card-general">
-                    <div class="card-header text-white fw-bold py-3 chat-main-card-header">Inbox Users</div>
-                    <div class="list-group list-group-flush" style="max-height: 550px; overflow-y: auto;">
-                        <a th:each="c : ${customers}"
-                            th:href="@{/chat/inbox(hotelId=${activeHotel.id}, customerId=${c.id})}"
-                            th:classappend="${activeCustomer != null and c.id == activeCustomer.id} ? 'bg-light text-dark fw-bold border-start border-3 border-gold' : ''"
-                            class="list-group-item list-group-item-action py-3">
-                            <div class="text-truncate" th:text="${c.fullName}">Customer Full Name</div>
+                <!-- LEFT: Conversation list -->
+                <div class="inbox-sidebar">
+                    <!-- Sidebar top: title + back link -->
+                    <div class="inbox-sidebar-top">
+                        <div class="inbox-sidebar-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            <span th:text="${session.loggedInUser.role == 'HOTEL_OWNER'} ? 'Inbox' : 'My Chats'">Inbox</span>
+                        </div>
+                        <a th:href="${session.loggedInUser.role == 'HOTEL_OWNER'} ? @{/owner/dashboard} : @{/}"
+                           class="inbox-back-icon-btn" title="Back">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>
+                            </svg>
                         </a>
-                        <div th:if="${#lists.isEmpty(customers)}" class="p-4 text-center text-muted">
-                            No chats found for this hotel.
+                    </div>
+                    <div class="inbox-sidebar-header">
+                        <span th:text="${session.loggedInUser.role == 'HOTEL_OWNER'} ? 'Customers' : 'Hotels'">Conversations</span>
+                    </div>
+
+                    <!-- Owner: list customers -->
+                    <div th:if="${session.loggedInUser.role == 'HOTEL_OWNER' and activeHotel != null}" class="inbox-convo-list">
+                        <a th:each="c : ${customers}"
+                           th:href="@{/chat/inbox(hotelId=${activeHotel.id}, customerId=${c.id}, widget=${isWidget})}"
+                           th:classappend="${activeCustomer != null and c.id == activeCustomer.id} ? ' active' : ''"
+                           class="inbox-convo-item">
+                            <!-- Avatar -->
+                            <div class="inbox-avatar">
+                                <span th:text="${c.fullName != null and !c.fullName.isEmpty()} ? ${#strings.substring(c.fullName,0,1).toUpperCase()} : '?'">A</span>
+                            </div>
+                            <div class="inbox-convo-meta">
+                                <span class="inbox-convo-name" th:text="${c.fullName}">Customer Name</span>
+                            </div>
+                            <span th:if="${unreadCountsMap != null and unreadCountsMap.containsKey(c.id) and unreadCountsMap.get(c.id) > 0}"
+                                  class="inbox-unread-badge"
+                                  th:text="${unreadCountsMap.get(c.id)}">0</span>
+                        </a>
+                        <div th:if="${#lists.isEmpty(customers)}" class="inbox-empty-list">
+                            <i class="bi bi-chat-left-dots"></i>
+                            <span>No conversations yet.</span>
+                        </div>
+                    </div>
+
+                    <!-- Customer: list hotels -->
+                    <div th:if="${session.loggedInUser.role == 'CUSTOMER'}" class="inbox-convo-list">
+                        <a th:each="h : ${hotels}"
+                           th:href="@{/chat/inbox(hotelId=${h.id}, widget=${isWidget})}"
+                           th:classappend="${activeHotel != null and h.id == activeHotel.id} ? ' active' : ''"
+                           class="inbox-convo-item">
+                            <!-- Avatar from hotel image -->
+                            <div class="inbox-avatar inbox-avatar-hotel">
+                                <i class="bi bi-building"></i>
+                            </div>
+                            <div class="inbox-convo-meta">
+                                <span class="inbox-convo-name" th:text="${h.name}">Hotel Name</span>
+                                <span th:if="${!h.active or !'APPROVED'.equals(h.approvalStatus)}"
+                                      class="inbox-inactive-tag">Inactive</span>
+                            </div>
+                            <span th:if="${unreadHotelCountsMap != null and unreadHotelCountsMap.containsKey(h.id) and unreadHotelCountsMap.get(h.id) > 0}"
+                                  class="inbox-unread-badge"
+                                  th:text="${unreadHotelCountsMap.get(h.id)}">0</span>
+                        </a>
+                        <div th:if="${#lists.isEmpty(hotels)}" class="inbox-empty-list">
+                            <i class="bi bi-building"></i>
+                            <span>No conversations yet.</span>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- CỘT 2: KHUNG CHAT CHI TIẾT VỚI KHÁCH HÀNG -->
-            <div class="col-lg-9 col-md-8">
-                <div class="card shadow-sm border-0 h-100 d-flex flex-column inbox-card-chat">
-
-                    <!-- Tiêu đề cuộc hội thoại -->
-                    <div class="card-header bg-white border-bottom py-3 inbox-chat-header">
-                        <div th:if="${activeCustomer != null}">
-                            <h6 class="m-0 fw-bold text-dark">
-                                <span th:text="${activeCustomer.fullName}" class="text-navy">Customer</span>
-                            </h6>
+                <!-- RIGHT: Chat detail panel -->
+                <div class="inbox-chat-panel">
+                    <!-- Chat header -->
+                    <div class="inbox-chat-panel-header">
+                        <div th:if="${session.loggedInUser.role == 'HOTEL_OWNER' and activeCustomer != null}"
+                             class="d-flex align-items-center gap-3">
+                            <div class="inbox-avatar">
+                                <span th:text="${activeCustomer.fullName != null and !activeCustomer.fullName.isEmpty()} ? ${#strings.substring(activeCustomer.fullName,0,1).toUpperCase()} : '?'">A</span>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 0.95rem;" th:text="${activeCustomer.fullName}">Customer</div>
+                                <div class="text-muted" style="font-size: 0.78rem;">Customer</div>
+                            </div>
                         </div>
-                        <div th:if="${activeCustomer == null}">
-                            <h6 class="m-0 text-muted fw-bold">Inbox Overview</h6>
+                        <div th:if="${session.loggedInUser.role == 'CUSTOMER' and activeHotel != null}"
+                             class="d-flex align-items-center gap-3">
+                            <div class="inbox-avatar inbox-avatar-hotel">
+                                <i class="bi bi-building"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 0.95rem;" th:text="${activeHotel.name}">Hotel</div>
+                                <div th:if="${isActiveHotel}" class="text-success" style="font-size: 0.78rem;">
+                                    <i class="bi bi-circle-fill" style="font-size: 0.5rem; margin-right: 3px;"></i>Active
+                                </div>
+                                <div th:if="${!isActiveHotel}" class="text-danger" style="font-size: 0.78rem;">
+                                    <i class="bi bi-circle-fill" style="font-size: 0.5rem; margin-right: 3px;"></i>Inactive
+                                </div>
+                            </div>
+                        </div>
+                        <div th:if="${(session.loggedInUser.role == 'HOTEL_OWNER' and activeCustomer == null) or (session.loggedInUser.role == 'CUSTOMER' and activeHotel == null)}"
+                             class="d-flex align-items-center gap-2 text-muted">
+                            <i class="bi bi-chat-left-dots fs-5"></i>
+                            <span style="font-size: 0.9rem;">Select a conversation</span>
                         </div>
                     </div>
 
-                    <!-- Khung hiển thị nội dung tin nhắn Iframe -->
-                    <div class="card-body p-0 flex-grow-1 bg-white">
-                        <iframe th:if="${activeCustomer != null}"
-                            th:src="@{/owner/chat/messages(hotelId=${activeHotel.id}, customerId=${activeCustomer.id})}"
-                            name="chat-frame" class="chat-iframe-inbox"></iframe>
-                        <div th:if="${activeCustomer == null}"
-                            class="d-flex flex-column align-items-center justify-content-center h-100 text-muted py-5">
-                            <i class="bi bi-chat-left-dots fs-1 mb-2 chat-empty-icon"></i>
-                            <p class="mt-2 small">Select a customer thread to view and reply.</p>
+                    <!-- Messages iframe -->
+                    <div class="inbox-chat-messages-area">
+                        <iframe th:if="${session.loggedInUser.role == 'HOTEL_OWNER' and activeCustomer != null}"
+                                th:src="@{/owner/chat/messages(hotelId=${activeHotel.id}, customerId=${activeCustomer.id})}"
+                                name="chat-frame" class="chat-iframe-inbox"></iframe>
+                        <iframe th:if="${session.loggedInUser.role == 'CUSTOMER' and activeHotel != null}"
+                                th:src="@{/customer/chat/messages(hotelId=${activeHotel.id})}"
+                                name="chat-frame" class="chat-iframe-inbox"></iframe>
+
+                        <!-- Empty state -->
+                        <div th:if="${(session.loggedInUser.role == 'HOTEL_OWNER' and activeCustomer == null) or (session.loggedInUser.role == 'CUSTOMER' and activeHotel == null)}"
+                             class="inbox-empty-chat-state">
+                            <div class="inbox-empty-chat-icon">
+                                <i class="bi bi-chat-left-dots"></i>
+                            </div>
+                            <h6 class="fw-semibold text-dark mb-1">No conversation selected</h6>
+                            <p class="text-muted small mb-0">Choose a chat from the left panel to get started.</p>
                         </div>
                     </div>
 
-                    <!-- Khung nhập và gửi phản hồi -->
-                    <div th:if="${activeCustomer != null}" class="card-footer bg-white border-top p-3">
-                        <!-- Khung xem trước hình ảnh trước khi gửi -->
+                    <!-- Input footer: OWNER -->
+                    <div th:if="${session.loggedInUser.role == 'HOTEL_OWNER' and activeCustomer != null}"
+                         class="inbox-input-footer">
                         <div id="imagePreviewContainer" class="chat-preview-container d-none">
                             <img id="imagePreview" class="chat-preview-image img-thumbnail" src="" alt="Preview">
                             <button type="button" id="clearImageBtn" class="chat-preview-clear">&times;</button>
                         </div>
-
-                        <!-- Form gửi phản hồi bằng AJAX -->
-                        <form th:action="@{/owner/chat/send}" method="post" enctype="multipart/form-data">
+                        <form th:action="@{/owner/chat/send}" method="post" enctype="multipart/form-data" class="inbox-form-row">
                             <input type="hidden" name="hotelId" th:value="${activeHotel.id}">
                             <input type="hidden" name="customerId" th:value="${activeCustomer.id}">
-                            <div class="input-group">
-                                <input type="text" class="form-control chat-input-text" name="content"
-                                    autocomplete="off" placeholder="Type a reply...">
-                                <!-- Nút chọn hình ảnh tải lên -->
-                                <label class="btn btn-outline-secondary chat-upload-label">
-                                    <i class="bi bi-image chat-upload-icon"></i>
-                                    <input type="file" name="imageFile" id="imageFileInput" accept="image/*"
-                                        class="chat-upload-input">
-                                </label>
-                                <button class="btn chat-send-btn" type="submit">Reply</button>
-                            </div>
+                            <input type="hidden" name="widget" th:value="${isWidget}">
+                            <label class="inbox-upload-btn" title="Attach image">
+                                <i class="bi bi-image"></i>
+                                <input type="file" name="imageFile" id="imageFileInput" accept="image/*" class="chat-upload-input">
+                            </label>
+                            <textarea class="inbox-text-input" name="content" autocomplete="off" placeholder="Type a reply…" rows="1"></textarea>
+                            <button class="inbox-send-btn" type="submit">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                </svg>
+                                Reply
+                            </button>
                         </form>
+                    </div>
+
+                    <!-- Input footer: CUSTOMER (active hotel) -->
+                    <div th:if="${session.loggedInUser.role == 'CUSTOMER' and activeHotel != null and isActiveHotel}"
+                         class="inbox-input-footer">
+                        <div id="imagePreviewContainerCustomer" class="chat-preview-container d-none">
+                            <img id="imagePreviewCustomer" class="chat-preview-image img-thumbnail" src="" alt="Preview">
+                            <button type="button" id="clearImageBtnCustomer" class="chat-preview-clear">&times;</button>
+                        </div>
+                        <form th:action="@{/customer/chat/send}" method="post" enctype="multipart/form-data" class="inbox-form-row chat-send-form-inbox">
+                            <input type="hidden" name="hotelId" th:value="${activeHotel.id}">
+                            <input type="hidden" name="widget" th:value="${isWidget}">
+                            <label class="inbox-upload-btn" title="Attach image">
+                                <i class="bi bi-image"></i>
+                                <input type="file" name="imageFile" id="imageFileInputCustomer" accept="image/*" class="chat-upload-input">
+                            </label>
+                            <textarea class="inbox-text-input" name="content" id="chatInputTextCustomer" autocomplete="off" placeholder="Type a message…" rows="1"></textarea>
+                            <button class="inbox-send-btn" type="submit">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                </svg>
+                                Send
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Input footer: CUSTOMER (inactive hotel) -->
+                    <div th:if="${session.loggedInUser.role == 'CUSTOMER' and activeHotel != null and !isActiveHotel}"
+                         class="inbox-inactive-notice">
+                        <i class="bi bi-lock-fill"></i>
+                        <span>This hotel is currently inactive. You cannot send new messages.</span>
                     </div>
 
                 </div>
             </div>
+        </div>
 
+        <!-- WIDGET MODE: compact layout inside iframe -->
+        <div th:if="${param.widget != null and param.widget[0] == 'true'}" class="row g-0 h-100 w-100 m-0">
+
+            <!-- LEFT: widget sidebar -->
+            <div class="col-4 h-100 border-end p-0 m-0 bg-white">
+                <div class="widget-sidebar-header">
+                    <span th:text="${session.loggedInUser.role == 'HOTEL_OWNER'} ? 'Customers' : 'Hotels'">Chats</span>
+                </div>
+
+                <!-- Owner list -->
+                <div th:if="${session.loggedInUser.role == 'HOTEL_OWNER' and activeHotel != null}"
+                     class="list-group list-group-flush widget-convo-list">
+                    <a th:each="c : ${customers}"
+                       th:href="@{/chat/inbox(hotelId=${activeHotel.id}, customerId=${c.id}, widget=${isWidget})}"
+                       th:classappend="${activeCustomer != null and c.id == activeCustomer.id} ? ' active' : ''"
+                       class="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center widget-convo-item">
+                        <span class="text-truncate fw-medium" style="font-size:0.85rem;" th:text="${c.fullName}">Customer</span>
+                        <span th:if="${unreadCountsMap != null and unreadCountsMap.containsKey(c.id) and unreadCountsMap.get(c.id) > 0}"
+                              class="badge bg-danger rounded-pill" th:text="${unreadCountsMap.get(c.id)}">0</span>
+                    </a>
+                    <div th:if="${#lists.isEmpty(customers)}" class="p-3 text-center text-muted small">No chats yet.</div>
+                </div>
+
+                <!-- Customer list -->
+                <div th:if="${session.loggedInUser.role == 'CUSTOMER'}"
+                     class="list-group list-group-flush widget-convo-list">
+                    <a th:each="h : ${hotels}"
+                       th:href="@{/chat/inbox(hotelId=${h.id}, widget=${isWidget})}"
+                       th:classappend="${activeHotel != null and h.id == activeHotel.id} ? ' active' : ''"
+                       class="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center widget-convo-item">
+                        <span class="text-truncate fw-medium" style="font-size:0.85rem;" th:text="${h.name}">Hotel</span>
+                        <span th:if="${unreadHotelCountsMap != null and unreadHotelCountsMap.containsKey(h.id) and unreadHotelCountsMap.get(h.id) > 0}"
+                              class="badge bg-danger rounded-pill" th:text="${unreadHotelCountsMap.get(h.id)}">0</span>
+                    </a>
+                    <div th:if="${#lists.isEmpty(hotels)}" class="p-3 text-center text-muted small">No chats yet.</div>
+                </div>
+            </div>
+
+            <!-- RIGHT: widget chat -->
+            <div class="col-8 h-100 p-0 m-0 d-flex flex-column bg-white">
+                <!-- Header -->
+                <div class="widget-chat-header">
+                    <span th:if="${session.loggedInUser.role == 'HOTEL_OWNER' and activeCustomer != null}"
+                          class="fw-semibold" style="font-size:0.85rem;" th:text="${activeCustomer.fullName}">Customer</span>
+                    <span th:if="${session.loggedInUser.role == 'CUSTOMER' and activeHotel != null}"
+                          class="fw-semibold" style="font-size:0.85rem;" th:text="${activeHotel.name}">Hotel</span>
+                    <span th:if="${(session.loggedInUser.role == 'HOTEL_OWNER' and activeCustomer == null) or (session.loggedInUser.role == 'CUSTOMER' and activeHotel == null)}"
+                          class="text-muted" style="font-size:0.85rem;">Select a chat</span>
+                </div>
+                <!-- Iframe -->
+                <div class="flex-grow-1 overflow-hidden position-relative">
+                    <iframe th:if="${session.loggedInUser.role == 'HOTEL_OWNER' and activeCustomer != null}"
+                            th:src="@{/owner/chat/messages(hotelId=${activeHotel.id}, customerId=${activeCustomer.id})}"
+                            name="chat-frame" class="chat-iframe-inbox"></iframe>
+                    <iframe th:if="${session.loggedInUser.role == 'CUSTOMER' and activeHotel != null}"
+                            th:src="@{/customer/chat/messages(hotelId=${activeHotel.id})}"
+                            name="chat-frame" class="chat-iframe-inbox"></iframe>
+                    <div th:if="${(session.loggedInUser.role == 'HOTEL_OWNER' and activeCustomer == null) or (session.loggedInUser.role == 'CUSTOMER' and activeHotel == null)}"
+                         class="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
+                        <i class="bi bi-chat-left-dots fs-3 mb-2"></i>
+                        <small>Select a chat thread</small>
+                    </div>
+                </div>
+                <!-- Widget input: OWNER -->
+                <div th:if="${session.loggedInUser.role == 'HOTEL_OWNER' and activeCustomer != null}" class="widget-input-area">
+                    <div id="imagePreviewContainer" class="chat-preview-container d-none">
+                        <img id="imagePreview" class="chat-preview-image img-thumbnail" src="" alt="Preview">
+                        <button type="button" id="clearImageBtn" class="chat-preview-clear">&times;</button>
+                    </div>
+                    <form th:action="@{/owner/chat/send}" method="post" enctype="multipart/form-data" class="inbox-form-row">
+                        <input type="hidden" name="hotelId" th:value="${activeHotel.id}">
+                        <input type="hidden" name="customerId" th:value="${activeCustomer.id}">
+                        <input type="hidden" name="widget" th:value="${isWidget}">
+                        <label class="inbox-upload-btn">
+                            <i class="bi bi-image"></i>
+                            <input type="file" name="imageFile" id="imageFileInput" accept="image/*" class="chat-upload-input">
+                        </label>
+                        <textarea class="inbox-text-input" name="content" autocomplete="off" placeholder="Type a reply…" rows="1"></textarea>
+                        <button class="inbox-send-btn" type="submit">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+                <!-- Widget input: CUSTOMER active -->
+                <div th:if="${session.loggedInUser.role == 'CUSTOMER' and activeHotel != null and isActiveHotel}" class="widget-input-area">
+                    <div id="imagePreviewContainerCustomer" class="chat-preview-container d-none">
+                        <img id="imagePreviewCustomer" class="chat-preview-image img-thumbnail" src="" alt="Preview">
+                        <button type="button" id="clearImageBtnCustomer" class="chat-preview-clear">&times;</button>
+                    </div>
+                    <form th:action="@{/customer/chat/send}" method="post" enctype="multipart/form-data" class="inbox-form-row chat-send-form-inbox">
+                        <input type="hidden" name="hotelId" th:value="${activeHotel.id}">
+                        <input type="hidden" name="widget" th:value="${isWidget}">
+                        <label class="inbox-upload-btn">
+                            <i class="bi bi-image"></i>
+                            <input type="file" name="imageFile" id="imageFileInputCustomer" accept="image/*" class="chat-upload-input">
+                        </label>
+                        <textarea class="inbox-text-input" name="content" id="chatInputTextCustomer" autocomplete="off" placeholder="Type a message…" rows="1"></textarea>
+                        <button class="inbox-send-btn" type="submit">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+                <!-- Widget inactive notice -->
+                <div th:if="${session.loggedInUser.role == 'CUSTOMER' and activeHotel != null and !isActiveHotel}"
+                     class="inbox-inactive-notice">
+                    <i class="bi bi-lock-fill"></i>
+                    <span>This hotel is currently inactive.</span>
+                </div>
+            </div>
         </div>
     </main>
 
-    <footer th:replace="~{fragment/frag :: footer}"></footer>
+    <footer th:if="${param.widget == null or param.widget[0] != 'true'}" th:replace="~{fragment/frag :: footer}"></footer>
     <div th:replace="~{fragment/frag :: scripts}"></div>
 
-    <!-- Script xử lý xem trước hình ảnh chọn tải lên và gửi tin nhắn không tải lại trang -->
-    <script th:if="${activeCustomer != null}">
+    <!-- Script xử lý xem trước hình ảnh và gửi tin nhắn AJAX (OWNER) -->
+    <script th:if="${session.loggedInUser.role == 'HOTEL_OWNER' and activeCustomer != null}">
         document.getElementById('imageFileInput').addEventListener('change', function (event) {
             const file = event.target.files[0];
             if (file) {
@@ -121,39 +345,84 @@
             document.getElementById('imagePreview').src = '';
         });
 
-        // Xử lý gửi tin nhắn của Chủ nhà bằng AJAX
         const chatForm = document.querySelector('form');
         chatForm.addEventListener('submit', function (e) {
             e.preventDefault();
-
-            const contentInput = chatForm.querySelector('.chat-input-text');
+            const contentInput = chatForm.querySelector('.inbox-text-input');
             const fileInput = document.getElementById('imageFileInput');
-
-            if (!contentInput.value.trim() && (!fileInput.files || fileInput.files.length === 0)) {
-                return;
-            }
-
+            if (!contentInput.value.trim() && (!fileInput.files || fileInput.files.length === 0)) return;
             const formData = new FormData(chatForm);
-            fetch(chatForm.action, {
-                method: 'POST',
-                body: formData
-            }).then(response => {
+            fetch(chatForm.action, { method: 'POST', body: formData }).then(response => {
                 if (response.ok) {
-                    // Reset input
                     contentInput.value = '';
                     fileInput.value = '';
-
-                    // Reset xem trước ảnh
                     document.getElementById('imagePreviewContainer').classList.add('d-none');
                     document.getElementById('imagePreview').src = '';
-
-                    // Kích hoạt cập nhật danh sách tin nhắn của Iframe ngay lập tức
                     const iframe = document.querySelector('iframe');
                     if (iframe && iframe.contentWindow && typeof iframe.contentWindow.loadMessages === 'function') {
                         iframe.contentWindow.loadMessages();
                     }
                 }
             }).catch(err => console.error('Error sending reply:', err));
+        });
+    </script>
+
+    <!-- Script xử lý xem trước hình ảnh và gửi tin nhắn AJAX (CUSTOMER) -->
+    <script th:if="${session.loggedInUser.role == 'CUSTOMER' and activeHotel != null and isActiveHotel}">
+        document.getElementById('imageFileInputCustomer').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('imagePreviewCustomer').src = e.target.result;
+                    document.getElementById('imagePreviewContainerCustomer').classList.remove('d-none');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        document.getElementById('clearImageBtnCustomer').addEventListener('click', function () {
+            document.getElementById('imageFileInputCustomer').value = '';
+            document.getElementById('imagePreviewContainerCustomer').classList.add('d-none');
+            document.getElementById('imagePreviewCustomer').src = '';
+        });
+
+        const chatFormCust = document.querySelector('.chat-send-form-inbox');
+        chatFormCust.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const contentInput = document.getElementById('chatInputTextCustomer');
+            const fileInput = document.getElementById('imageFileInputCustomer');
+            if (!contentInput.value.trim() && (!fileInput.files || fileInput.files.length === 0)) return;
+            const formData = new FormData(chatFormCust);
+            fetch(chatFormCust.action, { method: 'POST', body: formData }).then(response => {
+                if (response.ok) {
+                    contentInput.value = '';
+                    fileInput.value = '';
+                    document.getElementById('imagePreviewContainerCustomer').classList.add('d-none');
+                    document.getElementById('imagePreviewCustomer').src = '';
+                    const iframe = document.querySelector('iframe');
+                    if (iframe) iframe.src = iframe.src;
+                }
+            }).catch(err => console.error('Error sending message:', err));
+        });
+    </script>
+    <!-- Script tự động giãn textarea theo nội dung -->
+    <script>
+        document.querySelectorAll('textarea.inbox-text-input').forEach(function(ta) {
+            // Tự động điều chỉnh chiều cao
+            function autoResize() {
+                ta.style.height = 'auto';
+                ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
+            }
+            ta.addEventListener('input', autoResize);
+
+            // Nhấn Enter gửi tin, Shift+Enter xuống dòng
+            ta.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    const form = ta.closest('form');
+                    if (form) form.requestSubmit ? form.requestSubmit() : form.submit();
+                }
+            });
         });
     </script>
 </body>

@@ -199,7 +199,7 @@ public class ReviewController {
         reviewRepository.save(review);
 
         session.setAttribute("successMessage", "Review updated successfully!");
-        return "redirect:/hotels/" + hotelId + "/rooms";
+        return "redirect:/hotels/" + hotelId + "/rooms#reviews";
     }
 
     @PostMapping("/hotels/{id}/reviews/{reviewId}/delete")
@@ -226,7 +226,7 @@ public class ReviewController {
 
         if (!isOwner && !isAdmin) {
             session.setAttribute("errorMessage", "You are not authorized to delete this review.");
-            return "redirect:/hotels/" + hotelId + "/rooms";
+            return "redirect:/hotels/" + hotelId + "/rooms#reviews";
         }
 
         // Xóa phản hồi của khách sạn liên kết với đánh giá này trước (nếu có) để tránh lỗi khóa ngoại do ON DELETE NO ACTION
@@ -237,7 +237,7 @@ public class ReviewController {
         reviewRepository.delete(review);
 
         session.setAttribute("successMessage", "Review deleted successfully.");
-        return "redirect:/hotels/" + hotelId + "/rooms";
+        return "redirect:/hotels/" + hotelId + "/rooms#reviews";
     }
 
     @PostMapping("/hotels/{id}/reviews/{reviewId}/reply")

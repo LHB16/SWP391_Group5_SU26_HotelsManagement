@@ -293,7 +293,11 @@
                 if (finalReason.includes("please specify:") || finalReason === "Other") {
                     const details = document.getElementById("otherReasonText").value.trim();
                     if (!details) {
-                        alert("Please specify the details for your cancellation reason.");
+                        if (typeof window.showCustomToast === 'function') {
+                            window.showCustomToast("Please specify the details for your cancellation reason.", "error");
+                        } else {
+                            alert("Please specify the details for your cancellation reason.");
+                        }
                         document.getElementById("otherReasonText").focus();
                         return;
                     }

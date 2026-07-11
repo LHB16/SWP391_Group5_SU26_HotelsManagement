@@ -17,6 +17,13 @@ public interface HotelRepository extends JpaRepository<Hotel, Integer> {
 
     List<Hotel> findByActiveTrue();
 
+    List<Hotel> findTop6ByActiveTrueAndApprovalStatusOrderByRatingDesc(String approvalStatus);
+
+    @Query("SELECT h FROM Hotel h WHERE h.active = true AND h.approvalStatus = 'APPROVED' " +
+            "AND EXISTS (SELECT p FROM Promotion p WHERE p.hotel = h AND p.status = 'ACTIVE' AND p.startDate <= :today AND p.endDate >= :today) " +
+            "ORDER BY (SELECT COALESCE(MAX(p2.discountPercent), 0) FROM Promotion p2 WHERE p2.hotel = h AND p2.status = 'ACTIVE' AND p2.startDate <= :today AND p2.endDate >= :today) DESC")
+    List<Hotel> findHotelsWithActivePromotions(@Param("today") java.time.LocalDate today);
+
     @Query("SELECT h FROM Hotel h WHERE h.active = true " +
             "AND (SELECT COALESCE(MIN(r.price), 0) FROM Room r WHERE r.hotelId = h.id) >= :minPrice " +
             "AND (SELECT COALESCE(MIN(r.price), 0) FROM Room r WHERE r.hotelId = h.id) <= :maxPrice " +

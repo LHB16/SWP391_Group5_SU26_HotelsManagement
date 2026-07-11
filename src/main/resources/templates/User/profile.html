@@ -580,7 +580,11 @@
                         phoneViewGroup.style.display = "flex";
                         phoneEditGroup.style.display = "none";
                         btnSavePhone.disabled = false;
-                        alert("Phone number updated successfully!");
+                        if (typeof window.showCustomToast === 'function') {
+                            window.showCustomToast("Phone number updated successfully!", "success");
+                        } else {
+                            alert("Phone number updated successfully!");
+                        }
                     })
                     .catch(error => {
                         phoneErrorMsg.textContent = error.message;

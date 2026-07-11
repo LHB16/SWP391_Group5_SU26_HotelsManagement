@@ -4,8 +4,10 @@
     <meta charset="UTF-8" />
     <link th:href="@{/assets/css/style.css}" rel="stylesheet" />
 </head>
-<body class="bg-white p-3">
-    <div class="d-flex flex-column chat-messages-container">
+<body class="bg-white m-0 p-0 chat-iframe-body">
+    <!-- Wrapper cuộn có chiều cao đầy đủ, tin nhắn bắt đầu từ dưới lên như Zalo -->
+    <div class="chat-scroll-wrapper">
+        <div class="chat-messages-container d-flex flex-column">
         <!-- Vòng lặp tin nhắn -->
         <div th:each="msg : ${chatHistory}">
 
@@ -14,14 +16,14 @@
                 <div class="msg-wrapper-right">
 
                     <!-- Bong bóng chat -->
-                    <div class="p-2 rounded text-white shadow-sm position-relative chat-bubble-right">
+                    <div class="p-2 shadow-sm position-relative chat-bubble-right">
                         <div th:if="${msg.content != null && !msg.content.isEmpty()}" th:text="${msg.content}" class="chat-msg-text">Message content</div>
                         <!-- Hiển thị hình ảnh từ thư mục chat con dưới dạng Link bấm mở sang tab mới -->
                         <a th:if="${msg.imageUrl != null}" th:href="@{/assets/images/chat/{img}(img=${msg.imageUrl})}" target="_blank" class="d-block">
                             <img th:src="@{/assets/images/chat/{img}(img=${msg.imageUrl})}" class="chat-msg-image img-fluid" alt="Uploaded image" />
                         </a>
                         
-                        <small class="d-block text-end mt-1 text-muted-light chat-msg-time-right" th:text="${#temporals.format(msg.sentAt, 'HH:mm')}">12:00</small>
+                        <small class="d-block text-end mt-1 chat-msg-time-right" th:text="${#temporals.format(msg.sentAt, 'HH:mm')}">12:00</small>
                     </div>
 
                 </div>
@@ -32,14 +34,14 @@
                 <div class="msg-wrapper-left">
 
                     <!-- Bong bóng chat -->
-                    <div class="p-2 rounded text-dark bg-light border shadow-sm position-relative chat-bubble-left">
+                    <div class="p-2 rounded shadow-sm position-relative chat-bubble-left">
                         <div th:if="${msg.content != null && !msg.content.isEmpty()}" th:text="${msg.content}" class="chat-msg-text">Message content</div>
                         <!-- Hiển thị hình ảnh từ thư mục chat con dưới dạng Link bấm mở sang tab mới -->
                         <a th:if="${msg.imageUrl != null}" th:href="@{/assets/images/chat/{img}(img=${msg.imageUrl})}" target="_blank" class="d-block">
                             <img th:src="@{/assets/images/chat/{img}(img=${msg.imageUrl})}" class="chat-msg-image img-fluid" alt="Uploaded image" />
                         </a>
                         
-                        <small class="d-block text-muted mt-1 chat-msg-time-left" th:text="${#temporals.format(msg.sentAt, 'HH:mm')}">12:00</small>
+                        <small class="d-block mt-1 chat-msg-time-left" th:text="${#temporals.format(msg.sentAt, 'HH:mm')}">12:00</small>
                     </div>
 
                 </div>
@@ -48,21 +50,26 @@
         </div>
 
         <!-- Màn hình chờ khi chưa có tin nhắn -->
-        <div th:if="${#lists.isEmpty(chatHistory)}" class="text-center text-muted py-5 chat-empty-placeholder">
+        <div th:if="${#lists.isEmpty(chatHistory)}" class="text-center text-muted chat-empty-placeholder">
             <i class="bi bi-chat-dots fs-1 d-block mb-2 chat-empty-icon"></i>
             <p class="m-0 small">No messages yet. Send a message to start the conversation!</p>
         </div>
-    </div>
+        </div><!-- /chat-messages-container -->
+    </div><!-- /chat-scroll-wrapper -->
 
-    <!-- Điểm neo ở cuối để tự động cuộn xuống khi tải lại trang -->
+    <!-- Điểm neo ở cuối để tự động cuộn xuống -->
     <div id="bottom"></div>
 
     <!-- Script AJAX cập nhật nội dung tin nhắn không tải lại trang -->
     <script>
         function scrollToBottom() {
-            const bottomNeo = document.getElementById('bottom');
-            if (bottomNeo) {
-                bottomNeo.scrollIntoView({ behavior: 'auto' });
+            // Cuộn wrapper xuống đáy để tin nhắn mới nhất luôn hiển thị
+            const wrapper = document.querySelector('.chat-scroll-wrapper');
+            if (wrapper) {
+                wrapper.scrollTop = wrapper.scrollHeight;
+            }
+            if (window.parent && typeof window.parent.updateUnreadCount === 'function') {
+                window.parent.updateUnreadCount();
             }
         }
 
@@ -78,6 +85,10 @@
                     if (container.innerHTML !== newContent) {
                         container.innerHTML = newContent;
                         scrollToBottom();
+                    } else {
+                        if (window.parent && typeof window.parent.updateUnreadCount === 'function') {
+                            window.parent.updateUnreadCount();
+                        }
                     }
                 })
                 .catch(err => console.error('Error load messages:', err));
