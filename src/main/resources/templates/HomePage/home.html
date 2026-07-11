@@ -33,6 +33,8 @@
             <div class="col-lg-11 col-md-12">
                 <div class="search-card-traveloka">
                     <form th:action="@{/hotels}" method="get" class="search-pill-container">
+                        <input type="hidden" name="persons" id="hiddenPersons" value="1" />
+                        <input type="hidden" name="rooms" id="hiddenRooms" value="1" />
                         <!-- Field 1: Destination -->
                         <div class="search-pill-col position-relative" style="flex: 1.5;">
                             <label class="search-pill-label">Enter City:</label>
@@ -100,35 +102,23 @@
                         <!-- Field 4: Guests & Rooms -->
                         <div class="search-pill-col position-relative">
                             <label class="search-pill-label">Guests and Rooms:</label>
-                            <div class="search-pill-input-wrapper" id="guestsPickerTrigger" style="cursor: pointer;">
+                            <div class="search-pill-input-wrapper cursor-pointer" id="guestsPickerTrigger">
                                 <i data-lucide="users" style="width: 18px; height: 18px;"></i>
-                                <input type="text" id="guestsInputDisplay" class="search-pill-input" value="2 Adults, 0 Children, 1 Room" readonly style="cursor: pointer;" />
+                                <input type="text" id="guestsInputDisplay" class="search-pill-input cursor-pointer" value="1 Person, 1 Room" readonly />
                             </div>
 
                             <!-- Popover Dropdown (Traveloka Style) -->
                             <div id="guestsDropdown" class="guests-dropdown-card d-none">
-                                <!-- Adults Row -->
+                                <!-- Person Row -->
                                 <div class="guests-dropdown-row">
                                     <div class="guests-dropdown-label-box">
                                         <i data-lucide="user" style="width: 18px; height: 18px; color: #0194f3;"></i>
-                                        <span class="fw-semibold">Adults</span>
+                                        <span class="fw-semibold">Person</span>
                                     </div>
                                     <div class="guests-counter-controls">
-                                        <button type="button" class="btn-counter-ctrl" id="btnAdultMinus">—</button>
-                                        <span class="counter-display" id="adultCountDisplay">2</span>
-                                        <button type="button" class="btn-counter-ctrl" id="btnAdultPlus">+</button>
-                                    </div>
-                                </div>
-                                <!-- Children Row -->
-                                <div class="guests-dropdown-row">
-                                    <div class="guests-dropdown-label-box">
-                                        <i data-lucide="baby" style="width: 18px; height: 18px; color: #0194f3;"></i>
-                                        <span class="fw-semibold">Children</span>
-                                    </div>
-                                    <div class="guests-counter-controls">
-                                        <button type="button" class="btn-counter-ctrl" id="btnChildMinus">—</button>
-                                        <span class="counter-display" id="childCountDisplay">0</span>
-                                        <button type="button" class="btn-counter-ctrl" id="btnChildPlus">+</button>
+                                        <button type="button" class="btn-counter-ctrl" id="btnPersonMinus">—</button>
+                                        <span class="counter-display" id="personCountDisplay">1</span>
+                                        <button type="button" class="btn-counter-ctrl" id="btnPersonPlus">+</button>
                                     </div>
                                 </div>
                                 <!-- Rooms Row -->
@@ -145,7 +135,7 @@
                                 </div>
                                 <!-- Action button -->
                                 <div class="text-end mt-3 border-top pt-2">
-                                    <button type="button" class="btn btn-primary btn-sm px-4 fw-bold" id="btnGuestsDone" style="background-color: #0194f3; border: none; border-radius: 6px;">Done</button>
+                                    <button type="button" class="btn btn-primary btn-sm px-4 fw-bold btn-guests-done-theme" id="btnGuestsDone">Done</button>
                                 </div>
                             </div>
                         </div>
@@ -478,23 +468,26 @@
                 }
             }
             
-            setupCounter('btnAdultMinus', 'btnAdultPlus', 'adultCountDisplay', 1, 10);
-            setupCounter('btnChildMinus', 'btnChildPlus', 'childCountDisplay', 0, 10);
+            setupCounter('btnPersonMinus', 'btnPersonPlus', 'personCountDisplay', 1, 10);
             setupCounter('btnRoomMinus', 'btnRoomPlus', 'roomCountDisplay', 1, 10);
             
             function updateGuestsDisplay() {
-                const adults = document.getElementById('adultCountDisplay').textContent;
-                const children = document.getElementById('childCountDisplay').textContent;
+                const persons = document.getElementById('personCountDisplay').textContent;
                 const rooms = document.getElementById('roomCountDisplay').textContent;
+                
+                const hiddenPersons = document.getElementById('hiddenPersons');
+                const hiddenRooms = document.getElementById('hiddenRooms');
+                if (hiddenPersons) hiddenPersons.value = persons;
+                if (hiddenRooms) hiddenRooms.value = rooms;
                 
                 const displayInput = document.getElementById('guestsInputDisplay');
                 if (displayInput) {
-                    const adultText = `${adults} Adult${parseInt(adults) > 1 ? 's' : ''}`;
-                    const childText = `${children} Child${parseInt(children) !== 1 ? 'ren' : ''}`;
+                    const personText = `${persons} Person${parseInt(persons) > 1 ? 's' : ''}`;
                     const roomText = `${rooms} Room${parseInt(rooms) > 1 ? 's' : ''}`;
-                    displayInput.value = `${adultText}, ${childText}, ${roomText}`;
+                    displayInput.value = `${personText}, ${roomText}`;
                 }
             }
+            updateGuestsDisplay();
 
             // Destination Suggestions Autocomplete Dropdown
             const destInput = document.getElementById('destInput');
