@@ -14515,8 +14515,9 @@ main {
   background-color: #f1f5f9;
   border-radius: 8px;
   height: 32px;
-  position: relative;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  overflow: visible;
 }
 
 .chart-bar {
@@ -14524,6 +14525,7 @@ main {
   height: 100%;
   border-radius: 8px;
   width: 0%;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: flex-end;
