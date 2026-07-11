@@ -61,9 +61,8 @@
                         
                         <!-- Dòng trạng thái hoặc Go to Payment -->
                         <div class="bd-status-action">
-                            <!-- Nếu hết hạn thanh toán -->
                             <th:block th:if="${booking.status == 'EXPIRED' or (booking.status == 'CANCELLED' and booking.payment != null and booking.payment.status == 'EXPIRED') or (booking.status == 'PENDING' and booking.payment != null and booking.payment.qrExpiresAt != null and booking.payment.qrExpiresAt.isBefore(now))}">
-                                <span class="bd-status-label bd-status-cancelled" style="background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600;">Expired</span>
+                                <span class="bd-status-label bd-status-expired">Expired</span>
                             </th:block>
                             
                             <th:block th:unless="${booking.status == 'EXPIRED' or (booking.status == 'CANCELLED' and booking.payment != null and booking.payment.status == 'EXPIRED') or (booking.status == 'PENDING' and booking.payment != null and booking.payment.qrExpiresAt != null and booking.payment.qrExpiresAt.isBefore(now))}">

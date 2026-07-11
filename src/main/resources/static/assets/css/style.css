@@ -20145,18 +20145,29 @@ h6,
 }
 
 .bd-status-confirmed {
-  background: #dcfce7;
-  color: #15803d;
+  background: #dbeafe;
+  color: #1e40af;
 }
 
 .bd-status-done {
-  background: #f1f5f9;
-  color: #475569;
+  background: #dcfce7;
+  color: #15803d;
 }
 
 .bd-status-cancelled {
   background: #fee2e2;
   color: #b91c1c;
+}
+
+.bd-status-expired {
+  background: #f3e8ff;
+  color: #6b21a8;
+  border: 1px solid #e9d5ff;
+}
+
+.bd-status-pending {
+  background: #fef3c7;
+  color: #d97706;
 }
 
 .bd-price-box {
@@ -23269,10 +23280,32 @@ td .discount-badge {
   border-color: #cbd5e1 !important;
 }
 
-.review-action-buttons-group .vote-btn.active-vote:hover {
-  background-color: #4338ca !important;
-  color: #ffffff !important;
-  border-color: #4338ca !important;
+/* Like button active (gold) */
+.review-action-buttons-group .vote-btn[data-vote-type="UPVOTE"].active-vote {
+  background-color: rgba(201, 169, 110, 0.12) !important;
+  color: var(--gold) !important;
+  border-color: var(--gold) !important;
+  font-weight: 600;
+}
+
+.review-action-buttons-group .vote-btn[data-vote-type="UPVOTE"].active-vote:hover {
+  background-color: rgba(201, 169, 110, 0.22) !important;
+  color: var(--gold-dark) !important;
+  border-color: var(--gold-dark) !important;
+}
+
+/* Dislike button active (red) */
+.review-action-buttons-group .vote-btn[data-vote-type="DOWNVOTE"].active-vote {
+  background-color: rgba(239, 68, 68, 0.08) !important;
+  color: #ef4444 !important;
+  border-color: #ef4444 !important;
+  font-weight: 600;
+}
+
+.review-action-buttons-group .vote-btn[data-vote-type="DOWNVOTE"].active-vote:hover {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  color: #dc2626 !important;
+  border-color: #dc2626 !important;
 }
 
 .review-action-buttons-group .btn-edit-review-action:hover {
@@ -23825,7 +23858,7 @@ body.overflow-hidden nav {
 
 /* --- Hero Search Area --- */
 .home-hero {
-  background: linear-gradient(135deg, var(--traveloka-indigo) 0%, var(--traveloka-blue) 100%);
+  background: linear-gradient(135deg, #0a1628 0%, #1c2e4a 100%);
   padding: 80px 0 100px;
   color: #fff;
   position: relative;
@@ -23942,13 +23975,16 @@ body.overflow-hidden nav {
 }
 
 .section-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--navy-deep);
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--navy);
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .section-subtitle {
+  font-family: 'Inter', -apple-system, sans-serif;
   font-size: 0.9rem;
   color: #64748b;
   margin-top: 4px;
@@ -24034,8 +24070,9 @@ body.overflow-hidden nav {
 
 /* --- Hotel Cards --- */
 .hotel-grid-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 24px;
   margin-bottom: 45px;
 }
@@ -24051,7 +24088,9 @@ body.overflow-hidden nav {
   color: inherit;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 380px;
+  width: calc((100% - 60px) / 4);
+  flex-shrink: 0;
 }
 
 .hotel-premium-card:hover {
@@ -24063,7 +24102,7 @@ body.overflow-hidden nav {
 
 .hotel-card-image-box {
   position: relative;
-  padding-bottom: 60%;
+  height: 160px;
   overflow: hidden;
   background-color: #e2e8f0;
 }
@@ -24122,14 +24161,16 @@ body.overflow-hidden nav {
 
 .hotel-card-title {
   font-size: 1rem;
-  font-weight: 750;
-  color: var(--navy-deep);
+  font-weight: 700;
+  color: var(--navy);
   margin: 0 0 6px;
   line-height: 1.4;
+  height: 48px;
   display: -webkit-box;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .hotel-card-location {
@@ -24139,6 +24180,10 @@ body.overflow-hidden nav {
   align-items: center;
   gap: 4px;
   margin-bottom: 12px;
+  height: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .hotel-card-price-section {
@@ -24159,7 +24204,7 @@ body.overflow-hidden nav {
 .price-value-amount {
   font-size: 1.05rem;
   font-weight: 800;
-  color: var(--traveloka-indigo);
+  color: var(--gold);
 }
 
 .original-price-slashed {
@@ -24171,20 +24216,24 @@ body.overflow-hidden nav {
 
 /* --- Destination Cards --- */
 .destination-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 16px;
   margin-bottom: 60px;
 }
 
 .dest-card {
   position: relative;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
-  padding-bottom: 125%;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  width: calc((100% - 60px) / 4);
+  height: 165px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f1f5f9;
   text-decoration: none;
   transition: transform 0.25s ease, box-shadow 0.25s;
+  flex-shrink: 0;
 }
 
 .dest-card:hover {
@@ -24233,24 +24282,19 @@ body.overflow-hidden nav {
 .banner-slider-wrapper {
   position: relative;
   width: 100%;
-  max-width: 960px;
-  /* To match screenshot layout proportion */
   margin: 0 auto;
-  padding: 0 30px;
-  /* Give padding so chevrons hanging off aren't cut by window */
+  padding: 0;
 }
 
 .banner-slider-container {
   width: 100%;
-  height: 260px;
-  /* Proportional to 960px width */
+  height: 280px;
   position: relative;
   overflow: visible;
-  /* To allow chevrons to hang outside */
 }
 
 .banner-slider-container .carousel-inner {
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
   height: 100%;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
@@ -24328,7 +24372,7 @@ body.overflow-hidden nav {
   position: relative;
   z-index: 10;
   border: 1px solid rgba(2, 100, 200, 0.06);
-  max-width: 1100px;
+  max-width: none;
   margin-left: auto;
   margin-right: auto;
 }
@@ -24401,7 +24445,7 @@ body.overflow-hidden nav {
 .search-pill-btn-orange {
   width: 48px;
   height: 48px;
-  background-color: #ff5e1f;
+  background-color: #c9a96e;
   color: #ffffff;
   border: none;
   border-radius: 50%;
@@ -24409,12 +24453,12 @@ body.overflow-hidden nav {
   align-items: center;
   justify-content: center;
   transition: background-color 0.2s, transform 0.1s;
-  box-shadow: 0 4px 10px rgba(255, 94, 31, 0.35);
+  box-shadow: 0 4px 10px rgba(201, 169, 110, 0.45);
   flex-shrink: 0;
 }
 
 .search-pill-btn-orange:hover {
-  background-color: #e04f14;
+  background-color: #b8914f;
   transform: scale(1.03);
   color: #ffffff;
 }
@@ -24560,4 +24604,92 @@ body.overflow-hidden nav {
   border-color: #c9a96e !important;
   box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.25) !important;
   border-radius: 4px;
+}
+
+/* Suggestion Dropdown Items Hover styling */
+.suggestion-item:hover {
+  background-color: #f1f5f9;
+}
+
+/* --- Horizontal Card Slider Carousel --- */
+.slider-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
+  /* overflow is visible so prev/next buttons at -22px are not clipped;
+     the JS creates a .slider-clip div inside that clips the track only */
+}
+
+
+.slider-container {
+  display: flex;
+  gap: 20px;
+  /* overflow handled by JS (set to visible) + wrapper clipping */
+  overflow: visible;
+  padding: 10px 4px 20px;
+  margin: 0;
+  list-style: none;
+  scrollbar-width: none; /* Firefox */
+  /* transform driven by JS for infinite loop */
+  will-change: transform;
+}
+
+.slider-container::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
+
+/* Round prev/next navigation buttons style */
+.slider-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--navy);
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.slider-btn:hover {
+  background: #f8fafc;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-50%) scale(1.05);
+  color: var(--gold);
+}
+
+.slider-btn i, .slider-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.5;
+}
+
+.prev-btn {
+  left: -22px;
+}
+
+.next-btn {
+  right: -22px;
+}
+
+/* Adjust destination slider gap */
+.destination-slider {
+  gap: 20px;
+}
+
+
+
+.main-banner-img {
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  display: block;
 }
