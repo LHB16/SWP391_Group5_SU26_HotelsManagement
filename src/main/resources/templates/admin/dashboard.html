@@ -1153,6 +1153,10 @@
                                 </h5>
                                 <form th:action="@{/admin/banners/add}" method="post" enctype="multipart/form-data">
                                     <div class="mb-3">
+                                        <label class="form-label small fw-semibold text-uppercase text-muted">Banner Title</label>
+                                        <input type="text" name="title" class="form-control" placeholder="Enter banner title" style="border-radius: 6px;" />
+                                    </div>
+                                    <div class="mb-3">
                                         <label class="form-label small fw-semibold text-uppercase text-muted">Upload Image File (320x50 recommended)</label>
                                         <input type="file" name="bannerImage" accept="image/*" class="form-control" style="border-radius: 6px;" />
                                     </div>
