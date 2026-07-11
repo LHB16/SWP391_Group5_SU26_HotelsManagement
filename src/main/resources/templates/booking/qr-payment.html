@@ -92,9 +92,12 @@
                         <th:block th:if="${detailedDiscounts != null and !detailedDiscounts.isEmpty()}">
                             <!-- Nếu số lượng discount <= 1 -->
                             <th:block th:if="${detailedDiscounts.size() <= 1}">
-                                <div class="summary-row" th:each="d : ${detailedDiscounts}">
-                                    <span class="summary-label" th:text="'Discount (' + ${d.title} + ')'">Discount</span>
-                                    <span class="summary-value text-danger" style="color: #dc3545 !important; font-weight: 600;">
+                                <div class="summary-row" th:each="d : ${detailedDiscounts}" style="align-items: flex-start;">
+                                    <div>
+                                        <span class="summary-label" style="display: block;">Discount</span>
+                                        <span class="text-muted" style="font-size: 0.85rem; display: block; margin-top: 2px; line-height: 1.2;" th:text="'(' + ${d.title} + ')'">(Promotion Title)</span>
+                                    </div>
+                                    <span class="summary-value text-danger" style="color: #dc3545 !important; font-weight: 600; white-space: nowrap; margin-left: 10px;">
                                         -<th:block th:text="${#numbers.formatInteger(d.amount, 0, 'COMMA')}">0</th:block>
                                         VND
                                     </span>
@@ -445,4 +448,4 @@
 
 </body>
 </html>
-
+

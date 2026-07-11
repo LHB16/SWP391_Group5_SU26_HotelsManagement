@@ -392,9 +392,28 @@ document.addEventListener("DOMContentLoaded", function () {
             activePromoBtn = this;
             activePromoHotelId = parseInt(this.getAttribute("data-hotel-id"));
 
-            renderPromotionsList();
-            const pm = getPromoModal();
-            if (pm) pm.show();
+            // Gọi API dọn dẹp và lấy promotion mới nhất trước khi render
+            fetch(`/booking/api/clean-and-get-promotions?hotelId=${activePromoHotelId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("HTTP error " + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Cập nhật lại biến toàn cục hotelPromotions ở client
+                    window.hotelPromotions = data;
+                    renderPromotionsList();
+                    const pm = getPromoModal();
+                    if (pm) pm.show();
+                })
+                .catch(err => {
+                    console.error("Error fetching updated promotions:", err);
+                    // Fallback trong trường hợp lỗi mạng: dùng dữ liệu cũ có sẵn
+                    renderPromotionsList();
+                    const pm = getPromoModal();
+                    if (pm) pm.show();
+                });
         });
     });
 
