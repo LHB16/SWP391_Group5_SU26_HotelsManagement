@@ -217,13 +217,16 @@ public class PaymentController {
 
         // Tính toán các giá trị tổng cộng cho cả nhóm phòng
         BigDecimal totalSubtotal = BigDecimal.ZERO;
+        BigDecimal originalSubtotal = BigDecimal.ZERO;
         java.util.List<BigDecimal> roomSubtotals = new java.util.ArrayList<>();
+        java.util.List<java.util.Map<String, Object>> detailedDiscounts = new java.util.ArrayList<>();
 
         for (int i = 0; i < validRoomIds.size(); i++) {
             Room r = roomRepository.findById(validRoomIds.get(i)).orElse(null);
             int qtyVal = validQuantities.get(i);
             BigDecimal baseSub = calculateRoomSubtotal(r.getPrice(), checkInDate, checkOutDate);
-            BigDecimal rSub = baseSub.multiply(BigDecimal.valueOf(qtyVal));
+            BigDecimal rSubOriginal = baseSub.multiply(BigDecimal.valueOf(qtyVal));
+            BigDecimal rSub = rSubOriginal;
 
             // Áp dụng khuyến mãi nếu có
             Integer promoId = promotionIds != null && promotionIds.size() > i ? promotionIds.get(i) : null;
@@ -234,15 +237,25 @@ public class PaymentController {
                     // Kiểm tra xem promotion đã được khách hàng này sử dụng chưa
                     if (!bookingRepository.existsByCustomerIdAndIdPromotion(customerId, promoId)) {
                         BigDecimal discountRate = promo.getDiscountPercent().divide(BigDecimal.valueOf(100));
-                        BigDecimal discountAmount = rSub.multiply(discountRate);
-                        rSub = rSub.subtract(discountAmount);
+                        BigDecimal discountAmount = rSubOriginal.multiply(discountRate);
+                        rSub = rSubOriginal.subtract(discountAmount);
+
+                        if (discountAmount.compareTo(BigDecimal.ZERO) > 0) {
+                            java.util.Map<String, Object> dMap = new java.util.HashMap<>();
+                            dMap.put("title", promo.getTitle());
+                            dMap.put("amount", discountAmount);
+                            detailedDiscounts.add(dMap);
+                        }
                     }
                 }
             }
 
+            originalSubtotal = originalSubtotal.add(rSubOriginal);
             totalSubtotal = totalSubtotal.add(rSub);
             roomSubtotals.add(rSub);
         }
+
+        BigDecimal totalDiscount = originalSubtotal.subtract(totalSubtotal);
 
         BigDecimal serviceFee = totalSubtotal.compareTo(BigDecimal.ZERO) > 0 ? BigDecimal.valueOf(50_000)
                 : BigDecimal.ZERO;
@@ -372,6 +385,9 @@ public class PaymentController {
                 transferInfo, bookingId, qrExpiresAt, remainingSeconds, from, totalQty,
                 fullName, phone);
 
+        model.addAttribute("originalSubtotal", originalSubtotal);
+        model.addAttribute("discount", totalDiscount);
+        model.addAttribute("detailedDiscounts", detailedDiscounts);
         model.addAttribute("bookingsList", bookingsList);
         model.addAttribute("bookingQuantitiesMap", bookingQuantitiesMap);
 
@@ -565,9 +581,12 @@ public class PaymentController {
 
         java.util.Map<Integer, Integer> bookingQuantitiesMap = new java.util.HashMap<>();
         BigDecimal totalSubtotal = BigDecimal.ZERO;
+        BigDecimal originalSubtotal = BigDecimal.ZERO;
         BigDecimal totalTax = BigDecimal.ZERO;
         BigDecimal serviceFee = BigDecimal.ZERO;
         BigDecimal grandTotalPrice = BigDecimal.ZERO;
+
+        java.util.List<java.util.Map<String, Object>> detailedDiscounts = new java.util.ArrayList<>();
 
         for (Booking b : bookingsList) {
             BigDecimal bTotalPrice = b.getTotalPrice();
@@ -590,12 +609,32 @@ public class PaymentController {
             if (qty <= 0)
                 qty = 1;
 
+            BigDecimal bOriginalSubtotal = singleSubtotal.multiply(BigDecimal.valueOf(qty));
+
             bookingQuantitiesMap.put(b.getId(), qty);
             totalSubtotal = totalSubtotal.add(bSubtotal);
+            originalSubtotal = originalSubtotal.add(bOriginalSubtotal);
             totalTax = totalTax.add(bTax);
             serviceFee = serviceFee.add(bServiceFee);
             grandTotalPrice = grandTotalPrice.add(bTotalPrice);
+
+            // Thu thập detailed discount từ db
+            if (b.getIdPromotion() != null && b.getIdPromotion() > 0) {
+                Promotion promo = promotionRepository.findById(b.getIdPromotion()).orElse(null);
+                if (promo != null) {
+                    BigDecimal discountRate = promo.getDiscountPercent().divide(BigDecimal.valueOf(100));
+                    BigDecimal discountAmount = bOriginalSubtotal.multiply(discountRate);
+                    if (discountAmount.compareTo(BigDecimal.ZERO) > 0) {
+                        java.util.Map<String, Object> dMap = new java.util.HashMap<>();
+                        dMap.put("title", promo.getTitle());
+                        dMap.put("amount", discountAmount);
+                        detailedDiscounts.add(dMap);
+                    }
+                }
+            }
         }
+
+        BigDecimal totalDiscount = originalSubtotal.subtract(totalSubtotal);
 
         // Lấy hoặc tạo lại URL mã QR
         String transferInfo = buildTransferInfo(bookingId, hotel.getName(), room.getRoomType(), nights);
@@ -616,6 +655,9 @@ public class PaymentController {
                 transferInfo, bookingId, qrExpiresAt, remainingSeconds, from, totalQty,
                 booking.getFullName(), booking.getPhone());
 
+        model.addAttribute("originalSubtotal", originalSubtotal);
+        model.addAttribute("discount", totalDiscount);
+        model.addAttribute("detailedDiscounts", detailedDiscounts);
         model.addAttribute("bookingsList", bookingsList);
         model.addAttribute("bookingQuantitiesMap", bookingQuantitiesMap);
 

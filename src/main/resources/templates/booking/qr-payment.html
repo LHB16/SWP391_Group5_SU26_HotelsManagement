@@ -85,7 +85,7 @@
                         <div class="summary-row">
                             <span class="summary-label">Subtotal</span>
                             <span class="summary-value">
-                                <th:block th:text="${#numbers.formatInteger(subtotal, 0, 'COMMA')}">900,000</th:block>
+                                <th:block th:text="${#numbers.formatInteger(originalSubtotal != null ? originalSubtotal : subtotal, 0, 'COMMA')}">900,000</th:block>
                                 VND
                             </span>
                         </div>
@@ -448,4 +448,4 @@
 
 </body>
 </html>
-
+

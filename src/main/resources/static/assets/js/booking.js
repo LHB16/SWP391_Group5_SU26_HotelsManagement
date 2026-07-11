@@ -133,7 +133,9 @@ document.addEventListener("DOMContentLoaded", function () {
     // 3. Hàm tính toán lại hóa đơn (Invoice Summary)
     function recalculateGrandTotal() {
         const roomPrices = document.querySelectorAll(".booking-price-amount");
-        let subtotal = 0;
+        let originalSubtotal = 0;
+        let discountTotal = 0;
+        const appliedDiscounts = [];
 
         roomPrices.forEach(span => {
             const roomId = span.id.replace("room-price-", "");
@@ -142,30 +144,102 @@ document.addEventListener("DOMContentLoaded", function () {
             const promoId = promoInput ? parseInt(promoInput.value) : 0;
 
             let roomPrice = basePrice;
+            let roomDiscount = 0;
+            let promoTitle = "";
             if (promoId > 0 && typeof hotelPromotions !== "undefined") {
                 const promo = hotelPromotions.find(p => p.id === promoId);
                 if (promo) {
                     const discountRate = parseFloat(promo.discountPercent) / 100;
                     roomPrice = basePrice * (1 - discountRate);
+                    roomDiscount = basePrice * discountRate;
+                    promoTitle = promo.title;
                 }
             }
 
             // Cập nhật giá hiển thị của phòng
             span.textContent = formatVND(roomPrice);
-            subtotal += roomPrice;
+            originalSubtotal += basePrice;
+            discountTotal += roomDiscount;
+
+            if (roomDiscount > 0) {
+                appliedDiscounts.push({
+                    title: promoTitle || "Discount Voucher",
+                    amount: roomDiscount
+                });
+            }
         });
 
-        const tax = Math.round(subtotal * 0.1);
-        const serviceFee = subtotal > 0 ? 50000 : 0;
-        const grandTotal = subtotal + tax + serviceFee;
+        const actualSubtotal = originalSubtotal - discountTotal;
+        const tax = Math.round(actualSubtotal * 0.1);
+        const serviceFee = actualSubtotal > 0 ? 50000 : 0;
+        const grandTotal = actualSubtotal + tax + serviceFee;
 
         // Cập nhật lên UI
         const subtotalEl = document.getElementById("invoiceSubtotal");
+        const discountsContainer = document.getElementById("invoiceDiscountsContainer");
         const taxEl = document.getElementById("invoiceTax");
         const serviceFeeEl = document.getElementById("invoiceServiceFee");
         const grandTotalEl = document.getElementById("invoiceGrandTotal");
 
-        if (subtotalEl) subtotalEl.textContent = formatVND(subtotal) + " VND";
+        if (subtotalEl) subtotalEl.textContent = formatVND(originalSubtotal) + " VND";
+        
+        if (discountsContainer) {
+            discountsContainer.innerHTML = "";
+            if (appliedDiscounts.length <= 1) {
+                appliedDiscounts.forEach(item => {
+                    const row = document.createElement("div");
+                    row.className = "d-flex justify-content-between mb-2";
+                    row.innerHTML = `
+                        <span class="text-muted">Discount (${item.title})</span>
+                        <span class="fw-semibold text-danger">-${formatVND(item.amount)} VND</span>
+                    `;
+                    discountsContainer.appendChild(row);
+                });
+            } else {
+                // Tạo dòng tổng quan
+                const summaryRow = document.createElement("div");
+                summaryRow.className = "d-flex justify-content-between mb-2 align-items-center";
+                summaryRow.style.cursor = "pointer";
+                summaryRow.innerHTML = `
+                    <span class="text-muted d-flex align-items-center">
+                        Discount (Total)
+                        <i class="bi bi-chevron-down ms-1" id="invoiceDiscountChevron" style="transition: transform 0.2s;"></i>
+                    </span>
+                    <span class="fw-semibold text-danger">-${formatVND(discountTotal)} VND</span>
+                `;
+                discountsContainer.appendChild(summaryRow);
+
+                // Tạo container chi tiết ẩn
+                const detailsContainer = document.createElement("div");
+                detailsContainer.className = "d-none ps-3 border-start mb-2";
+                detailsContainer.style.fontSize = "0.9rem";
+                
+                appliedDiscounts.forEach(item => {
+                    const row = document.createElement("div");
+                    row.className = "d-flex justify-content-between mb-1 text-muted";
+                    row.innerHTML = `
+                        <span>${item.title}</span>
+                        <span class="text-danger">-${formatVND(item.amount)} VND</span>
+                    `;
+                    detailsContainer.appendChild(row);
+                });
+                discountsContainer.appendChild(detailsContainer);
+
+                // Sự kiện click toggle
+                summaryRow.addEventListener("click", function() {
+                    const isCollapsed = detailsContainer.classList.contains("d-none");
+                    const chevron = document.getElementById("invoiceDiscountChevron");
+                    if (isCollapsed) {
+                        detailsContainer.classList.remove("d-none");
+                        if (chevron) chevron.style.transform = "rotate(180deg)";
+                    } else {
+                        detailsContainer.classList.add("d-none");
+                        if (chevron) chevron.style.transform = "rotate(0deg)";
+                    }
+                });
+            }
+        }
+
         if (taxEl) taxEl.textContent = formatVND(tax) + " VND";
         if (serviceFeeEl) serviceFeeEl.textContent = formatVND(serviceFee) + " VND";
         if (grandTotalEl) grandTotalEl.textContent = formatVND(grandTotal) + " VND";
