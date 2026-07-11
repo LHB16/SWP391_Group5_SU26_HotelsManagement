@@ -10,39 +10,37 @@
     <!-- ==================== HERO BANNER ==================== -->
     <section class="room-hero">
         <div class="container">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-2">
-                <h1 class="room-hero-title mb-0" th:text="${hotel.name}">Hotel Name</h1>
-                
-                <!-- Group badge & chat -->
-                <div class="d-flex flex-column gap-2" style="min-width: 250px;">
-                    <div class="d-flex gap-2 justify-content-end">
-                        <span class="room-hero-badge">
-                            <i class="bi bi-star-fill text-gold me-1"></i>
-                            <span
-                                th:text="${avgRating > 0 ? avgRating + ' / 5 (' + totalReviews + ' reviews)' : hotel.rating + ' Stars'}">5
-                                Stars</span>
-                        </span>
-                        <span class="room-hero-badge">
-                            <i class="bi bi-door-open me-1"></i>
-                            <strong th:text="${totalResults}">0</strong>&nbsp;rooms found
-                        </span>
-                    </div>
-                    
-                    <!-- Chat with Owner Button -->
-                    <a href="javascript:void(0)"
-                       th:onclick="'window.handleChatClick(' + ${hotel.id} + ')'"
-                       class="btn btn-outline-gold btn-sm customer-support-hero-btn text-center"
-                       th:style="${user != null and user.role == 'HOTEL_OWNER'} ? 'background: #94a3b8 !important; border-color: #94a3b8 !important; color: #fff !important; pointer-events: none; cursor: not-allowed; opacity: 0.7;' : ''">
-                       <i data-lucide="message-square" class="me-1"
-                          style="width: 14px; height: 14px; stroke-width: 1.5; vertical-align: middle;"></i>
-                       Chat with Owner
-                    </a>
-                </div>
-            </div>
+            <h1 class="room-hero-title mb-2" th:text="${hotel.name}">Hotel Name</h1>
+            
             <p class="room-hero-subtitle mb-0">
                 <i class="bi bi-geo-alt me-1"></i>
                 <span th:text="${hotel.address}">Hotel Address</span>
             </p>
+
+            <!-- Group badge & chat -->
+            <div class="mt-3" style="max-width: 330px;">
+                <div class="d-flex gap-2 mb-2">
+                    <span class="room-hero-badge flex-fill justify-content-center">
+                        <i class="bi bi-star-fill text-gold me-1"></i>
+                        <span
+                            th:text="${avgRating > 0 ? avgRating + ' (' + totalReviews + ' reviews)' : 'No reviews yet'}">No reviews yet</span>
+                    </span>
+                    <span class="room-hero-badge flex-fill justify-content-center">
+                        <i class="bi bi-door-open me-1"></i>
+                        <span><strong th:text="${totalResults}">0</strong> rooms found</span>
+                    </span>
+                </div>
+                
+                <!-- Chat with Owner Button -->
+                <a href="javascript:void(0)"
+                   th:onclick="'window.handleChatClick(' + ${hotel.id} + ')'"
+                   class="btn btn-outline-gold btn-sm customer-support-hero-btn w-100 text-center"
+                   th:style="${user != null and user.role == 'HOTEL_OWNER'} ? 'background: #94a3b8 !important; border-color: #94a3b8 !important; color: #fff !important; pointer-events: none; cursor: not-allowed; opacity: 0.7;' : ''">
+                   <i data-lucide="message-square" class="me-1"
+                      style="width: 14px; height: 14px; stroke-width: 1.5; vertical-align: middle;"></i>
+                   Chat with Owner
+                </a>
+            </div>
         </div>
     </section>
 

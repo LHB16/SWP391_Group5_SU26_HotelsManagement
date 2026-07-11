@@ -128,4 +128,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Call initial update to make sure inputs align
     updateGuestsDisplay();
+
+    // 5. Destination Suggestions Autocomplete Dropdown
+    const destInput = document.getElementById('destInput');
+    const destDropdown = document.getElementById('destSuggestions');
+    if (destInput && destDropdown) {
+        destInput.addEventListener('focus', function() {
+            destDropdown.classList.remove('d-none');
+        });
+        
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!destInput.contains(e.target) && !destDropdown.contains(e.target)) {
+                destDropdown.classList.add('d-none');
+            }
+        });
+        
+        // Handle suggestion click
+        const items = destDropdown.querySelectorAll('.suggestion-item');
+        items.forEach(item => {
+            item.addEventListener('click', function() {
+                destInput.value = this.getAttribute('data-val');
+                destDropdown.classList.add('d-none');
+            });
+        });
+    }
 });
