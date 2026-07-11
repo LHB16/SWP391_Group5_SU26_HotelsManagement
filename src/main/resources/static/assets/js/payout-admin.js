@@ -35,6 +35,17 @@ function openPayoutModal(bookingId) {
     document.getElementById('payoutConfirmBtn').disabled = true;
     document.getElementById('pm-bookingIdHidden').value = bookingId;
 
+    // Reset Toggle QR Code về trạng thái tắt khi mở modal mới
+    const toggle = document.getElementById('toggleQrCode');
+    if (toggle) toggle.checked = false;
+    const detailsCol = document.getElementById('payoutDetailsCol');
+    if (detailsCol) {
+        detailsCol.classList.remove('col-md-7');
+        detailsCol.classList.add('col-12');
+    }
+    const qrCol = document.getElementById('payoutQrCol');
+    if (qrCol) qrCol.classList.add('d-none');
+
     modal.show();
 
     // Lấy thông tin ngân hàng Owner từ server
@@ -96,6 +107,9 @@ function recalculatePayout() {
 
     document.getElementById('pm-feeAmount').textContent = formatVND(Math.round(platformFee));
     document.getElementById('pm-payoutAmount').textContent = formatVND(Math.round(ownerPayout));
+    
+    // Cập nhật QR code nếu đang bật hiển thị
+    updateQrCode();
 }
 
 /**
@@ -192,4 +206,103 @@ function showPayoutSuccessToast(data) {
 
     // Tự xóa sau 4s
     setTimeout(() => toastEl.remove(), 4000);
+}
+
+/**
+ * Chuẩn hóa tên ngân hàng thành mã ngân hàng VietQR.
+ * @param {string} bankName - Tên ngân hàng thô
+ * @returns {string} - ID ngân hàng chuẩn hóa cho VietQR
+ */
+function normalizeBankName(bankName) {
+    if (!bankName) return '';
+    const name = bankName.toLowerCase().trim();
+    if (name.includes('vietin')) return 'vietinbank';
+    if (name.includes('vietcom') || name.includes('vcb')) return 'vietcombank';
+    if (name.includes('techcom') || name.includes('tcb')) return 'techcombank';
+    if (name.includes('bidv')) return 'bidv';
+    if (name.includes('mbbank') || name.includes('mb bank') || name === 'mb') return 'mbbank';
+    if (name.includes('acb')) return 'acb';
+    if (name.includes('tpbank') || name.includes('tp bank') || name.includes('tien phong')) return 'tpbank';
+    if (name.includes('vpbank') || name.includes('vp bank') || name.includes('thinh vuong')) return 'vpbank';
+    if (name.includes('sacom')) return 'sacombank';
+    if (name.includes('agri') || name.includes('nông nghiệp')) return 'agribank';
+    if (name.includes('vib')) return 'vib';
+    if (name.includes('shb')) return 'shb';
+    if (name.includes('hdb')) return 'hdbank';
+    if (name.includes('sea')) return 'seabank';
+    if (name.includes('msb')) return 'msb';
+    if (name.includes('exim')) return 'eximbank';
+    return name.replace(/\s+/g, '');
+}
+
+/**
+ * Cập nhật URL mã QR từ api VietQR dựa trên thông tin ngân hàng và số tiền thực nhận.
+ */
+function updateQrCode() {
+    const toggle = document.getElementById('toggleQrCode');
+    if (!toggle || !toggle.checked) return;
+
+    const qrImg = document.getElementById('payoutQrImg');
+    const loading = document.getElementById('payoutQrLoading');
+    if (!qrImg) return;
+
+    const bankName = document.getElementById('pm-bankName').value;
+    const accountNum = document.getElementById('pm-bankAccountNumber').value;
+    const accountHolder = document.getElementById('pm-bankAccountHolder').value;
+    
+    // Tính toán số tiền thực nhận
+    const totalPrice = parseFloat(document.getElementById('pm-totalPriceRaw').value) || 0;
+    const feePercent = parseFloat(document.getElementById('pm-feePercent').value) || 10;
+    const platformFee = totalPrice * (feePercent / 100);
+    const ownerPayout = Math.round(totalPrice - platformFee);
+    const bookingId = document.getElementById('pm-bookingIdHidden').value;
+
+    if (!bankName || !accountNum || accountNum.includes('Chưa cập nhật') || ownerPayout <= 0) {
+        qrImg.style.display = 'none';
+        if (loading) loading.style.display = 'none';
+        return;
+    }
+
+    if (loading) loading.style.display = 'block';
+    qrImg.style.display = 'none';
+
+    const bankId = normalizeBankName(bankName);
+    const description = encodeURIComponent(`Payout Booking #${bookingId}`);
+    const name = encodeURIComponent(accountHolder);
+
+    qrImg.src = `https://img.vietqr.io/image/${bankId}-${accountNum}-compact2.png?amount=${ownerPayout}&addInfo=${description}&accountName=${name}`;
+}
+
+/**
+ * Xử lý khi ảnh QR load xong.
+ */
+function onQrLoaded() {
+    const qrImg = document.getElementById('payoutQrImg');
+    const loading = document.getElementById('payoutQrLoading');
+    if (qrImg) qrImg.style.display = 'block';
+    if (loading) loading.style.display = 'none';
+}
+
+/**
+ * Bật/tắt hiển thị mã QR.
+ */
+function toggleQrDisplay() {
+    const toggle = document.getElementById('toggleQrCode');
+    const detailsCol = document.getElementById('payoutDetailsCol');
+    const qrCol = document.getElementById('payoutQrCol');
+
+    if (!toggle || !detailsCol || !qrCol) return;
+
+    if (toggle.checked) {
+        detailsCol.classList.remove('col-12');
+        detailsCol.classList.add('col-md-7');
+        qrCol.classList.remove('d-none');
+        // Re-render lucide icons bên trong cột QR (ví dụ: icon scan)
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        updateQrCode();
+    } else {
+        detailsCol.classList.remove('col-md-7');
+        detailsCol.classList.add('col-12');
+        qrCol.classList.add('d-none');
+    }
 }

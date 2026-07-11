@@ -14515,8 +14515,9 @@ main {
   background-color: #f1f5f9;
   border-radius: 8px;
   height: 32px;
-  position: relative;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  overflow: visible;
 }
 
 .chart-bar {
@@ -14524,6 +14525,7 @@ main {
   height: 100%;
   border-radius: 8px;
   width: 0%;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -23111,6 +23113,32 @@ td .discount-badge {
   background-color: #4338ca;
   border-color: #4338ca;
 }
+
+/* =============================================
+   VietQR Toggle - Animate Fade In
+   ============================================= */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+    animation: fadeIn 0.25s ease both;
+}
+
+/* =============================================
+   Revenue Chart - Outside Bar Label (Short Bars)
+   ============================================= */
+.chart-bar-value--outside {
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #4f46e5;
+  padding-left: 8px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
 
 /* ============================================================
    SHARED PAYMENT TIMER STYLING
