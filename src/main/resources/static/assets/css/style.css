@@ -14657,8 +14657,7 @@ main {
 
 /* Customer accounts listing layout overrides for full width single list view */
 .customer-layout-single {
-  max-width: 900px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .customer-list-box-full {
