@@ -22680,5 +22680,209 @@ td .discount-badge {
   padding-left: 52px !important;
 }
 
+/* ============================================================
+   BOOKING SPECIAL REQUESTS CARD STYLING
+   ============================================================ */
+.booking-special-requests-card {
+  margin-top: 1.5rem !important;
+  background-color: #ffffff !important;
+}
 
+.booking-special-requests-title {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: #1e293b !important;
+  margin-bottom: 0.5rem !important;
+}
 
+.booking-special-requests-desc {
+  color: #64748b !important;
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+  margin-bottom: 1rem !important;
+}
+
+.booking-special-requests-label {
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
+  color: #475569 !important;
+}
+
+.booking-special-requests-textarea {
+  border-radius: 8px !important;
+  border: 1px solid #cbd5e1 !important;
+  resize: vertical !important;
+}
+
+/* ============================================================
+   BOOKING SPECIAL REQUESTS MODAL STYLING
+   ============================================================ */
+.sr-modal-content {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+}
+
+.sr-modal-header {
+  background-color: #0a1628 !important;
+}
+
+.sr-modal-title {
+  font-family: 'Playfair Display', serif !important;
+}
+
+.sr-modal-body {
+  background-color: #f8fafc !important;
+}
+
+.sr-modal-room-title {
+  color: #c9a96e !important;
+  font-size: 1.05rem !important;
+}
+
+.sr-modal-desc {
+  line-height: 1.5 !important;
+  font-size: 0.85rem !important;
+}
+
+.sr-modal-label {
+  font-size: 0.8rem !important;
+  color: #475569 !important;
+}
+
+.sr-modal-textarea {
+  border-radius: 8px !important;
+  border: 1px solid #cbd5e1 !important;
+  font-size: 0.9rem !important;
+  resize: vertical !important;
+}
+
+.sr-modal-footer {
+  background-color: #f1f5f9 !important;
+}
+
+.sr-modal-btn-reset {
+  background-color: #ffffff !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  padding: 8px 20px !important;
+  font-size: 0.9rem !important;
+}
+
+.sr-modal-btn-save {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  padding: 8px 20px !important;
+  font-size: 0.9rem !important;
+  border: none !important;
+}
+
+/* ============================================================
+   BOOKING PROMOTION SELECTION STYLING
+   ============================================================ */
+.booking-select-promo-btn {
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  padding: 6px 14px !important;
+  border: 2px solid var(--gold) !important;
+  color: var(--gold) !important;
+  background-color: transparent !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+}
+
+.booking-select-promo-btn:hover {
+  background-color: var(--gold) !important;
+  color: #ffffff !important;
+}
+
+.booking-select-promo-btn.applied {
+  background-color: var(--gold) !important;
+  color: #ffffff !important;
+  border-color: var(--gold) !important;
+}
+
+.booking-select-promo-btn.applied:hover {
+  background-color: var(--gold-dark) !important;
+  border-color: var(--gold-dark) !important;
+}
+
+/* Promotion List Item inside Modal */
+.promo-item-card {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+  padding: 12px 16px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  transition: all 0.2s ease !important;
+}
+
+.promo-item-card:hover {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+.promo-item-details {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.promo-item-title {
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  margin: 0 !important;
+}
+
+.promo-item-discount {
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  color: #10b981 !important;
+}
+
+.promo-item-date {
+  font-size: 0.78rem !important;
+  color: #64748b !important;
+}
+
+.promo-item-btn-apply {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+  padding: 6px 14px !important;
+  font-size: 0.85rem !important;
+  border: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.promo-item-btn-apply:hover {
+  background-color: #1d4ed8 !important;
+}
+
+.promo-item-btn-remove {
+  background-color: #ef4444 !important;
+  color: #ffffff !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+  padding: 6px 14px !important;
+  font-size: 0.85rem !important;
+  border: none !important;
+  transition: all 0.2s ease !important;
+}
+
+}
+
+/* Tiêu đề loại phòng - Trang danh sách phòng */
+.room-type-title {
+  color: var(--gold) !important;
+  font-size: 1.45rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 8px !important;
+}

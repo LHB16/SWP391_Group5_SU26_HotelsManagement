@@ -240,6 +240,8 @@ CREATE TABLE bookings (
     hotel_id INT NOT NULL,
     phone NVARCHAR(20) NULL,
     full_name NVARCHAR(255) NULL,
+    email NVARCHAR(255) NULL,
+    id_promotion INT NULL,
     check_in_date DATE NULL,
     check_out_date DATE NULL,
     num_nights INT NULL,
@@ -248,11 +250,13 @@ CREATE TABLE bookings (
     special_notes NVARCHAR(MAX) NULL,
     created_at DATETIME2 NOT NULL CONSTRAINT DF_bookings_created_at DEFAULT GETDATE(),
     updated_at DATETIME2 NULL,
+    quantity INT NOT NULL CONSTRAINT DF_bookings_quantity DEFAULT 1,
     CONSTRAINT CK_bookings_num_nights CHECK (num_nights IS NULL OR num_nights > 0),
     CONSTRAINT CK_bookings_total_price CHECK (total_price IS NULL OR total_price >= 0),
     CONSTRAINT CK_bookings_date CHECK (check_in_date IS NULL OR check_out_date IS NULL OR check_out_date > check_in_date),
+    CONSTRAINT CK_bookings_quantity CHECK (quantity > 0),
     CONSTRAINT CK_bookings_status CHECK (
-        status IS NULL OR status IN (N'PENDING', N'CONFIRMED', N'COMPLETED', N'CANCELLED', N'REJECTED')
+        status IS NULL OR status IN (N'PENDING', N'CONFIRMED', N'COMPLETED', N'CANCELLED', N'REJECTED', N'EXPIRED')
     )
 );
 GO
@@ -441,6 +445,12 @@ FOREIGN KEY (hotel_id) REFERENCES hotel(id)
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 GO
 
+ALTER TABLE bookings
+ADD CONSTRAINT FK_bookings_promotions
+FOREIGN KEY (id_promotion) REFERENCES promotions(id)
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
+
 ALTER TABLE payments
 ADD CONSTRAINT FK_payments_bookings
 FOREIGN KEY (booking_id) REFERENCES bookings(id)
@@ -549,6 +559,7 @@ CREATE INDEX IX_bookings_customer_id ON bookings(customer_id);
 CREATE INDEX IX_bookings_room_id ON bookings(room_id);
 CREATE INDEX IX_bookings_hotel_id ON bookings(hotel_id);
 CREATE INDEX IX_bookings_status ON bookings(status);
+CREATE INDEX IX_bookings_id_promotion ON bookings(id_promotion);
 CREATE INDEX IX_payments_booking_id ON payments(booking_id);
 CREATE INDEX IX_refunds_booking_id ON refunds(booking_id);
 CREATE INDEX IX_feedback_hotel_id ON feedback(hotel_id);

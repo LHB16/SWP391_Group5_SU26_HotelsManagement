@@ -6,16 +6,31 @@ let allHotelsData = [];
 let isLoading = false;
 
 // ============================================================
+// HELPER: Format Date YYYY-MM-DD to DD/MM/YYYY
+// ============================================================
+function formatDateDisplay(dateStr) {
+    if (!dateStr) return '';
+    // Nếu đã có định dạng DD/MM/YYYY thì giữ nguyên
+    if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+        return dateStr;
+    }
+    // Chuyển từ YYYY-MM-DD sang DD/MM/YYYY
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return dateStr;
+}
+
+// ============================================================
 // LOAD PROMOTIONS
 // ============================================================
 function loadPromotions() {
     if (isLoading) {
-        console.log('Promotions already loading...');
         return;
     }
 
     isLoading = true;
-    console.log('Loading promotions...');
 
     const tbody = document.getElementById('promotionTableBody');
     if (tbody) {
@@ -37,10 +52,7 @@ function loadPromotions() {
             return response.json();
         })
         .then(data => {
-            console.log('Promotions loaded successfully');
-
             if (data.error) {
-                console.error('Error loading promotions:', data.error);
                 showPromotionError(data.error);
                 isLoading = false;
                 return;
@@ -57,9 +69,6 @@ function loadPromotions() {
                 });
             }
 
-            console.log(`Loaded ${allPromotionsData.length} promotions from ${allHotelsData.length} hotels`);
-
-            // Update total count
             const countEl = document.getElementById('totalPromotionsCount');
             if (countEl) {
                 countEl.textContent = allPromotionsData.length;
@@ -69,7 +78,6 @@ function loadPromotions() {
             isLoading = false;
         })
         .catch(error => {
-            console.error('Error loading promotions:', error);
             showPromotionError('Failed to load promotions. Please refresh the page.');
             isLoading = false;
         });
@@ -125,19 +133,23 @@ function renderPromotions(promotions) {
             if (hotel) hotelName = hotel.name;
         }
 
+        // Format date từ YYYY-MM-DD sang DD/MM/YYYY
+        const startDate = formatDateDisplay(promo.startDate);
+        const endDate = formatDateDisplay(promo.endDate);
+
         html += `
             <tr class="promo-table-row" data-promo-id="${promo.id}">
                 <td>
                     <strong class="text-dark">${escapeHtml(promo.title)}</strong>
                     <div class="text-muted small">${escapeHtml(hotelName)}</div>
                 </td>
-                <td><span class="discount-badge">-${promo.discountPercent}%</span></td>
-                <td>${promo.startDate || '-'}</td>
-                <td>${promo.endDate || '-'}</td>
+                <td style="text-align: center;"><span class="discount-badge">-${promo.discountPercent}%</span></td>
+                <td style="text-align: center;">${startDate || '-'}</td>
+                <td style="text-align: center;">${endDate || '-'}</td>
                 <td style="text-align: center;">
                     <span class="promo-status-badge ${statusClass}">${promo.status}</span>
                 </td>
-                <td>
+                <td style="text-align: center;">
                     <div class="d-flex gap-2 justify-content-center">
                         <button type="button" class="promo-action-btn promo-action-btn-edit" 
                                 onclick="openEditPromotionModal(this)" 
@@ -179,6 +191,38 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// ============================================================
+// SETUP PROMOTION DATE FILTERS WITH FLATPICKR
+// ============================================================
+function setupPromotionDateFilters() {
+    const startDateFilter = document.getElementById('promoStartDateFilter');
+    const endDateFilter = document.getElementById('promoEndDateFilter');
+
+    if (startDateFilter && typeof flatpickr === 'function') {
+        flatpickr(startDateFilter, {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            allowInput: false,
+            onChange: function () {
+                applyPromotionFilters();
+            }
+        });
+    }
+
+    if (endDateFilter && typeof flatpickr === 'function') {
+        flatpickr(endDateFilter, {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            allowInput: false,
+            onChange: function () {
+                applyPromotionFilters();
+            }
+        });
+    }
 }
 
 // ============================================================
@@ -232,8 +276,17 @@ function clearPromotionFilters() {
     if (searchInput) searchInput.value = '';
     if (hotelFilter) hotelFilter.value = 'all';
     if (statusFilter) statusFilter.value = 'all';
-    if (startDateFilter) startDateFilter.value = '';
-    if (endDateFilter) endDateFilter.value = '';
+
+    if (startDateFilter) {
+        const fp = startDateFilter._flatpickr;
+        if (fp) fp.clear();
+        startDateFilter.value = '';
+    }
+    if (endDateFilter) {
+        const fp = endDateFilter._flatpickr;
+        if (fp) fp.clear();
+        endDateFilter.value = '';
+    }
 
     renderPromotions(allPromotionsData);
 }
@@ -256,8 +309,22 @@ function openEditPromotionModal(button) {
     document.getElementById('editTitle').value = title;
     document.getElementById('editDescription').value = description;
     document.getElementById('editDiscountPercent').value = discount;
-    document.getElementById('editStartDate').value = start;
-    document.getElementById('editEndDate').value = end;
+
+    // Gán ngày cho Flatpickr
+    const startFp = document.getElementById('editStartDate')._flatpickr;
+    if (startFp) {
+        startFp.setDate(start);
+    } else {
+        document.getElementById('editStartDate').value = start;
+    }
+
+    const endFp = document.getElementById('editEndDate')._flatpickr;
+    if (endFp) {
+        endFp.setDate(end);
+    } else {
+        document.getElementById('editEndDate').value = end;
+    }
+
     document.getElementById('editStatus').value = status || 'ACTIVE';
 
     const modal = new bootstrap.Modal(document.getElementById('editPromotionModal'));
@@ -268,8 +335,44 @@ function openEditPromotionModal(button) {
 // OPEN ADD PROMOTION MODAL
 // ============================================================
 function openAddPromotionModal() {
+    // Clear dữ liệu cũ trong modal add trước khi mở
+    const addStart = document.getElementById('addStartDate');
+    const addEnd = document.getElementById('addEndDate');
+    if (addStart && addStart._flatpickr) addStart._flatpickr.clear();
+    if (addEnd && addEnd._flatpickr) addEnd._flatpickr.clear();
+
     const modal = new bootstrap.Modal(document.getElementById('addPromotionModal'));
     modal.show();
+}
+
+// ============================================================
+// SETUP PROMOTION FORM DATE PICKERS (ADD/EDIT) WITH FLATPICKR
+// ============================================================
+function setupPromotionFormDatePickers() {
+    const addStart = document.getElementById('addStartDate');
+    const addEnd = document.getElementById('addEndDate');
+    const editStart = document.getElementById('editStartDate');
+    const editEnd = document.getElementById('editEndDate');
+
+    const config = {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d/m/Y",
+        allowInput: false
+    };
+
+    if (addStart && typeof flatpickr === 'function') {
+        flatpickr(addStart, config);
+    }
+    if (addEnd && typeof flatpickr === 'function') {
+        flatpickr(addEnd, config);
+    }
+    if (editStart && typeof flatpickr === 'function') {
+        flatpickr(editStart, config);
+    }
+    if (editEnd && typeof flatpickr === 'function') {
+        flatpickr(editEnd, config);
+    }
 }
 
 // ============================================================
@@ -279,8 +382,6 @@ function setupPromotionEvents() {
     const searchInput = document.getElementById('promotionSearchInput');
     const hotelFilter = document.getElementById('hotelFilterSelect');
     const statusFilter = document.getElementById('promotionStatusFilter');
-    const startDateFilter = document.getElementById('promoStartDateFilter');
-    const endDateFilter = document.getElementById('promoEndDateFilter');
 
     if (searchInput) {
         searchInput.addEventListener('input', applyPromotionFilters);
@@ -291,37 +392,33 @@ function setupPromotionEvents() {
     if (statusFilter) {
         statusFilter.addEventListener('change', applyPromotionFilters);
     }
-    if (startDateFilter) {
-        startDateFilter.addEventListener('change', applyPromotionFilters);
-    }
-    if (endDateFilter) {
-        endDateFilter.addEventListener('change', applyPromotionFilters);
-    }
 }
 
 // ============================================================
 // AUTO-LOAD ON PAGE READY
 // ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('📄 Promotion.js loaded');
-
+document.addEventListener('DOMContentLoaded', function () {
     // Setup events
     setupPromotionEvents();
+
+    // Setup date filters with Flatpickr
+    setupPromotionDateFilters();
+
+    // Setup add/edit form date pickers with Flatpickr
+    setupPromotionFormDatePickers();
 
     // Check if promotions tab is active
     const activeTab = document.querySelector('.tab-panel.active');
     if (activeTab && activeTab.id === 'promotions') {
-        console.log('Active tab is Promotions - loading data...');
         loadPromotions();
     }
 
     // Listen for tab changes
     const sidebarLinks = document.querySelectorAll('.sidebar-link');
     sidebarLinks.forEach(link => {
-        link.addEventListener('click', function() {
+        link.addEventListener('click', function () {
             const tab = this.getAttribute('data-tab');
             if (tab === 'promotions') {
-                console.log('Switching to Promotions tab - loading data...');
                 loadPromotions();
             }
         });
