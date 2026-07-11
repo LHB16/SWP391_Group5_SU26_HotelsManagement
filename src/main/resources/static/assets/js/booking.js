@@ -133,7 +133,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // 3. Hàm tính toán lại hóa đơn (Invoice Summary)
     function recalculateGrandTotal() {
         const roomPrices = document.querySelectorAll(".booking-price-amount");
-        let subtotal = 0;
+        let originalSubtotal = 0;
+        let discountTotal = 0;
 
         roomPrices.forEach(span => {
             const roomId = span.id.replace("room-price-", "");
@@ -142,30 +143,44 @@ document.addEventListener("DOMContentLoaded", function () {
             const promoId = promoInput ? parseInt(promoInput.value) : 0;
 
             let roomPrice = basePrice;
+            let roomDiscount = 0;
             if (promoId > 0 && typeof hotelPromotions !== "undefined") {
                 const promo = hotelPromotions.find(p => p.id === promoId);
                 if (promo) {
                     const discountRate = parseFloat(promo.discountPercent) / 100;
                     roomPrice = basePrice * (1 - discountRate);
+                    roomDiscount = basePrice * discountRate;
                 }
             }
 
             // Cập nhật giá hiển thị của phòng
             span.textContent = formatVND(roomPrice);
-            subtotal += roomPrice;
+            originalSubtotal += basePrice;
+            discountTotal += roomDiscount;
         });
 
-        const tax = Math.round(subtotal * 0.1);
-        const serviceFee = subtotal > 0 ? 50000 : 0;
-        const grandTotal = subtotal + tax + serviceFee;
+        const actualSubtotal = originalSubtotal - discountTotal;
+        const tax = Math.round(actualSubtotal * 0.1);
+        const serviceFee = actualSubtotal > 0 ? 50000 : 0;
+        const grandTotal = actualSubtotal + tax + serviceFee;
 
         // Cập nhật lên UI
         const subtotalEl = document.getElementById("invoiceSubtotal");
+        const discountRowEl = document.getElementById("invoiceDiscountRow");
+        const discountEl = document.getElementById("invoiceDiscount");
         const taxEl = document.getElementById("invoiceTax");
         const serviceFeeEl = document.getElementById("invoiceServiceFee");
         const grandTotalEl = document.getElementById("invoiceGrandTotal");
 
-        if (subtotalEl) subtotalEl.textContent = formatVND(subtotal) + " VND";
+        if (subtotalEl) subtotalEl.textContent = formatVND(originalSubtotal) + " VND";
+        
+        if (discountTotal > 0) {
+            if (discountRowEl) discountRowEl.classList.remove("d-none");
+            if (discountEl) discountEl.textContent = "-" + formatVND(discountTotal) + " VND";
+        } else {
+            if (discountRowEl) discountRowEl.classList.add("d-none");
+        }
+
         if (taxEl) taxEl.textContent = formatVND(tax) + " VND";
         if (serviceFeeEl) serviceFeeEl.textContent = formatVND(serviceFee) + " VND";
         if (grandTotalEl) grandTotalEl.textContent = formatVND(grandTotal) + " VND";

@@ -85,7 +85,14 @@
                         <div class="summary-row">
                             <span class="summary-label">Subtotal</span>
                             <span class="summary-value">
-                                <th:block th:text="${#numbers.formatInteger(subtotal, 0, 'COMMA')}">900,000</th:block>
+                                <th:block th:text="${#numbers.formatInteger(originalSubtotal != null ? originalSubtotal : subtotal, 0, 'COMMA')}">900,000</th:block>
+                                VND
+                            </span>
+                        </div>
+                        <div class="summary-row" th:if="${discount != null and discount > 0}">
+                            <span class="summary-label">Discount</span>
+                            <span class="summary-value text-danger" style="color: #dc3545 !important; font-weight: 600;">
+                                -<th:block th:text="${#numbers.formatInteger(discount, 0, 'COMMA')}">0</th:block>
                                 VND
                             </span>
                         </div>
