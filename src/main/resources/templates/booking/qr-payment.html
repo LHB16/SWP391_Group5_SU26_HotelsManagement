@@ -146,6 +146,23 @@
                             </label>
                         </div>
 
+                        <!-- Session expiry countdown timer (shared between VietQR and PayPal) -->
+                        <div id="shared-payment-timer" class="shared-payment-timer-pill">
+                            <svg class="timer-pulse-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                            <span class="timer-text">
+                                Session expires in
+                                <strong id="qr-countdown" class="timer-countdown-nums">--:--</strong>
+                                <span class="timer-expires-at" th:text="'(at ' + ${#temporals.format(qrExpiresAt, 'HH:mm')} + ')'">(at --:--)</span>
+                            </span>
+                        </div>
+
+
+
                         <!-- Default Prompt Content (Select Payment Method) -->
                         <div class="payment-content-none p-5 text-center">
                             <div class="mb-4">
@@ -222,21 +239,7 @@
                                     <div class="qr-badge">VietQR</div>
                                 </div>
 
-                                <!-- QR expiry timer (live countdown via JS) -->
-                                <div class="qr-timer">
-                                    <svg class="qr-timer-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                        stroke-linecap="round" stroke-linejoin="round">
-                                        <circle cx="12" cy="12" r="10" />
-                                        <polyline points="12 6 12 12 16 14" />
-                                    </svg>
-                                    <span>
-                                        QR code valid for
-                                        <strong id="qr-countdown">--:--</strong>
-                                        &nbsp;(expires at
-                                        <th:block th:text="${#temporals.format(qrExpiresAt, 'HH:mm')}">--:--</th:block>)
-                                    </span>
-                                </div>
+
 
                                 <!-- Bank transfer details -->
                                 <div class="qr-bank-info">

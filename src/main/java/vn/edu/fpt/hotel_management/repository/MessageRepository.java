@@ -20,4 +20,10 @@ public interface MessageRepository extends JpaRepository<Message, Integer> {
 
     // Magic Method tìm các tin nhắn chưa đọc gửi từ một người đến một người trong khách sạn cụ thể
     List<Message> findByHotelIdAndSenderIdAndReceiverIdAndIsReadFalse(int hotelId, int senderId, int receiverId);
+
+    // Đếm số tin nhắn chưa đọc gửi đến một người nhận
+    long countByReceiverIdAndIsReadFalse(int receiverId);
+
+    // Đếm số tin nhắn chưa đọc từ một khách sạn cụ thể đến một người nhận
+    long countByHotelIdAndReceiverIdAndIsReadFalse(int hotelId, int receiverId);
 }
