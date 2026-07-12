@@ -68,6 +68,7 @@
                     </div>
                 </div>
 
+                <!-- PENDING VERIFICATION -->
                 <div th:if="${verificationStatus == 'PENDING'}" class="pending-verification-card mb-4">
                     <div class="pending-verification-inner">
                         <div class="pending-verification-icon">
@@ -88,6 +89,7 @@
                     </div>
                 </div>
 
+                <!-- REJECTED VERIFICATION -->
                 <div th:if="${verificationStatus == 'REJECTED'}" class="rejected-verification-card mb-4">
                     <div class="rejected-verification-inner">
                         <div class="rejected-verification-icon">
@@ -101,6 +103,7 @@
                     </div>
                 </div>
 
+                <!-- APPROVED - SHOW BOOKINGS -->
                 <div th:if="${verificationStatus == 'APPROVED'}">
                     <div class="dashboard-section">
                         <h2 class="section-title">
@@ -123,16 +126,6 @@
                                 </select>
                             </div>
                             <div class="col-6 col-md-2">
-                                <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Status</label>
-                                <select id="bookingStatusFilter" class="form-select form-select-sm">
-                                    <option value="all">All Status</option>
-                                    <option value="CONFIRMED">Confirmed</option>
-                                    <option value="PENDING">Pending</option>
-                                    <option value="COMPLETED">Completed</option>
-                                    <option value="CANCELLED">Cancelled</option>
-                                </select>
-                            </div>
-                            <div class="col-6 col-md-2">
                                 <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Check-in</label>
                                 <input type="text" id="bookingCheckinFilter" class="form-control form-control-sm"
                                        placeholder="dd/mm/yyyy" readonly />
@@ -149,6 +142,7 @@
                             </div>
                         </div>
 
+                        <!-- Booking Table -->
                         <div class="custom-table-container">
                             <table class="custom-table">
                                 <thead>
@@ -160,9 +154,7 @@
                                     <th>Check-in</th>
                                     <th>Check-out</th>
                                     <th>Total</th>
-                                    <th>Status</th>
-                                    <th>Payment</th>
-                                    <th>Payout</th>
+                                    <th>Action</th>
                                 </tr>
                                 </thead>
                                 <tbody id="bookingTableBody">
@@ -179,38 +171,34 @@
                                             0 VND
                                         </strong>
                                     </td>
-                                    <td style="padding: 8px 10px; white-space: nowrap; text-align: center;">
-                                            <span class="booking-status-badge"
-                                                  style="display: inline-block; min-width: 95px; padding: 5px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; text-align: center; letter-spacing: 0.03em; border: 1px solid;"
-                                                  th:classappend="${b.bookingStatus == 'CONFIRMED'} ? 'bg-success-light text-success border-success' :
-                                                                 (${b.bookingStatus == 'COMPLETED'} ? 'bg-info-light text-info border-info' :
-                                                                 (${b.bookingStatus == 'PENDING'} ? 'bg-warning-light text-warning border-warning' :
-                                                                 (${b.bookingStatus == 'CANCELLED'} ? 'bg-danger-light text-danger border-danger' : 'bg-light-secondary text-secondary border-secondary')))"
-                                                  th:text="${b.bookingStatus}">STATUS</span>
-                                    </td>
-                                    <td style="padding: 8px 10px; white-space: nowrap; text-align: center;">
-                                            <span class="payment-status-badge"
-                                                  style="display: inline-block; min-width: 95px; padding: 5px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; text-align: center; letter-spacing: 0.03em; border: 1px solid;"
-                                                  th:classappend="${b.paymentStatus == 'PAID'} ? 'bg-success-light text-success border-success' :
-                                                                 (${b.paymentStatus == 'PENDING'} ? 'bg-warning-light text-warning border-warning' :
-                                                                 (${b.paymentStatus == 'FAILED'} ? 'bg-danger-light text-danger border-danger' :
-                                                                 (${b.paymentStatus == 'REFUNDED'} ? 'bg-info-light text-info border-info' : 'bg-light-secondary text-secondary border-secondary')))"
-                                                  th:text="${b.paymentStatus}">PAYMENT</span>
-                                    </td>
-                                    <!-- Cột Payout: chỉ hiển thị khi bookingStatus == COMPLETED -->
-                                    <td style="padding: 8px 10px; white-space: nowrap; text-align: center;">
-                                        <span th:if="${b.bookingStatus != 'COMPLETED'}" class="text-muted" style="font-size:0.75rem;">-</span>
-                                        <button th:if="${b.bookingStatus == 'COMPLETED' && b.payoutStatus == 'PAID'}"
-                                                class="badge bg-success border-0"
-                                                style="cursor:pointer; padding: 5px 10px; border-radius: 20px; font-size: 0.72rem;"
-                                                th:attr="onclick='openOwnerPayoutDetail(' + ${b.bookingId} + ', \'' + ${b.payoutBankName} + '\', \'' + ${b.payoutBankAccountNumber} + '\', \'' + ${b.payoutBankAccountHolder} + '\', ' + ${b.ownerPayoutAmount} + ', ' + ${b.platformFeePercent} + ', \'' + (${b.payoutAt} != null ? ${b.payoutAt} : '') + '\')'">PAID ↗</button>
-                                        <span th:if="${b.bookingStatus == 'COMPLETED' && b.payoutStatus != 'PAID'}" 
-                                              class="badge bg-warning text-dark"
-                                              style="padding: 5px 10px; border-radius: 20px; font-size: 0.72rem;">PENDING</span>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary view-detail-btn"
+                                                th:data-booking-id="${b.bookingId}"
+                                                th:data-customer-name="${b.customerName}"
+                                                th:data-hotel-name="${b.hotelName}"
+                                                th:data-room-type="${b.roomType}"
+                                                th:data-checkin="${b.checkInDate}"
+                                                th:data-checkout="${b.checkOutDate}"
+                                                th:data-total="${b.totalPrice}"
+                                                th:data-status="${b.bookingStatus}"
+                                                th:data-payment="${b.paymentStatus}"
+                                                th:data-payout="${b.payoutStatus}"
+                                                th:data-payout-amount="${b.ownerPayoutAmount}"
+                                                th:data-platform-fee="${b.platformFeePercent}"
+                                                th:data-payout-bank="${b.payoutBankName}"
+                                                th:data-payout-account="${b.payoutBankAccountNumber}"
+                                                th:data-payout-holder="${b.payoutBankAccountHolder}"
+                                                th:data-checkin-status="${b.checkInStatus}"
+                                                th:data-checkout-status="${b.checkOutStatus}"
+                                                th:data-notes="${b.specialNotes}"
+                                                onclick="openBookingDetail(this)">
+                                            <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                                            View Detail
+                                        </button>
                                     </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(recentBookings)}">
-                                    <td colspan="10" class="text-center text-muted py-5">
+                                    <td colspan="8" class="text-center text-muted py-5">
                                         <i data-lucide="inbox" class="d-block mx-auto mb-2" style="width: 40px; height: 40px; opacity: 0.4;"></i>
                                         No bookings found.
                                     </td>
@@ -221,7 +209,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- ========================================================= -->
             <!-- PANEL 2: MY HOTELS -->
             <!-- ========================================================= -->
@@ -351,11 +338,11 @@
                                         </a>
                                     </div>
                                     <div class="d-flex gap-2">
-                                         <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" th:data-bs-target="'#deleteModalHotel-' + ${hotel.id}">
-                                             <i data-lucide="trash-2" style="width: 14px; height: 14px; vertical-align: middle;"></i>
-                                             Delete
-                                         </button>
-                                     </div>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" th:data-bs-target="'#deleteModalHotel-' + ${hotel.id}">
+                                            <i data-lucide="trash-2" style="width: 14px; height: 14px; vertical-align: middle;"></i>
+                                            Delete
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -927,7 +914,130 @@
         </div>
     </div>
 </div>
+<!-- ========================================================= -->
+<!-- MODAL: BOOKING DETAIL -->
+<!-- ========================================================= -->
+<div class="modal fade" id="bookingDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow border-0" style="border-radius: 16px;">
+
+            <div class="modal-header border-0" style="padding: 20px 24px 0;">
+                <div>
+                    <h5 class="modal-title fw-bold" style="font-family: 'Playfair Display', serif;">
+                        <i data-lucide="file-text" style="width: 20px; height: 20px; color: #c9a96e;"></i>
+                        Booking Detail
+                    </h5>
+                    <p class="text-muted small mt-1">Complete booking information</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body" id="bookingDetailBody" style="padding: 20px 24px;">
+
+                <!-- Header: Booking ID + Status badges -->
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                    <h5 class="fw-bold mb-0" id="bd-bookingId">#?</h5>
+                    <div class="d-flex gap-2">
+                        <span class="booking-status-badge" id="bd-status-badge">-</span>
+                        <span class="payment-status-badge" id="bd-payment-badge">-</span>
+                    </div>
+                </div>
+
+                <!-- Customer / Hotel / Room -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="text-muted small mb-1">Customer</label>
+                        <p class="fw-semibold mb-0" id="bd-customerName">N/A</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted small mb-1">Hotel</label>
+                        <p class="fw-semibold mb-0" id="bd-hotelName">N/A</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted small mb-1">Room Type</label>
+                        <p class="fw-semibold mb-0" id="bd-roomType">N/A</p>
+                    </div>
+                </div>
+
+                <!-- Dates -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="text-muted small mb-1">Check-in</label>
+                        <p class="fw-semibold mb-0" id="bd-checkin">-</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small mb-1">Check-out</label>
+                        <p class="fw-semibold mb-0" id="bd-checkout">-</p>
+                    </div>
+                </div>
+
+                <!-- Total -->
+                <div class="mb-3 pb-3 border-bottom">
+                    <label class="text-muted small mb-1">Total</label>
+                    <p class="fw-bold text-success fs-5 mb-0" id="bd-total">0 VND</p>
+                </div>
+
+                <!-- Payout -->
+                <div class="mb-3 pb-3 border-bottom">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <label class="text-muted small mb-0">Payout Status</label>
+                        <span id="bd-payout-badge">-</span>
+                    </div>
+                    <div id="bd-payout-detail" style="display:none;">
+                        <table class="table table-borderless table-sm mb-0">
+                            <tr><td class="text-muted small" style="width:160px;">Bank Name</td><td class="fw-semibold" id="bd-payout-bank">-</td></tr>
+                            <tr><td class="text-muted small">Account Number</td><td class="fw-semibold" id="bd-payout-account">-</td></tr>
+                            <tr><td class="text-muted small">Account Holder</td><td class="fw-semibold" id="bd-payout-holder">-</td></tr>
+                            <tr><td class="text-muted small">Platform Fee</td><td class="fw-semibold text-muted" id="bd-platform-fee">10%</td></tr>
+                            <tr><td class="text-muted small">Amount Received</td><td class="fw-bold text-success" id="bd-payout-amount">0 VND</td></tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Check-in / Check-out toggles -->
+                <div class="row g-3 mb-3 pb-3 border-bottom">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <label class="text-muted small mb-0 d-block">Check-in Status</label>
+                                <span id="bd-checkin-display" class="small text-muted"></span>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="bd-checkin-toggle"
+                                       onchange="updateCheckInStatus(this)">
+                            </div>
+                        </div>
+                        <span id="bd-checkin-label" class="small text-secondary">Not Checked In</span>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <label class="text-muted small mb-0 d-block">Check-out Status</label>
+                                <span id="bd-checkout-display" class="small text-muted"></span>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="bd-checkout-toggle"
+                                       onchange="updateCheckOutStatus(this)">
+                            </div>
+                        </div>
+                        <span id="bd-checkout-label" class="small text-secondary">Not Checked Out</span>
+                    </div>
+                </div>
+
+                <!-- Special Notes -->
+                <div id="bd-special-notes" style="display:none;">
+                    <label class="text-muted small mb-1">Special Notes</label>
+                    <p class="mb-0" id="bd-notes-content"></p>
+                </div>
+
+            </div>
+
+            <div class="modal-footer border-0" style="padding: 16px 24px 24px;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
-
