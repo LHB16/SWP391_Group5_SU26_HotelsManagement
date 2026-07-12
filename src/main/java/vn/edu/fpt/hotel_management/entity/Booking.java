@@ -67,6 +67,15 @@ public class Booking {
     private Integer quantity = 1;
 
     // =====================================================
+    // CHECK-IN / CHECK-OUT REAL-TIME TIMESTAMPS
+    // =====================================================
+    @Column(name = "checked_in_at")
+    private LocalDateTime checkedInAt;
+
+    @Column(name = "checked_out_at")
+    private LocalDateTime checkedOutAt;
+
+    // =====================================================
     // PAYOUT: Thông tin đối soát tiền cho Owner
     // =====================================================
     @Column(name = "platform_fee_percent")
@@ -234,9 +243,9 @@ public class Booking {
     }
 
     public boolean isCancelable() {
-        return "CONFIRMED".equalsIgnoreCase(this.status) 
-            && this.checkInDate != null 
-            && java.time.LocalDate.now().isBefore(this.checkInDate);
+        return "CONFIRMED".equalsIgnoreCase(this.status)
+                && this.checkInDate != null
+                && java.time.LocalDate.now().isBefore(this.checkInDate);
     }
 
     public Integer getQuantity() {
@@ -273,4 +282,13 @@ public class Booking {
 
     public String getPayoutBankAccountHolder() { return payoutBankAccountHolder; }
     public void setPayoutBankAccountHolder(String payoutBankAccountHolder) { this.payoutBankAccountHolder = payoutBankAccountHolder; }
+
+    // =====================================================
+    // CHECK-IN / CHECK-OUT TIMESTAMP Getters & Setters
+    // =====================================================
+    public LocalDateTime getCheckedInAt() { return checkedInAt; }
+    public void setCheckedInAt(LocalDateTime checkedInAt) { this.checkedInAt = checkedInAt; }
+
+    public LocalDateTime getCheckedOutAt() { return checkedOutAt; }
+    public void setCheckedOutAt(LocalDateTime checkedOutAt) { this.checkedOutAt = checkedOutAt; }
 }

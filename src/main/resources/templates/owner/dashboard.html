@@ -5,6 +5,8 @@
     <th:block th:replace="~{fragment/frag :: head}"></th:block>
     <link th:href="@{/assets/css/dashboard.css}" rel="stylesheet"/>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <meta th:if="${_csrf != null}" name="_csrf" th:content="${_csrf.token}"/>
+    <meta th:if="${_csrf != null}" name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 
 <body class="d-flex flex-column h-100">
@@ -1008,6 +1010,7 @@
                             </div>
                         </div>
                         <span id="bd-checkin-label" class="small text-secondary">Not Checked In</span>
+                        <span id="bd-checkin-actual" class="small text-muted d-block mt-1" style="display:none;"></span>
                     </div>
                     <div class="col-md-6">
                         <div class="d-flex align-items-center justify-content-between">
@@ -1021,6 +1024,7 @@
                             </div>
                         </div>
                         <span id="bd-checkout-label" class="small text-secondary">Not Checked Out</span>
+                        <span id="bd-checkout-actual" class="small text-muted d-block mt-1" style="display:none;"></span>
                     </div>
                 </div>
 
