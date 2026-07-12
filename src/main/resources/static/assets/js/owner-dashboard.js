@@ -209,7 +209,7 @@ function applyBookingFilters() {
         let show = true;
 
         const cells = row.querySelectorAll('td');
-        if (cells.length < 9) return;
+        if (cells.length < 8) return;
 
         const bookingId = cells[0] ? cells[0].textContent.trim().replace('#', '') : '';
         const customerName = cells[1] ? cells[1].textContent.trim().toLowerCase() : '';
@@ -217,7 +217,9 @@ function applyBookingFilters() {
         const roomType = cells[3] ? cells[3].textContent.trim().toLowerCase() : '';
         const checkinText = cells[4] ? cells[4].textContent.trim() : '';
         const checkoutText = cells[5] ? cells[5].textContent.trim() : '';
-        const statusText = cells[7] ? cells[7].textContent.trim() : '';
+        
+        const actionBtn = cells[7] ? cells[7].querySelector('.view-detail-btn') : null;
+        const statusText = actionBtn ? (actionBtn.getAttribute('data-status') || '') : '';
 
         if (keyword) {
             const searchMatch = customerName.includes(keyword) ||
@@ -261,7 +263,7 @@ function applyBookingFilters() {
         const emptyRow = document.createElement('tr');
         emptyRow.className = 'booking-empty-row';
         emptyRow.innerHTML = `
-            <td colspan="9" class="text-center text-muted py-5">
+            <td colspan="8" class="text-center text-muted py-5">
                 No bookings found matching your filters.
             </td>
         `;
@@ -508,21 +510,58 @@ function renderBookingDetail(data) {
     // Check-in / Check-out toggles
     var isEditable = status === 'CONFIRMED' || status === 'COMPLETED';
 
-    var checkinToggle = document.getElementById('bd-checkin-toggle');
+    var checkinBtn = document.getElementById('bd-checkin-btn');
+    var uncheckinBtn = document.getElementById('bd-uncheckin-btn');
     var checkinLabel = document.getElementById('bd-checkin-label');
-    if (checkinToggle && checkinLabel) {
-        checkinToggle.disabled = !isEditable;
-        checkinToggle.checked = data.checkInStatus === true;
-        updateToggleLabel(checkinToggle, checkinLabel, 'Checked In', 'Not Checked In');
+    if (checkinBtn && uncheckinBtn && checkinLabel) {
+        if (!isEditable) {
+            checkinBtn.style.display = 'none';
+            uncheckinBtn.style.display = 'none';
+        } else {
+            if (data.checkInStatus === true) {
+                checkinBtn.style.display = 'none';
+                uncheckinBtn.style.display = 'inline-block';
+                checkinLabel.textContent = 'Checked In';
+                checkinLabel.className = 'small text-success fw-semibold';
+            } else {
+                checkinBtn.style.display = 'inline-block';
+                uncheckinBtn.style.display = 'none';
+                checkinLabel.textContent = 'Not Checked In';
+                checkinLabel.className = 'small text-secondary';
+            }
+        }
         updateActualTimeDisplay('bd-checkin-actual', data.checkedInAt);
     }
 
-    var checkoutToggle = document.getElementById('bd-checkout-toggle');
+    var checkoutBtn = document.getElementById('bd-checkout-btn');
+    var uncheckoutBtn = document.getElementById('bd-uncheckout-btn');
     var checkoutLabel = document.getElementById('bd-checkout-label');
-    if (checkoutToggle && checkoutLabel) {
-        checkoutToggle.disabled = !isEditable;
-        checkoutToggle.checked = data.checkOutStatus === true;
-        updateToggleLabel(checkoutToggle, checkoutLabel, 'Checked Out', 'Not Checked Out');
+    if (checkoutBtn && uncheckoutBtn && checkoutLabel) {
+        if (!isEditable) {
+            checkoutBtn.style.display = 'none';
+            uncheckoutBtn.style.display = 'none';
+        } else {
+            if (data.checkOutStatus === true) {
+                checkoutBtn.style.display = 'none';
+                uncheckoutBtn.style.display = 'inline-block';
+                checkoutLabel.textContent = 'Checked Out';
+                checkoutLabel.className = 'small text-success fw-semibold';
+            } else {
+                checkoutBtn.style.display = 'inline-block';
+                uncheckoutBtn.style.display = 'none';
+                checkoutLabel.textContent = 'Not Checked Out';
+                checkoutLabel.className = 'small text-secondary';
+                
+                // Disable check-out if not checked in yet
+                if (data.checkInStatus !== true) {
+                    checkoutBtn.disabled = true;
+                    checkoutBtn.title = "Guest must check in first";
+                } else {
+                    checkoutBtn.disabled = false;
+                    checkoutBtn.title = "";
+                }
+            }
+        }
         updateActualTimeDisplay('bd-checkout-actual', data.checkedOutAt);
     }
 
@@ -606,18 +645,56 @@ function formatVND(amount) {
 }
 
 // ===== UPDATE CHECK-IN =====
-function updateCheckInStatus(toggle) {
-    var checked = toggle.checked;
-    var label = document.getElementById('bd-checkin-label');
+function triggerCheckInConfirm() {
     var bookingId = (document.getElementById('bd-bookingId').textContent || '').replace('#', '');
-
     if (!bookingId || bookingId === '?') {
-        toggle.checked = !checked;
         showToast('Invalid booking ID', 'error');
         return;
     }
+    
+    showActionConfirmModal(
+        'Confirm Check-in',
+        'Are you sure you want to perform <strong>Check-in</strong> for this booking?',
+        'btn-gold',
+        'Check-in',
+        function() {
+            executeCheckInUpdate(bookingId, true);
+        }
+    );
+}
 
-    toggle.disabled = true;
+function triggerUnCheckInConfirm() {
+    var bookingId = (document.getElementById('bd-bookingId').textContent || '').replace('#', '');
+    if (!bookingId || bookingId === '?') {
+        showToast('Invalid booking ID', 'error');
+        return;
+    }
+    
+    // Check if guest has already checked out - cannot undo checkin if checked out!
+    var checkoutBtn = document.getElementById('bd-checkout-btn');
+    if (checkoutBtn && checkoutBtn.style.display === 'none') {
+        showToast('Cannot undo check-in because the guest has already checked out.', 'error');
+        return;
+    }
+    
+    showActionConfirmModal(
+        'Confirm Undo Check-in',
+        'Are you sure you want to <strong>Undo Check-in</strong> for this booking?',
+        'btn-secondary',
+        'Undo',
+        function() {
+            executeCheckInUpdate(bookingId, false);
+        }
+    );
+}
+
+function executeCheckInUpdate(bookingId, checked) {
+    var checkinBtn = document.getElementById('bd-checkin-btn');
+    var uncheckinBtn = document.getElementById('bd-uncheckin-btn');
+    var checkinLabel = document.getElementById('bd-checkin-label');
+    
+    if (checkinBtn) checkinBtn.disabled = true;
+    if (uncheckinBtn) uncheckinBtn.disabled = true;
 
     fetch('/owner/booking/update-checkin', {
         method: 'POST',
@@ -629,37 +706,134 @@ function updateCheckInStatus(toggle) {
     })
         .then(function (response) { return response.json(); })
         .then(function (data) {
-            toggle.disabled = false;
+            if (checkinBtn) checkinBtn.disabled = false;
+            if (uncheckinBtn) uncheckinBtn.disabled = false;
+            
             if (data.success) {
-                updateToggleLabel(toggle, label, 'Checked In', 'Not Checked In');
+                if (checked) {
+                    if (checkinBtn) checkinBtn.style.display = 'none';
+                    if (uncheckinBtn) uncheckinBtn.style.display = 'inline-block';
+                    if (checkinLabel) {
+                        checkinLabel.textContent = 'Checked In';
+                        checkinLabel.className = 'small text-success fw-semibold';
+                    }
+                } else {
+                    if (checkinBtn) checkinBtn.style.display = 'inline-block';
+                    if (uncheckinBtn) uncheckinBtn.style.display = 'none';
+                    if (checkinLabel) {
+                        checkinLabel.textContent = 'Not Checked In';
+                        checkinLabel.className = 'small text-secondary';
+                    }
+                }
+                
                 updateActualTimeDisplay('bd-checkin-actual', data.checkedInAt);
                 showToast('Check-in status updated successfully!', 'success');
+                
+                setTimeout(function() {
+                    window.location.reload();
+                }, 1000);
             } else {
-                toggle.checked = !checked;
                 showToast(data.message || 'Failed to update check-in status.', 'error');
             }
         })
         .catch(function (err) {
-            toggle.disabled = false;
-            toggle.checked = !checked;
+            if (checkinBtn) checkinBtn.disabled = false;
+            if (uncheckinBtn) uncheckinBtn.disabled = false;
             showToast('Error updating check-in status.', 'error');
             console.error('Error:', err);
         });
 }
 
 // ===== UPDATE CHECK-OUT =====
-function updateCheckOutStatus(toggle) {
-    var checked = toggle.checked;
-    var label = document.getElementById('bd-checkout-label');
+function triggerCheckOutConfirm() {
     var bookingId = (document.getElementById('bd-bookingId').textContent || '').replace('#', '');
-
     if (!bookingId || bookingId === '?') {
-        toggle.checked = !checked;
         showToast('Invalid booking ID', 'error');
         return;
     }
+    
+    showActionConfirmModal(
+        'Confirm Check-out',
+        'Are you sure you want to perform <strong>Check-out</strong> for this booking? This will change the booking status to <strong>COMPLETED</strong>.',
+        'btn-danger',
+        'Check-out',
+        function() {
+            executeCheckOutUpdate(bookingId, true);
+        }
+    );
+}
 
-    toggle.disabled = true;
+function triggerUnCheckOutConfirm() {
+    var bookingId = (document.getElementById('bd-bookingId').textContent || '').replace('#', '');
+    if (!bookingId || bookingId === '?') {
+        showToast('Invalid booking ID', 'error');
+        return;
+    }
+    
+    showActionConfirmModal(
+        'Confirm Undo Check-out',
+        'Are you sure you want to <strong>Undo Check-out</strong> for this booking? This will change the booking status back to <strong>CONFIRMED</strong>.',
+        'btn-secondary',
+        'Undo',
+        function() {
+            executeCheckOutUpdate(bookingId, false);
+        }
+    );
+}
+
+function showActionConfirmModal(title, body, btnClass, btnText, onConfirm) {
+    var modalEl = document.getElementById('confirmActionModal');
+    if (!modalEl) {
+        if (confirm(body.replace(/<[^>]+>/g, ''))) {
+            onConfirm();
+        }
+        return;
+    }
+    
+    document.getElementById('confirmActionTitle').textContent = title;
+    document.getElementById('confirmActionBody').innerHTML = body;
+    
+    var submitBtn = document.getElementById('confirmActionSubmitBtn');
+    submitBtn.textContent = btnText;
+    submitBtn.className = 'btn btn-sm ' + btnClass;
+    
+    var newSubmitBtn = submitBtn.cloneNode(true);
+    submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
+    
+    // Ensure backdrop and modal z-indexes are higher than bookingDetailModal (1050)
+    modalEl.style.zIndex = '1060';
+    
+    var onShowHandler = function () {
+        setTimeout(function() {
+            var backdrops = document.querySelectorAll('.modal-backdrop');
+            if (backdrops.length > 1) {
+                backdrops[backdrops.length - 1].style.zIndex = '1059';
+            }
+        }, 10);
+    };
+    modalEl.addEventListener('show.bs.modal', onShowHandler);
+    
+    var bsModal = new bootstrap.Modal(modalEl);
+    bsModal.show();
+    
+    // Clean up event listener when modal is hidden
+    modalEl.addEventListener('hidden.bs.modal', function () {
+        modalEl.removeEventListener('show.bs.modal', onShowHandler);
+    }, { once: true });
+    
+    newSubmitBtn.onclick = function() {
+        bsModal.hide();
+        onConfirm();
+    };
+}
+
+function executeCheckOutUpdate(bookingId, checked) {
+    var checkoutBtn = document.getElementById('bd-checkout-btn');
+    var uncheckoutBtn = document.getElementById('bd-uncheckout-btn');
+    var checkoutLabel = document.getElementById('bd-checkout-label');
+    
+    if (checkoutBtn) checkoutBtn.disabled = true;
+    if (uncheckoutBtn) uncheckoutBtn.disabled = true;
 
     fetch('/owner/booking/update-checkout', {
         method: 'POST',
@@ -671,19 +845,45 @@ function updateCheckOutStatus(toggle) {
     })
         .then(function (response) { return response.json(); })
         .then(function (data) {
-            toggle.disabled = false;
+            if (checkoutBtn) checkoutBtn.disabled = false;
+            if (uncheckoutBtn) uncheckoutBtn.disabled = false;
+            
             if (data.success) {
-                updateToggleLabel(toggle, label, 'Checked Out', 'Not Checked Out');
+                if (checked) {
+                    if (checkoutBtn) checkoutBtn.style.display = 'none';
+                    if (uncheckoutBtn) uncheckoutBtn.style.display = 'inline-block';
+                    if (checkoutLabel) {
+                        checkoutLabel.textContent = 'Checked Out';
+                        checkoutLabel.className = 'small text-success fw-semibold';
+                    }
+                } else {
+                    if (checkoutBtn) checkoutBtn.style.display = 'inline-block';
+                    if (uncheckoutBtn) uncheckoutBtn.style.display = 'none';
+                    if (checkoutLabel) {
+                        checkoutLabel.textContent = 'Not Checked Out';
+                        checkoutLabel.className = 'small text-secondary';
+                    }
+                }
+                
+                var statusBadge = document.getElementById('bd-status-badge');
+                if (statusBadge && data.bookingStatus) {
+                    statusBadge.textContent = data.bookingStatus;
+                    statusBadge.className = 'booking-status-badge ' + statusColorClasses(data.bookingStatus);
+                }
+                
                 updateActualTimeDisplay('bd-checkout-actual', data.checkedOutAt);
                 showToast('Check-out status updated successfully!', 'success');
+                
+                setTimeout(function() {
+                    window.location.reload();
+                }, 1000);
             } else {
-                toggle.checked = !checked;
                 showToast(data.message || 'Failed to update check-out status.', 'error');
             }
         })
         .catch(function (err) {
-            toggle.disabled = false;
-            toggle.checked = !checked;
+            if (checkoutBtn) checkoutBtn.disabled = false;
+            if (uncheckoutBtn) uncheckoutBtn.disabled = false;
             showToast('Error updating check-out status.', 'error');
             console.error('Error:', err);
         });
