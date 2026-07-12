@@ -1,6 +1,7 @@
 package vn.edu.fpt.hotel_management.controller;
 
 import jakarta.servlet.http.HttpSession;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Controller
@@ -85,12 +89,22 @@ public class OwnerController {
         return path;
     }
 
+    // Helper method to extract check-in/out status from specialNotes
+    private boolean extractCheckStatus(Booking b, String marker) {
+        if (b.getSpecialNotes() == null) return false;
+        Pattern pattern = Pattern.compile(marker + ":(true|false)");
+        Matcher matcher = pattern.matcher(b.getSpecialNotes());
+        if (matcher.find()) {
+            return Boolean.parseBoolean(matcher.group(1));
+        }
+        return false;
+    }
+
     @GetMapping("/dashboard")
     public String dashboard(
             @RequestParam(value = "tab", defaultValue = "overview") String tab,
             @RequestParam(value = "searchCustomer", required = false) String searchCustomer,
             @RequestParam(value = "filterHotel", required = false) Integer filterHotel,
-            @RequestParam(value = "filterStatus", required = false) String filterStatus,
             @RequestParam(value = "filterCheckin", required = false) String filterCheckin,
             @RequestParam(value = "filterCheckout", required = false) String filterCheckout,
             HttpSession session,
@@ -112,7 +126,7 @@ public class OwnerController {
         // Tự động chuyển các booking CONFIRMED đã quá giờ checkout (12:00 trưa) sang COMPLETED
         try {
             List<Booking> confirmedBookings = bookingRepository.findByStatusInOrderByCreatedAtDesc(java.util.Arrays.asList("CONFIRMED"));
-            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            LocalDateTime now = LocalDateTime.now();
             for (Booking b : confirmedBookings) {
                 if (b.getCheckOutDate() != null
                         && b.getCheckOutDate().atTime(12, 0).isBefore(now)) {
@@ -181,12 +195,20 @@ public class OwnerController {
             filteredBookings = bookingRepository.findByHotelIdsAndCustomerName(hotelIds, searchCustomer.trim());
         } else if (filterHotel != null && filterHotel > 0) {
             filteredBookings = bookingRepository.findByHotelIdInOrderByCreatedAtDesc(List.of(filterHotel));
-        } else if (filterStatus != null && !filterStatus.isEmpty() && !filterStatus.equals("all")) {
-            filteredBookings = bookingRepository.findByHotelIdInAndStatusOrderByCreatedAtDesc(hotelIds, filterStatus);
-        } else if (checkinDate != null) {
-            filteredBookings = bookingRepository.findByHotelIdInAndCheckInDateOrderByCreatedAtDesc(hotelIds, checkinDate);
-        } else if (checkoutDate != null) {
-            filteredBookings = bookingRepository.findByHotelIdInAndCheckOutDateOrderByCreatedAtDesc(hotelIds, checkoutDate);
+        } else if (filterCheckin != null && !filterCheckin.isEmpty()) {
+            try {
+                LocalDate ci = LocalDate.parse(filterCheckin);
+                filteredBookings = bookingRepository.findByHotelIdInAndCheckInDateOrderByCreatedAtDesc(hotelIds, ci);
+            } catch (Exception e) {
+                filteredBookings = bookingRepository.findByHotelIdInOrderByCreatedAtDesc(hotelIds);
+            }
+        } else if (filterCheckout != null && !filterCheckout.isEmpty()) {
+            try {
+                LocalDate co = LocalDate.parse(filterCheckout);
+                filteredBookings = bookingRepository.findByHotelIdInAndCheckOutDateOrderByCreatedAtDesc(hotelIds, co);
+            } catch (Exception e) {
+                filteredBookings = bookingRepository.findByHotelIdInOrderByCreatedAtDesc(hotelIds);
+            }
         } else {
             filteredBookings = bookingRepository.findByHotelIdInOrderByCreatedAtDesc(hotelIds);
         }
@@ -220,15 +242,17 @@ public class OwnerController {
             map.put("bookingStatus", b.getStatus());
             map.put("paymentStatus", (b.getPayment() != null && b.getPayment().getStatus() != null)
                     ? b.getPayment().getStatus() : "PENDING");
-            map.put("createdAt", b.getCreatedAt() != null ? b.getCreatedAt().toString() : null);
-            // Thông tin payout
-            map.put("payoutStatus", b.getPayoutStatus() != null ? b.getPayoutStatus() : "PENDING");
-            map.put("ownerPayoutAmount", b.getOwnerPayoutAmount());
-            map.put("platformFeePercent", b.getPlatformFeePercent());
+            map.put("payoutStatus", b.getPayoutStatus() != null ? b.getPayoutStatus() : "");
+            map.put("ownerPayoutAmount", b.getOwnerPayoutAmount() != null ? b.getOwnerPayoutAmount() : BigDecimal.ZERO);
+            map.put("platformFeePercent", b.getPlatformFeePercent() != null ? b.getPlatformFeePercent() : BigDecimal.valueOf(10));
             map.put("payoutAt", b.getPayoutAt() != null ? b.getPayoutAt().toString() : null);
-            map.put("payoutBankName", b.getPayoutBankName());
-            map.put("payoutBankAccountNumber", b.getPayoutBankAccountNumber());
-            map.put("payoutBankAccountHolder", b.getPayoutBankAccountHolder());
+            map.put("payoutBankName", b.getPayoutBankName() != null ? b.getPayoutBankName() : "");
+            map.put("payoutBankAccountNumber", b.getPayoutBankAccountNumber() != null ? b.getPayoutBankAccountNumber() : "");
+            map.put("payoutBankAccountHolder", b.getPayoutBankAccountHolder() != null ? b.getPayoutBankAccountHolder() : "");
+            // Check-in / Check-out status
+            map.put("checkInStatus", extractCheckStatus(b, "CHECKED_IN"));
+            map.put("checkOutStatus", extractCheckStatus(b, "CHECKED_OUT"));
+            map.put("specialNotes", b.getSpecialNotes() != null ? b.getSpecialNotes() : "");
             return map;
         }).collect(Collectors.toList());
 
@@ -269,12 +293,11 @@ public class OwnerController {
         model.addAttribute("roomCountMap", roomCountMap);
         model.addAttribute("promotionsByHotel", promotionsByHotel);
         model.addAttribute("totalPromotions", totalPromotions);
-        model.addAttribute("allPromotions", promotionService.getPromotionsByOwnerId(owner.getId())); // Thêm để dùng cho modal
+        model.addAttribute("allPromotions", promotionService.getPromotionsByOwnerId(owner.getId()));
 
         // Keep filter values
         model.addAttribute("searchCustomer", searchCustomer);
         model.addAttribute("filterHotel", filterHotel);
-        model.addAttribute("filterStatus", filterStatus);
         model.addAttribute("filterCheckin", filterCheckin);
         model.addAttribute("filterCheckout", filterCheckout);
 
@@ -525,5 +548,166 @@ public class OwnerController {
         }
 
         return "redirect:/owner/dashboard?tab=hotels";
+    }
+
+    // =====================================================
+    // GET BOOKING DETAIL FOR MODAL (AJAX)
+    // =====================================================
+
+    @GetMapping("/owner/booking/detail-data")
+    @ResponseBody
+    public ResponseEntity<?> getBookingDetailData(
+            @RequestParam("bookingId") int bookingId,
+            HttpSession session) {
+
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"HOTEL_OWNER".equals(loggedInUser.getRole())) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "Unauthorized"));
+        }
+
+        if (!ownerService.isOwnerApproved(loggedInUser)) {
+            return ResponseEntity.status(403).body(Map.of("success", false, "message", "Account not approved"));
+        }
+
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking == null) {
+            return ResponseEntity.status(404).body(Map.of("success", false, "message", "Booking not found"));
+        }
+
+        HotelOwner owner = ownerService.getOwnerByUser(loggedInUser).orElse(null);
+        if (owner == null || booking.getHotel().getOwner().getId() != owner.getId()) {
+            return ResponseEntity.status(403).body(Map.of("success", false, "message", "Permission denied"));
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("bookingId", booking.getId());
+        data.put("customerName", booking.getCustomer() != null ? booking.getCustomer().getFullName() : "N/A");
+        data.put("hotelName", booking.getHotel() != null ? booking.getHotel().getName() : "N/A");
+        data.put("roomType", booking.getRoom() != null ? booking.getRoom().getRoomType() : "N/A");
+        data.put("checkInDate", booking.getCheckInDate() != null ? booking.getCheckInDate().toString() : null);
+        data.put("checkOutDate", booking.getCheckOutDate() != null ? booking.getCheckOutDate().toString() : null);
+        data.put("totalPrice", booking.getTotalPrice());
+        data.put("bookingStatus", booking.getStatus());
+        data.put("paymentStatus", booking.getPayment() != null ? booking.getPayment().getStatus() : "PENDING");
+        data.put("payoutStatus", booking.getPayoutStatus());
+        data.put("ownerPayoutAmount", booking.getOwnerPayoutAmount());
+        data.put("platformFeePercent", booking.getPlatformFeePercent());
+        data.put("payoutBankName", booking.getPayoutBankName());
+        data.put("payoutBankAccountNumber", booking.getPayoutBankAccountNumber());
+        data.put("payoutBankAccountHolder", booking.getPayoutBankAccountHolder());
+        data.put("payoutAt", booking.getPayoutAt() != null ? booking.getPayoutAt().toString() : null);
+        data.put("checkInStatus", extractCheckStatus(booking, "CHECKED_IN"));
+        data.put("checkOutStatus", extractCheckStatus(booking, "CHECKED_OUT"));
+        data.put("specialNotes", booking.getSpecialNotes());
+
+        return ResponseEntity.ok(data);
+    }
+
+    // =====================================================
+    // UPDATE CHECK-IN STATUS (AJAX)
+    // =====================================================
+
+    @PostMapping("/owner/booking/update-checkin")
+    @ResponseBody
+    public ResponseEntity<?> updateCheckInStatus(
+            @RequestParam("bookingId") int bookingId,
+            @RequestParam("checkedIn") boolean checkedIn,
+            HttpSession session) {
+
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"HOTEL_OWNER".equals(loggedInUser.getRole())) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "Unauthorized"));
+        }
+
+        if (!ownerService.isOwnerApproved(loggedInUser)) {
+            return ResponseEntity.status(403).body(Map.of("success", false, "message", "Account not approved"));
+        }
+
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking == null) {
+            return ResponseEntity.status(404).body(Map.of("success", false, "message", "Booking not found"));
+        }
+
+        HotelOwner owner = ownerService.getOwnerByUser(loggedInUser).orElse(null);
+        if (owner == null || booking.getHotel().getOwner().getId() != owner.getId()) {
+            return ResponseEntity.status(403).body(Map.of("success", false, "message", "Permission denied"));
+        }
+
+        // Chỉ cho phép update khi booking ở trạng thái CONFIRMED hoặc COMPLETED
+        if (!"CONFIRMED".equals(booking.getStatus()) && !"COMPLETED".equals(booking.getStatus())) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message",
+                    "Cannot update check-in status for booking with status: " + booking.getStatus()));
+        }
+
+        // Lưu check-in status vào specialNotes với định dạng key-value
+        String currentNotes = booking.getSpecialNotes() != null ? booking.getSpecialNotes() : "";
+        String checkInMarker = "CHECKED_IN:" + checkedIn;
+
+        // Xóa marker cũ nếu có
+        String cleaned = currentNotes.replaceAll("CHECKED_IN:(true|false),?", "");
+        // Thêm marker mới
+        if (!cleaned.isEmpty() && !cleaned.endsWith(",")) {
+            cleaned += ",";
+        }
+        cleaned += checkInMarker;
+        booking.setSpecialNotes(cleaned);
+        booking.setUpdatedAt(LocalDateTime.now());
+        bookingRepository.save(booking);
+
+        return ResponseEntity.ok(Map.of("success", true, "message", "Check-in status updated"));
+    }
+
+    // =====================================================
+    // UPDATE CHECK-OUT STATUS (AJAX)
+    // =====================================================
+
+    @PostMapping("/owner/booking/update-checkout")
+    @ResponseBody
+    public ResponseEntity<?> updateCheckOutStatus(
+            @RequestParam("bookingId") int bookingId,
+            @RequestParam("checkedOut") boolean checkedOut,
+            HttpSession session) {
+
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"HOTEL_OWNER".equals(loggedInUser.getRole())) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "Unauthorized"));
+        }
+
+        if (!ownerService.isOwnerApproved(loggedInUser)) {
+            return ResponseEntity.status(403).body(Map.of("success", false, "message", "Account not approved"));
+        }
+
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking == null) {
+            return ResponseEntity.status(404).body(Map.of("success", false, "message", "Booking not found"));
+        }
+
+        HotelOwner owner = ownerService.getOwnerByUser(loggedInUser).orElse(null);
+        if (owner == null || booking.getHotel().getOwner().getId() != owner.getId()) {
+            return ResponseEntity.status(403).body(Map.of("success", false, "message", "Permission denied"));
+        }
+
+        // Chỉ cho phép update khi booking ở trạng thái CONFIRMED hoặc COMPLETED
+        if (!"CONFIRMED".equals(booking.getStatus()) && !"COMPLETED".equals(booking.getStatus())) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message",
+                    "Cannot update check-out status for booking with status: " + booking.getStatus()));
+        }
+
+        // Lưu check-out status vào specialNotes với định dạng key-value
+        String currentNotes = booking.getSpecialNotes() != null ? booking.getSpecialNotes() : "";
+        String checkOutMarker = "CHECKED_OUT:" + checkedOut;
+
+        // Xóa marker cũ nếu có
+        String cleaned = currentNotes.replaceAll("CHECKED_OUT:(true|false),?", "");
+        // Thêm marker mới
+        if (!cleaned.isEmpty() && !cleaned.endsWith(",")) {
+            cleaned += ",";
+        }
+        cleaned += checkOutMarker;
+        booking.setSpecialNotes(cleaned);
+        booking.setUpdatedAt(LocalDateTime.now());
+        bookingRepository.save(booking);
+
+        return ResponseEntity.ok(Map.of("success", true, "message", "Check-out status updated"));
     }
 }

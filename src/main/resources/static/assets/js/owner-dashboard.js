@@ -35,11 +35,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const targetLink = document.querySelector(`.sidebar-link[data-tab="${tabParam}"]`);
         const targetPanel = document.getElementById(tabParam);
         if (targetLink && targetPanel) {
-            // Xóa active ở các tab mặc định
             sidebarLinks.forEach(l => l.classList.remove('active'));
             tabPanels.forEach(panel => panel.classList.remove('active'));
-
-            // Kích hoạt active cho tab mới
             targetLink.classList.add('active');
             targetPanel.classList.add('active');
         }
@@ -180,7 +177,6 @@ function applyBookingFilters() {
     const tbody = document.getElementById('bookingTableBody');
     if (!tbody) return;
 
-    // Get all rows EXCEPT empty row
     const allRows = tbody.querySelectorAll('tr');
     const rows = Array.from(allRows).filter(row => {
         return !row.querySelector('td[colspan]');
@@ -188,7 +184,6 @@ function applyBookingFilters() {
 
     let visibleCount = 0;
 
-    // Remove existing empty row
     const existingEmpty = tbody.querySelector('.booking-empty-row');
     if (existingEmpty) {
         existingEmpty.remove();
@@ -210,7 +205,6 @@ function applyBookingFilters() {
         const checkoutText = cells[5] ? cells[5].textContent.trim() : '';
         const statusText = cells[7] ? cells[7].textContent.trim() : '';
 
-        // 1. Filter by Keyword
         if (keyword) {
             const searchMatch = customerName.includes(keyword) ||
                 bookingId.includes(keyword) ||
@@ -221,7 +215,6 @@ function applyBookingFilters() {
             }
         }
 
-        // 2. Filter by Hotel
         if (show && hotelVal !== 'all') {
             const hotelOption = document.querySelector(`#bookingHotelFilter option[value="${hotelVal}"]`);
             const hotelNameFilter = hotelOption ? hotelOption.textContent.trim().toLowerCase() : '';
@@ -230,17 +223,14 @@ function applyBookingFilters() {
             }
         }
 
-        // 3. Filter by Status
         if (show && statusVal !== 'all' && statusText !== statusVal) {
             show = false;
         }
 
-        // 4. Filter by Check-in Date
         if (show && checkinVal && checkinText !== checkinVal) {
             show = false;
         }
 
-        // 5. Filter by Check-out Date
         if (show && checkoutVal && checkoutText !== checkoutVal) {
             show = false;
         }
@@ -253,7 +243,6 @@ function applyBookingFilters() {
         }
     });
 
-    // Show empty state if no results
     if (visibleCount === 0 && rows.length > 0) {
         const emptyRow = document.createElement('tr');
         emptyRow.className = 'booking-empty-row';
@@ -305,11 +294,9 @@ function openAddPromotionModal() {
 // ============================================================
 function formatDateDisplay(dateStr) {
     if (!dateStr) return '';
-    // Nếu đã có định dạng DD/MM/YYYY thì giữ nguyên
     if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
         return dateStr;
     }
-    // Chuyển từ YYYY-MM-DD sang DD/MM/YYYY
     const parts = dateStr.split('-');
     if (parts.length === 3) {
         return `${parts[2]}/${parts[1]}/${parts[0]}`;
@@ -325,7 +312,6 @@ function formatAllBookingDates() {
     rows.forEach(row => {
         const cells = row.querySelectorAll('td');
         if (cells.length >= 6) {
-            // Check-in date (cell index 4)
             const checkinCell = cells[4];
             if (checkinCell) {
                 const dateStr = checkinCell.textContent.trim();
@@ -334,7 +320,6 @@ function formatAllBookingDates() {
                     if (formatted) checkinCell.textContent = formatted;
                 }
             }
-            // Check-out date (cell index 5)
             const checkoutCell = cells[5];
             if (checkoutCell) {
                 const dateStr = checkoutCell.textContent.trim();
@@ -376,4 +361,299 @@ window.openOwnerPayoutDetail = function(bookingId, bankName, accountNumber, acco
         const modal = new bootstrap.Modal(modalEl);
         modal.show();
     }
-};
+};
+
+// ============================================================
+// BOOKING DETAIL MODAL
+// ============================================================
+
+/**
+ * Mở modal chi tiết booking, đọc dữ liệu trực tiếp từ các data-* attribute
+ * đã được render sẵn trên nút "View Detail" (không dùng JSON.parse gộp).
+ */
+function openBookingDetail(btn) {
+    var bookingData = {
+        bookingId: btn.getAttribute('data-booking-id') || '?',
+        customerName: btn.getAttribute('data-customer-name') || 'N/A',
+        hotelName: btn.getAttribute('data-hotel-name') || 'N/A',
+        roomType: btn.getAttribute('data-room-type') || 'N/A',
+        checkInDate: btn.getAttribute('data-checkin') || null,
+        checkOutDate: btn.getAttribute('data-checkout') || null,
+        totalPrice: parseFloat(btn.getAttribute('data-total')) || 0,
+        bookingStatus: btn.getAttribute('data-status') || 'PENDING',
+        paymentStatus: btn.getAttribute('data-payment') || 'PENDING',
+        payoutStatus: btn.getAttribute('data-payout') || '',
+        ownerPayoutAmount: parseFloat(btn.getAttribute('data-payout-amount')) || 0,
+        platformFeePercent: parseFloat(btn.getAttribute('data-platform-fee')) || 10,
+        payoutBankName: btn.getAttribute('data-payout-bank') || '',
+        payoutBankAccountNumber: btn.getAttribute('data-payout-account') || '',
+        payoutBankAccountHolder: btn.getAttribute('data-payout-holder') || '',
+        checkInStatus: btn.getAttribute('data-checkin-status') === 'true',
+        checkOutStatus: btn.getAttribute('data-checkout-status') === 'true',
+        specialNotes: btn.getAttribute('data-notes') || ''
+    };
+
+    // Hiển thị ngay dữ liệu đã có sẵn trên bảng (phản hồi tức thì)
+    renderBookingDetail(bookingData);
+
+    var modalEl = document.getElementById('bookingDetailModal');
+    if (!modalEl) {
+        console.error('bookingDetailModal not found in DOM');
+        return;
+    }
+    var modal = new bootstrap.Modal(modalEl);
+    modal.show();
+
+    // Gọi API lấy dữ liệu mới nhất từ server (nếu có thay đổi sau khi trang load)
+    if (bookingData.bookingId && bookingData.bookingId !== '?') {
+        fetch('/owner/booking/detail-data?bookingId=' + bookingData.bookingId)
+            .then(function (response) {
+                return response.ok ? response.json() : null;
+            })
+            .then(function (data) {
+                if (data) renderBookingDetail(data);
+            })
+            .catch(function () {
+                console.log('API not available, using existing data from table row');
+            });
+    }
+}
+
+/**
+ * Đổ dữ liệu booking vào modal. Tất cả element id đều phải tồn tại
+ * sẵn trong HTML (không được tạo động), nếu thiếu id nào hàm sẽ bỏ qua
+ * an toàn thay vì throw lỗi làm gãy toàn bộ modal.
+ */
+function renderBookingDetail(data) {
+    if (!data) return;
+
+    function setText(id, value) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = value;
+    }
+
+    // Basic info
+    setText('bd-bookingId', '#' + (data.bookingId || '?'));
+    setText('bd-customerName', data.customerName || 'N/A');
+    setText('bd-hotelName', data.hotelName || 'N/A');
+    setText('bd-roomType', data.roomType || 'N/A');
+
+    // Dates
+    var checkinDisplay = formatDateDisplay(data.checkInDate);
+    var checkoutDisplay = formatDateDisplay(data.checkOutDate);
+    setText('bd-checkin', checkinDisplay);
+    setText('bd-checkout', checkoutDisplay);
+    setText('bd-checkin-display', checkinDisplay);
+    setText('bd-checkout-display', checkoutDisplay);
+
+    // Total
+    setText('bd-total', formatVND(parseFloat(data.totalPrice) || 0));
+
+    // Booking status badge
+    var status = data.bookingStatus || 'PENDING';
+    var statusBadge = document.getElementById('bd-status-badge');
+    if (statusBadge) {
+        statusBadge.textContent = status;
+        statusBadge.className = 'booking-status-badge ' + statusColorClasses(status);
+    }
+
+    // Payment status badge
+    var payment = data.paymentStatus || 'PENDING';
+    var paymentBadge = document.getElementById('bd-payment-badge');
+    if (paymentBadge) {
+        paymentBadge.textContent = payment;
+        paymentBadge.className = 'payment-status-badge ' + paymentColorClasses(payment);
+    }
+
+    // Payout
+    var payout = data.payoutStatus || '';
+    var payoutBadge = document.getElementById('bd-payout-badge');
+    var payoutDetail = document.getElementById('bd-payout-detail');
+
+    if (payoutBadge && payoutDetail) {
+        if (status === 'COMPLETED' && payout === 'PAID') {
+            payoutBadge.textContent = 'PAID';
+            payoutBadge.className = 'badge bg-success';
+            payoutDetail.style.display = 'block';
+            setText('bd-payout-bank', data.payoutBankName || '-');
+            setText('bd-payout-account', data.payoutBankAccountNumber || '-');
+            setText('bd-payout-holder', data.payoutBankAccountHolder || '-');
+            setText('bd-payout-amount', formatVND(parseFloat(data.ownerPayoutAmount) || 0));
+            setText('bd-platform-fee', (data.platformFeePercent || 10) + '%');
+        } else if (status === 'COMPLETED' && payout === 'PENDING') {
+            payoutBadge.textContent = 'PENDING';
+            payoutBadge.className = 'badge bg-warning text-dark';
+            payoutDetail.style.display = 'none';
+        } else {
+            payoutBadge.textContent = '-';
+            payoutBadge.className = 'badge bg-light text-muted';
+            payoutDetail.style.display = 'none';
+        }
+    }
+
+    // Check-in / Check-out toggles
+    var isEditable = status === 'CONFIRMED' || status === 'COMPLETED';
+
+    var checkinToggle = document.getElementById('bd-checkin-toggle');
+    var checkinLabel = document.getElementById('bd-checkin-label');
+    if (checkinToggle && checkinLabel) {
+        checkinToggle.disabled = !isEditable;
+        checkinToggle.checked = data.checkInStatus === true;
+        updateToggleLabel(checkinToggle, checkinLabel, 'Checked In', 'Not Checked In');
+    }
+
+    var checkoutToggle = document.getElementById('bd-checkout-toggle');
+    var checkoutLabel = document.getElementById('bd-checkout-label');
+    if (checkoutToggle && checkoutLabel) {
+        checkoutToggle.disabled = !isEditable;
+        checkoutToggle.checked = data.checkOutStatus === true;
+        updateToggleLabel(checkoutToggle, checkoutLabel, 'Checked Out', 'Not Checked Out');
+    }
+
+    // Special Notes
+    var notes = (data.specialNotes || '').trim();
+    var notesContainer = document.getElementById('bd-special-notes');
+    var notesContent = document.getElementById('bd-notes-content');
+    if (notesContainer && notesContent) {
+        if (notes !== '') {
+            notesContainer.style.display = 'block';
+            notesContent.textContent = notes;
+        } else {
+            notesContainer.style.display = 'none';
+        }
+    }
+
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+function statusColorClasses(status) {
+    switch (status) {
+        case 'CONFIRMED': return 'bg-success-light text-success border-success';
+        case 'COMPLETED': return 'bg-info-light text-info border-info';
+        case 'PENDING': return 'bg-warning-light text-warning border-warning';
+        case 'CANCELLED': return 'bg-danger-light text-danger border-danger';
+        default: return 'bg-light-secondary text-secondary border-secondary';
+    }
+}
+
+function paymentColorClasses(payment) {
+    switch (payment) {
+        case 'PAID': return 'bg-success-light text-success border-success';
+        case 'PENDING': return 'bg-warning-light text-warning border-warning';
+        case 'FAILED': return 'bg-danger-light text-danger border-danger';
+        case 'REFUNDED': return 'bg-info-light text-info border-info';
+        default: return 'bg-light-secondary text-secondary border-secondary';
+    }
+}
+
+function updateToggleLabel(toggle, label, checkedText, uncheckedText) {
+    if (toggle.checked) {
+        label.textContent = '✓ ' + checkedText;
+        label.classList.remove('text-secondary');
+        label.classList.add('text-success');
+    } else {
+        label.textContent = uncheckedText;
+        label.classList.remove('text-success');
+        label.classList.add('text-secondary');
+    }
+}
+
+function formatVND(amount) {
+    return new Intl.NumberFormat('vi-VN', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' VND';
+}
+
+// ===== UPDATE CHECK-IN =====
+function updateCheckInStatus(toggle) {
+    var checked = toggle.checked;
+    var label = document.getElementById('bd-checkin-label');
+    var bookingId = (document.getElementById('bd-bookingId').textContent || '').replace('#', '');
+
+    if (!bookingId || bookingId === '?') {
+        toggle.checked = !checked;
+        showToast('Invalid booking ID', 'error');
+        return;
+    }
+
+    toggle.disabled = true;
+
+    fetch('/owner/booking/update-checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'bookingId=' + bookingId + '&checkedIn=' + checked
+    })
+        .then(function (response) { return response.json(); })
+        .then(function (data) {
+            toggle.disabled = false;
+            if (data.success) {
+                updateToggleLabel(toggle, label, 'Checked In', 'Not Checked In');
+                showToast('Check-in status updated successfully!', 'success');
+            } else {
+                toggle.checked = !checked;
+                showToast(data.message || 'Failed to update check-in status.', 'error');
+            }
+        })
+        .catch(function (err) {
+            toggle.disabled = false;
+            toggle.checked = !checked;
+            showToast('Error updating check-in status.', 'error');
+            console.error('Error:', err);
+        });
+}
+
+// ===== UPDATE CHECK-OUT =====
+function updateCheckOutStatus(toggle) {
+    var checked = toggle.checked;
+    var label = document.getElementById('bd-checkout-label');
+    var bookingId = (document.getElementById('bd-bookingId').textContent || '').replace('#', '');
+
+    if (!bookingId || bookingId === '?') {
+        toggle.checked = !checked;
+        showToast('Invalid booking ID', 'error');
+        return;
+    }
+
+    toggle.disabled = true;
+
+    fetch('/owner/booking/update-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'bookingId=' + bookingId + '&checkedOut=' + checked
+    })
+        .then(function (response) { return response.json(); })
+        .then(function (data) {
+            toggle.disabled = false;
+            if (data.success) {
+                updateToggleLabel(toggle, label, 'Checked Out', 'Not Checked Out');
+                showToast('Check-out status updated successfully!', 'success');
+            } else {
+                toggle.checked = !checked;
+                showToast(data.message || 'Failed to update check-out status.', 'error');
+            }
+        })
+        .catch(function (err) {
+            toggle.disabled = false;
+            toggle.checked = !checked;
+            showToast('Error updating check-out status.', 'error');
+            console.error('Error:', err);
+        });
+}
+
+// ===== TOAST NOTIFICATION =====
+function showToast(message, type) {
+    var toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toastContainer';
+        toastContainer.style.cssText = 'position:fixed; top:20px; right:20px; z-index:9999; display:flex; flex-direction:column; gap:8px;';
+        document.body.appendChild(toastContainer);
+    }
+    var toast = document.createElement('div');
+    toast.className = 'custom-toast-card ' + (type === 'success' ? 'toast-success' : 'toast-error');
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+    setTimeout(function () {
+        if (toast.parentNode) toast.remove();
+    }, 3000);
+}
