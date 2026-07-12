@@ -19,7 +19,7 @@ import vn.edu.fpt.hotel_management.entity.Customer;
 import vn.edu.fpt.hotel_management.entity.HotelOwner;
 import vn.edu.fpt.hotel_management.entity.HotelVerificationDocument;
 import vn.edu.fpt.hotel_management.entity.FeedbackReply;
-import vn.edu.fpt.hotel_management.entity.Review;
+import vn.edu.fpt.hotel_management.entity.Feedback;
 import vn.edu.fpt.hotel_management.entity.Refund;
 import vn.edu.fpt.hotel_management.repository.BookingRepository;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
@@ -28,7 +28,7 @@ import vn.edu.fpt.hotel_management.repository.CustomerRepository;
 import vn.edu.fpt.hotel_management.repository.HotelOwnerRepository;
 import vn.edu.fpt.hotel_management.repository.HotelVerificationDocumentRepository;
 import vn.edu.fpt.hotel_management.repository.FeedbackReplyRepository;
-import vn.edu.fpt.hotel_management.repository.ReviewRepository;
+import vn.edu.fpt.hotel_management.repository.FeedbackRepository;
 import vn.edu.fpt.hotel_management.repository.RefundRepository;
 import vn.edu.fpt.hotel_management.repository.BannerRepository;
 
@@ -65,7 +65,7 @@ public class AdminDashboardController {
     private FeedbackReplyRepository feedbackReplyRepository;
 
     @Autowired
-    private ReviewRepository reviewRepository;
+    private FeedbackRepository FeedbackRepository;
 
     @Autowired
     private RefundRepository refundRepository;
@@ -272,9 +272,9 @@ public class AdminDashboardController {
         model.addAttribute("feedbackReplyTotalPages", feedbackReplyPage.getTotalPages());
 
         // --- Tab 7: customerReviewPanel (Kiểm duyệt đánh giá của Khách hàng) ---
-        Page<Review> customerReviewPage = Page.empty(defaultReviewPageable);
+        Page<Feedback> customerReviewPage = Page.empty(defaultReviewPageable);
         if ("customerReviewPanel".equals(tab)) {
-            customerReviewPage = reviewRepository.findByStatusIn(Arrays.asList("PENDING", "HIDDEN"), defaultReviewPageable);
+            customerReviewPage = FeedbackRepository.findByStatusIn(Arrays.asList("PENDING", "HIDDEN"), defaultReviewPageable);
         }
         model.addAttribute("customerReviews", customerReviewPage.getContent());
         model.addAttribute("customerReviewCurrentPage", "customerReviewPanel".equals(tab) ? page : 0);

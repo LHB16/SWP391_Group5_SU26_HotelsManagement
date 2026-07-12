@@ -65,6 +65,6 @@ public class HomeController {
         }
         model.addAttribute("promoDiscountMap", promoDiscountMap);
 
-        return "HomePage/home";
+        return "homepage/home";
     }
 }

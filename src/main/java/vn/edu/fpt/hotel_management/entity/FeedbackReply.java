@@ -13,7 +13,7 @@ public class FeedbackReply {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "feedback_id", nullable = false)
-    private Review feedback;
+    private Feedback feedback;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
@@ -37,8 +37,8 @@ public class FeedbackReply {
     // Getters and Setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
-    public Review getFeedback() { return feedback; }
-    public void setFeedback(Review feedback) { this.feedback = feedback; }
+    public Feedback getFeedback() { return feedback; }
+    public void setFeedback(Feedback feedback) { this.feedback = feedback; }
     public HotelOwner getOwner() { return owner; }
     public void setOwner(HotelOwner owner) { this.owner = owner; }
     public Hotel getHotel() { return hotel; }

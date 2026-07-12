@@ -281,7 +281,7 @@
                                            style="font-size: 0.72rem; letter-spacing: 0.05em;">Verification Documents</small>
                                     <span th:if="${doc == null}" class="text-muted small fst-italic">No documents submitted</span>
                                     <div th:if="${doc != null}" class="d-flex align-items-center gap-2">
-                                        <span class="badge-status badge-status-warning" th:if="${doc.uploadStatus == 'PENDING'}">Pending Review</span>
+                                        <span class="badge-status badge-status-warning" th:if="${doc.uploadStatus == 'PENDING'}">Pending Feedback</span>
                                         <span class="badge-status badge-status-success" th:if="${doc.uploadStatus == 'APPROVED'}">Approved</span>
                                         <span class="badge-status badge-status-danger" th:if="${doc.uploadStatus == 'REJECTED'}">Rejected</span>
                                     </div>

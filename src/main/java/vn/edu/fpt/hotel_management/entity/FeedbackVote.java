@@ -13,7 +13,7 @@ public class FeedbackVote {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "feedback_id", nullable = false)
-    private Review feedback;
+    private Feedback feedback;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
@@ -27,7 +27,7 @@ public class FeedbackVote {
 
     public FeedbackVote() {}
 
-    public FeedbackVote(Review feedback, Customer customer, String voteType) {
+    public FeedbackVote(Feedback feedback, Customer customer, String voteType) {
         this.feedback = feedback;
         this.customer = customer;
         this.voteType = voteType;
@@ -42,11 +42,11 @@ public class FeedbackVote {
         this.id = id;
     }
 
-    public Review getFeedback() {
+    public Feedback getFeedback() {
         return feedback;
     }
 
-    public void setFeedback(Review feedback) {
+    public void setFeedback(Feedback feedback) {
         this.feedback = feedback;
     }
 

@@ -1,11 +1,11 @@
 document.addEventListener("DOMContentLoaded", function () {
     const hotelId = document.body.getAttribute("data-hotel-id") || 0;
 
-    // 1. Vote Review Logic (Upvote / Downvote)
+    // 1. Vote Feedback Logic (Upvote / Downvote)
     document.querySelectorAll(".vote-btn").forEach(button => {
         button.addEventListener("click", function (e) {
             e.preventDefault();
-            const reviewId = this.getAttribute("data-review-id");
+            const reviewId = this.getAttribute("data-feedback-id");
             const voteType = this.getAttribute("data-vote-type");
             const currentButton = this;
 
@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const formData = new FormData();
             formData.append("type", voteType);
 
-            fetch(`/hotels/${hotelId}/reviews/${reviewId}/vote`, {
+            fetch(`/hotels/${hotelId}/feedbacks/${reviewId}/vote`, {
                 method: "POST",
                 body: formData
             })
@@ -51,11 +51,11 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // 2. Toggle Status Review Logic (Hide / Show - Admin/Owner Only)
+    // 2. Toggle Status Feedback Logic (Hide / Show - Admin/Owner Only)
     document.querySelectorAll(".toggle-status-btn").forEach(button => {
         button.addEventListener("click", function (e) {
             e.preventDefault();
-            const reviewId = this.getAttribute("data-review-id");
+            const reviewId = this.getAttribute("data-feedback-id");
             const currentStatus = this.getAttribute("data-status");
             const targetStatus = currentStatus === "VISIBLE" ? "HIDDEN" : "VISIBLE";
             const currentButton = this;
@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const formData = new FormData();
             formData.append("status", targetStatus);
 
-            fetch(`/hotels/${hotelId}/reviews/${reviewId}/status`, {
+            fetch(`/hotels/${hotelId}/feedbacks/${reviewId}/status`, {
                 method: "POST",
                 body: formData
             })
@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         currentButton.setAttribute("data-status", data.status);
                         currentButton.textContent = data.status === "VISIBLE" ? "Hide" : "Show";
 
-                        const badgeContainer = document.querySelector(`.status-badge-container[data-review-id="${reviewId}"]`);
+                        const badgeContainer = document.querySelector(`.status-badge-container[data-feedback-id="${reviewId}"]`);
                         if (badgeContainer) {
                             if (data.status === "HIDDEN") {
                                 badgeContainer.innerHTML = '<span class="badge bg-secondary text-white" style="font-size: 0.7rem; border-radius: 4px; padding: 2px 6px;">HIDDEN</span>';
@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 })
                 .catch(err => {
-                    console.error("Error updating review status:", err);
+                    console.error("Error updating feedback status:", err);
                 });
         });
     });
@@ -133,14 +133,14 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // 4. Auto-scroll & Highlight Review Logic
-    if (window.location.hash && window.location.hash.startsWith('#review-')) {
+    // 4. Auto-scroll & Highlight Feedback Logic
+    if (window.location.hash && window.location.hash.startsWith('#feedback-')) {
         const performScroll = function() {
             setTimeout(function() {
                 const target = document.querySelector(window.location.hash);
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    // Highlight review đó lên trong 3 giây
+                    // Highlight feedback đó lên trong 3 giây
                     target.style.transition = 'background-color 0.5s';
                     target.style.backgroundColor = 'rgba(201, 169, 110, 0.15)';
                     setTimeout(function() {

@@ -17,7 +17,7 @@ import vn.edu.fpt.hotel_management.repository.RoomRepository;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 import vn.edu.fpt.hotel_management.repository.RefundRepository;
 import vn.edu.fpt.hotel_management.repository.CustomerRepository;
-import vn.edu.fpt.hotel_management.repository.ReviewRepository;
+import vn.edu.fpt.hotel_management.repository.FeedbackRepository;
 import vn.edu.fpt.hotel_management.repository.PromotionRepository;
 
 import java.math.BigDecimal;
@@ -48,7 +48,7 @@ public class BookingController {
     private CustomerRepository customerRepository;
 
     @Autowired
-    private ReviewRepository reviewRepository;
+    private FeedbackRepository FeedbackRepository;
 
     @Autowired
     private PromotionRepository promotionRepository;
@@ -239,8 +239,8 @@ public class BookingController {
         model.addAttribute("user", loggedInUser);
         java.util.Set<Integer> reviewedBookingIds = new java.util.HashSet<>();
         if (customerId > 0) {
-            List<Review> customerReviews = reviewRepository.findByCustomerId(customerId);
-            for (Review r : customerReviews) {
+            List<Feedback> customerReviews = FeedbackRepository.findByCustomerId(customerId);
+            for (Feedback r : customerReviews) {
                 if (r.getBooking() != null) {
                     reviewedBookingIds.add(r.getBooking().getId());
                 }
@@ -1030,10 +1030,10 @@ public class BookingController {
             refundEligible = (p != null && "REFUNDED".equalsIgnoreCase(p.getStatus())) && !refundSubmitted;
         }
 
-        boolean hasFeedback = reviewRepository.existsByBookingId(booking.getId());
+        boolean hasFeedback = FeedbackRepository.existsByBookingId(booking.getId());
         if (hasFeedback) {
-            Review review = reviewRepository.findByBookingId(booking.getId());
-            model.addAttribute("review", review);
+            Feedback feedback = FeedbackRepository.findByBookingId(booking.getId());
+            model.addAttribute("feedback", feedback);
         }
 
         model.addAttribute("booking", booking);

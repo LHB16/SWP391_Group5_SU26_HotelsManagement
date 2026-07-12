@@ -100,7 +100,7 @@ CREATE TABLE hotel (
     image_url NVARCHAR(500) NULL,
     description NVARCHAR(MAX) NULL,
     rating DECIMAL(2,1) NOT NULL CONSTRAINT DF_hotel_rating DEFAULT 0,
-    total_reviews INT NOT NULL CONSTRAINT DF_hotel_total_reviews DEFAULT 0,
+    total_feedbacks INT NOT NULL CONSTRAINT DF_hotel_total_feedbacks DEFAULT 0,
     approval_status NVARCHAR(50) NULL,
     active BIT NOT NULL CONSTRAINT DF_hotel_active DEFAULT 1,
     approved_at DATETIME2 NULL,
@@ -108,7 +108,7 @@ CREATE TABLE hotel (
     created_at DATETIME2 NOT NULL CONSTRAINT DF_hotel_created_at DEFAULT GETDATE(),
     updated_at DATETIME2 NOT NULL CONSTRAINT DF_hotel_updated_at DEFAULT GETDATE(),
     CONSTRAINT CK_hotel_rating CHECK (rating >= 0 AND rating <= 5),
-    CONSTRAINT CK_hotel_total_reviews CHECK (total_reviews >= 0),
+    CONSTRAINT CK_hotel_total_feedbacks CHECK (total_feedbacks >= 0),
     CONSTRAINT CK_hotel_approval_status CHECK (
         approval_status IS NULL OR approval_status IN (N'PENDING', N'APPROVED', N'REJECTED')
     )

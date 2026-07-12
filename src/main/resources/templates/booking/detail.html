@@ -82,10 +82,10 @@
                                            style="background-color: var(--gold) !important; color: white !important; text-decoration: none; display: inline-block; vertical-align: middle;">
                                             Feedback
                                         </a>
-                                        <a th:if="${hasFeedback}" th:href="@{/hotels/{hotelId}/rooms(hotelId=${hotel.id})} + '#review-' + ${review.id}"
+                                        <a th:if="${hasFeedback}" th:href="@{/hotels/{hotelId}/rooms(hotelId=${hotel.id})} + '#feedback-' + ${feedback.id}"
                                            class="bd-status-label bd-status-confirmed ms-2"
                                            style="vertical-align: middle; text-decoration: none; cursor: pointer; display: inline-block;"
-                                           title="View your review">
+                                           title="View your feedback">
                                             Reviewed
                                         </a>
                                     </th:block>

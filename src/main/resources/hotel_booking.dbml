@@ -83,7 +83,7 @@ Table hotel {
   image_url NVARCHAR(500) [note: 'Đường dẫn ảnh đại diện khách sạn.']
   description NVARCHAR(MAX) [note: 'Mô tả chi tiết khách sạn.']
   rating FLOAT [note: 'Điểm đánh giá trung bình của khách sạn.']
-  total_reviews INT [note: 'Tổng số lượt đánh giá.']
+  total_feedbacks INT [note: 'Tổng số lượt đánh giá.']
   approval_status NVARCHAR(50) [note: 'Trạng thái duyệt khách sạn: PENDING, APPROVED, REJECTED hoặc INACTIVE.']
   active BIT [note: 'Trạng thái hoạt động của khách sạn.']
   approved_at DATETIME2 [note: 'Thời gian khách sạn được duyệt.']

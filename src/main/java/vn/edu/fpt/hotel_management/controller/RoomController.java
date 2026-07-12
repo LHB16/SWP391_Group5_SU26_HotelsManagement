@@ -23,7 +23,7 @@ public class RoomController {
 
     private final RoomRepository roomRepository;
     private final HotelRepository hotelRepository;
-    private final ReviewRepository reviewRepository;
+    private final FeedbackRepository FeedbackRepository;
     private final WishlistRepository wishlistRepository;
     private final CustomerRepository customerRepository;
     private final HotelOwnerRepository hotelOwnerRepository;
@@ -38,7 +38,7 @@ public class RoomController {
 
     public RoomController(RoomRepository roomRepository,
                           HotelRepository hotelRepository,
-                          ReviewRepository reviewRepository,
+                          FeedbackRepository FeedbackRepository,
                           WishlistRepository wishlistRepository,
                           CustomerRepository customerRepository,
                           HotelOwnerRepository hotelOwnerRepository,
@@ -50,7 +50,7 @@ public class RoomController {
                           MessageRepository messageRepository) {
         this.roomRepository = roomRepository;
         this.hotelRepository = hotelRepository;
-        this.reviewRepository = reviewRepository;
+        this.FeedbackRepository = FeedbackRepository;
         this.wishlistRepository = wishlistRepository;
         this.customerRepository = customerRepository;
         this.hotelOwnerRepository = hotelOwnerRepository;
@@ -139,25 +139,25 @@ public class RoomController {
         }
         boolean isAdmin = loggedInUser != null && "ADMIN".equals(loggedInUser.getRole());
 
-        List<Review> reviews;
+        List<Feedback> feedbacks;
         if (isAdmin || isHotelOwner) {
-            reviews = reviewRepository.findByHotelIdOrderByRatingDescCreatedAtDesc(id);
+            feedbacks = FeedbackRepository.findByHotelIdOrderByRatingDescCreatedAtDesc(id);
         } else {
-            reviews = reviewRepository.findByHotelIdAndStatusOrderByRatingDescCreatedAtDesc(id, "VISIBLE");
+            feedbacks = FeedbackRepository.findByHotelIdAndStatusOrderByRatingDescCreatedAtDesc(id, "VISIBLE");
         }
 
         double avgRating = 0.0;
-        if (!reviews.isEmpty()) {
+        if (!feedbacks.isEmpty()) {
             double sum = 0;
-            for (Review r : reviews) {
+            for (Feedback r : feedbacks) {
                 sum += r.getRating();
             }
-            avgRating = sum / reviews.size();
+            avgRating = sum / feedbacks.size();
         }
         avgRating = Math.round(avgRating * 10.0) / 10.0;
 
         java.util.Map<Integer, Booking> reviewBookings = new java.util.HashMap<>();
-        for (Review r : reviews) {
+        for (Feedback r : feedbacks) {
             if (r.getCustomer() != null) {
                 List<Booking> bkList = bookingRepository.findBookingsByCustomerAndHotel(
                         r.getCustomer().getId(),
@@ -187,12 +187,12 @@ public class RoomController {
             Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
             if (customer != null) {
                 currentCustomerId = customer.getId();
-                hasReviewed = reviewRepository.existsByHotelIdAndCustomerId(id, customer.getId());
+                hasReviewed = FeedbackRepository.existsByHotelIdAndCustomerId(id, customer.getId());
                 List<Wishlist> userWishlist = wishlistRepository.findByCustomerIdOrderByAddedAtDesc(customer.getId());
                 for (Wishlist wl : userWishlist) {
                     wishlistRoomIds.add(wl.getRoom().getId());
                 }
-                for (Review r : reviews) {
+                for (Feedback r : feedbacks) {
                     feedbackVoteRepository.findByFeedbackIdAndCustomerId(r.getId(), customer.getId())
                             .ifPresent(v -> userVotesMap.put(r.getId(), v.getVoteType()));
                 }
@@ -291,9 +291,9 @@ public class RoomController {
         model.addAttribute("totalResults", rooms.size());
         model.addAttribute("user", loggedInUser);
         model.addAttribute("currentCustomerId", currentCustomerId);
-        model.addAttribute("reviews", reviews);
+        model.addAttribute("feedbacks", feedbacks);
         model.addAttribute("avgRating", avgRating);
-        model.addAttribute("totalReviews", reviews.size());
+        model.addAttribute("totalReviews", feedbacks.size());
         model.addAttribute("hasReviewed", hasReviewed);
         model.addAttribute("today", LocalDate.now().toString());
         model.addAttribute("isHotelOwner", isHotelOwner);

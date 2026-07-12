@@ -50,7 +50,7 @@
 
                         <a th:href="@{/admin/dashboard(tab='customerReviewPanel')}" class="sidebar-link" th:classappend="${tab == 'customerReviewPanel'} ? 'active' : ''">
                             <i data-lucide="star" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
-                            <span>Customer Reviews</span>
+                            <span>Customer Feedbacks</span>
                         </a>
                         <a th:href="@{/admin/dashboard(tab='refundPanel')}" class="sidebar-link d-flex align-items-center justify-content-between" th:classappend="${tab == 'refundPanel'} ? 'active' : ''" style="width: 100%; text-decoration: none;">
                             <div class="d-flex align-items-center gap-2">
@@ -89,7 +89,7 @@
                         <div>
                             <!-- Header Title (No icon on the left of title) -->
                             <h1 class="fw-bold text-dark m-0">Revenue Overview</h1>
-                            <p class="text-muted m-0 mt-1">Review statistical hotel revenues and filter data interactively.</p>
+                            <p class="text-muted m-0 mt-1">Feedback statistical hotel revenues and filter data interactively.</p>
                         </div>
                     </div>
 
@@ -312,7 +312,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
                         <div>
                             <h1 class="fw-bold text-dark m-0">Hotel Owner Accounts</h1>
-                            <p class="text-muted m-0 mt-1">Review and manage hotel owner accounts.</p>
+                            <p class="text-muted m-0 mt-1">Feedback and manage hotel owner accounts.</p>
                         </div>
                     </div>
 
@@ -518,7 +518,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
                         <div>
                             <h1 class="fw-bold text-dark m-0">Owner Feedbacks</h1>
-                            <p class="text-muted m-0 mt-1">Review and delete feedback replies submitted by hotel owners.</p>
+                            <p class="text-muted m-0 mt-1">Feedback and delete feedback replies submitted by hotel owners.</p>
                         </div>
                     </div>
 
@@ -562,13 +562,13 @@
                                                     </div>
                                                 </div>
                                                 
-                                                <!-- Original Review Info -->
+                                                <!-- Original Feedback Info -->
                                                 <div class="p-3 mb-3 bg-white rounded-3 border" style="font-size: 0.9rem;">
                                                     <div class="d-flex justify-content-between align-items-center mb-1">
                                                         <span class="fw-semibold text-secondary" th:text="'User: ' + ${r.feedback.userFullName}">User: Customer Name</span>
                                                         <span class="text-warning fw-bold" th:text="${r.feedback.rating} + ' ★'">5 ★</span>
                                                     </div>
-                                                    <!-- Clean combined review comment text if split by ||| -->
+                                                    <!-- Clean combined feedback comment text if split by ||| -->
                                                     <div class="text-muted" th:text="${#strings.contains(r.feedback.comment, '|||')} ? ${#strings.substringAfter(r.feedback.comment, '|||')} : ${r.feedback.comment}">Original comment</div>
                                                 </div>
                                                 
@@ -653,12 +653,12 @@
                     </div>
                 </div>
 
-                <!-- PANEL 7: CUSTOMER REVIEWS MODERATION -->
+                <!-- PANEL 7: CUSTOMER FEEDBACKS MODERATION -->
                 <div id="customerReviewPanel" class="tab-panel" th:classappend="${tab == 'customerReviewPanel'} ? 'active' : ''">
                     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
                         <div>
-                            <h1 class="fw-bold text-dark m-0">Customer Reviews</h1>
-                            <p class="text-muted m-0 mt-1">Approve or hide customer reviews containing sensitive content or negative ratings.</p>
+                            <h1 class="fw-bold text-dark m-0">Customer Feedbacks</h1>
+                            <p class="text-muted m-0 mt-1">Approve or hide customer feedbacks containing sensitive content or negative ratings.</p>
                         </div>
                     </div>
 
@@ -668,11 +668,11 @@
                             <div class="customer-list-box-full">
                                 <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
                                     <i data-lucide="star" style="stroke-width: 1.5; width: 18px; height: 18px; color: #4f46e5;"></i>
-                                    Customer Reviews Moderation Queue
+                                    Customer Feedbacks Moderation Queue
                                 </h5>
 
                                 <div class="list-group">
-                                    <!-- Loop reviews -->
+                                    <!-- Loop feedbacks -->
                                     <div class="list-group-item border-0 py-4 mb-3 rounded-3 shadow-sm bg-light" th:each="r : ${customerReviews}">
                                         <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
                                             <div class="flex-grow-1">
@@ -693,13 +693,13 @@
                                                         </div>
                                                         <div class="text-muted small" th:text="${#temporals.format(r.createdAt, 'yyyy-MM-dd HH:mm')}">Date</div>
                                                     </div>
-                                                    <div class="text-dark" th:text="${r.comment}">Review Comment</div>
+                                                    <div class="text-dark" th:text="${r.comment}">Feedback Comment</div>
                                                 </div>
                                             </div>
                                             
                                             <div class="d-flex flex-column gap-2" style="min-width: 150px;">
                                                 <!-- Action Buttons -->
-                                                <form th:action="@{/admin/reviews/{rid}/status(rid=${r.id})}" method="post">
+                                                <form th:action="@{/admin/feedbacks/{rid}/status(rid=${r.id})}" method="post">
                                                     <input type="hidden" name="status" value="VISIBLE" />
                                                     <input type="hidden" name="page" th:value="${customerReviewCurrentPage}" />
                                                     <button type="submit" class="btn btn-success btn-sm w-100 border-0 d-flex align-items-center justify-content-center gap-1" style="background-color: #10b981; border-radius: 6px; padding: 6px 12px; font-weight: 500; color: white;">
@@ -708,12 +708,12 @@
                                                     </button>
                                                 </form>
 
-                                                <form th:action="@{/admin/reviews/{rid}/status(rid=${r.id})}" method="post" th:if="${r.status != 'HIDDEN'}">
+                                                <form th:action="@{/admin/feedbacks/{rid}/status(rid=${r.id})}" method="post" th:if="${r.status != 'HIDDEN'}">
                                                     <input type="hidden" name="status" value="HIDDEN" />
                                                     <input type="hidden" name="page" th:value="${customerReviewCurrentPage}" />
                                                     <button type="submit" class="btn btn-warning btn-sm w-100 border-0 d-flex align-items-center justify-content-center gap-1" style="background-color: #f59e0b; border-radius: 6px; padding: 6px 12px; font-weight: 500; color: white;">
                                                         <i data-lucide="eye-off" style="width: 14px; height: 14px; stroke-width: 1.5;"></i>
-                                                        <span>Hide Review</span>
+                                                        <span>Hide Feedback</span>
                                                     </button>
                                                 </form>
 
@@ -724,7 +724,7 @@
                                     <!-- Empty State -->
                                     <div class="text-center text-muted py-5 border border-dashed rounded-3 bg-light" th:if="${#lists.isEmpty(customerReviews)}">
                                         <i data-lucide="star" class="text-muted mb-2" style="width: 36px; height: 36px; stroke-width: 1.5; color: #64748b;"></i>
-                                        <div>No pending or hidden reviews found. All clean!</div>
+                                        <div>No pending or hidden feedbacks found. All clean!</div>
                                     </div>
                                 </div>
 
@@ -757,7 +757,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
                         <div>
                             <h1 class="fw-bold text-dark m-0">Refund Requests</h1>
-                            <p class="text-muted m-0 mt-1">Review refund requests submitted by customers after booking cancellation.</p>
+                            <p class="text-muted m-0 mt-1">Feedback refund requests submitted by customers after booking cancellation.</p>
                         </div>
                     </div>
 
@@ -1001,7 +1001,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
                         <div>
                             <h1 class="fw-bold text-dark m-0">Payout to Owner</h1>
-                            <p class="text-muted m-0 mt-1">Review completed bookings and process bank transfers to hotel owners.</p>
+                            <p class="text-muted m-0 mt-1">Feedback completed bookings and process bank transfers to hotel owners.</p>
                         </div>
                     </div>
 

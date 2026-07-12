@@ -16273,9 +16273,9 @@ input[type="date"]::-webkit-datetime-edit {
 }
 
 /* ────────────────────────────────────────────────────────────
-   Reviews Section CSS
+   Feedbacks Section CSS
    ──────────────────────────────────────────────────────────── */
-.reviews-card {
+.feedbacks-card {
   background: var(--white);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
@@ -16285,7 +16285,7 @@ input[type="date"]::-webkit-datetime-edit {
   margin-bottom: 40px;
 }
 
-.reviews-title {
+.feedbacks-title {
   font-family: 'Playfair Display', serif;
   font-size: 1.5rem;
   color: var(--navy);
@@ -16350,17 +16350,17 @@ input[type="date"]::-webkit-datetime-edit {
   /* Yellow gold active */
 }
 
-/* Individual Review Card */
-.review-item-card {
+/* Individual Feedback Card */
+.feedback-item-card {
   border-bottom: 1px solid var(--gray-200);
   padding: 20px 0;
 }
 
-.review-item-card:last-child {
+.feedback-item-card:last-child {
   border-bottom: none;
 }
 
-.review-user-avatar {
+.feedback-user-avatar {
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -16375,23 +16375,23 @@ input[type="date"]::-webkit-datetime-edit {
   text-transform: uppercase;
 }
 
-.review-user-name {
+.feedback-user-name {
   font-weight: 600;
   font-size: 0.95rem;
   color: var(--text-dark);
 }
 
-.review-date {
+.feedback-date {
   font-size: 0.78rem;
   color: var(--text-muted);
 }
 
-.review-stars {
+.feedback-stars {
   color: #eab308;
   font-size: 0.9rem;
 }
 
-.review-comment {
+.feedback-comment {
   font-size: 0.88rem;
   color: #374151;
   line-height: 1.6;
@@ -16399,7 +16399,7 @@ input[type="date"]::-webkit-datetime-edit {
   white-space: pre-line;
 }
 
-.btn-review-submit {
+.btn-feedback-submit {
   background: linear-gradient(135deg, var(--gold-dark), var(--gold));
   color: var(--white);
   border: none;
@@ -16411,14 +16411,14 @@ input[type="date"]::-webkit-datetime-edit {
   cursor: pointer;
 }
 
-.btn-review-submit:hover {
+.btn-feedback-submit:hover {
   background: linear-gradient(135deg, var(--navy), var(--navy-light));
   color: var(--gold-light);
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
 }
 
-.btn-review-delete {
+.btn-feedback-delete {
   padding: 5px 14px;
   border: 1.5px solid #fecaca;
   background: transparent;
@@ -16430,7 +16430,7 @@ input[type="date"]::-webkit-datetime-edit {
   transition: .2s;
 }
 
-.btn-review-delete:hover {
+.btn-feedback-delete:hover {
   background: #ef4444;
   color: #fff;
   border-color: #ef4444;
@@ -16463,8 +16463,8 @@ input[type="date"]::-webkit-datetime-edit {
   }
 }
 
-/* Edit Review Button (previously inline in rooms.html) */
-.btn-review-edit {
+/* Edit Feedback Button (previously inline in rooms.html) */
+.btn-feedback-edit {
   padding: 5px 14px;
   border: 1.5px solid #c9a96e;
   background: transparent;
@@ -16476,7 +16476,7 @@ input[type="date"]::-webkit-datetime-edit {
   transition: .2s;
 }
 
-.btn-review-edit:hover {
+.btn-feedback-edit:hover {
   background: #c9a96e;
   color: #fff;
 }
@@ -23313,56 +23313,56 @@ td .discount-badge {
 }
 
 /* ============================================================
-   UNIFIED PREMIUM ACTION BUTTONS (REVIEWS FEED)
+   UNIFIED PREMIUM ACTION BUTTONS (FEEDBACKS FEED)
    ============================================================ */
-.review-action-buttons-group .btn {
+.feedback-action-buttons-group .btn {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-.review-action-buttons-group .vote-btn:hover {
+.feedback-action-buttons-group .vote-btn:hover {
   background-color: #f1f5f9 !important;
   color: #1e293b !important;
   border-color: #cbd5e1 !important;
 }
 
 /* Like button active (gold) */
-.review-action-buttons-group .vote-btn[data-vote-type="UPVOTE"].active-vote {
+.feedback-action-buttons-group .vote-btn[data-vote-type="UPVOTE"].active-vote {
   background-color: rgba(201, 169, 110, 0.12) !important;
   color: var(--gold) !important;
   border-color: var(--gold) !important;
   font-weight: 600;
 }
 
-.review-action-buttons-group .vote-btn[data-vote-type="UPVOTE"].active-vote:hover {
+.feedback-action-buttons-group .vote-btn[data-vote-type="UPVOTE"].active-vote:hover {
   background-color: rgba(201, 169, 110, 0.22) !important;
   color: var(--gold-dark) !important;
   border-color: var(--gold-dark) !important;
 }
 
 /* Dislike button active (red) */
-.review-action-buttons-group .vote-btn[data-vote-type="DOWNVOTE"].active-vote {
+.feedback-action-buttons-group .vote-btn[data-vote-type="DOWNVOTE"].active-vote {
   background-color: rgba(239, 68, 68, 0.08) !important;
   color: #ef4444 !important;
   border-color: #ef4444 !important;
   font-weight: 600;
 }
 
-.review-action-buttons-group .vote-btn[data-vote-type="DOWNVOTE"].active-vote:hover {
+.feedback-action-buttons-group .vote-btn[data-vote-type="DOWNVOTE"].active-vote:hover {
   background-color: rgba(239, 68, 68, 0.15) !important;
   color: #dc2626 !important;
   border-color: #dc2626 !important;
 }
 
-.review-action-buttons-group .btn-edit-review-action:hover {
+.feedback-action-buttons-group .btn-edit-feedback-action:hover {
   background-color: #f0f9ff !important;
   color: #0284c7 !important;
   border-color: #bae6fd !important;
 }
 
-.review-action-buttons-group .btn-delete-review-action:hover {
+.feedback-action-buttons-group .btn-delete-feedback-action:hover {
   background-color: #fee2e2 !important;
   color: #dc2626 !important;
   border-color: #fca5a5 !important;

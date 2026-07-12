@@ -83,7 +83,7 @@ public class ProfileController {
         }
 
         model.addAttribute("user", userInDb);
-        return "User/profile";
+        return "user/profile";
     }
 
     // Xử lý yêu cầu chỉnh sửa riêng lẻ từng trường, sinh OTP gửi về email hiện tại
@@ -169,7 +169,7 @@ public class ProfileController {
         }
 
         model.addAttribute("pendingEmail", loggedInUser.getEmail());
-        return "User/verify-edit-profile-otp";
+        return "user/verify-edit-profile-otp";
     }
 
     // Xử lý xác thực OTP email hiện tại
@@ -200,7 +200,7 @@ public class ProfileController {
             if (!"UPDATE_PROFILE".equals(userInDb.getOtpType()) || !otp.equals(userInDb.getOtp())) {
                 model.addAttribute("errorMessage", "Incorrect OTP code!");
                 model.addAttribute("pendingEmail", loggedInUser.getEmail());
-                return "User/verify-edit-profile-otp";
+                return "user/verify-edit-profile-otp";
             }
 
             // Xác thực thành công: Xóa OTP trong DB
@@ -388,7 +388,7 @@ public class ProfileController {
         }
 
         model.addAttribute("pendingEmail", pendingNewEmail);
-        return "User/verify-new-email-otp";
+        return "user/verify-new-email-otp";
     }
 
     // Xử lý xác thực OTP email mới để lưu thay đổi
@@ -423,7 +423,7 @@ public class ProfileController {
             if (!"UPDATE_PROFILE".equals(userInDb.getOtpType()) || !otp.equals(userInDb.getOtp())) {
                 model.addAttribute("errorMessage", "Incorrect OTP code!");
                 model.addAttribute("pendingEmail", pendingNewEmail);
-                return "User/verify-new-email-otp";
+                return "user/verify-new-email-otp";
             }
 
             // Lưu email mới vào DB

@@ -11,9 +11,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Controller
-public class ReviewController {
+public class FeedbackController {
 
-    private final ReviewRepository reviewRepository;
+    private final FeedbackRepository FeedbackRepository;
     private final CustomerRepository customerRepository;
     private final HotelRepository hotelRepository;
     private final RoomRepository roomRepository;
@@ -22,7 +22,7 @@ public class ReviewController {
     private final HotelOwnerRepository hotelOwnerRepository;
     private final FeedbackVoteRepository feedbackVoteRepository;
 
-    public ReviewController(ReviewRepository reviewRepository,
+    public FeedbackController(FeedbackRepository FeedbackRepository,
                             CustomerRepository customerRepository,
                             HotelRepository hotelRepository,
                             RoomRepository roomRepository,
@@ -30,7 +30,7 @@ public class ReviewController {
                             FeedbackReplyRepository feedbackReplyRepository,
                             HotelOwnerRepository hotelOwnerRepository,
                             FeedbackVoteRepository feedbackVoteRepository) {
-        this.reviewRepository = reviewRepository;
+        this.FeedbackRepository = FeedbackRepository;
         this.customerRepository = customerRepository;
         this.hotelRepository = hotelRepository;
         this.roomRepository = roomRepository;
@@ -40,7 +40,7 @@ public class ReviewController {
         this.feedbackVoteRepository = feedbackVoteRepository;
     }
 
-    @PostMapping("/hotels/{id}/reviews")
+    @PostMapping("/hotels/{id}/feedbacks")
     public String createReview(
             @PathVariable("id") int hotelId,
             @RequestParam("rating") int rating,
@@ -50,12 +50,12 @@ public class ReviewController {
             HttpSession session) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
-            session.setAttribute("errorMessage", "Please log in to submit a review.");
+            session.setAttribute("errorMessage", "Please log in to submit a feedback.");
             return "redirect:/login";
         }
 
         if (!"CUSTOMER".equalsIgnoreCase(loggedInUser.getRole())) {
-            session.setAttribute("errorMessage", "Only customers can submit reviews.");
+            session.setAttribute("errorMessage", "Only customers can submit feedbacks.");
             return "redirect:/hotels/" + hotelId + "/rooms";
         }
 
@@ -89,7 +89,7 @@ public class ReviewController {
         }
 
         if (roomId == null) {
-            session.setAttribute("errorMessage", "You must have a completed booking at this hotel to submit a review.");
+            session.setAttribute("errorMessage", "You must have a completed booking at this hotel to submit a feedback.");
             return "redirect:/hotels/" + hotelId + "/rooms";
         }
 
@@ -113,12 +113,12 @@ public class ReviewController {
                 List.of("COMPLETED")
         ).stream().filter(b -> b.getRoom().getId() == finalRoomId).collect(Collectors.toList());
 
-        // Find reviews for this specific room
-        List<Review> roomReviews = reviewRepository.findByHotelIdAndCustomerId(hotelId, customer.getId())
+        // Find feedbacks for this specific room
+        List<Feedback> roomReviews = FeedbackRepository.findByHotelIdAndCustomerId(hotelId, customer.getId())
                 .stream().filter(r -> r.getRoom() != null && r.getRoom().getId() == finalRoomId).collect(Collectors.toList());
 
         if (completedBookingsForRoom.isEmpty()) {
-            session.setAttribute("errorMessage", "You must have a completed booking for this room type to submit a review.");
+            session.setAttribute("errorMessage", "You must have a completed booking for this room type to submit a feedback.");
             return "redirect:/hotels/" + hotelId + "/rooms";
         }
 
@@ -129,20 +129,20 @@ public class ReviewController {
 
         String combinedComment = (comment != null ? comment.trim() : "");
 
-        Review review = new Review();
-        review.setHotel(hotel);
-        review.setCustomer(customer);
-        review.setUserFullName(customer.getFullName());
-        review.setRating(rating);
-        review.setComment(combinedComment);
-        review.setRoom(room);
-        review.setRoomType(room.getType());
-        review.setStatus("VISIBLE");
+        Feedback feedback = new Feedback();
+        feedback.setHotel(hotel);
+        feedback.setCustomer(customer);
+        feedback.setUserFullName(customer.getFullName());
+        feedback.setRating(rating);
+        feedback.setComment(combinedComment);
+        feedback.setRoom(room);
+        feedback.setRoomType(room.getType());
+        feedback.setStatus("VISIBLE");
 
         if (bookingId != null) {
             Booking booking = bookingRepository.findById(bookingId).orElse(null);
             if (booking != null && booking.getCustomer().getId() == customer.getId()) {
-                review.setBooking(booking);
+                feedback.setBooking(booking);
             }
         } else {
             Booking fallbackBooking = completedBookingsForRoom.stream()
@@ -150,17 +150,17 @@ public class ReviewController {
                     .findFirst()
                     .orElse(null);
             if (fallbackBooking != null) {
-                review.setBooking(fallbackBooking);
+                feedback.setBooking(fallbackBooking);
             }
         }
 
-        reviewRepository.save(review);
+        FeedbackRepository.save(feedback);
 
-        session.setAttribute("successMessage", "Review submitted successfully!");
+        session.setAttribute("successMessage", "Feedback submitted successfully!");
         return "redirect:/hotels/" + hotelId + "/rooms";
     }
 
-    @PostMapping("/hotels/{id}/reviews/{reviewId}/edit")
+    @PostMapping("/hotels/{id}/feedbacks/{reviewId}/edit")
     public String updateReview(
             @PathVariable("id") int hotelId,
             @PathVariable("reviewId") int reviewId,
@@ -169,21 +169,21 @@ public class ReviewController {
             HttpSession session) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
-            session.setAttribute("errorMessage", "Please log in to edit a review.");
+            session.setAttribute("errorMessage", "Please log in to edit a feedback.");
             return "redirect:/login";
         }
 
         Customer customer = customerRepository.findByUserAccount(loggedInUser)
                 .orElseThrow(() -> new RuntimeException("Customer profile not found!"));
 
-        Review review = reviewRepository.findById(reviewId).orElse(null);
-        if (review == null) {
-            session.setAttribute("errorMessage", "Review not found.");
+        Feedback feedback = FeedbackRepository.findById(reviewId).orElse(null);
+        if (feedback == null) {
+            session.setAttribute("errorMessage", "Feedback not found.");
             return "redirect:/hotels/" + hotelId + "/rooms";
         }
 
-        if (review.getCustomer().getId() != customer.getId()) {
-            session.setAttribute("errorMessage", "You are not authorized to edit this review.");
+        if (feedback.getCustomer().getId() != customer.getId()) {
+            session.setAttribute("errorMessage", "You are not authorized to edit this feedback.");
             return "redirect:/hotels/" + hotelId + "/rooms";
         }
 
@@ -194,15 +194,15 @@ public class ReviewController {
 
         String combinedComment = (comment != null ? comment.trim() : "");
 
-        review.setRating(rating);
-        review.setComment(combinedComment);
-        reviewRepository.save(review);
+        feedback.setRating(rating);
+        feedback.setComment(combinedComment);
+        FeedbackRepository.save(feedback);
 
-        session.setAttribute("successMessage", "Review updated successfully!");
-        return "redirect:/hotels/" + hotelId + "/rooms#reviews";
+        session.setAttribute("successMessage", "Feedback updated successfully!");
+        return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
     }
 
-    @PostMapping("/hotels/{id}/reviews/{reviewId}/delete")
+    @PostMapping("/hotels/{id}/feedbacks/{reviewId}/delete")
     public String deleteReview(
             @PathVariable("id") int hotelId,
             @PathVariable("reviewId") int reviewId,
@@ -213,20 +213,20 @@ public class ReviewController {
             return "redirect:/login";
         }
 
-        Review review = reviewRepository.findById(reviewId).orElse(null);
-        if (review == null) {
-            session.setAttribute("errorMessage", "Review not found.");
+        Feedback feedback = FeedbackRepository.findById(reviewId).orElse(null);
+        if (feedback == null) {
+            session.setAttribute("errorMessage", "Feedback not found.");
             return "redirect:/hotels/" + hotelId + "/rooms";
         }
 
         boolean isAdmin = "ADMIN".equalsIgnoreCase(loggedInUser.getRole());
         boolean isOwner = customerRepository.findByUserAccount(loggedInUser)
-                .map(customer -> review.getCustomer() != null && review.getCustomer().getId() == customer.getId())
+                .map(customer -> feedback.getCustomer() != null && feedback.getCustomer().getId() == customer.getId())
                 .orElse(false);
 
         if (!isOwner && !isAdmin) {
-            session.setAttribute("errorMessage", "You are not authorized to delete this review.");
-            return "redirect:/hotels/" + hotelId + "/rooms#reviews";
+            session.setAttribute("errorMessage", "You are not authorized to delete this feedback.");
+            return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
         }
 
         // Xóa phản hồi của khách sạn liên kết với đánh giá này trước (nếu có) để tránh lỗi khóa ngoại do ON DELETE NO ACTION
@@ -234,13 +234,13 @@ public class ReviewController {
             feedbackReplyRepository.delete(reply);
         });
 
-        reviewRepository.delete(review);
+        FeedbackRepository.delete(feedback);
 
-        session.setAttribute("successMessage", "Review deleted successfully.");
-        return "redirect:/hotels/" + hotelId + "/rooms#reviews";
+        session.setAttribute("successMessage", "Feedback deleted successfully.");
+        return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
     }
 
-    @PostMapping("/hotels/{id}/reviews/{reviewId}/reply")
+    @PostMapping("/hotels/{id}/feedbacks/{reviewId}/reply")
     public String replyFeedback(
             @PathVariable("id") int hotelId,
             @PathVariable("reviewId") int reviewId,
@@ -252,29 +252,29 @@ public class ReviewController {
         }
         if (!"HOTEL_OWNER".equals(loggedInUser.getRole())) {
             session.setAttribute("errorMessage", "Only hotel owners can reply to feedback.");
-            return "redirect:/hotels/" + hotelId + "/rooms#reviews";
+            return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
         }
         HotelOwner owner = hotelOwnerRepository.findByUserAccount(loggedInUser).orElse(null);
         Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
         if (owner == null || hotel == null || hotel.getOwner() == null || hotel.getOwner().getId() != owner.getId()) {
             session.setAttribute("errorMessage", "You don't have permission to reply to this hotel's feedback.");
-            return "redirect:/hotels/" + hotelId + "/rooms#reviews";
+            return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
         }
 
-        Review review = reviewRepository.findById(reviewId).orElse(null);
-        if (review == null || review.getHotel().getId() != hotelId) {
+        Feedback feedback = FeedbackRepository.findById(reviewId).orElse(null);
+        if (feedback == null || feedback.getHotel().getId() != hotelId) {
             session.setAttribute("errorMessage", "Feedback not found.");
-            return "redirect:/hotels/" + hotelId + "/rooms#reviews";
+            return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
         }
 
         // Check if already replied
         if (feedbackReplyRepository.findByFeedbackId(reviewId).isPresent()) {
             session.setAttribute("errorMessage", "You have already replied to this feedback.");
-            return "redirect:/hotels/" + hotelId + "/rooms#reviews";
+            return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
         }
 
         FeedbackReply reply = new FeedbackReply();
-        reply.setFeedback(review);
+        reply.setFeedback(feedback);
         reply.setOwner(owner);
         reply.setHotel(hotel);
         reply.setContent(content);
@@ -283,10 +283,10 @@ public class ReviewController {
         feedbackReplyRepository.save(reply);
 
         session.setAttribute("successMessage", "Reply submitted successfully!");
-        return "redirect:/hotels/" + hotelId + "/rooms#reviews";
+        return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
     }
 
-    @PostMapping("/hotels/{id}/reviews/{reviewId}/reply/edit")
+    @PostMapping("/hotels/{id}/feedbacks/{reviewId}/reply/edit")
     public String editReplyFeedback(
             @PathVariable("id") int hotelId,
             @PathVariable("reviewId") int reviewId,
@@ -298,18 +298,18 @@ public class ReviewController {
         }
         if (!"HOTEL_OWNER".equals(loggedInUser.getRole())) {
             session.setAttribute("errorMessage", "Only hotel owners can edit replies.");
-            return "redirect:/hotels/" + hotelId + "/rooms#reviews";
+            return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
         }
         HotelOwner owner = hotelOwnerRepository.findByUserAccount(loggedInUser).orElse(null);
         if (owner == null) {
             session.setAttribute("errorMessage", "Owner profile not found.");
-            return "redirect:/hotels/" + hotelId + "/rooms#reviews";
+            return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
         }
 
         FeedbackReply reply = feedbackReplyRepository.findByFeedbackId(reviewId).orElse(null);
         if (reply == null || reply.getOwner().getId() != owner.getId()) {
             session.setAttribute("errorMessage", "Reply not found or you don't have permission to edit it.");
-            return "redirect:/hotels/" + hotelId + "/rooms#reviews";
+            return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
         }
 
         reply.setContent(content);
@@ -317,10 +317,10 @@ public class ReviewController {
         feedbackReplyRepository.save(reply);
 
         session.setAttribute("successMessage", "Reply updated successfully!");
-        return "redirect:/hotels/" + hotelId + "/rooms#reviews";
+        return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
     }
 
-    @PostMapping("/hotels/{id}/reviews/{reviewId}/reply/delete")
+    @PostMapping("/hotels/{id}/feedbacks/{reviewId}/reply/delete")
     public String deleteReplyFeedback(
             @PathVariable("id") int hotelId,
             @PathVariable("reviewId") int reviewId,
@@ -331,27 +331,27 @@ public class ReviewController {
         }
         if (!"HOTEL_OWNER".equals(loggedInUser.getRole())) {
             session.setAttribute("errorMessage", "Only hotel owners can delete replies.");
-            return "redirect:/hotels/" + hotelId + "/rooms#reviews";
+            return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
         }
         HotelOwner owner = hotelOwnerRepository.findByUserAccount(loggedInUser).orElse(null);
         if (owner == null) {
             session.setAttribute("errorMessage", "Owner profile not found.");
-            return "redirect:/hotels/" + hotelId + "/rooms#reviews";
+            return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
         }
 
         FeedbackReply reply = feedbackReplyRepository.findByFeedbackId(reviewId).orElse(null);
         if (reply == null || reply.getOwner().getId() != owner.getId()) {
             session.setAttribute("errorMessage", "Reply not found or you don't have permission to delete it.");
-            return "redirect:/hotels/" + hotelId + "/rooms#reviews";
+            return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
         }
 
         feedbackReplyRepository.delete(reply);
 
         session.setAttribute("successMessage", "Reply deleted successfully!");
-        return "redirect:/hotels/" + hotelId + "/rooms#reviews";
+        return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
     }
 
-    @PostMapping("/hotels/{id}/reviews/{reviewId}/vote")
+    @PostMapping("/hotels/{id}/feedbacks/{reviewId}/vote")
     @ResponseBody
     public java.util.Map<String, Object> voteReview(
             @PathVariable("id") int hotelId,
@@ -374,10 +374,10 @@ public class ReviewController {
             return response;
         }
 
-        Review review = reviewRepository.findById(reviewId).orElse(null);
-        if (review == null || review.getHotel().getId() != hotelId) {
+        Feedback feedback = FeedbackRepository.findById(reviewId).orElse(null);
+        if (feedback == null || feedback.getHotel().getId() != hotelId) {
             response.put("success", false);
-            response.put("message", "Review not found.");
+            response.put("message", "Feedback not found.");
             return response;
         }
 
@@ -397,9 +397,9 @@ public class ReviewController {
                 // Cancel vote
                 feedbackVoteRepository.delete(existingVote);
                 if ("UPVOTE".equals(finalVoteType)) {
-                    review.setUpvote(Math.max(0, review.getUpvote() - 1));
+                    feedback.setUpvote(Math.max(0, feedback.getUpvote() - 1));
                 } else {
-                    review.setDownvote(Math.max(0, review.getDownvote() - 1));
+                    feedback.setDownvote(Math.max(0, feedback.getDownvote() - 1));
                 }
                 userVoteResult = "NONE";
             } else {
@@ -407,36 +407,36 @@ public class ReviewController {
                 existingVote.setVoteType(finalVoteType);
                 feedbackVoteRepository.save(existingVote);
                 if ("UPVOTE".equals(finalVoteType)) {
-                    review.setUpvote(review.getUpvote() + 1);
-                    review.setDownvote(Math.max(0, review.getDownvote() - 1));
+                    feedback.setUpvote(feedback.getUpvote() + 1);
+                    feedback.setDownvote(Math.max(0, feedback.getDownvote() - 1));
                 } else {
-                    review.setDownvote(review.getDownvote() + 1);
-                    review.setUpvote(Math.max(0, review.getUpvote() - 1));
+                    feedback.setDownvote(feedback.getDownvote() + 1);
+                    feedback.setUpvote(Math.max(0, feedback.getUpvote() - 1));
                 }
                 userVoteResult = finalVoteType;
             }
         } else {
             // New vote
-            FeedbackVote newVote = new FeedbackVote(review, customer, finalVoteType);
+            FeedbackVote newVote = new FeedbackVote(feedback, customer, finalVoteType);
             feedbackVoteRepository.save(newVote);
             if ("UPVOTE".equals(finalVoteType)) {
-                review.setUpvote(review.getUpvote() + 1);
+                feedback.setUpvote(feedback.getUpvote() + 1);
             } else {
-                review.setDownvote(review.getDownvote() + 1);
+                feedback.setDownvote(feedback.getDownvote() + 1);
             }
             userVoteResult = finalVoteType;
         }
 
-        reviewRepository.save(review);
+        FeedbackRepository.save(feedback);
 
         response.put("success", true);
-        response.put("upvotes", review.getUpvote());
-        response.put("downvotes", review.getDownvote());
+        response.put("upvotes", feedback.getUpvote());
+        response.put("downvotes", feedback.getDownvote());
         response.put("userVote", userVoteResult);
         return response;
     }
 
-    @PostMapping("/admin/reviews/{reviewId}/status")
+    @PostMapping("/admin/feedbacks/{reviewId}/status")
     public String updateReviewStatus(
             @PathVariable("reviewId") int reviewId,
             @RequestParam("status") String status,
@@ -449,9 +449,9 @@ public class ReviewController {
             return "redirect:/login";
         }
 
-        Review review = reviewRepository.findById(reviewId).orElse(null);
-        if (review == null) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Review not found.");
+        Feedback feedback = FeedbackRepository.findById(reviewId).orElse(null);
+        if (feedback == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Feedback not found.");
             return "redirect:/admin/dashboard?tab=customerReviewPanel";
         }
 
@@ -460,14 +460,14 @@ public class ReviewController {
             return "redirect:/admin/dashboard?tab=customerReviewPanel";
         }
 
-        review.setStatus(status.toUpperCase());
-        reviewRepository.save(review);
+        feedback.setStatus(status.toUpperCase());
+        FeedbackRepository.save(feedback);
 
-        redirectAttributes.addFlashAttribute("successMessage", "Review status updated to " + status.toUpperCase() + " successfully.");
+        redirectAttributes.addFlashAttribute("successMessage", "Feedback status updated to " + status.toUpperCase() + " successfully.");
         return "redirect:/admin/dashboard?tab=customerReviewPanel&page=" + page;
     }
 
-    @PostMapping("/hotels/{id}/reviews/{reviewId}/status")
+    @PostMapping("/hotels/{id}/feedbacks/{reviewId}/status")
     @ResponseBody
     public java.util.Map<String, Object> updateReviewStatusFromDetail(
             @PathVariable("id") int hotelId,
@@ -483,18 +483,18 @@ public class ReviewController {
             return response;
         }
 
-        Review review = reviewRepository.findById(reviewId).orElse(null);
-        if (review == null || review.getHotel().getId() != hotelId) {
+        Feedback feedback = FeedbackRepository.findById(reviewId).orElse(null);
+        if (feedback == null || feedback.getHotel().getId() != hotelId) {
             response.put("success", false);
-            response.put("message", "Review not found.");
+            response.put("message", "Feedback not found.");
             return response;
         }
 
-        review.setStatus(status.toUpperCase());
-        reviewRepository.save(review);
+        feedback.setStatus(status.toUpperCase());
+        FeedbackRepository.save(feedback);
 
         response.put("success", true);
-        response.put("status", review.getStatus());
+        response.put("status", feedback.getStatus());
         return response;
     }
 
@@ -520,7 +520,7 @@ public class ReviewController {
         }
         
         // Chặn nếu đã feedback cho booking này rồi
-        boolean exists = reviewRepository.existsByBookingId(bookingId);
+        boolean exists = FeedbackRepository.existsByBookingId(bookingId);
         if (exists) {
             session.setAttribute("errorMessage", "You have already submitted feedback for this booking.");
             return "redirect:/booking/detail/" + bookingId;
@@ -560,7 +560,7 @@ public class ReviewController {
         }
         
         // Chặn nếu đã feedback cho booking này rồi
-        boolean exists = reviewRepository.existsByBookingId(bookingId);
+        boolean exists = FeedbackRepository.existsByBookingId(bookingId);
         if (exists) {
             session.setAttribute("errorMessage", "You have already submitted feedback for this booking.");
             return "redirect:/booking/detail/" + bookingId;
@@ -573,20 +573,20 @@ public class ReviewController {
         
         String cleanComment = (comment != null ? comment.trim() : "");
         
-        Review review = new Review();
-        review.setCustomer(customer);
-        review.setHotel(booking.getHotel());
-        review.setRoom(booking.getRoom());
-        review.setUserFullName(customer.getFullName());
-        review.setRoomType(booking.getRoom().getType());
-        review.setRating(rating);
-        review.setComment(cleanComment);
-        review.setStatus("VISIBLE");
-        review.setBooking(booking);
+        Feedback feedback = new Feedback();
+        feedback.setCustomer(customer);
+        feedback.setHotel(booking.getHotel());
+        feedback.setRoom(booking.getRoom());
+        feedback.setUserFullName(customer.getFullName());
+        feedback.setRoomType(booking.getRoom().getType());
+        feedback.setRating(rating);
+        feedback.setComment(cleanComment);
+        feedback.setStatus("VISIBLE");
+        feedback.setBooking(booking);
         
-        reviewRepository.save(review);
+        FeedbackRepository.save(feedback);
         
         session.setAttribute("successMessage", "Feedback submitted successfully!");
-        return "redirect:/hotels/" + booking.getHotel().getId() + "/rooms#reviews";
+        return "redirect:/hotels/" + booking.getHotel().getId() + "/rooms#feedbacks";
     }
 }

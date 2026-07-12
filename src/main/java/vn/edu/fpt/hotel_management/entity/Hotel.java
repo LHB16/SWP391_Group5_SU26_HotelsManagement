@@ -36,7 +36,7 @@ public class Hotel {
     @Column(nullable = false, columnDefinition = "decimal(2,1) default 0.0")
     private double rating;
 
-    @Column(name = "total_reviews", nullable = false)
+    @Column(name = "total_feedbacks", nullable = false)
     private int totalReviews = 0;
 
     @Column(name = "approval_status")

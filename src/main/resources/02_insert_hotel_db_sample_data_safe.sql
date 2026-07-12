@@ -325,7 +325,7 @@ BEGIN TRY
 
     -- H1: InterContinental Danang – APPROVED
     IF NOT EXISTS (SELECT 1 FROM hotel WHERE owner_id = @owner1_id AND name = N'InterContinental Danang Sun Peninsula Resort')
-        INSERT INTO hotel (owner_id, name, address, city, district, image_url, description, rating, total_reviews, approval_status, active, approved_at)
+        INSERT INTO hotel (owner_id, name, address, city, district, image_url, description, rating, total_feedbacks, approval_status, active, approved_at)
         VALUES (@owner1_id, N'InterContinental Danang Sun Peninsula Resort', N'Bãi Bắc, Sơn Trà, Đà Nẵng', N'Đà Nẵng', N'Sơn Trà',
             N'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=500&fit=crop&q=80',
             N'Khu nghỉ dưỡng 5 sao đẳng cấp quốc tế tọa lạc trên bán đảo Sơn Trà với tầm nhìn tuyệt đẹp ra biển Đông. Resort sở hữu kiến trúc độc đáo, hồ bơi vô cực, nhà hàng Michelin và dịch vụ đẳng cấp.',
@@ -333,7 +333,7 @@ BEGIN TRY
 
     -- H2: Vinpearl Nha Trang – APPROVED
     IF NOT EXISTS (SELECT 1 FROM hotel WHERE owner_id = @owner2_id AND name = N'Vinpearl Resort Nha Trang')
-        INSERT INTO hotel (owner_id, name, address, city, district, image_url, description, rating, total_reviews, approval_status, active, approved_at)
+        INSERT INTO hotel (owner_id, name, address, city, district, image_url, description, rating, total_feedbacks, approval_status, active, approved_at)
         VALUES (@owner2_id, N'Vinpearl Resort Nha Trang', N'Đảo Hòn Tre, Nha Trang, Khánh Hòa', N'Nha Trang', N'Vĩnh Nguyên',
             N'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=500&fit=crop&q=80',
             N'Khu nghỉ dưỡng 5 sao trên đảo Hòn Tre, kết nối với đất liền bằng cáp treo vượt biển. Resort có bãi biển riêng, công viên nước và nhiều tiện ích cao cấp.',
@@ -341,7 +341,7 @@ BEGIN TRY
 
     -- H3: Four Seasons Hoi An – APPROVED
     IF NOT EXISTS (SELECT 1 FROM hotel WHERE owner_id = @owner3_id AND name = N'Four Seasons Resort The Nam Hai')
-        INSERT INTO hotel (owner_id, name, address, city, district, image_url, description, rating, total_reviews, approval_status, active, approved_at)
+        INSERT INTO hotel (owner_id, name, address, city, district, image_url, description, rating, total_feedbacks, approval_status, active, approved_at)
         VALUES (@owner3_id, N'Four Seasons Resort The Nam Hai', N'Điện Dương, Điện Bàn, Quảng Nam', N'Hội An', N'Điện Bàn',
             N'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&h=500&fit=crop&q=80',
             N'Resort 5 sao sang trọng bậc nhất Việt Nam trên bãi biển Hà My thơ mộng. Kiến trúc kết hợp hài hòa phong cách Việt Nam hiện đại và truyền thống.',
@@ -349,7 +349,7 @@ BEGIN TRY
 
     -- H4: Dalat Palace – APPROVED
     IF NOT EXISTS (SELECT 1 FROM hotel WHERE owner_id = @owner4_id AND name = N'Dalat Palace Heritage Hotel')
-        INSERT INTO hotel (owner_id, name, address, city, district, image_url, description, rating, total_reviews, approval_status, active, approved_at)
+        INSERT INTO hotel (owner_id, name, address, city, district, image_url, description, rating, total_feedbacks, approval_status, active, approved_at)
         VALUES (@owner4_id, N'Dalat Palace Heritage Hotel', N'12 Trần Phú, Đà Lạt, Lâm Đồng', N'Đà Lạt', N'Phường 3',
             N'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&h=500&fit=crop&q=80',
             N'Khách sạn 5 sao cổ kính bên hồ Xuân Hương thơ mộng. Xây dựng từ thời Pháp thuộc, mang vẻ đẹp cổ điển với không gian sang trọng và lãng mạn giữa xứ sương mù.',
@@ -357,7 +357,7 @@ BEGIN TRY
 
     -- H5: JW Marriott Phu Quoc – APPROVED
     IF NOT EXISTS (SELECT 1 FROM hotel WHERE owner_id = @owner5_id AND name = N'JW Marriott Phu Quoc Emerald Bay')
-        INSERT INTO hotel (owner_id, name, address, city, district, image_url, description, rating, total_reviews, approval_status, active, approved_at)
+        INSERT INTO hotel (owner_id, name, address, city, district, image_url, description, rating, total_feedbacks, approval_status, active, approved_at)
         VALUES (@owner5_id, N'JW Marriott Phu Quoc Emerald Bay', N'Bãi Khem, An Thới, Phú Quốc, Kiên Giang', N'Phú Quốc', N'An Thới',
             N'https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&h=500&fit=crop&q=80',
             N'Resort 5 sao thiết kế độc đáo của kiến trúc sư Bill Bensley. Nằm trên bãi biển Kem tuyệt đẹp, mang phong cách trường đại học lịch sử, đẳng cấp và sang trọng.',
@@ -365,7 +365,7 @@ BEGIN TRY
 
     -- H6: Hotel de la Coupole Sapa – APPROVED
     IF NOT EXISTS (SELECT 1 FROM hotel WHERE owner_id = @owner6_id AND name = N'Hotel de la Coupole - MGallery')
-        INSERT INTO hotel (owner_id, name, address, city, district, image_url, description, rating, total_reviews, approval_status, active, approved_at)
+        INSERT INTO hotel (owner_id, name, address, city, district, image_url, description, rating, total_feedbacks, approval_status, active, approved_at)
         VALUES (@owner6_id, N'Hotel de la Coupole - MGallery', N'1 Hoàng Liên, Sapa, Lào Cai', N'Sapa', N'TT Sa Pa',
             N'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=800&h=500&fit=crop&q=80',
             N'Khách sạn 5 sao phong cách Pháp nổi bật với kiến trúc thời trang và màu sắc rực rỡ. Nằm giữa thị trấn Sapa, tầm nhìn hướng tới dãy núi Hoàng Liên Sơn hùng vĩ.',
@@ -373,7 +373,7 @@ BEGIN TRY
 
     -- H7: Sofitel Metropole Hanoi – PENDING (owner chưa được duyệt)
     IF NOT EXISTS (SELECT 1 FROM hotel WHERE owner_id = @owner7_id AND name = N'Sofitel Legend Metropole Hanoi')
-        INSERT INTO hotel (owner_id, name, address, city, district, image_url, description, rating, total_reviews, approval_status, active, approved_at)
+        INSERT INTO hotel (owner_id, name, address, city, district, image_url, description, rating, total_feedbacks, approval_status, active, approved_at)
         VALUES (@owner7_id, N'Sofitel Legend Metropole Hanoi', N'15 Ngô Quyền, Hoàn Kiếm, Hà Nội', N'Hà Nội', N'Hoàn Kiếm',
             N'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=800&h=500&fit=crop&q=80',
             N'Khách sạn 5 sao lịch sử hơn 120 năm tuổi, nằm ngay trung tâm Hà Nội. Đã đón tiếp nhiều nguyên thủ quốc gia và người nổi tiếng thế giới.',
@@ -381,7 +381,7 @@ BEGIN TRY
 
     -- H8: Park Hyatt Saigon – APPROVED
     IF NOT EXISTS (SELECT 1 FROM hotel WHERE owner_id = @owner8_id AND name = N'Park Hyatt Saigon')
-        INSERT INTO hotel (owner_id, name, address, city, district, image_url, description, rating, total_reviews, approval_status, active, approved_at)
+        INSERT INTO hotel (owner_id, name, address, city, district, image_url, description, rating, total_feedbacks, approval_status, active, approved_at)
         VALUES (@owner8_id, N'Park Hyatt Saigon', N'2 Lê Lợi, Quận 1, TP.HCM', N'TP.HCM', N'Quận 1',
             N'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800&h=500&fit=crop&q=80',
             N'Khách sạn 5 sao sang trọng trên đường Lê Lợi, trái tim Sài Gòn. Kiến trúc cổ điển Pháp, phòng ốc hiện đại, nhà hàng cao cấp và hồ bơi tầng thượng.',
@@ -389,7 +389,7 @@ BEGIN TRY
 
     -- H9: Pilgrimage Village Hue – REJECTED
     IF NOT EXISTS (SELECT 1 FROM hotel WHERE owner_id = @owner9_id AND name = N'Pilgrimage Village Boutique Resort')
-        INSERT INTO hotel (owner_id, name, address, city, district, image_url, description, rating, total_reviews, approval_status, active, approved_at)
+        INSERT INTO hotel (owner_id, name, address, city, district, image_url, description, rating, total_feedbacks, approval_status, active, approved_at)
         VALUES (@owner9_id, N'Pilgrimage Village Boutique Resort', N'130 Minh Mạng, Thủy Xuân, Huế', N'Huế', N'Thủy Xuân',
             N'https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&h=500&fit=crop&q=80',
             N'Khu nghỉ dưỡng 4 sao phong cách làng quê Việt Nam, nằm yên bình giữa thiên nhiên xanh mát, gần trung tâm Huế cổ kính.',
@@ -397,7 +397,7 @@ BEGIN TRY
 
     -- H10: Victoria Can Tho – APPROVED
     IF NOT EXISTS (SELECT 1 FROM hotel WHERE owner_id = @owner10_id AND name = N'Victoria Can Tho Resort')
-        INSERT INTO hotel (owner_id, name, address, city, district, image_url, description, rating, total_reviews, approval_status, active, approved_at)
+        INSERT INTO hotel (owner_id, name, address, city, district, image_url, description, rating, total_feedbacks, approval_status, active, approved_at)
         VALUES (@owner10_id, N'Victoria Can Tho Resort', N'Cồn Cái Khế, Ninh Kiều, Cần Thơ', N'Cần Thơ', N'Ninh Kiều',
             N'https://images.unsplash.com/photo-1560347876-aeef00ee58a1?w=800&h=500&fit=crop&q=80',
             N'Resort 4 sao nằm trên đảo nhỏ giữa sông Hậu, không gian xanh mát, hồ bơi lớn và view sông tuyệt đẹp. Điểm đến lý tưởng tại miền Tây sông nước.',

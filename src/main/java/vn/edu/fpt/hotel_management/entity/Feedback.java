@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "feedback")
-public class Review {
+public class Feedback {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -54,10 +54,10 @@ public class Review {
     @JoinColumn(name = "booking_id")
     private Booking booking;
 
-    public Review() {
+    public Feedback() {
     }
 
-    public Review(Customer customer, Hotel hotel, Room room, String userFullName, String roomType, int rating, String comment) {
+    public Feedback(Customer customer, Hotel hotel, Room room, String userFullName, String roomType, int rating, String comment) {
         this.customer = customer;
         this.hotel = hotel;
         this.room = room;
