@@ -1,5 +1,19 @@
 // src/main/resources/static/assets/js/owner-dashboard.js
 
+// ===== CSRF HELPER =====
+// Đọc CSRF token/header từ <meta> tag (nếu Spring Security bật CSRF).
+// Nếu không tồn tại (CSRF bị tắt) thì trả về object rỗng, không gắn header,
+// tránh làm hỏng các request khác.
+function getCsrfHeaders() {
+    var tokenMeta = document.querySelector('meta[name="_csrf"]');
+    var headerMeta = document.querySelector('meta[name="_csrf_header"]');
+    var headers = {};
+    if (tokenMeta && headerMeta) {
+        headers[headerMeta.getAttribute('content')] = tokenMeta.getAttribute('content');
+    }
+    return headers;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
 
     // 1. Initialize Lucide Icons
@@ -500,6 +514,7 @@ function renderBookingDetail(data) {
         checkinToggle.disabled = !isEditable;
         checkinToggle.checked = data.checkInStatus === true;
         updateToggleLabel(checkinToggle, checkinLabel, 'Checked In', 'Not Checked In');
+        updateActualTimeDisplay('bd-checkin-actual', data.checkedInAt);
     }
 
     var checkoutToggle = document.getElementById('bd-checkout-toggle');
@@ -508,6 +523,7 @@ function renderBookingDetail(data) {
         checkoutToggle.disabled = !isEditable;
         checkoutToggle.checked = data.checkOutStatus === true;
         updateToggleLabel(checkoutToggle, checkoutLabel, 'Checked Out', 'Not Checked Out');
+        updateActualTimeDisplay('bd-checkout-actual', data.checkedOutAt);
     }
 
     // Special Notes
@@ -560,6 +576,31 @@ function updateToggleLabel(toggle, label, checkedText, uncheckedText) {
     }
 }
 
+// ===== FORMAT & DISPLAY ACTUAL CHECK-IN/CHECK-OUT TIMESTAMP =====
+function formatActualDateTime(isoString) {
+    if (!isoString) return '';
+    var d = new Date(isoString);
+    if (isNaN(d.getTime())) return '';
+    var day = String(d.getDate()).padStart(2, '0');
+    var month = String(d.getMonth() + 1).padStart(2, '0');
+    var year = d.getFullYear();
+    var hours = String(d.getHours()).padStart(2, '0');
+    var minutes = String(d.getMinutes()).padStart(2, '0');
+    return day + '/' + month + '/' + year + ' ' + hours + ':' + minutes;
+}
+
+function updateActualTimeDisplay(elementId, isoString) {
+    var el = document.getElementById(elementId);
+    if (!el) return;
+    if (isoString) {
+        el.textContent = 'Lúc: ' + formatActualDateTime(isoString);
+        el.style.display = 'block';
+    } else {
+        el.textContent = '';
+        el.style.display = 'none';
+    }
+}
+
 function formatVND(amount) {
     return new Intl.NumberFormat('vi-VN', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' VND';
 }
@@ -580,7 +621,10 @@ function updateCheckInStatus(toggle) {
 
     fetch('/owner/booking/update-checkin', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: Object.assign(
+            { 'Content-Type': 'application/x-www-form-urlencoded' },
+            getCsrfHeaders()
+        ),
         body: 'bookingId=' + bookingId + '&checkedIn=' + checked
     })
         .then(function (response) { return response.json(); })
@@ -588,6 +632,7 @@ function updateCheckInStatus(toggle) {
             toggle.disabled = false;
             if (data.success) {
                 updateToggleLabel(toggle, label, 'Checked In', 'Not Checked In');
+                updateActualTimeDisplay('bd-checkin-actual', data.checkedInAt);
                 showToast('Check-in status updated successfully!', 'success');
             } else {
                 toggle.checked = !checked;
@@ -618,7 +663,10 @@ function updateCheckOutStatus(toggle) {
 
     fetch('/owner/booking/update-checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: Object.assign(
+            { 'Content-Type': 'application/x-www-form-urlencoded' },
+            getCsrfHeaders()
+        ),
         body: 'bookingId=' + bookingId + '&checkedOut=' + checked
     })
         .then(function (response) { return response.json(); })
@@ -626,6 +674,7 @@ function updateCheckOutStatus(toggle) {
             toggle.disabled = false;
             if (data.success) {
                 updateToggleLabel(toggle, label, 'Checked Out', 'Not Checked Out');
+                updateActualTimeDisplay('bd-checkout-actual', data.checkedOutAt);
                 showToast('Check-out status updated successfully!', 'success');
             } else {
                 toggle.checked = !checked;

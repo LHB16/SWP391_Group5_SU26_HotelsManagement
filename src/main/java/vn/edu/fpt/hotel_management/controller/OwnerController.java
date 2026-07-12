@@ -21,8 +21,6 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Controller
@@ -87,17 +85,6 @@ public class OwnerController {
             Files.createDirectories(path);
         }
         return path;
-    }
-
-    // Helper method to extract check-in/out status from specialNotes
-    private boolean extractCheckStatus(Booking b, String marker) {
-        if (b.getSpecialNotes() == null) return false;
-        Pattern pattern = Pattern.compile(marker + ":(true|false)");
-        Matcher matcher = pattern.matcher(b.getSpecialNotes());
-        if (matcher.find()) {
-            return Boolean.parseBoolean(matcher.group(1));
-        }
-        return false;
     }
 
     @GetMapping("/dashboard")
@@ -250,8 +237,10 @@ public class OwnerController {
             map.put("payoutBankAccountNumber", b.getPayoutBankAccountNumber() != null ? b.getPayoutBankAccountNumber() : "");
             map.put("payoutBankAccountHolder", b.getPayoutBankAccountHolder() != null ? b.getPayoutBankAccountHolder() : "");
             // Check-in / Check-out status
-            map.put("checkInStatus", extractCheckStatus(b, "CHECKED_IN"));
-            map.put("checkOutStatus", extractCheckStatus(b, "CHECKED_OUT"));
+            map.put("checkInStatus", b.getCheckedInAt() != null);
+            map.put("checkOutStatus", b.getCheckedOutAt() != null);
+            map.put("checkedInAt", b.getCheckedInAt() != null ? b.getCheckedInAt().toString() : null);
+            map.put("checkedOutAt", b.getCheckedOutAt() != null ? b.getCheckedOutAt().toString() : null);
             map.put("specialNotes", b.getSpecialNotes() != null ? b.getSpecialNotes() : "");
             return map;
         }).collect(Collectors.toList());
@@ -554,7 +543,7 @@ public class OwnerController {
     // GET BOOKING DETAIL FOR MODAL (AJAX)
     // =====================================================
 
-    @GetMapping("/owner/booking/detail-data")
+    @GetMapping("/booking/detail-data")
     @ResponseBody
     public ResponseEntity<?> getBookingDetailData(
             @RequestParam("bookingId") int bookingId,
@@ -596,8 +585,10 @@ public class OwnerController {
         data.put("payoutBankAccountNumber", booking.getPayoutBankAccountNumber());
         data.put("payoutBankAccountHolder", booking.getPayoutBankAccountHolder());
         data.put("payoutAt", booking.getPayoutAt() != null ? booking.getPayoutAt().toString() : null);
-        data.put("checkInStatus", extractCheckStatus(booking, "CHECKED_IN"));
-        data.put("checkOutStatus", extractCheckStatus(booking, "CHECKED_OUT"));
+        data.put("checkInStatus", booking.getCheckedInAt() != null);
+        data.put("checkOutStatus", booking.getCheckedOutAt() != null);
+        data.put("checkedInAt", booking.getCheckedInAt() != null ? booking.getCheckedInAt().toString() : null);
+        data.put("checkedOutAt", booking.getCheckedOutAt() != null ? booking.getCheckedOutAt().toString() : null);
         data.put("specialNotes", booking.getSpecialNotes());
 
         return ResponseEntity.ok(data);
@@ -607,7 +598,7 @@ public class OwnerController {
     // UPDATE CHECK-IN STATUS (AJAX)
     // =====================================================
 
-    @PostMapping("/owner/booking/update-checkin")
+    @PostMapping("/booking/update-checkin")
     @ResponseBody
     public ResponseEntity<?> updateCheckInStatus(
             @RequestParam("bookingId") int bookingId,
@@ -639,29 +630,24 @@ public class OwnerController {
                     "Cannot update check-in status for booking with status: " + booking.getStatus()));
         }
 
-        // Lưu check-in status vào specialNotes với định dạng key-value
-        String currentNotes = booking.getSpecialNotes() != null ? booking.getSpecialNotes() : "";
-        String checkInMarker = "CHECKED_IN:" + checkedIn;
-
-        // Xóa marker cũ nếu có
-        String cleaned = currentNotes.replaceAll("CHECKED_IN:(true|false),?", "");
-        // Thêm marker mới
-        if (!cleaned.isEmpty() && !cleaned.endsWith(",")) {
-            cleaned += ",";
-        }
-        cleaned += checkInMarker;
-        booking.setSpecialNotes(cleaned);
-        booking.setUpdatedAt(LocalDateTime.now());
+        // Lưu thời điểm check-in thực tế vào cột checked_in_at
+        LocalDateTime now = LocalDateTime.now();
+        booking.setCheckedInAt(checkedIn ? now : null);
+        booking.setUpdatedAt(now);
         bookingRepository.save(booking);
 
-        return ResponseEntity.ok(Map.of("success", true, "message", "Check-in status updated"));
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("message", "Check-in status updated");
+        result.put("checkedInAt", booking.getCheckedInAt() != null ? booking.getCheckedInAt().toString() : null);
+        return ResponseEntity.ok(result);
     }
 
     // =====================================================
     // UPDATE CHECK-OUT STATUS (AJAX)
     // =====================================================
 
-    @PostMapping("/owner/booking/update-checkout")
+    @PostMapping("/booking/update-checkout")
     @ResponseBody
     public ResponseEntity<?> updateCheckOutStatus(
             @RequestParam("bookingId") int bookingId,
@@ -693,21 +679,16 @@ public class OwnerController {
                     "Cannot update check-out status for booking with status: " + booking.getStatus()));
         }
 
-        // Lưu check-out status vào specialNotes với định dạng key-value
-        String currentNotes = booking.getSpecialNotes() != null ? booking.getSpecialNotes() : "";
-        String checkOutMarker = "CHECKED_OUT:" + checkedOut;
-
-        // Xóa marker cũ nếu có
-        String cleaned = currentNotes.replaceAll("CHECKED_OUT:(true|false),?", "");
-        // Thêm marker mới
-        if (!cleaned.isEmpty() && !cleaned.endsWith(",")) {
-            cleaned += ",";
-        }
-        cleaned += checkOutMarker;
-        booking.setSpecialNotes(cleaned);
-        booking.setUpdatedAt(LocalDateTime.now());
+        // Lưu thời điểm check-out thực tế vào cột checked_out_at
+        LocalDateTime now = LocalDateTime.now();
+        booking.setCheckedOutAt(checkedOut ? now : null);
+        booking.setUpdatedAt(now);
         bookingRepository.save(booking);
 
-        return ResponseEntity.ok(Map.of("success", true, "message", "Check-out status updated"));
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("message", "Check-out status updated");
+        result.put("checkedOutAt", booking.getCheckedOutAt() != null ? booking.getCheckedOutAt().toString() : null);
+        return ResponseEntity.ok(result);
     }
 }

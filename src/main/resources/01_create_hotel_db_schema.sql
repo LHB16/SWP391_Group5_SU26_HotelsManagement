@@ -258,6 +258,11 @@ CREATE TABLE bookings (
     updated_at DATETIME2 NULL,
     quantity INT NOT NULL CONSTRAINT DF_bookings_quantity DEFAULT 1,
     -- =====================================================
+    -- CHECK-IN / CHECK-OUT REAL-TIME TIMESTAMPS
+    -- =====================================================
+    checked_in_at DATETIME2 NULL,      -- Thời điểm khách check-in thực tế
+    checked_out_at DATETIME2 NULL,     -- Thời điểm khách check-out thực tế
+    -- =====================================================
     -- PAYOUT: Thông tin đối soát tiền cho Owner
     -- =====================================================
     platform_fee_percent DECIMAL(5,2) NULL,           -- % phí sàn (mặc định 10%)
@@ -579,6 +584,8 @@ CREATE INDEX IX_bookings_room_id ON bookings(room_id);
 CREATE INDEX IX_bookings_hotel_id ON bookings(hotel_id);
 CREATE INDEX IX_bookings_status ON bookings(status);
 CREATE INDEX IX_bookings_id_promotion ON bookings(id_promotion);
+CREATE INDEX IX_bookings_checked_in_at ON bookings(checked_in_at) WHERE checked_in_at IS NOT NULL;
+CREATE INDEX IX_bookings_checked_out_at ON bookings(checked_out_at) WHERE checked_out_at IS NOT NULL;
 CREATE INDEX IX_payments_booking_id ON payments(booking_id);
 CREATE INDEX IX_refunds_booking_id ON refunds(booking_id);
 CREATE INDEX IX_feedback_hotel_id ON feedback(hotel_id);
@@ -587,4 +594,6 @@ CREATE INDEX IX_messages_sender_receiver ON messages(sender_id, receiver_id);
 GO
 
 PRINT N'✅ hotel_db database schema created successfully.';
+PRINT N'   - Added checked_in_at & checked_out_at columns to bookings table.';
+PRINT N'   - Added indexes for check-in/out performance.';
 GO
