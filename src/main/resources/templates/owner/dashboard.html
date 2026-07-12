@@ -1004,9 +1004,13 @@
                                 <label class="text-muted small mb-0 d-block">Check-in Status</label>
                                 <span id="bd-checkin-display" class="small text-muted"></span>
                             </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="bd-checkin-toggle"
-                                       onchange="updateCheckInStatus(this)">
+                            <div id="bd-checkin-action-wrapper">
+                                <button class="btn btn-sm btn-gold px-3" id="bd-checkin-btn" onclick="triggerCheckInConfirm()">
+                                    Check-in
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary px-2" id="bd-uncheckin-btn" onclick="triggerUnCheckInConfirm()" style="display:none;">
+                                    Undo
+                                </button>
                             </div>
                         </div>
                         <span id="bd-checkin-label" class="small text-secondary">Not Checked In</span>
@@ -1018,9 +1022,13 @@
                                 <label class="text-muted small mb-0 d-block">Check-out Status</label>
                                 <span id="bd-checkout-display" class="small text-muted"></span>
                             </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="bd-checkout-toggle"
-                                       onchange="updateCheckOutStatus(this)">
+                            <div id="bd-checkout-action-wrapper">
+                                <button class="btn btn-sm btn-gold px-3" id="bd-checkout-btn" onclick="triggerCheckOutConfirm()">
+                                    Check-out
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary px-2" id="bd-uncheckout-btn" onclick="triggerUnCheckOutConfirm()" style="display:none;">
+                                    Undo
+                                </button>
                             </div>
                         </div>
                         <span id="bd-checkout-label" class="small text-secondary">Not Checked Out</span>
@@ -1038,6 +1046,24 @@
 
             <div class="modal-footer border-0" style="padding: 16px 24px 24px;">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- English Confirmation Modal for Check-out/Undo Action -->
+<div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold mb-0" id="confirmActionTitle">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3" id="confirmActionBody">
+                Are you sure you want to perform this action?
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn" id="confirmActionSubmitBtn">Confirm</button>
             </div>
         </div>
     </div>

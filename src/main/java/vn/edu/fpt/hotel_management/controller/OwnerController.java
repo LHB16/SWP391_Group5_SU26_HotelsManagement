@@ -630,11 +630,35 @@ public class OwnerController {
                     "Cannot update check-in status for booking with status: " + booking.getStatus()));
         }
 
+        // Không cho phép hoàn tác check-in nếu đã check-out
+        if (!checkedIn && booking.getCheckedOutAt() != null) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message",
+                    "Cannot undo check-in because the guest has already checked out."));
+        }
+
         // Lưu thời điểm check-in thực tế vào cột checked_in_at
         LocalDateTime now = LocalDateTime.now();
         booking.setCheckedInAt(checkedIn ? now : null);
         booking.setUpdatedAt(now);
         bookingRepository.save(booking);
+
+        // Đồng bộ check-in cho các phòng con trong đặt phòng nhóm
+        try {
+            int parentId = booking.getId();
+            int customerId = booking.getCustomer().getId();
+            List<Booking> childBookings = bookingRepository
+                    .findByCustomerIdOrderByCreatedAtDesc(customerId).stream()
+                    .filter(cb -> cb.getSpecialNotes() != null
+                            && cb.getSpecialNotes().equals("GROUP_BOOKING_parent:" + parentId))
+                    .collect(Collectors.toList());
+            for (Booking cb : childBookings) {
+                cb.setCheckedInAt(checkedIn ? now : null);
+                cb.setUpdatedAt(now);
+                bookingRepository.save(cb);
+            }
+        } catch (Exception e) {
+            // ignore sync errors
+        }
 
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
@@ -679,15 +703,42 @@ public class OwnerController {
                     "Cannot update check-out status for booking with status: " + booking.getStatus()));
         }
 
-        // Lưu thời điểm check-out thực tế vào cột checked_out_at
+        // Khách phải check-in trước khi check-out
+        if (checkedOut && booking.getCheckedInAt() == null) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message",
+                    "Cannot check out because the guest has not checked in yet."));
+        }
+
+        // Lưu thời điểm check-out thực tế vào cột checked_out_at và cập nhật status
         LocalDateTime now = LocalDateTime.now();
         booking.setCheckedOutAt(checkedOut ? now : null);
+        booking.setStatus(checkedOut ? "COMPLETED" : "CONFIRMED");
         booking.setUpdatedAt(now);
         bookingRepository.save(booking);
+
+        // Đồng bộ check-out cho các phòng con trong đặt phòng nhóm
+        try {
+            int parentId = booking.getId();
+            int customerId = booking.getCustomer().getId();
+            List<Booking> childBookings = bookingRepository
+                    .findByCustomerIdOrderByCreatedAtDesc(customerId).stream()
+                    .filter(cb -> cb.getSpecialNotes() != null
+                            && cb.getSpecialNotes().equals("GROUP_BOOKING_parent:" + parentId))
+                    .collect(Collectors.toList());
+            for (Booking cb : childBookings) {
+                cb.setCheckedOutAt(checkedOut ? now : null);
+                cb.setStatus(checkedOut ? "COMPLETED" : "CONFIRMED");
+                cb.setUpdatedAt(now);
+                bookingRepository.save(cb);
+            }
+        } catch (Exception e) {
+            // ignore sync errors
+        }
 
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
         result.put("message", "Check-out status updated");
+        result.put("bookingStatus", booking.getStatus());
         result.put("checkedOutAt", booking.getCheckedOutAt() != null ? booking.getCheckedOutAt().toString() : null);
         return ResponseEntity.ok(result);
     }
