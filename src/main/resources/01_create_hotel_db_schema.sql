@@ -57,9 +57,7 @@ CREATE TABLE customers (
     address NVARCHAR(500) NULL,
     city NVARCHAR(100) NULL,
     country NVARCHAR(100) NULL,
-    date_of_birth DATE NULL,
-    gender NVARCHAR(10) NULL,
-    CONSTRAINT CK_customers_gender CHECK (gender IS NULL OR gender IN (N'MALE', N'FEMALE', N'OTHER'))
+    date_of_birth DATE NULL
 );
 GO
 

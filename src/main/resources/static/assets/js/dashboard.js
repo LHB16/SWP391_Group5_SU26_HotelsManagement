@@ -94,32 +94,74 @@ document.addEventListener("DOMContentLoaded", function () {
     if (filterStartDate && isRevenueTab) {
         // Clear Filter Button
         const btnClearDateFilter = document.getElementById("btnClearDateFilter");
-        if (btnClearDateFilter) {
-            btnClearDateFilter.addEventListener("click", function() {
-                filterStartDate.value = "";
-                filterEndDate.value = "";
-                filterEndDate.removeAttribute("min");
-                filterStartDate.removeAttribute("max");
+
+        if (typeof flatpickr === "function") {
+            const startPicker = flatpickr(filterStartDate, {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                altInputClass: "search-pill-input",
+                onChange: function(selectedDates, dateStr) {
+                    if (selectedDates[0]) {
+                        endPicker.set("minDate", dateStr);
+                    } else {
+                        endPicker.set("minDate", null);
+                    }
+                    applyRevenueFilters();
+                }
+            });
+
+            const endPicker = flatpickr(filterEndDate, {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                altInputClass: "search-pill-input",
+                onChange: function(selectedDates, dateStr) {
+                    if (selectedDates[0]) {
+                        startPicker.set("maxDate", dateStr);
+                    } else {
+                        startPicker.set("maxDate", null);
+                    }
+                    applyRevenueFilters();
+                }
+            });
+
+            if (btnClearDateFilter) {
+                btnClearDateFilter.addEventListener("click", function() {
+                    startPicker.clear();
+                    endPicker.clear();
+                    applyRevenueFilters();
+                });
+            }
+        } else {
+            // Fallback for native date inputs if flatpickr not loaded
+            if (btnClearDateFilter) {
+                btnClearDateFilter.addEventListener("click", function() {
+                    filterStartDate.value = "";
+                    filterEndDate.value = "";
+                    filterEndDate.removeAttribute("min");
+                    filterStartDate.removeAttribute("max");
+                    applyRevenueFilters();
+                });
+            }
+
+            filterStartDate.addEventListener("change", function() {
+                if (this.value) {
+                    filterEndDate.min = this.value;
+                } else {
+                    filterEndDate.removeAttribute("min");
+                }
+                applyRevenueFilters();
+            });
+            filterEndDate.addEventListener("change", function() {
+                if (this.value) {
+                    filterStartDate.max = this.value;
+                } else {
+                    filterStartDate.removeAttribute("max");
+                }
                 applyRevenueFilters();
             });
         }
-
-        filterStartDate.addEventListener("change", function() {
-            if (this.value) {
-                filterEndDate.min = this.value;
-            } else {
-                filterEndDate.removeAttribute("min");
-            }
-            applyRevenueFilters();
-        });
-        filterEndDate.addEventListener("change", function() {
-            if (this.value) {
-                filterStartDate.max = this.value;
-            } else {
-                filterStartDate.removeAttribute("max");
-            }
-            applyRevenueFilters();
-        });
 
         // Load initial state
         applyRevenueFilters();

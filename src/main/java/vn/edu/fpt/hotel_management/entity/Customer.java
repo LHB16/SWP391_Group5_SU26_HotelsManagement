@@ -33,8 +33,7 @@ public class Customer {
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
-    @Column(name = "gender")
-    private String gender;
+
 
     public Customer() {
     }
@@ -119,13 +118,7 @@ public class Customer {
         this.dateOfBirth = dateOfBirth;
     }
 
-    public String getGender() {
-        return gender;
-    }
 
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
 
     public String getUsername() {
         return userAccount != null ? userAccount.getUsername() : null;
