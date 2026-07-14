@@ -193,29 +193,34 @@
                         <div id="payment-data" th:data-booking-id="${bookingId}"
                             th:data-remaining-seconds="${remainingSeconds}" style="display:none;"></div>
 
-                        <!-- Selector Pills -->
-                        <div class="d-flex justify-content-center gap-2 mb-3 mt-3 pt-3 border-bottom pb-3">
-                            <label for="tab-vietqr" class="tab-btn btn-vietqr-label">
-                                <i class="bi bi-qr-code-scan me-1"></i> Bank Transfer (VietQR)
-                            </label>
-                            <label for="tab-paypal" class="tab-btn btn-paypal-label">
-                                <i class="bi bi-paypal me-1"></i> PayPal (USD)
-                            </label>
-                        </div>
+                        <!-- Selector & Timer Container (Aligned widths) -->
+                        <div class="d-flex flex-column align-items-center mb-3 mt-3 pt-3 border-bottom pb-3">
+                            <div style="width: 100%; max-width: 420px;">
+                                <!-- Selector Pills -->
+                                <div class="d-flex justify-content-center gap-2 mb-3">
+                                    <label for="tab-vietqr" class="tab-btn btn-vietqr-label flex-fill text-center" style="white-space: nowrap; margin-bottom: 0;">
+                                        <i class="bi bi-qr-code-scan me-1"></i> Bank Transfer (VietQR)
+                                    </label>
+                                    <label for="tab-paypal" class="tab-btn btn-paypal-label flex-fill text-center" style="white-space: nowrap; margin-bottom: 0;">
+                                        <i class="bi bi-paypal me-1"></i> PayPal (USD)
+                                    </label>
+                                </div>
 
-                        <!-- Session expiry countdown timer (shared between VietQR and PayPal) -->
-                        <div id="shared-payment-timer" class="shared-payment-timer-pill">
-                            <svg class="timer-pulse-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10" />
-                                <polyline points="12 6 12 12 16 14" />
-                            </svg>
-                            <span class="timer-text">
-                                Session expires in
-                                <strong id="qr-countdown" class="timer-countdown-nums">--:--</strong>
-                                <span class="timer-expires-at" th:text="'(at ' + ${#temporals.format(qrExpiresAt, 'HH:mm')} + ')'">(at --:--)</span>
-                            </span>
+                                <!-- Session expiry countdown timer (shared between VietQR and PayPal) -->
+                                <div id="shared-payment-timer" class="shared-payment-timer-pill" style="margin: 0; max-width: none; width: 100%;">
+                                    <svg class="timer-pulse-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <polyline points="12 6 12 12 16 14" />
+                                    </svg>
+                                    <span class="timer-text">
+                                        Session expires in
+                                        <strong id="qr-countdown" class="timer-countdown-nums">--:--</strong>
+                                        <span class="timer-expires-at" th:text="'(at ' + ${#temporals.format(qrExpiresAt, 'HH:mm')} + ')'">(at --:--)</span>
+                                    </span>
+                                </div>
+                            </div>
                         </div>
 
 

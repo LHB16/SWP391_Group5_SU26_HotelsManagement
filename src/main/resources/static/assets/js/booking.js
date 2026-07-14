@@ -171,7 +171,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const actualSubtotal = originalSubtotal - discountTotal;
         const tax = Math.round(actualSubtotal * 0.1);
-        const serviceFee = actualSubtotal > 0 ? 50000 : 0;
+        const serviceFee = originalSubtotal > 0 ? 50000 : 0;
         const grandTotal = actualSubtotal + tax + serviceFee;
 
         // Cập nhật lên UI

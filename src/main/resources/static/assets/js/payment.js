@@ -48,21 +48,7 @@
             }
         }
         
-        const tabVietQR = document.getElementById('tab-vietqr');
-        const tabPaypal = document.getElementById('tab-paypal');
-        
-        if ((tabVietQR && tabVietQR.checked) || (tabPaypal && tabPaypal.checked)) {
-            startTimer();
-        }
-        
-        if (tabVietQR && tabPaypal) {
-            tabVietQR.addEventListener('change', function() {
-                if (this.checked) startTimer();
-            });
-            tabPaypal.addEventListener('change', function() {
-                if (this.checked) startTimer();
-            });
-        }
+        startTimer();
     }
 
     // ── 2. TỰ ĐỘNG XÁC NHẬN THANH TOÁN (AJAX) ──
