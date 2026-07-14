@@ -5,6 +5,20 @@
     <!-- Include general head fragment of the system -->
     <th:block th:replace="~{fragment/frag :: head}"></th:block>
     <!-- Lucide Icons library -->
+    <style>
+        .stat-card.card-refunds::before {
+            background: var(--accent-gradient);
+        }
+        .card-refunds .stat-icon {
+            background: rgba(239, 68, 68, 0.08);
+            color: #ef4444;
+        }
+        .stat-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+    </style>
 </head>
 
 <body class="d-flex flex-column h-100">
@@ -95,17 +109,35 @@
 
                     <!-- Cards Section for overview stats -->
                     <div class="row g-4 mb-4">
-                        <div class="col-md-4">
-                            <div class="stat-card card-revenue">
+                        <div class="col-md-3">
+                            <div class="stat-card card-revenue h-100">
                                 <div class="stat-icon">
                                     <i data-lucide="dollar-sign" style="stroke-width: 1.5;"></i>
                                 </div>
                                 <div class="stat-value" id="totalRevenue">0 VND</div>
-                                <div class="stat-label">Total Actual Revenue</div>
+                                <div class="stat-label">Total Revenue</div>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="stat-card card-bookings">
+                        <div class="col-md-3">
+                            <div class="stat-card card-hotels h-100">
+                                <div class="stat-icon">
+                                    <i data-lucide="banknote" style="stroke-width: 1.5;"></i>
+                                </div>
+                                <div class="stat-value" id="totalPlatformFee">0 VND</div>
+                                <div class="stat-label">Total Platform Fee</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card card-refunds h-100">
+                                <div class="stat-icon">
+                                    <i data-lucide="undo-2" style="stroke-width: 1.5;"></i>
+                                </div>
+                                <div class="stat-value" id="totalRefundedAmount">0 VND</div>
+                                <div class="stat-label">Total Refunded Amount</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card card-bookings h-100">
                                 <div class="stat-icon">
                                     <i data-lucide="shopping-bag" style="stroke-width: 1.5;"></i>
                                 </div>
@@ -113,101 +145,33 @@
                                 <div class="stat-label">Successful Bookings</div>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="stat-card card-hotels">
-                                <div class="stat-icon">
-                                    <i data-lucide="hotel" style="stroke-width: 1.5;"></i>
-                                </div>
-                                <div class="stat-value" id="totalHotels">0</div>
-                                <div class="stat-label">Active Hotels with Revenue</div>
-                            </div>
-                        </div>
                     </div>
 
-                    <!-- Filters & Custom CSS Chart Group -->
+                    <!-- Filters -->
                     <div class="row g-4 mb-4">
                         <div class="col-12">
                             <div class="dashboard-section">
                                 <h2 class="section-title">
-                                    <i data-lucide="sliders" style="stroke-width: 1.5; color: #4f46e5;"></i>
-                                    Revenue Filters
+                                    <i data-lucide="calendar" style="stroke-width: 1.5; color: #4f46e5;"></i>
+                                    Time Period Filter
                                 </h2>
                                 
                                 <div class="row g-3">
                                     <!-- Start Date Filter -->
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <label for="filterStartDate" class="date-filter-label">Start Date</label>
                                         <input type="date" id="filterStartDate" class="filter-select w-100" onkeydown="return false" onclick="this.showPicker()" />
                                     </div>
                                     <!-- End Date Filter -->
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <label for="filterEndDate" class="date-filter-label">End Date</label>
                                         <input type="date" id="filterEndDate" class="filter-select w-100" onkeydown="return false" onclick="this.showPicker()" />
                                     </div>
-                                    
-                                    <!-- Hotel Checkboxes Selector (With Search & Select All for scale) -->
-                                    <div class="col-12 mt-3">
-                                        <div class="hotel-checkbox-group">
-                                            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                                                <div class="hotel-checkbox-title mb-0">Select Hotels to Display</div>
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <!-- Small Search Input for hotels -->
-                                                    <input type="text" id="searchHotelInput" class="filter-select py-1 px-2" placeholder="Search hotels..." style="font-size: 0.75rem; max-width: 180px;" />
-                                                    <button type="button" id="btnSelectAllHotels" class="btn btn-sm btn-outline-primary py-0.5 px-2" style="font-size: 0.75rem; border-radius: 6px;">Select All</button>
-                                                    <button type="button" id="btnDeselectAllHotels" class="btn btn-sm btn-outline-secondary py-0.5 px-2" style="font-size: 0.75rem; border-radius: 6px;">Clear All</button>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex flex-wrap gap-2 py-2" id="hotelCheckboxListContainer">
-                                                <button type="button" class="hotel-pill-btn active" th:each="h : ${hotels}" th:data-hotel-name="${h.name}">
-                                                    <i data-lucide="building" style="width: 14px; height: 14px; stroke-width: 1.5;"></i>
-                                                    <span th:text="${h.name}">Hotel Name</span>
-                                                </button>
-                                                <div class="text-muted small" th:if="${#lists.isEmpty(hotels)}">No hotels available.</div>
-                                            </div>
-                                        </div>
+                                    <div class="col-md-4 d-flex align-items-end">
+                                        <button type="button" id="btnClearDateFilter" class="btn btn-outline-secondary w-100 py-2" style="border-radius: 8px;">
+                                            <i data-lucide="x" style="width: 16px; height: 16px; margin-right: 4px;"></i> Clear Filter (All Time)
+                                        </button>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Graphical Custom CSS Bar Chart Panel -->
-                        <div class="col-12">
-                            <div class="dashboard-section">
-                                <h2 class="section-title">
-                                    <i data-lucide="bar-chart-2" style="stroke-width: 1.5; color: #4f46e5;"></i>
-                                    Hotel Revenue Comparison
-                                </h2>
-                                
-                                <!-- Custom HTML & CSS Chart (Progress bars) dynamically generated in dashboard.js -->
-                                <div class="css-chart-wrapper" id="cssChartContainer">
-                                    <!-- Generated rows will be rendered here -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tabular Data summary -->
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="dashboard-section">
-                                <h2 class="section-title">
-                                    <i data-lucide="table" style="stroke-width: 1.5; color: #4f46e5;"></i>
-                                    Revenue Details Table
-                                </h2>
-                                <div class="custom-table-container">
-                                    <table class="custom-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Hotel Name</th>
-                                                <th>Total Revenue</th>
-                                                <th>Booking count</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="revenueTableBody">
-                                            <!-- Managed by Javascript filters -->
-                                        </tbody>
-                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -1252,6 +1216,7 @@
     <script th:inline="javascript">
         /*<![CDATA[*/
         window.bookingsData = /*[[${bookings}]]*/ [];
+        window.refundsData = /*[[${revenueRefunds}]]*/ [];
         /*]]>*/
     </script>
 
