@@ -293,6 +293,9 @@ CREATE TABLE payments (
     status NVARCHAR(50) NULL,
     qr_code_url NVARCHAR(500) NULL,
     transaction_id NVARCHAR(255) NULL,
+    sender_account_number NVARCHAR(50) NULL,
+    sender_bank_name NVARCHAR(255) NULL,
+    sender_account_name NVARCHAR(255) NULL,
     paid_at DATETIME2 NULL,
     created_at DATETIME2 NOT NULL CONSTRAINT DF_payments_created_at DEFAULT GETDATE(),
     qr_expires_at DATETIME2 NULL,
@@ -340,6 +343,7 @@ CREATE TABLE messages (
     booking_id INT NULL,
     hotel_id INT NOT NULL,
     content NVARCHAR(MAX) NULL,
+    image_url NVARCHAR(255) NULL,
     is_read BIT NOT NULL CONSTRAINT DF_messages_is_read DEFAULT 0,
     sent_at DATETIME2 NOT NULL CONSTRAINT DF_messages_sent_at DEFAULT GETDATE()
 );
@@ -350,6 +354,7 @@ CREATE TABLE feedback (
     customer_id INT NOT NULL,
     hotel_id INT NOT NULL,
     room_id INT NOT NULL,
+    booking_id INT NULL,
     user_full_name NVARCHAR(255) NULL,
     room_type NVARCHAR(255) NULL,
     comment NVARCHAR(1000) NULL,
@@ -532,6 +537,12 @@ GO
 ALTER TABLE feedback
 ADD CONSTRAINT FK_feedback_room
 FOREIGN KEY (room_id) REFERENCES room(id)
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE feedback
+ADD CONSTRAINT FK_feedback_bookings
+FOREIGN KEY (booking_id) REFERENCES bookings(id)
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 GO
 
