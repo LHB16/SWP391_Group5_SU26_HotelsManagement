@@ -44,10 +44,6 @@
                            th:href="@{/chat/inbox(hotelId=${activeHotel.id}, customerId=${c.id}, widget=${isWidget})}"
                            th:classappend="${activeCustomer != null and c.id == activeCustomer.id} ? ' active' : ''"
                            class="inbox-convo-item">
-                            <!-- Avatar -->
-                            <div class="inbox-avatar">
-                                <span th:text="${c.fullName != null and !c.fullName.isEmpty()} ? ${#strings.substring(c.fullName,0,1).toUpperCase()} : '?'">A</span>
-                            </div>
                             <div class="inbox-convo-meta">
                                 <span class="inbox-convo-name" th:text="${c.fullName}">Customer Name</span>
                             </div>
@@ -93,12 +89,8 @@
                     <div class="inbox-chat-panel-header">
                         <div th:if="${session.loggedInUser.role == 'HOTEL_OWNER' and activeCustomer != null}"
                              class="d-flex align-items-center gap-3">
-                            <div class="inbox-avatar">
-                                <span th:text="${activeCustomer.fullName != null and !activeCustomer.fullName.isEmpty()} ? ${#strings.substring(activeCustomer.fullName,0,1).toUpperCase()} : '?'">A</span>
-                            </div>
                             <div>
                                 <div class="fw-bold text-dark" style="font-size: 0.95rem;" th:text="${activeCustomer.fullName}">Customer</div>
-                                <div class="text-muted" style="font-size: 0.78rem;">Customer</div>
                             </div>
                         </div>
                         <div th:if="${session.loggedInUser.role == 'CUSTOMER' and activeHotel != null}"

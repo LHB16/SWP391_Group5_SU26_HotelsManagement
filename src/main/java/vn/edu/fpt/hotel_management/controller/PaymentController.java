@@ -194,7 +194,7 @@ public class PaymentController {
 
         BigDecimal totalDiscount = originalSubtotal.subtract(totalSubtotal);
 
-        BigDecimal serviceFee = totalSubtotal.compareTo(BigDecimal.ZERO) > 0 ? BigDecimal.valueOf(50_000)
+        BigDecimal serviceFee = originalSubtotal.compareTo(BigDecimal.ZERO) > 0 ? BigDecimal.valueOf(50_000)
                 : BigDecimal.ZERO;
         BigDecimal totalTax = totalSubtotal.multiply(BigDecimal.valueOf(0.1)).setScale(0,
                 java.math.RoundingMode.HALF_UP);
@@ -302,33 +302,11 @@ public class PaymentController {
             qrExpiresAt = payment.getQrExpiresAt();
         }
 
-        // Tạo mã QR
-        String transferInfo = paymentService.buildTransferInfo(bookingId, hotel.getName(), room.getRoomType(), nights);
-        String qrUrl = paymentService.getQrUrl(bookingId, grandTotalPrice, transferInfo, payment);
-
-        // Tính thời gian còn lại cho đồng hồ đếm ngược
-        long remainingSeconds = Math.max(0, java.time.Duration.between(LocalDateTime.now(), qrExpiresAt).getSeconds());
-
-        int totalQty = 0;
-        if (validQuantities != null) {
-            for (int q : validQuantities) {
-                totalQty += q;
-            }
+        String redirectUrl = "redirect:/booking/qr-payment-status?bookingId=" + parentBooking.getId();
+        if (from != null && !from.isBlank()) {
+            redirectUrl += "&from=" + from;
         }
-
-        // Đưa dữ liệu vào model để hiển thị trên giao diện
-        pushToModel(model, loggedInUser, hotel, room, checkInDate, checkOutDate,
-                nights, totalSubtotal, totalTax, serviceFee, grandTotalPrice, qrUrl,
-                transferInfo, bookingId, qrExpiresAt, remainingSeconds, from, totalQty,
-                fullName, phone);
-
-        model.addAttribute("originalSubtotal", originalSubtotal);
-        model.addAttribute("discount", totalDiscount);
-        model.addAttribute("detailedDiscounts", detailedDiscounts);
-        model.addAttribute("bookingsList", bookingsList);
-        model.addAttribute("bookingQuantitiesMap", bookingQuantitiesMap);
-
-        return "booking/qr-payment";
+        return redirectUrl;
     }
 
     // ===================== XÁC NHẬN THANH TOÁN =====================
@@ -521,7 +499,7 @@ public class PaymentController {
             BigDecimal bTotalPrice = b.getTotalPrice();
             boolean isParent = (b.getSpecialNotes() == null
                     || !b.getSpecialNotes().startsWith("GROUP_BOOKING_parent:"));
-            BigDecimal bServiceFee = (isParent && bTotalPrice.compareTo(BigDecimal.valueOf(50_000)) > 0)
+            BigDecimal bServiceFee = (isParent && bTotalPrice.compareTo(BigDecimal.valueOf(50_000)) >= 0)
                     ? BigDecimal.valueOf(50_000)
                     : BigDecimal.ZERO;
             BigDecimal bSubtotalPlusTax = bTotalPrice.subtract(bServiceFee);
@@ -531,13 +509,7 @@ public class PaymentController {
 
             BigDecimal singleSubtotal = paymentService.calculateRoomSubtotal(b.getRoom().getPrice(), b.getCheckInDate(),
                     b.getCheckOutDate());
-            int qty = 1;
-            if (singleSubtotal.compareTo(BigDecimal.ZERO) > 0) {
-                qty = bSubtotal.divide(singleSubtotal, 0, java.math.RoundingMode.HALF_UP).intValue();
-            }
-            if (qty <= 0)
-                qty = 1;
-
+            int qty = b.getQuantity() != null ? b.getQuantity() : 1;
             BigDecimal bOriginalSubtotal = singleSubtotal.multiply(BigDecimal.valueOf(qty));
 
             bookingQuantitiesMap.put(b.getId(), qty);
