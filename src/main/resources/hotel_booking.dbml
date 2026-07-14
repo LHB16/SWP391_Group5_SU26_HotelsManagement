@@ -33,7 +33,6 @@ Table customers {
   city NVARCHAR(100) [note: 'Thành phố của khách hàng.']
   country NVARCHAR(100) [note: 'Quốc gia của khách hàng.']
   date_of_birth DATE [note: 'Ngày sinh của khách hàng.']
-  gender NVARCHAR(10) [note: 'Giới tính của khách hàng.']
 }
 
 

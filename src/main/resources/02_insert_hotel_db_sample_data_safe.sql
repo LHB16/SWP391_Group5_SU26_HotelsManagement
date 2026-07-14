@@ -268,44 +268,44 @@ BEGIN TRY
 
     -- Insert Customers
     IF NOT EXISTS (SELECT 1 FROM customers WHERE user_account_id = @c1_user_id)
-        INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth, gender)
-        VALUES (@c1_user_id, N'Nguyễn Văn Hoàng', N'+84933000001', N'123 Lê Lợi, Quận 1', N'TP.HCM', N'Việt Nam', '1995-03-15', N'MALE');
+        INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth)
+        VALUES (@c1_user_id, N'Nguyễn Văn Hoàng', N'+84933000001', N'123 Lê Lợi, Quận 1', N'TP.HCM', N'Việt Nam', '1995-03-15');
 
     IF NOT EXISTS (SELECT 1 FROM customers WHERE user_account_id = @c2_user_id)
-        INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth, gender)
-        VALUES (@c2_user_id, N'Trần Thị Linh', N'+84933000002', N'456 Nguyễn Huệ, Quận 1', N'TP.HCM', N'Việt Nam', '1998-07-22', N'FEMALE');
+        INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth)
+        VALUES (@c2_user_id, N'Trần Thị Linh', N'+84933000002', N'456 Nguyễn Huệ, Quận 1', N'TP.HCM', N'Việt Nam', '1998-07-22');
 
     IF NOT EXISTS (SELECT 1 FROM customers WHERE user_account_id = @c3_user_id)
-        INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth, gender)
-        VALUES (@c3_user_id, N'Phạm Đức', N'+84933000003', N'789 Trần Hưng Đạo, Quận 5', N'TP.HCM', N'Việt Nam', '2000-11-09', N'MALE');
+        INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth)
+        VALUES (@c3_user_id, N'Phạm Đức', N'+84933000003', N'789 Trần Hưng Đạo, Quận 5', N'TP.HCM', N'Việt Nam', '2000-11-09');
 
     IF NOT EXISTS (SELECT 1 FROM customers WHERE user_account_id = @c4_user_id)
-        INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth, gender)
-        VALUES (@c4_user_id, N'Lê Thị Mai', N'+84933000004', N'12 Nguyễn Thị Minh Khai, Quận 3', N'TP.HCM', N'Việt Nam', '1997-01-28', N'FEMALE');
+        INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth)
+        VALUES (@c4_user_id, N'Lê Thị Mai', N'+84933000004', N'12 Nguyễn Thị Minh Khai, Quận 3', N'TP.HCM', N'Việt Nam', '1997-01-28');
 
     IF NOT EXISTS (SELECT 1 FROM customers WHERE user_account_id = @c5_user_id)
-        INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth, gender)
-        VALUES (@c5_user_id, N'Nguyễn Quang', N'+84933000005', N'34 Hai Bà Trưng, Quận 1', N'TP.HCM', N'Việt Nam', '1994-09-14', N'MALE');
+        INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth)
+        VALUES (@c5_user_id, N'Nguyễn Quang', N'+84933000005', N'34 Hai Bà Trưng, Quận 1', N'TP.HCM', N'Việt Nam', '1994-09-14');
 
     IF NOT EXISTS (SELECT 1 FROM customers WHERE user_account_id = @c6_user_id)
-        INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth, gender)
-        VALUES (@c6_user_id, N'Võ Thị Hà', N'+84933000006', N'56 Lý Tự Trọng, Quận 1', N'TP.HCM', N'Việt Nam', '1996-05-30', N'FEMALE');
+        INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth)
+        VALUES (@c6_user_id, N'Võ Thị Hà', N'+84933000006', N'56 Lý Tự Trọng, Quận 1', N'TP.HCM', N'Việt Nam', '1996-05-30');
 
     IF NOT EXISTS (SELECT 1 FROM customers WHERE user_account_id = @c7_user_id)
-        INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth, gender)
-        VALUES (@c7_user_id, N'Hoàng Kiên', N'+84933000007', N'78 Điện Biên Phủ, Quận Bình Thạnh', N'TP.HCM', N'Việt Nam', '1999-08-17', N'MALE');
+        INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth)
+        VALUES (@c7_user_id, N'Hoàng Kiên', N'+84933000007', N'78 Điện Biên Phủ, Quận Bình Thạnh', N'TP.HCM', N'Việt Nam', '1999-08-17');
 
     IF NOT EXISTS (SELECT 1 FROM customers WHERE user_account_id = @c8_user_id)
-        INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth, gender)
-        VALUES (@c8_user_id, N'Trần Thị Thanh Anh', N'+84933000008', N'90 Võ Văn Tần, Quận 3', N'TP.HCM', N'Việt Nam', '2001-12-02', N'FEMALE');
+        INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth)
+        VALUES (@c8_user_id, N'Trần Thị Thanh Anh', N'+84933000008', N'90 Võ Văn Tần, Quận 3', N'TP.HCM', N'Việt Nam', '2001-12-02');
 
     IF NOT EXISTS (SELECT 1 FROM customers WHERE user_account_id = @c9_user_id)
-        INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth, gender)
-        VALUES (@c9_user_id, N'Lê Bình', N'+84933000009', N'11 Nguyễn Đình Chiểu, Quận 3', N'TP.HCM', N'Việt Nam', '1993-06-20', N'MALE');
+        INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth)
+        VALUES (@c9_user_id, N'Lê Bình', N'+84933000009', N'11 Nguyễn Đình Chiểu, Quận 3', N'TP.HCM', N'Việt Nam', '1993-06-20');
 
     IF NOT EXISTS (SELECT 1 FROM customers WHERE user_account_id = @c10_user_id)
-        INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth, gender)
-        VALUES (@c10_user_id, N'Huỳnh Thị Loan', N'+84933000010', N'22 Cách Mạng Tháng 8, Quận 10', N'TP.HCM', N'Việt Nam', '2002-03-11', N'FEMALE');
+        INSERT INTO customers (user_account_id, full_name, phone, address, city, country, date_of_birth)
+        VALUES (@c10_user_id, N'Huỳnh Thị Loan', N'+84933000010', N'22 Cách Mạng Tháng 8, Quận 10', N'TP.HCM', N'Việt Nam', '2002-03-11');
 
     -- Get Customer IDs
     SELECT @c1_id  = id FROM customers WHERE user_account_id = @c1_user_id;
