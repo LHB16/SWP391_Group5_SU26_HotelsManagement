@@ -140,7 +140,7 @@ public class AdminDashboardController {
 
             // Danh sách đặt phòng hợp lệ toàn hệ thống
             List<Booking> validBookings = bookingRepository.findByStatusInOrderByCreatedAtDesc(
-                    Arrays.asList("CONFIRMED", "CHECKED_IN", "CHECKED_OUT")
+                    Arrays.asList("CONFIRMED", "COMPLETED")
             );
             List<Map<String, Object>> mappedBookings = validBookings.stream().map(b -> {
                 Map<String, Object> map = new HashMap<>();
@@ -159,16 +159,27 @@ public class AdminDashboardController {
                 map.put("checkInDate", b.getCheckInDate() != null ? b.getCheckInDate().toString() : null);
                 map.put("checkOutDate", b.getCheckOutDate() != null ? b.getCheckOutDate().toString() : null);
                 map.put("totalPrice", b.getTotalPrice());
+                map.put("platformFeeAmount", b.getPlatformFeeAmount());
                 map.put("bookingStatus", b.getStatus());
                 map.put("paymentStatus", (b.getPayment() != null && b.getPayment().getStatus() != null) ? b.getPayment().getStatus() : "PENDING");
                 map.put("createdAt", b.getCreatedAt() != null ? b.getCreatedAt().toString() : null);
                 return map;
             }).collect(Collectors.toList());
             model.addAttribute("bookings", mappedBookings);
+
+            List<Refund> processedRefunds = refundRepository.findByStatusOrderByRequestedAtAsc("PROCESSED");
+            List<Map<String, Object>> mappedRefunds = processedRefunds.stream().map(r -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("refundAmount", r.getRefundAmount());
+                map.put("processedAt", r.getProcessedAt() != null ? r.getProcessedAt().toString() : null);
+                return map;
+            }).collect(Collectors.toList());
+            model.addAttribute("revenueRefunds", mappedRefunds);
         } else {
             model.addAttribute("hotels", Collections.emptyList());
             model.addAttribute("revenueData", Collections.emptyList());
             model.addAttribute("bookings", Collections.emptyList());
+            model.addAttribute("revenueRefunds", Collections.emptyList());
         }
 
         // --- Tab 2: customerPanel (Tài khoản Khách hàng) ---
