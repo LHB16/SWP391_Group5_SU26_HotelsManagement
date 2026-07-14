@@ -18,6 +18,40 @@
             flex-direction: column;
             justify-content: space-between;
         }
+        /* Gold Theme overrides for Sidebar Active Tab */
+        .sidebar-link.active {
+            background-color: var(--hotel-gold, #c9a96e) !important;
+            color: var(--hotel-black, #0a0a0a) !important;
+            box-shadow: 0 4px 12px rgba(201, 169, 110, 0.25) !important;
+        }
+        .sidebar-link.active i {
+            color: var(--hotel-black, #0a0a0a) !important;
+        }
+        .sidebar-link:hover {
+            background-color: var(--hotel-cream, #faf8f4) !important;
+            color: var(--hotel-gold-dark, #a8824e) !important;
+        }
+        /* Gold Theme overrides for Date Filter Inputs */
+        .filter-select {
+            border: 1.5px solid #e2e8f0 !important;
+            border-radius: 8px !important;
+            transition: all 0.2s ease;
+        }
+        .filter-select:focus {
+            border-color: var(--hotel-gold, #c9a96e) !important;
+            box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.15) !important;
+            outline: none;
+        }
+        /* Theme button style for date clear */
+        #btnClearDateFilter {
+            border-color: var(--hotel-gold, #c9a96e) !important;
+            color: var(--hotel-gold-dark, #a8824e) !important;
+            transition: all 0.2s ease;
+        }
+        #btnClearDateFilter:hover {
+            background-color: var(--hotel-cream, #faf8f4) !important;
+            color: var(--hotel-gold-dark, #a8824e) !important;
+        }
     </style>
 </head>
 
