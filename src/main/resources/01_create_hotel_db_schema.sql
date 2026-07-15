@@ -15,7 +15,7 @@ BEGIN
 END
 GO
 
-CREATE DATABASE hotel_db;
+CREATE DATABASE hotel_db COLLATE SQL_Latin1_General_CP1_CI_AI;
 GO
 
 USE hotel_db;
