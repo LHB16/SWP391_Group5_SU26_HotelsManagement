@@ -878,4 +878,34 @@ public class RoomController {
 
         return "redirect:/owner/hotels/" + id;
     }
+
+    @GetMapping("/api/rooms/{roomId}/check-availability")
+    @ResponseBody
+    public Map<String, Object> checkRoomAvailability(
+            @PathVariable("roomId") int roomId,
+            @RequestParam("checkin") String checkin,
+            @RequestParam("checkout") String checkout
+    ) {
+        Map<String, Object> response = new HashMap<>();
+        Room r = roomRepository.findById(roomId).orElse(null);
+        if (r == null) {
+            response.put("available", false);
+            return response;
+        }
+        try {
+            LocalDate d1 = LocalDate.parse(checkin);
+            LocalDate d2 = LocalDate.parse(checkout);
+            long bookedCount = bookingRepository.sumQuantityByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
+                    r.getId(),
+                    "CONFIRMED",
+                    d2,
+                    d1
+            );
+            int available = r.getNumberRooms() - (int) bookedCount;
+            response.put("available", available > 0);
+        } catch (Exception e) {
+            response.put("available", false);
+        }
+        return response;
+    }
 }

@@ -324,10 +324,10 @@ public class PaymentService {
             if (payosClientId == null || payosClientId.isBlank())
                 return false;
 
-            String orderCodeStr = String.valueOf(bookingId);
-            if (payment != null && payment.getTransactionId() != null && !payment.getTransactionId().isBlank()) {
-                orderCodeStr = payment.getTransactionId();
+            if (payment == null || payment.getTransactionId() == null || payment.getTransactionId().isBlank()) {
+                return false;
             }
+            String orderCodeStr = payment.getTransactionId();
 
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
