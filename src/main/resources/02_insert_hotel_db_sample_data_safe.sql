@@ -1,4 +1,4 @@
--- =====================================================
+﻿-- =====================================================
 -- HOTEL BOOKING SYSTEM - REAL DATA SCRIPT (UNIQUE IMAGES)
 -- File: 02_insert_hotel_db_sample_data_safe.sql
 -- Target: Microsoft SQL Server / SSMS
@@ -87,98 +87,98 @@ BEGIN TRY
 
     -- =====================================================
     -- 1. USERS & AUTH
-    -- Password: 123456 (hash: $2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S)
+    -- Password: 123456 (hash: $2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG)
     -- =====================================================
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'admin1')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'admin1@hotelbooking.test', N'admin1', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'ADMIN', 1);
+        VALUES (N'admin1@hotelbooking.test', N'admin1', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'ADMIN', 1);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'admin2')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'admin2@hotelbooking.test', N'admin2', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'ADMIN', 1);
+        VALUES (N'admin2@hotelbooking.test', N'admin2', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'ADMIN', 1);
 
     -- Hotel Owners (10)
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'owner_intercontinental')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'owner.intercontinental@hotel.test', N'owner_intercontinental', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'HOTEL_OWNER', 1);
+        VALUES (N'owner.intercontinental@hotel.test', N'owner_intercontinental', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'HOTEL_OWNER', 1);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'owner_vinpearl')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'owner.vinpearl@hotel.test', N'owner_vinpearl', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'HOTEL_OWNER', 1);
+        VALUES (N'owner.vinpearl@hotel.test', N'owner_vinpearl', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'HOTEL_OWNER', 1);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'owner_fourseasons')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'owner.fourseasons@hotel.test', N'owner_fourseasons', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'HOTEL_OWNER', 1);
+        VALUES (N'owner.fourseasons@hotel.test', N'owner_fourseasons', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'HOTEL_OWNER', 1);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'owner_dalatpalace')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'owner.dalatpalace@hotel.test', N'owner_dalatpalace', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'HOTEL_OWNER', 1);
+        VALUES (N'owner.dalatpalace@hotel.test', N'owner_dalatpalace', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'HOTEL_OWNER', 1);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'owner_jwmarriott')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'owner.jwmarriott@hotel.test', N'owner_jwmarriott', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'HOTEL_OWNER', 1);
+        VALUES (N'owner.jwmarriott@hotel.test', N'owner_jwmarriott', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'HOTEL_OWNER', 1);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'owner_coupole')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'owner.coupole@hotel.test', N'owner_coupole', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'HOTEL_OWNER', 1);
+        VALUES (N'owner.coupole@hotel.test', N'owner_coupole', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'HOTEL_OWNER', 1);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'owner_metropole')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'owner.metropole@hotel.test', N'owner_metropole', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'HOTEL_OWNER', 1);
+        VALUES (N'owner.metropole@hotel.test', N'owner_metropole', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'HOTEL_OWNER', 1);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'owner_parkhyatt')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'owner.parkhyatt@hotel.test', N'owner_parkhyatt', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'HOTEL_OWNER', 1);
+        VALUES (N'owner.parkhyatt@hotel.test', N'owner_parkhyatt', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'HOTEL_OWNER', 1);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'owner_pilgrimage')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'owner.pilgrimage@hotel.test', N'owner_pilgrimage', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'HOTEL_OWNER', 1);
+        VALUES (N'owner.pilgrimage@hotel.test', N'owner_pilgrimage', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'HOTEL_OWNER', 1);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'owner_victoria')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'owner.victoria@hotel.test', N'owner_victoria', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'HOTEL_OWNER', 1);
+        VALUES (N'owner.victoria@hotel.test', N'owner_victoria', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'HOTEL_OWNER', 1);
 
     -- Customers (10)
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'customer_hoang')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'hoang.nguyen@customer.test', N'customer_hoang', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'CUSTOMER', 1);
+        VALUES (N'hoang.nguyen@customer.test', N'customer_hoang', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'CUSTOMER', 1);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'customer_linh')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'linh.tran@customer.test', N'customer_linh', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'CUSTOMER', 1);
+        VALUES (N'linh.tran@customer.test', N'customer_linh', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'CUSTOMER', 1);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'customer_duc')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'duc.pham@customer.test', N'customer_duc', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'CUSTOMER', 1);
+        VALUES (N'duc.pham@customer.test', N'customer_duc', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'CUSTOMER', 1);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'customer_mai')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'mai.le@customer.test', N'customer_mai', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'CUSTOMER', 1);
+        VALUES (N'mai.le@customer.test', N'customer_mai', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'CUSTOMER', 1);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'customer_quang')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'quang.nguyen@customer.test', N'customer_quang', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'CUSTOMER', 1);
+        VALUES (N'quang.nguyen@customer.test', N'customer_quang', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'CUSTOMER', 1);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'customer_ha')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'ha.vo@customer.test', N'customer_ha', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'CUSTOMER', 1);
+        VALUES (N'ha.vo@customer.test', N'customer_ha', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'CUSTOMER', 1);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'customer_kien')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'kien.hoang@customer.test', N'customer_kien', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'CUSTOMER', 1);
+        VALUES (N'kien.hoang@customer.test', N'customer_kien', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'CUSTOMER', 1);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'customer_anh')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'thanh.anh@customer.test', N'customer_anh', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'CUSTOMER', 1);
+        VALUES (N'thanh.anh@customer.test', N'customer_anh', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'CUSTOMER', 1);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'customer_binh')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'binh.le@customer.test', N'customer_binh', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'CUSTOMER', 1);
+        VALUES (N'binh.le@customer.test', N'customer_binh', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'CUSTOMER', 1);
 
     IF NOT EXISTS (SELECT 1 FROM user_accounts WHERE username = N'customer_loan')
         INSERT INTO user_accounts (email, username, password, role, enabled)
-        VALUES (N'loan.huynh@customer.test', N'customer_loan', N'$2a$10$OLaK3rp6WQ7kU78fmXpFe.DbWKCsLQixn7ro0/ZnqK6UwgAhPTW.S', N'CUSTOMER', 1);
+        VALUES (N'loan.huynh@customer.test', N'customer_loan', N'$2a$10$8bxhuwVNFoMCUUgRWy/X1OK2g4//tjUjty3f7jQb3EyiVXSF7DeLG', N'CUSTOMER', 1);
 
     -- Get User IDs
     SELECT @admin1_user_id = id FROM user_accounts WHERE username = N'admin1';
