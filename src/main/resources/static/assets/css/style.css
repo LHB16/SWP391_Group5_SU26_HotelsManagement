@@ -15309,6 +15309,14 @@ input[type="date"]::-webkit-datetime-edit {
   font-size: 0.82rem;
   font-weight: 500;
   margin-top: 12px;
+  transition: all 0.2s ease;
+}
+
+a.room-hero-badge:hover {
+  background: rgba(201, 169, 110, 0.3);
+  border-color: rgba(201, 169, 110, 0.6);
+  color: var(--gold-light) !important;
+  text-decoration: none;
 }
 
 /* ────────────────────────────────────────────────────────────
