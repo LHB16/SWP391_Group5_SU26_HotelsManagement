@@ -21895,7 +21895,10 @@ h6,
   border: 1px solid #0f4c81 !important;
   color: #0f172a !important;
   font-size: 0.95rem;
-  padding: 0.65rem 1rem !important;
+  padding-top: 0.65rem !important;
+  padding-bottom: 0.65rem !important;
+  padding-right: 1rem !important;
+  padding-left: 1rem;
   border-radius: 8px !important;
   box-shadow: none !important;
 }
@@ -22903,7 +22906,7 @@ td .discount-badge {
 }
 
 .iti input {
-  padding-left: 52px !important;
+  padding-left: 52px;
 }
 
 /* ============================================================

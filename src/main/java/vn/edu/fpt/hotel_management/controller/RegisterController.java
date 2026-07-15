@@ -106,10 +106,12 @@ public class RegisterController {
                                 HttpSession session,
                                 Model model) {
         try {
-            // Validate thông tin bắt buộc
+            // Validate thông tin bắt buộc và định dạng số điện thoại (E.164)
             if (phone == null || phone.trim().isEmpty()) {
-                model.addAttribute("error", "Phone number is required!");
-                return "auth/register-owner";
+                throw new RuntimeException("Phone number is required!");
+            }
+            if (!phone.trim().matches("^\\+?[0-9]{8,19}$")) {
+                throw new RuntimeException("Invalid phone number format! Must contain only numbers and be between 8 and 19 digits (e.g. +84912345678).");
             }
             if (address == null || address.trim().isEmpty()) {
                 model.addAttribute("error", "Address is required!");
