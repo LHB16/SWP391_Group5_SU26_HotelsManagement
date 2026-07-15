@@ -33,96 +33,15 @@ document.addEventListener("DOMContentLoaded", function () {
         return dateStr;
     }
 
-    // 1. Logic Modal Special Requests cho từng phòng
-    const requestBtns = document.querySelectorAll(".booking-special-request-btn");
-    const modalEl = document.getElementById('specialRequestsModal');
-    let modal = null;
-
-    function getSpecialRequestsModal() {
-        if (!modal && window.bootstrap && window.bootstrap.Modal) {
-            modal = new bootstrap.Modal(modalEl);
+    // 1. Logic Modal Special Requests cho từng phòng (Đã chuyển sang ô nhập note trực tiếp ở cột phải)
+    // Phục hồi note từ sessionStorage nếu có
+    const noteInputRestore = document.getElementById("finalSpecialRequests");
+    if (noteInputRestore) {
+        const savedNote = sessionStorage.getItem("temp_special_request");
+        if (savedNote !== null) {
+            noteInputRestore.value = savedNote;
+            sessionStorage.removeItem("temp_special_request");
         }
-        return modal;
-    }
-
-    const modalTitle = document.querySelector(".room-target-title");
-    const modalTextarea = document.getElementById("modalSpecialRequestsTextarea");
-    const modalSubmitBtn = document.getElementById("modalSubmitBtn");
-    const modalResetBtn = document.getElementById("modalResetBtn");
-
-    let activeRoomId = null;
-    let activeBtn = null;
-
-    requestBtns.forEach(btn => {
-        btn.addEventListener("click", function (e) {
-            e.preventDefault();
-            activeRoomId = this.getAttribute("data-room-id");
-            const roomName = this.getAttribute("data-room-name");
-            activeBtn = this;
-
-            if (modalTitle) modalTitle.textContent = "Room: " + roomName;
-
-            const hiddenInput = document.getElementById("room-req-" + activeRoomId);
-            if (modalTextarea) modalTextarea.value = hiddenInput ? hiddenInput.value : "";
-
-            const m = getSpecialRequestsModal();
-            if (m) m.show();
-        });
-    });
-
-    if (modalSubmitBtn) {
-        modalSubmitBtn.addEventListener("click", function () {
-            if (activeRoomId) {
-                const hiddenInput = document.getElementById("room-req-" + activeRoomId);
-                const reqValue = modalTextarea ? modalTextarea.value.trim() : "";
-
-                if (hiddenInput) {
-                    hiddenInput.value = reqValue;
-                }
-
-                if (activeBtn) {
-                    if (reqValue !== "") {
-                        activeBtn.classList.remove("bg-navy");
-                        activeBtn.style.backgroundColor = "#c9a96e"; // Đổi sang màu gold
-                        activeBtn.style.borderColor = "#c9a96e";
-                        activeBtn.style.color = "#ffffff";
-                        activeBtn.innerHTML = '<i class="bi bi-chat-left-text-fill me-1"></i><span>Note added</span>';
-                    } else {
-                        activeBtn.classList.add("bg-navy");
-                        activeBtn.style.backgroundColor = ""; // Về mặc định
-                        activeBtn.style.borderColor = "";
-                        activeBtn.style.color = "";
-                        activeBtn.innerHTML = '<i class="bi bi-chat-left-text me-1"></i><span>Special requests</span>';
-                    }
-                }
-
-                const m = getSpecialRequestsModal();
-                if (m) m.hide();
-            }
-        });
-    }
-
-    if (modalResetBtn) {
-        modalResetBtn.addEventListener("click", function () {
-            if (activeRoomId) {
-                const hiddenInput = document.getElementById("room-req-" + activeRoomId);
-                if (hiddenInput) {
-                    hiddenInput.value = "";
-                }
-                if (modalTextarea) modalTextarea.value = "";
-
-                if (activeBtn) {
-                    activeBtn.classList.add("bg-navy");
-                    activeBtn.style.backgroundColor = "";
-                    activeBtn.style.borderColor = "";
-                    activeBtn.style.color = "";
-                    activeBtn.innerHTML = '<i class="bi bi-chat-left-text me-1"></i><span>Special requests</span>';
-                }
-
-                const m = getSpecialRequestsModal();
-                if (m) m.hide();
-            }
-        });
     }
 
     // 2. Định dạng tiền VND
@@ -448,6 +367,19 @@ document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("bookingCheckoutForm");
     if (form) {
         form.addEventListener("submit", function (event) {
+            const submitter = event.submitter;
+            const isConfirmPay = submitter && submitter.getAttribute("formaction") && submitter.getAttribute("formaction").includes("/booking/qr-payment");
+            
+            // Nếu không phải là submit đi thanh toán (tức là submit GET để Update)
+            if (!isConfirmPay) {
+                // Lưu note lại trước khi reload trang
+                const noteInput = document.getElementById("finalSpecialRequests");
+                if (noteInput) {
+                    sessionStorage.setItem("temp_special_request", noteInput.value);
+                }
+                return; // Bỏ qua validate thông tin người dùng khi chỉ cập nhật ngày/phòng
+            }
+
             // a. Kiểm tra định dạng Email
             const emailInput = document.getElementById("email");
             if (emailInput) {
@@ -483,8 +415,14 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             // c. Gom toàn bộ Special requests của các phòng
-            const roomInputs = document.querySelectorAll(".room-special-request-input");
+            const finalInput = document.getElementById("finalSpecialRequests");
             let combinedReqs = [];
+            const customNotes = finalInput ? finalInput.value.trim() : "";
+            if (customNotes) {
+                combinedReqs.push(customNotes);
+            }
+
+            const roomInputs = document.querySelectorAll(".room-special-request-input");
             roomInputs.forEach(input => {
                 const val = input.value.trim();
                 if (val) {
@@ -495,7 +433,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             });
 
-            const finalInput = document.getElementById("finalSpecialRequests");
             if (finalInput) {
                 finalInput.value = combinedReqs.join(" | ");
             }
@@ -527,6 +464,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const qtySelects = document.querySelectorAll("select[name='quantities']");
     qtySelects.forEach(select => {
         select.addEventListener("change", function () {
+            // Lưu note lại trước khi tự động submit
+            const noteInput = document.getElementById("finalSpecialRequests");
+            if (noteInput) {
+                sessionStorage.setItem("temp_special_request", noteInput.value);
+            }
             const checkoutForm = document.getElementById("bookingCheckoutForm");
             if (checkoutForm) {
                 checkoutForm.submit();
