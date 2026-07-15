@@ -1,9 +1,6 @@
 // src/main/resources/static/assets/js/owner-dashboard.js
 
 // ===== CSRF HELPER =====
-// Đọc CSRF token/header từ <meta> tag (nếu Spring Security bật CSRF).
-// Nếu không tồn tại (CSRF bị tắt) thì trả về object rỗng, không gắn header,
-// tránh làm hỏng các request khác.
 function getCsrfHeaders() {
     var tokenMeta = document.querySelector('meta[name="_csrf"]');
     var headerMeta = document.querySelector('meta[name="_csrf_header"]');
@@ -214,18 +211,17 @@ function applyBookingFilters() {
         const bookingId = cells[0] ? cells[0].textContent.trim().replace('#', '') : '';
         const customerName = cells[1] ? cells[1].textContent.trim().toLowerCase() : '';
         const hotelName = cells[2] ? cells[2].textContent.trim().toLowerCase() : '';
-        const roomType = cells[3] ? cells[3].textContent.trim().toLowerCase() : '';
+        const statusText = cells[3] ? cells[3].textContent.trim() : '';
         const checkinText = cells[4] ? cells[4].textContent.trim() : '';
         const checkoutText = cells[5] ? cells[5].textContent.trim() : '';
-        
+
         const actionBtn = cells[7] ? cells[7].querySelector('.view-detail-btn') : null;
-        const statusText = actionBtn ? (actionBtn.getAttribute('data-status') || '') : '';
+        const dataStatus = actionBtn ? (actionBtn.getAttribute('data-status') || '') : '';
 
         if (keyword) {
             const searchMatch = customerName.includes(keyword) ||
                 bookingId.includes(keyword) ||
-                hotelName.includes(keyword) ||
-                roomType.includes(keyword);
+                hotelName.includes(keyword);
             if (!searchMatch) {
                 show = false;
             }
@@ -239,8 +235,10 @@ function applyBookingFilters() {
             }
         }
 
-        if (show && statusVal !== 'all' && statusText !== statusVal) {
-            show = false;
+        if (show && statusVal !== 'all') {
+            if (dataStatus !== statusVal) {
+                show = false;
+            }
         }
 
         if (show && checkinVal && checkinText !== checkinVal) {
@@ -383,10 +381,6 @@ window.openOwnerPayoutDetail = function(bookingId, bankName, accountNumber, acco
 // BOOKING DETAIL MODAL
 // ============================================================
 
-/**
- * Mở modal chi tiết booking, đọc dữ liệu trực tiếp từ các data-* attribute
- * đã được render sẵn trên nút "View Detail" (không dùng JSON.parse gộp).
- */
 function openBookingDetail(btn) {
     var bookingData = {
         bookingId: btn.getAttribute('data-booking-id') || '?',
@@ -409,7 +403,6 @@ function openBookingDetail(btn) {
         specialNotes: btn.getAttribute('data-notes') || ''
     };
 
-    // Hiển thị ngay dữ liệu đã có sẵn trên bảng (phản hồi tức thì)
     renderBookingDetail(bookingData);
 
     var modalEl = document.getElementById('bookingDetailModal');
@@ -420,7 +413,6 @@ function openBookingDetail(btn) {
     var modal = new bootstrap.Modal(modalEl);
     modal.show();
 
-    // Gọi API lấy dữ liệu mới nhất từ server (nếu có thay đổi sau khi trang load)
     if (bookingData.bookingId && bookingData.bookingId !== '?') {
         fetch('/owner/booking/detail-data?bookingId=' + bookingData.bookingId)
             .then(function (response) {
@@ -435,11 +427,6 @@ function openBookingDetail(btn) {
     }
 }
 
-/**
- * Đổ dữ liệu booking vào modal. Tất cả element id đều phải tồn tại
- * sẵn trong HTML (không được tạo động), nếu thiếu id nào hàm sẽ bỏ qua
- * an toàn thay vì throw lỗi làm gãy toàn bộ modal.
- */
 function renderBookingDetail(data) {
     if (!data) return;
 
@@ -448,13 +435,11 @@ function renderBookingDetail(data) {
         if (el) el.textContent = value;
     }
 
-    // Basic info
     setText('bd-bookingId', '#' + (data.bookingId || '?'));
     setText('bd-customerName', data.customerName || 'N/A');
     setText('bd-hotelName', data.hotelName || 'N/A');
     setText('bd-roomType', data.roomType || 'N/A');
 
-    // Dates
     var checkinDisplay = formatDateDisplay(data.checkInDate);
     var checkoutDisplay = formatDateDisplay(data.checkOutDate);
     setText('bd-checkin', checkinDisplay);
@@ -462,10 +447,8 @@ function renderBookingDetail(data) {
     setText('bd-checkin-display', checkinDisplay);
     setText('bd-checkout-display', checkoutDisplay);
 
-    // Total
     setText('bd-total', formatVND(parseFloat(data.totalPrice) || 0));
 
-    // Booking status badge
     var status = data.bookingStatus || 'PENDING';
     var statusBadge = document.getElementById('bd-status-badge');
     if (statusBadge) {
@@ -473,7 +456,6 @@ function renderBookingDetail(data) {
         statusBadge.className = 'booking-status-badge ' + statusColorClasses(status);
     }
 
-    // Payment status badge
     var payment = data.paymentStatus || 'PENDING';
     var paymentBadge = document.getElementById('bd-payment-badge');
     if (paymentBadge) {
@@ -481,7 +463,6 @@ function renderBookingDetail(data) {
         paymentBadge.className = 'payment-status-badge ' + paymentColorClasses(payment);
     }
 
-    // Payout
     var payout = data.payoutStatus || '';
     var payoutBadge = document.getElementById('bd-payout-badge');
     var payoutDetail = document.getElementById('bd-payout-detail');
@@ -507,7 +488,6 @@ function renderBookingDetail(data) {
         }
     }
 
-    // Check-in / Check-out toggles
     var isEditable = status === 'CONFIRMED' || status === 'COMPLETED';
 
     var checkinBtn = document.getElementById('bd-checkin-btn');
@@ -551,8 +531,6 @@ function renderBookingDetail(data) {
                 uncheckoutBtn.style.display = 'none';
                 checkoutLabel.textContent = 'Not Checked Out';
                 checkoutLabel.className = 'small text-secondary';
-                
-                // Disable check-out if not checked in yet
                 if (data.checkInStatus !== true) {
                     checkoutBtn.disabled = true;
                     checkoutBtn.title = "Guest must check in first";
@@ -565,7 +543,6 @@ function renderBookingDetail(data) {
         updateActualTimeDisplay('bd-checkout-actual', data.checkedOutAt);
     }
 
-    // Special Notes
     var notes = (data.specialNotes || '').trim();
     var notesContainer = document.getElementById('bd-special-notes');
     var notesContent = document.getElementById('bd-notes-content');
@@ -603,19 +580,6 @@ function paymentColorClasses(payment) {
     }
 }
 
-function updateToggleLabel(toggle, label, checkedText, uncheckedText) {
-    if (toggle.checked) {
-        label.textContent = '✓ ' + checkedText;
-        label.classList.remove('text-secondary');
-        label.classList.add('text-success');
-    } else {
-        label.textContent = uncheckedText;
-        label.classList.remove('text-success');
-        label.classList.add('text-secondary');
-    }
-}
-
-// ===== FORMAT & DISPLAY ACTUAL CHECK-IN/CHECK-OUT TIMESTAMP =====
 function formatActualDateTime(isoString) {
     if (!isoString) return '';
     var d = new Date(isoString);
@@ -651,7 +615,7 @@ function triggerCheckInConfirm() {
         showToast('Invalid booking ID', 'error');
         return;
     }
-    
+
     showActionConfirmModal(
         'Confirm Check-in',
         'Are you sure you want to perform <strong>Check-in</strong> for this booking?',
@@ -669,14 +633,13 @@ function triggerUnCheckInConfirm() {
         showToast('Invalid booking ID', 'error');
         return;
     }
-    
-    // Check if guest has already checked out - cannot undo checkin if checked out!
+
     var checkoutBtn = document.getElementById('bd-checkout-btn');
     if (checkoutBtn && checkoutBtn.style.display === 'none') {
         showToast('Cannot undo check-in because the guest has already checked out.', 'error');
         return;
     }
-    
+
     showActionConfirmModal(
         'Confirm Undo Check-in',
         'Are you sure you want to <strong>Undo Check-in</strong> for this booking?',
@@ -692,7 +655,7 @@ function executeCheckInUpdate(bookingId, checked) {
     var checkinBtn = document.getElementById('bd-checkin-btn');
     var uncheckinBtn = document.getElementById('bd-uncheckin-btn');
     var checkinLabel = document.getElementById('bd-checkin-label');
-    
+
     if (checkinBtn) checkinBtn.disabled = true;
     if (uncheckinBtn) uncheckinBtn.disabled = true;
 
@@ -708,7 +671,7 @@ function executeCheckInUpdate(bookingId, checked) {
         .then(function (data) {
             if (checkinBtn) checkinBtn.disabled = false;
             if (uncheckinBtn) uncheckinBtn.disabled = false;
-            
+
             if (data.success) {
                 if (checked) {
                     if (checkinBtn) checkinBtn.style.display = 'none';
@@ -725,10 +688,10 @@ function executeCheckInUpdate(bookingId, checked) {
                         checkinLabel.className = 'small text-secondary';
                     }
                 }
-                
+
                 updateActualTimeDisplay('bd-checkin-actual', data.checkedInAt);
                 showToast('Check-in status updated successfully!', 'success');
-                
+
                 setTimeout(function() {
                     window.location.reload();
                 }, 1000);
@@ -751,7 +714,7 @@ function triggerCheckOutConfirm() {
         showToast('Invalid booking ID', 'error');
         return;
     }
-    
+
     showActionConfirmModal(
         'Confirm Check-out',
         'Are you sure you want to perform <strong>Check-out</strong> for this booking? This will change the booking status to <strong>COMPLETED</strong>.',
@@ -769,7 +732,7 @@ function triggerUnCheckOutConfirm() {
         showToast('Invalid booking ID', 'error');
         return;
     }
-    
+
     showActionConfirmModal(
         'Confirm Undo Check-out',
         'Are you sure you want to <strong>Undo Check-out</strong> for this booking? This will change the booking status back to <strong>CONFIRMED</strong>.',
@@ -781,57 +744,90 @@ function triggerUnCheckOutConfirm() {
     );
 }
 
+// ============================================================
+// CUSTOM CONFIRM MODAL (không dùng alert)
+// ============================================================
+
 function showActionConfirmModal(title, body, btnClass, btnText, onConfirm) {
     var modalEl = document.getElementById('confirmActionModal');
+
     if (!modalEl) {
-        if (confirm(body.replace(/<[^>]+>/g, ''))) {
-            onConfirm();
-        }
-        return;
+        modalEl = document.createElement('div');
+        modalEl.className = 'modal fade';
+        modalEl.id = 'confirmActionModal';
+        modalEl.tabIndex = '-1';
+        modalEl.setAttribute('aria-hidden', 'true');
+        modalEl.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="fw-bold mb-0" id="confirmActionTitle">Confirm Action</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body py-3" id="confirmActionBody">
+                        Are you sure you want to perform this action?
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn" id="confirmActionSubmitBtn">Confirm</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modalEl);
     }
-    
-    document.getElementById('confirmActionTitle').textContent = title;
-    document.getElementById('confirmActionBody').innerHTML = body;
-    
+
+    var titleEl = document.getElementById('confirmActionTitle');
+    var bodyEl = document.getElementById('confirmActionBody');
     var submitBtn = document.getElementById('confirmActionSubmitBtn');
-    submitBtn.textContent = btnText;
-    submitBtn.className = 'btn btn-sm ' + btnClass;
-    
+
+    if (titleEl) titleEl.textContent = title;
+    if (bodyEl) bodyEl.innerHTML = body;
+
+    if (submitBtn) {
+        submitBtn.textContent = btnText || 'Confirm';
+        submitBtn.className = 'btn ' + (btnClass || 'btn-gold');
+    }
+
+    var existingModal = bootstrap.Modal.getInstance(modalEl);
+    if (existingModal) {
+        existingModal.dispose();
+    }
+
+    var bsModal = new bootstrap.Modal(modalEl, {
+        backdrop: 'static',
+        keyboard: false
+    });
+
     var newSubmitBtn = submitBtn.cloneNode(true);
-    submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
-    
-    // Ensure backdrop and modal z-indexes are higher than bookingDetailModal (1050)
-    modalEl.style.zIndex = '1060';
-    
-    var onShowHandler = function () {
-        setTimeout(function() {
-            var backdrops = document.querySelectorAll('.modal-backdrop');
-            if (backdrops.length > 1) {
-                backdrops[backdrops.length - 1].style.zIndex = '1059';
-            }
-        }, 10);
-    };
-    modalEl.addEventListener('show.bs.modal', onShowHandler);
-    
-    var bsModal = new bootstrap.Modal(modalEl);
-    bsModal.show();
-    
-    // Clean up event listener when modal is hidden
-    modalEl.addEventListener('hidden.bs.modal', function () {
-        modalEl.removeEventListener('show.bs.modal', onShowHandler);
-    }, { once: true });
-    
+    if (submitBtn) {
+        submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
+    }
+
     newSubmitBtn.onclick = function() {
         bsModal.hide();
-        onConfirm();
+        setTimeout(function() {
+            if (typeof onConfirm === 'function') {
+                onConfirm();
+            }
+        }, 300);
     };
+
+    document.querySelectorAll('.modal-backdrop').forEach(function(el) {
+        el.remove();
+    });
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+
+    bsModal.show();
 }
 
 function executeCheckOutUpdate(bookingId, checked) {
     var checkoutBtn = document.getElementById('bd-checkout-btn');
     var uncheckoutBtn = document.getElementById('bd-uncheckout-btn');
     var checkoutLabel = document.getElementById('bd-checkout-label');
-    
+
     if (checkoutBtn) checkoutBtn.disabled = true;
     if (uncheckoutBtn) uncheckoutBtn.disabled = true;
 
@@ -847,7 +843,7 @@ function executeCheckOutUpdate(bookingId, checked) {
         .then(function (data) {
             if (checkoutBtn) checkoutBtn.disabled = false;
             if (uncheckoutBtn) uncheckoutBtn.disabled = false;
-            
+
             if (data.success) {
                 if (checked) {
                     if (checkoutBtn) checkoutBtn.style.display = 'none';
@@ -864,16 +860,16 @@ function executeCheckOutUpdate(bookingId, checked) {
                         checkoutLabel.className = 'small text-secondary';
                     }
                 }
-                
+
                 var statusBadge = document.getElementById('bd-status-badge');
                 if (statusBadge && data.bookingStatus) {
                     statusBadge.textContent = data.bookingStatus;
                     statusBadge.className = 'booking-status-badge ' + statusColorClasses(data.bookingStatus);
                 }
-                
+
                 updateActualTimeDisplay('bd-checkout-actual', data.checkedOutAt);
                 showToast('Check-out status updated successfully!', 'success');
-                
+
                 setTimeout(function() {
                     window.location.reload();
                 }, 1000);
@@ -889,8 +885,16 @@ function executeCheckOutUpdate(bookingId, checked) {
         });
 }
 
-// ===== TOAST NOTIFICATION =====
+// ============================================================
+// CUSTOM TOAST NOTIFICATION
+// ============================================================
+
 function showToast(message, type) {
+    var oldToasts = document.querySelectorAll('.custom-toast-card');
+    oldToasts.forEach(function(el) {
+        el.remove();
+    });
+
     var toastContainer = document.getElementById('toastContainer');
     if (!toastContainer) {
         toastContainer = document.createElement('div');
@@ -898,11 +902,38 @@ function showToast(message, type) {
         toastContainer.style.cssText = 'position:fixed; top:20px; right:20px; z-index:9999; display:flex; flex-direction:column; gap:8px;';
         document.body.appendChild(toastContainer);
     }
+
     var toast = document.createElement('div');
-    toast.className = 'custom-toast-card ' + (type === 'success' ? 'toast-success' : 'toast-error');
-    toast.textContent = message;
+    var isSuccess = type === 'success';
+    toast.className = 'custom-toast-card ' + (isSuccess ? 'toast-success' : 'toast-error');
+    toast.style.cssText = 'pointer-events:auto; min-width:320px; max-width:450px; background:#ffffff; border-radius:10px; padding:14px 20px; box-shadow:0 10px 25px rgba(0,0,0,0.12); border-left:5px solid ' + (isSuccess ? '#10b981' : '#ef4444') + '; transform:translateX(120%); animation:toast-slide-in 0.35s forwards cubic-bezier(0.16, 1, 0.3, 1);';
+
+    toast.innerHTML = `
+        <div class="d-flex align-items-center gap-3">
+            <div style="flex-shrink:0; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:${isSuccess ? '#dcfce7' : '#fee2e2'};">
+                <i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" style="width:18px; height:18px; color:${isSuccess ? '#10b981' : '#ef4444'};"></i>
+            </div>
+            <div style="flex:1;">
+                <p style="margin:0; font-size:0.88rem; font-weight:600; color:#1e293b;">${message}</p>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:1.1rem;">&times;</button>
+        </div>
+    `;
+
     toastContainer.appendChild(toast);
-    setTimeout(function () {
-        if (toast.parentNode) toast.remove();
-    }, 3000);
+
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+
+    setTimeout(function() {
+        if (toast.parentNode) {
+            toast.style.transform = 'translateX(120%)';
+            toast.style.opacity = '0';
+            toast.style.transition = 'all 0.3s ease';
+            setTimeout(function() {
+                if (toast.parentNode) toast.remove();
+            }, 350);
+        }
+    }, 3500);
 }

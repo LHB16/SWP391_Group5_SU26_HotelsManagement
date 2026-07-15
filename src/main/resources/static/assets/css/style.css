@@ -14327,7 +14327,7 @@ main {
 
 .sidebar-link.active {
   color: #fff;
-  background: #4f46e5;
+  background: #c9a96e;
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
 }
 
@@ -14794,6 +14794,10 @@ input[type="date"]::-webkit-datetime-edit {
   color: #b91c1c;
 }
 
+.badge-status-info {
+  background-color: #dbeafe;
+  color: #2a4a7a;
+}
 /* ==========================================================================
    Source: owner-dashboard.css
    ========================================================================== */
