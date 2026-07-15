@@ -263,12 +263,23 @@ public class ProfileController {
             return org.springframework.http.ResponseEntity.status(401).body("Unauthorized");
         }
 
+        // Validate số điện thoại (E.164: 8-19 chữ số, tùy chọn + ở đầu)
+        if (phone == null || phone.trim().isEmpty()) {
+            return org.springframework.http.ResponseEntity.badRequest().body("Phone number is required!");
+        }
+        if (!phone.trim().matches("^\\+?[0-9]{8,19}$")) {
+            return org.springframework.http.ResponseEntity.badRequest().body("Invalid phone number format! Must contain only numbers and be between 8 and 19 digits (e.g. +84912345678).");
+        }
+
         try {
             User userInDb = userRepository.findById(loggedInUser.getId())
                     .orElseThrow(() -> new RuntimeException("Account not found!"));
             
             updatePhoneByRole(userInDb, phone);
             userInDb.setPhone(phone);
+            
+            // Bảo toàn fullName trong session
+            userInDb.setFullName(getFullNameByRole(userInDb));
 
             // Cập nhật session và dọn cờ
             session.setAttribute("loggedInUser", userInDb);
@@ -472,6 +483,12 @@ public class ProfileController {
             return "redirect:/profile";
         }
 
+        // Kiểm tra độ dài mật khẩu mới (từ 8 ký tự trở lên)
+        if (newPassword == null || newPassword.length() < 8) {
+            session.setAttribute("errorMessage", "New password must be at least 8 characters long!");
+            return "redirect:/profile";
+        }
+
         try {
             User userInDb = userRepository.findById(loggedInUser.getId())
                     .orElseThrow(() -> new RuntimeException("Account not found!"));
@@ -479,6 +496,12 @@ public class ProfileController {
             // Kiểm tra mật khẩu hiện tại
             if (!passwordEncoder.matches(currentPassword, userInDb.getPassword())) {
                 session.setAttribute("errorMessage", "Incorrect current password!");
+                return "redirect:/profile";
+            }
+
+            // Kiểm tra mật khẩu mới phải khác mật khẩu cũ
+            if (passwordEncoder.matches(newPassword, userInDb.getPassword())) {
+                session.setAttribute("errorMessage", "New password must be different from current password!");
                 return "redirect:/profile";
             }
 

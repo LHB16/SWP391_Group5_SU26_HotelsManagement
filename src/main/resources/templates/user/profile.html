@@ -129,7 +129,7 @@
                                 <div class="profile-content-area-flat">
                                     <!-- --- CHẾ ĐỘ ĐỔI MẬT KHẨU (PASSWORD MODE) --- -->
                                     <div th:if="${session.profileVerifiedForEdit == true && session.editField == 'password'}" class="profile-form-wrapper">
-                                        <form th:action="@{/profile/change-password}" method="POST">
+                                        <form id="changePasswordForm" th:action="@{/profile/change-password}" method="POST">
                                             <!-- Nhập Mật khẩu hiện tại -->
                                             <div class="mb-3">
                                                 <label for="currentPassword" class="form-label text-muted fw-semibold profile-label-sm d-flex align-items-center gap-2">
@@ -154,6 +154,8 @@
                                                 </label>
                                                 <input type="password" class="form-control profile-input-editable" id="confirmPassword" name="confirmPassword" required placeholder="Confirm new password" style="border-color: #cbd5e1 !important;"/>
                                             </div>
+                                            <!-- Thông báo lỗi mật khẩu -->
+                                            <span id="password-error-msg" class="text-danger small mt-2 d-block" style="display: none;"></span>
                                             <!-- Các nút hành động -->
                                             <div class="d-flex gap-2 mt-4">
                                                 <button type="submit" class="btn text-white profile-btn-primary d-flex align-items-center gap-2" style="background-color: #0a1628 !important; border-color: #0a1628 !important;">
@@ -507,9 +509,14 @@
                 itiPhone = window.intlTelInput(phoneEditInput, {
                     initialCountry: "vn",
                     preferredCountries: ["vn"],
-                    separateDialCode: false,
+                    separateDialCode: true,
                     nationalMode: false,
                     utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.js"
+                });
+
+                // Chỉ cho phép nhập số
+                phoneEditInput.addEventListener("input", function (e) {
+                    this.value = this.value.replace(/[^0-9]/g, '');
                 });
             }
 
@@ -544,6 +551,11 @@
                         phoneErrorMsg.style.display = "block";
                         return;
                     }
+                    if (itiPhone && !itiPhone.isValidNumber()) {
+                        phoneErrorMsg.textContent = "Invalid phone number format for the selected country.";
+                        phoneErrorMsg.style.display = "block";
+                        return;
+                    }
 
                     btnSavePhone.disabled = true;
                     phoneErrorMsg.style.display = "none";
@@ -568,12 +580,13 @@
                         if (response.ok) {
                             return response.text();
                         } else {
-                            throw new Error("Failed to update phone number.");
+                            return response.text().then(text => { throw new Error(text || "Failed to update phone number."); });
                         }
                     })
                     .then(data => {
                         // Success: Update UI without page reload
                         phoneDisplayInput.value = phoneValue;
+                        phoneEditInput.value = phoneValue;
                         if (itiPhone) {
                             itiPhone.setNumber(phoneValue);
                         }
@@ -668,6 +681,45 @@
                         fullnameErrorMsg.style.display = "block";
                         btnSaveFullname.disabled = false;
                     });
+                });
+            }
+
+            // JS xử lý validation cho Change Password Form
+            const changePasswordForm = document.getElementById("changePasswordForm");
+            const passwordErrorMsg = document.getElementById("password-error-msg");
+            if (changePasswordForm && passwordErrorMsg) {
+                changePasswordForm.addEventListener("submit", function(event) {
+                    const currentPassword = document.getElementById("currentPassword").value;
+                    const newPassword = document.getElementById("newPassword").value;
+                    const confirmPassword = document.getElementById("confirmPassword").value;
+
+                    // Reset trạng thái lỗi
+                    passwordErrorMsg.textContent = "";
+                    passwordErrorMsg.style.display = "none";
+
+                    // 1. Kiểm tra độ dài mật khẩu mới
+                    if (newPassword.length < 8) {
+                        passwordErrorMsg.textContent = "New password must be at least 8 characters long!";
+                        passwordErrorMsg.style.display = "block";
+                        event.preventDefault();
+                        return;
+                    }
+
+                    // 2. Kiểm tra mật khẩu mới khác mật khẩu cũ
+                    if (newPassword === currentPassword) {
+                        passwordErrorMsg.textContent = "New password must be different from current password!";
+                        passwordErrorMsg.style.display = "block";
+                        event.preventDefault();
+                        return;
+                    }
+
+                    // 3. Kiểm tra mật khẩu xác nhận
+                    if (newPassword !== confirmPassword) {
+                        passwordErrorMsg.textContent = "Confirm password does not match new password!";
+                        passwordErrorMsg.style.display = "block";
+                        event.preventDefault();
+                        return;
+                    }
                 });
             }
         });

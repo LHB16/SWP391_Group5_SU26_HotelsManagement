@@ -423,6 +423,13 @@ document.addEventListener("DOMContentLoaded", function () {
         phoneInput.addEventListener("input", function (e) {
             // Loại bỏ bất kỳ ký tự nào không phải là số từ 0-9
             this.value = this.value.replace(/[^0-9]/g, '');
+            
+            // Xóa thông báo lỗi
+            const phoneError = document.getElementById("phone-error");
+            if (phoneError) {
+                phoneError.style.display = "none";
+            }
+            this.classList.remove("is-invalid");
         });
     }
 
@@ -432,7 +439,7 @@ document.addEventListener("DOMContentLoaded", function () {
         iti = window.intlTelInput(phoneInput, {
             initialCountry: "vn",
             preferredCountries: ["vn"],
-            separateDialCode: false,
+            separateDialCode: true,
             nationalMode: false,
             utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.js"
         });
@@ -493,9 +500,25 @@ document.addEventListener("DOMContentLoaded", function () {
                 finalInput.value = combinedReqs.join(" | ");
             }
 
-            // Format phone number
+            // Format and validate phone number
             if (phoneInput && phoneInput.value.trim() && iti) {
-                phoneInput.value = iti.getNumber();
+                const phoneError = document.getElementById("phone-error");
+                if (!iti.isValidNumber()) {
+                    if (phoneError) {
+                        phoneError.textContent = "Invalid phone number format for the selected country.";
+                        phoneError.style.display = "block";
+                    }
+                    phoneInput.classList.add("is-invalid");
+                    phoneInput.focus();
+                    event.preventDefault();
+                    return false;
+                } else {
+                    if (phoneError) {
+                        phoneError.style.display = "none";
+                    }
+                    phoneInput.classList.remove("is-invalid");
+                    phoneInput.value = iti.getNumber();
+                }
             }
         });
     }
