@@ -34,292 +34,240 @@
                 id="bookingCheckoutForm">
                 <!-- Keep hotelId state -->
                 <input type="hidden" name="hotelId" th:value="${selectedHotelId}">
-
                 <div class="row g-4">
 
-                    <!-- LEFT COLUMN: Room Checklist -->
-                    <div class="col-12 col-lg-8">
-                        <div class="card border-0 shadow-sm p-4">
+                    <!-- LEFT COLUMN: Room Information & Payment -->
+                    <div class="col-12 col-lg-7">
+                        <div class="d-flex flex-column gap-4">
+                            <!-- Loop Room Cards -->
+                            <div th:each="room, iterStat : ${rooms}"
+                                class="card booking-room-block border-0 shadow-sm mb-4 overflow-hidden bg-white">
+                                <!-- Hotel Name Header -->
+                                <div class="card-header booking-room-hotel-header py-2 px-3 text-center text-white fw-bold booking-hotel-header-styled border-0">
+                                    <span th:text="${hotelMap != null ? hotelMap.get(room.hotelId) : ''}">Hotel Name</span>
+                                </div>
 
-                            <div class="d-flex flex-column gap-4">
-                                <!-- Loop Room Cards -->
-                                <div th:each="room, iterStat : ${rooms}"
-                                    class="card booking-room-block border-0 shadow-sm mb-4 overflow-hidden bg-white">
-                                    <!-- HÀNG 1: Tên khách sạn và địa chỉ -->
-                                    <div
-                                        class="card-header booking-room-hotel-header py-2 px-3 text-center text-white fw-bold booking-hotel-header-styled border-0">
-                                        <span
-                                            th:text="${hotelMap != null ? hotelMap.get(room.hotelId) : ''}">Hotel Name</span>
-                                    </div>
+                                <!-- Room Image + Details -->
+                                <div class="card-body p-3">
+                                    <div class="row g-3 position-relative">
+                                        <!-- Hidden input to submit roomId -->
+                                        <input type="hidden" name="roomIds" th:value="${room.id}">
 
-                                    <!-- HÀNG 2: Gồm check in, check out, select room và nút Filter -->
-                                    <div class="card-body booking-room-details-row p-3 border-bottom bg-light">
-                                        <div class="row align-items-end g-3">
-                                            <!-- Check-in Date -->
-                                            <div class="col-12 col-md-3">
-                                                <label
-                                                    class="form-label small fw-bold text-uppercase text-muted mb-1">Check-in
-                                                    Date</label>
-                                                <div class="input-group input-group-sm">
-                                                    <span class="input-group-text bg-white"><i
-                                                            class="bi bi-calendar-check text-gold"></i></span>
-                                                    <input type="text" name="checkins"
-                                                        class="form-control bg-white booking-checkin-picker booking-picker-weight"
-                                                        th:value="${checkins.get(iterStat.index)}">
+                                        <!-- Room Image -->
+                                        <div class="col-12 col-md-4">
+                                            <div class="position-relative ratio ratio-16x9 rounded overflow-hidden shadow-sm"
+                                                style="min-height: 130px;">
+                                                <img th:if="${room.imgUrl != null and !room.imgUrl.isEmpty()}"
+                                                    th:src="${room.imgUrl}" alt="Room Image"
+                                                    class="w-100 h-100 object-fit-cover">
+                                                <div th:if="${room.imgUrl == null or room.imgUrl.isEmpty()}"
+                                                    class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
+                                                    <i data-lucide="image" class="text-muted" style="width: 32px; height: 32px;"></i>
                                                 </div>
-                                            </div>
-                                            <!-- Check-out Date -->
-                                            <div class="col-12 col-md-3">
-                                                <label
-                                                    class="form-label small fw-bold text-uppercase text-muted mb-1">Check-out
-                                                    Date</label>
-                                                <div class="input-group input-group-sm">
-                                                    <span class="input-group-text bg-white"><i
-                                                            class="bi bi-calendar-x text-gold"></i></span>
-                                                    <input type="text" name="checkouts"
-                                                        class="form-control bg-white booking-checkout-picker booking-picker-weight"
-                                                        th:value="${checkouts.get(iterStat.index)}">
-                                                </div>
-                                            </div>
-                                            <!-- Select Room -->
-                                            <div class="col-12 col-md-4">
-                                                <label
-                                                    class="form-label small fw-bold text-uppercase text-muted mb-1">Select
-                                                    Room</label>
-                                                <div class="position-relative">
-                                                    <select name="quantities"
-                                                        class="form-select form-select-sm custom-rooms-select"
-                                                        onfocus="if(this.options.length>5) this.size=5;"
-                                                        onblur="this.size=1;" onchange="this.size=1; this.blur();">
-                                                        <option
-                                                            th:each="i : ${#numbers.sequence(1, room.numberRooms > 0 ? room.numberRooms : 1)}"
-                                                            th:value="${i}"
-                                                            th:selected="${i == quantities.get(iterStat.index)}"
-                                                            th:with="
-                                                                    maxRooms=${room.numberRooms > 0 ? room.numberRooms : 1},
-                                                                    maxPriceStr=${#numbers.formatDecimal(roomSinglePricesMap.get(room.id).multiply(new java.math.BigDecimal(maxRooms)), 0, 'COMMA', 0, 'POINT')},
-                                                                    priceStr=${#numbers.formatDecimal(roomSinglePricesMap.get(room.id).multiply(new java.math.BigDecimal(i)), 0, 'COMMA', 0, 'POINT')},
-                                                                    numSpaces=${3 - (i + '').length() + 1},
-                                                                    spacesCount=${maxPriceStr.length() - priceStr.length() + 3}
-                                                                "
-                                                            th:utext="${i} + ${#strings.repeat('&nbsp;', numSpaces)} + ${priceStr} + ${#strings.repeat('&nbsp;', spacesCount)} + 'VND'">
-                                                        </option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <!-- Filter Button -->
-                                            <div class="col-12 col-md-2">
-                                                <label
-                                                    class="form-label small fw-bold text-uppercase text-muted mb-1 d-none d-md-block invisible">Action</label>
-                                                <button type="submit"
-                                                    class="btn btn-gold btn-sm w-100 fw-semibold"
-                                                    style="height: 31px; padding: 0 12px; justify-content: center;">
-                                                    <i class="bi bi-arrow-repeat me-1"></i>Change
-                                                </button>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <!-- HÀNG 3: Hình ảnh + Mô tả (Wishlist style) -->
-                                    <div class="card-body p-3">
-                                        <div class="row g-3 position-relative">
-                                            <!-- Hidden input to submit roomId -->
-                                            <input type="hidden" name="roomIds" th:value="${room.id}">
+                                        <!-- Room Info Details -->
+                                        <div class="col-12 col-md-8 d-flex flex-column justify-content-between">
+                                            <div>
+                                                <!-- Header -->
+                                                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                                    <h4 class="fw-bold mb-0 booking-room-type-title" th:text="${room.type}">Standard Garden Room</h4>
+                                                </div>
 
-                                            <!-- Ảnh phòng -->
-                                            <div class="col-12 col-md-4">
-                                                <div class="position-relative ratio ratio-16x9 rounded overflow-hidden shadow-sm"
-                                                    style="min-height: 130px;">
-                                                    <img th:if="${room.imgUrl != null and !room.imgUrl.isEmpty()}"
-                                                        th:src="${room.imgUrl}" alt="Room Image"
-                                                        class="w-100 h-100 object-fit-cover">
-                                                    <div th:if="${room.imgUrl == null or room.imgUrl.isEmpty()}"
-                                                        class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
-                                                        <i class="bi bi-image text-muted fs-3"></i>
-                                                    </div>
+                                                <!-- Room Description -->
+                                                <p class="text-muted mb-2 small" th:text="${room.description}">Room description here.</p>
+
+                                                <!-- Specifications badges -->
+                                                <div class="d-flex flex-wrap gap-2 mb-2">
+                                                    <span class="badge-specs">
+                                                        <i data-lucide="maximize" class="me-1" style="width: 14px; height: 14px; vertical-align: middle;"></i>
+                                                        <span th:text="${room.acreage} + ' m²'">25 m²</span>
+                                                    </span>
+                                                    <span class="badge-specs">
+                                                        <i data-lucide="users" class="me-1" style="width: 14px; height: 14px; vertical-align: middle;"></i>
+                                                        <span th:text="${room.person} + ' guest(s)'">2 guest(s)</span>
+                                                    </span>
+                                                    <span class="badge-specs">
+                                                        <i data-lucide="bed" class="me-1" style="width: 14px; height: 14px; vertical-align: middle;"></i>
+                                                        <span th:text="${room.bed} + ' bed(s)'">1 bed(s)</span>
+                                                    </span>
+                                                    <span class="badge-specs">
+                                                        <i data-lucide="layout-grid" class="me-1" style="width: 14px; height: 14px; vertical-align: middle;"></i>
+                                                        <span th:text="${room.window} + ' window(s)'">1 window(s)</span>
+                                                    </span>
                                                 </div>
                                             </div>
 
-                                            <!-- Thông tin chi tiết phòng -->
-                                            <div class="col-12 col-md-8 d-flex flex-column justify-content-between">
+                                            <!-- Apply Promotion button -->
+                                            <div class="d-flex justify-content-between align-items-end mt-2">
                                                 <div>
-                                                    <!-- Header & Available badge -->
-                                                    <div
-                                                        class="d-flex justify-content-between align-items-start gap-2 mb-1">
-                                                        <h4 class="fw-bold mb-0 booking-room-type-title"
-                                                            th:text="${room.type}">Standard Garden Room</h4>
-                                                        <!-- Nút Special requests ở góc phải -->
-                                                        <button type="button"
-                                                            class="btn bg-navy text-white px-2 py-1 fs-7 rounded-pill booking-special-request-btn"
-                                                            th:data-room-id="${room.id}"
-                                                            th:data-room-name="${room.type}"
-                                                            style="border: none; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
-                                                            <i class="bi bi-chat-left-text me-1"></i>
-                                                            <span>Special requests</span>
-                                                        </button>
-                                                        <!-- Input ẩn lưu yêu cầu của phòng này -->
-                                                        <input type="hidden" th:id="'room-req-' + ${room.id}"
-                                                            class="room-special-request-input" value="">
-                                                    </div>
-
-                                                    <!-- Mô tả phòng -->
-                                                    <p class="text-muted mb-2 small" th:text="${room.description}">Phòng
-                                                        tiêu chuẩn có view sân vườn yên tĩnh.</p>
-
-                                                    <!-- Specs -->
-                                                    <div class="d-flex flex-wrap gap-2 mb-2">
-                                                        <span class="badge-specs">
-                                                            <i data-lucide="maximize" class="me-1" style="width: 16px; height: 16px; vertical-align: middle;"></i>
-                                                            <span th:text="${room.acreage} + ' m²'">25 m²</span>
-                                                        </span>
-                                                        <span class="badge-specs">
-                                                            <i data-lucide="users" class="me-1" style="width: 16px; height: 16px; vertical-align: middle;"></i>
-                                                            <span th:text="${room.person} + ' guest(s)'">2 guest(s)</span>
-                                                        </span>
-                                                        <span class="badge-specs">
-                                                            <i data-lucide="bed" class="me-1" style="width: 16px; height: 16px; vertical-align: middle;"></i>
-                                                            <span th:text="${room.bed} + ' bed(s)'">1 bed(s)</span>
-                                                        </span>
-                                                        <span class="badge-specs">
-                                                            <i data-lucide="layout-grid" class="me-1" style="width: 16px; height: 16px; vertical-align: middle;"></i>
-                                                            <span th:text="${room.window} + ' window(s)'">1 window(s)</span>
-                                                        </span>
+                                                    <span class="text-muted small text-uppercase fw-semibold booking-price-label">Room Price</span>
+                                                    <div class="d-flex align-items-baseline gap-1">
+                                                        <span class="fw-bold text-gold booking-price-amount"
+                                                            th:id="'room-price-' + ${room.id}"
+                                                            th:data-base-price="${roomPricesMap.get(room.id)}"
+                                                            th:text="${#numbers.formatDecimal(roomPricesMap.get(room.id), 0, 'COMMA', 0, 'POINT')}">1,100,000</span>
+                                                        <span class="text-muted fw-semibold" style="font-size: 0.9rem;">VND / </span>
+                                                        <span class="text-muted small booking-price-night"
+                                                            th:text="${roomNightsMap.get(room.id) + ' night' + (roomNightsMap.get(room.id) > 1 ? 's' : '')}">1 night</span>
                                                     </div>
                                                 </div>
-
-                                                <!-- Total Price & Promotion -->
-                                                <div class="mt-3 d-flex justify-content-between align-items-end">
-                                                    <div>
-                                                        <div
-                                                            class="text-muted small text-uppercase fw-semibold booking-price-label">
-                                                            Total Price</div>
-                                                        <div class="d-flex align-items-baseline gap-1">
-                                                            <span class="fw-bold text-gold booking-price-amount"
-                                                                th:id="'room-price-' + ${room.id}"
-                                                                th:data-base-price="${roomPricesMap.get(room.id)}"
-                                                                th:text="${#numbers.formatDecimal(roomPricesMap.get(room.id), 0, 'COMMA', 0, 'POINT')}">1,100,000</span>
-                                                            <span class="text-muted fw-semibold"
-                                                                style="font-size: 0.9rem;">VND / </span>
-                                                            <span class="text-muted small booking-price-night"
-                                                                th:text="${roomNightsMap.get(room.id) + ' night' + (roomNightsMap.get(room.id) > 1 ? 's' : '')}">1
-                                                                night</span>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Nút chọn Promotion -->
-                                                    <div class="booking-promo-action-wrap">
-                                                        <button type="button" class="btn booking-select-promo-btn"
-                                                            th:data-room-id="${room.id}"
-                                                            th:data-room-name="${room.type}"
-                                                            th:data-hotel-id="${room.hotelId}">
-                                                            <i class="bi bi-tags me-1"></i>
-                                                            <span>Apply Promotion</span>
-                                                        </button>
-                                                        <input type="hidden" name="promotionIds"
-                                                            th:id="'room-promo-' + ${room.id}"
-                                                            class="room-promotion-input" value="0">
-                                                    </div>
+                                                <div class="booking-promo-action-wrap">
+                                                    <button type="button" class="btn booking-select-promo-btn"
+                                                        th:data-room-id="${room.id}"
+                                                        th:data-room-name="${room.type}"
+                                                        th:data-hotel-id="${room.hotelId}">
+                                                        <i data-lucide="tag" class="me-1" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></i>
+                                                        <span>Apply Promotion</span>
+                                                    </button>
+                                                    <input type="hidden" name="promotionIds" th:id="'room-promo-' + ${room.id}" class="room-promotion-input" value="0">
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Input ẩn chung để gửi gộp Special requests lên server -->
-                            <input type="hidden" name="specialRequests" id="finalSpecialRequests" value="">
+                        <!-- Order Summary Card -->
+                        <div class="card border-0 shadow-sm p-4 mt-4 gold-border-top">
+                            <h4 class="section-header">Order Summary</h4>
+
+                            <div class="d-flex flex-column gap-2 mb-3">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Rooms Selected</span>
+                                    <strong class="text-dark"
+                                        th:text="${(quantities != null and !quantities.isEmpty()) ? #aggregates.sum(quantities) : 0} + ' Room(s)'">0 Room(s)</strong>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Subtotal</span>
+                                    <span class="fw-semibold" id="invoiceSubtotal"
+                                        th:text="${#numbers.formatInteger(subtotal, 0, 'COMMA')} + ' VND'">0 VND</span>
+                                </div>
+                                <div id="invoiceDiscountsContainer"></div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">VAT (10%)</span>
+                                    <span class="text-muted" id="invoiceTax"
+                                        th:text="${#numbers.formatInteger(tax, 0, 'COMMA')} + ' VND'">0 VND</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Service Fee</span>
+                                    <span class="text-muted" id="invoiceServiceFee"
+                                        th:text="${#numbers.formatInteger(serviceFee, 0, 'COMMA')} + ' VND'">0 VND</span>
+                                </div>
+                            </div>
+
+                            <hr class="my-3">
+
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <span class="fw-bold fs-5" style="color: var(--navy-primary);">Total Amount</span>
+                                <strong class="fs-4 text-primary" style="color: var(--navy-primary) !important;"
+                                    id="invoiceGrandTotal"
+                                    th:text="${#numbers.formatInteger(grandTotal, 0, 'COMMA')} + ' VND'">0 VND</strong>
+                            </div>
+
+                            <button type="submit"
+                                class="btn btn-gold w-100 py-3 fw-bold fs-5 shadow-sm d-flex justify-content-center align-items-center"
+                                th:formaction="@{/booking/qr-payment}">
+                                Confirm Reservation & Pay
+                            </button>
                         </div>
                     </div>
 
-                    <!-- RIGHT COLUMN: Stay Dates & Order Summary -->
-                    <div class="col-12 col-lg-4">
+                    <!-- RIGHT COLUMN: Stay Dates, Room Quantities & User Details -->
+                    <div class="col-12 col-lg-5">
                         <div class="sticky-summary d-flex flex-column gap-4">
-
-                            <!-- Information Card -->
                             <div class="card border-0 shadow-sm p-4">
-                                <h4 class="section-header text-gold">Information</h4>
+                                <h4 class="section-header text-gold mb-4">Reservation Info</h4>
+
+                                <!-- ROW 1: Check-in / Check-out Date & Update Button (1 Row, 3 Columns) -->
+                                <div class="row g-2 align-items-end mb-3" th:each="room, iterStat : ${rooms}">
+                                    <div class="col-5">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-1">Check-in</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-white"><i data-lucide="calendar" style="width: 16px; height: 16px;"></i></span>
+                                            <input type="text" name="checkins"
+                                                class="form-control bg-white booking-checkin-picker booking-picker-weight"
+                                                th:value="${checkins.get(iterStat.index)}">
+                                        </div>
+                                    </div>
+                                    <div class="col-5">
+                                        <label class="form-label small fw-bold text-uppercase text-muted mb-1">Check-out</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-white"><i data-lucide="calendar" style="width: 16px; height: 16px;"></i></span>
+                                            <input type="text" name="checkouts"
+                                                class="form-control bg-white booking-checkout-picker booking-picker-weight"
+                                                th:value="${checkouts.get(iterStat.index)}">
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
+                                        <button type="submit" class="btn btn-gold btn-sm fw-semibold w-100 d-flex align-items-center justify-content-center" style="height: 31px; padding: 0;">
+                                            Update
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- ROW 2: Select Room (1 Row) -->
+                                <div class="mb-3" th:each="room, iterStat : ${rooms}">
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-1">Select Room</label>
+                                    <div class="position-relative">
+                                        <select name="quantities"
+                                            class="form-select form-select-sm custom-rooms-select"
+                                            onfocus="if(this.options.length>5) this.size=5;"
+                                            onblur="this.size=1;" onchange="this.size=1; this.blur();">
+                                            <option
+                                                th:each="i : ${#numbers.sequence(1, room.numberRooms > 0 ? room.numberRooms : 1)}"
+                                                th:value="${i}"
+                                                th:selected="${i == quantities.get(iterStat.index)}"
+                                                th:with="
+                                                        maxRooms=${room.numberRooms > 0 ? room.numberRooms : 1},
+                                                        maxPriceStr=${#numbers.formatDecimal(roomSinglePricesMap.get(room.id).multiply(new java.math.BigDecimal(maxRooms)), 0, 'COMMA', 0, 'POINT')},
+                                                        priceStr=${#numbers.formatDecimal(roomSinglePricesMap.get(room.id).multiply(new java.math.BigDecimal(i)), 0, 'COMMA', 0, 'POINT')},
+                                                        numSpaces=${3 - (i + '').length() + 1},
+                                                        spacesCount=${maxPriceStr.length() - priceStr.length() + 3}
+                                                    "
+                                                th:utext="${i} + ${#strings.repeat('&nbsp;', numSpaces)} + ${priceStr} + ${#strings.repeat('&nbsp;', spacesCount)} + 'VND'">
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- ROW 3: Full Name -->
                                 <div class="mb-3">
-                                    <label class="form-label small fw-bold text-uppercase text-muted">Full Name <span
-                                            class="text-danger">*</span></label>
+                                    <label class="form-label small fw-bold text-uppercase text-muted">Full Name <span class="text-danger">*</span></label>
                                     <input type="text" name="fullName" class="form-control"
                                         th:value="${customer != null ? customer.fullName : ''}" required>
                                 </div>
+
+                                <!-- ROW 4: Email address -->
                                 <div class="mb-3">
-                                    <label class="form-label small fw-bold text-uppercase text-muted">Email <span
-                                            class="text-danger">*</span></label>
+                                    <label class="form-label small fw-bold text-uppercase text-muted">Email <span class="text-danger">*</span></label>
                                     <input type="email" name="email" id="email" class="form-control"
                                         th:value="${user != null ? user.email : ''}" required>
                                 </div>
+
+                                <!-- ROW 5: Phone number -->
                                 <div class="mb-3">
-                                    <label class="form-label small fw-bold text-uppercase text-muted">Phone Number <span
-                                            class="text-danger">*</span></label>
+                                    <label class="form-label small fw-bold text-uppercase text-muted">Phone Number <span class="text-danger">*</span></label>
                                     <input type="tel" name="phone" id="phone" class="form-control"
                                         th:value="${customer != null ? customer.phone : ''}" required>
                                     <div id="phone-error" class="text-danger small mt-1" style="display:none;"></div>
                                 </div>
+
+                                <!-- ROW 6: Note / Special requests field -->
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-uppercase text-muted">Special Requests / Notes</label>
+                                    <textarea name="specialRequests" id="finalSpecialRequests" class="form-control" rows="4" 
+                                        placeholder="e.g. Early check-in, twin beds, quiet room, etc."></textarea>
+                                </div>
+
                                 <div class="mt-3 text-muted small d-flex align-items-start gap-2"
                                     style="font-size: 0.82rem; line-height: 1.4; color: #64748b;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                        fill="none" stroke="#c9a96e" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" class="lucide lucide-info"
-                                        style="flex-shrink: 0; margin-top: 2px;">
-                                        <circle cx="12" cy="12" r="10" />
-                                        <path d="M12 16v-4" />
-                                        <path d="M12 8h.01" />
-                                    </svg>
-                                    <span>Upon check-in, guests must provide an ID matching this name. Please note that
-                                        this name cannot be changed.</span>
+                                    <i data-lucide="info" class="text-gold" style="width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px;"></i>
+                                    <span>Upon check-in, guests must provide an ID matching this name. Please note that this name cannot be changed.</span>
                                 </div>
                             </div>
-
-                            <!-- Invoice Summary -->
-                            <div class="card border-0 shadow-sm p-4 gold-border-top">
-                                <h4 class="section-header">Order Summary</h4>
-
-                                <div class="d-flex flex-column gap-2 mb-3">
-                                    <div class="d-flex justify-content-between">
-                                        <span class="text-muted">Rooms Selected</span>
-                                        <strong class="text-dark"
-                                            th:text="${(quantities != null and !quantities.isEmpty()) ? #aggregates.sum(quantities) : 0} + ' Room(s)'">0
-                                            Room(s)</strong>
-                                    </div>
-                                    <div class="d-flex justify-content-between">
-                                        <span class="text-muted">Subtotal</span>
-                                        <span class="fw-semibold" id="invoiceSubtotal"
-                                            th:text="${#numbers.formatInteger(subtotal, 0, 'COMMA')} + ' VND'">0
-                                            VND</span>
-                                    </div>
-                                    <div id="invoiceDiscountsContainer"></div>
-                                    <div class="d-flex justify-content-between">
-                                        <span class="text-muted">VAT (10%)</span>
-                                        <span class="text-muted" id="invoiceTax"
-                                            th:text="${#numbers.formatInteger(tax, 0, 'COMMA')} + ' VND'">0 VND</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between">
-                                        <span class="text-muted">Service Fee</span>
-                                        <span class="text-muted" id="invoiceServiceFee"
-                                            th:text="${#numbers.formatInteger(serviceFee, 0, 'COMMA')} + ' VND'">0
-                                            VND</span>
-                                    </div>
-                                </div>
-
-                                <hr class="my-3">
-
-                                <div class="d-flex justify-content-between align-items-center mb-4">
-                                    <span class="fw-bold fs-5" style="color: var(--navy-primary);">Total Amount</span>
-                                    <strong class="fs-4 text-primary" style="color: var(--navy-primary) !important;"
-                                        id="invoiceGrandTotal"
-                                        th:text="${#numbers.formatInteger(grandTotal, 0, 'COMMA')} + ' VND'">0
-                                        VND</strong>
-                                </div>
-
-                                <button type="submit"
-                                    class="btn btn-gold w-100 py-3 fw-bold fs-5 shadow-sm d-flex justify-content-center align-items-center"
-                                    th:formaction="@{/booking/qr-payment}">
-                                    Confirm Reservation & Pay
-                                </button>
-                            </div>
-
                         </div>
                     </div>
 
@@ -329,41 +277,7 @@
         </div>
     </main>
 
-    <!-- Special Requests Modal -->
-    <div class="modal fade" id="specialRequestsModal" tabindex="-1" aria-labelledby="specialRequestsModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg sr-modal-content">
-                <!-- Header -->
-                <div class="modal-header text-white border-0 py-3 sr-modal-header">
-                    <h5 class="modal-title fw-bold sr-modal-title" id="specialRequestsModalLabel">Special requests</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-                </div>
-                <!-- Body -->
-                <div class="modal-body p-4 sr-modal-body">
-                    <h6 class="fw-bold mb-2 room-target-title sr-modal-room-title">Room: Standard Room</h6>
-                    <p class="text-muted small mb-3 sr-modal-desc">
-                        Special requests cannot be guaranteed – but the property will do its best to meet your needs.
-                        You can always make a special request after your booking is complete!
-                    </p>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted sr-modal-label">
-                            Please write your requests in English or Vietnamese. <span
-                                class="text-muted fw-normal">(optional)</span>
-                        </label>
-                        <textarea id="modalSpecialRequestsTextarea" class="form-control sr-modal-textarea" rows="4"
-                            placeholder="e.g. Early check-in, airport shuttle, twin beds, quiet room, etc."></textarea>
-                    </div>
-                </div>
-                <!-- Footer -->
-                <div class="modal-footer border-0 p-3 d-flex justify-content-end gap-2 sr-modal-footer">
-                    <button type="button" class="btn sr-modal-btn-reset" id="modalResetBtn">Reset</button>
-                    <button type="button" class="btn sr-modal-btn-save" id="modalSubmitBtn">Save</button>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Promotion Selection Modal -->
     <div class="modal fade" id="promotionModal" tabindex="-1" aria-labelledby="promotionModalLabel" aria-hidden="true">

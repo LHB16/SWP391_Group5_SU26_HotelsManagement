@@ -22303,14 +22303,16 @@ h6,
   padding: 16px !important;
 }
 
-.custom-rooms-select {
+.custom-rooms-select,
+.custom-rooms-select option {
   border: 1px solid #cbd5e1 !important;
   border-radius: 4px !important;
   padding: 6px 12px !important;
   font-weight: 600 !important;
   color: var(--navy-primary) !important;
   cursor: pointer !important;
-  font-family: 'Courier New', Courier, monospace !important;
+  font-family: inherit !important;
+  font-size: 0.85rem !important;
   white-space: pre !important;
 }
 
