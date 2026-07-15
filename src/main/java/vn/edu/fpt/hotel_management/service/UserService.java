@@ -42,8 +42,35 @@ public class UserService {
         userRepository.delete(user);
     }
 
+    /**
+     * Validate username and password constraints
+     * - Username: 8-30 characters
+     * - Password: at least 8 characters
+     */
+    public void validateUsernameAndPassword(String username, String password) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new RuntimeException("Username is required!");
+        }
+        String trimmedUsername = username.trim();
+        if (trimmedUsername.length() < 8) {
+            throw new RuntimeException("Username must be at least 8 characters long!");
+        }
+        if (trimmedUsername.length() > 30) {
+            throw new RuntimeException("Username must not exceed 30 characters!");
+        }
+        if (password == null || password.isEmpty()) {
+            throw new RuntimeException("Password is required!");
+        }
+        if (password.length() < 8) {
+            throw new RuntimeException("Password must be at least 8 characters long!");
+        }
+    }
+
     @Transactional
-    public void validateRegister(String username, String email) {
+    public void validateRegister(String username, String email, String password) {
+        // Validate username and password constraints
+        validateUsernameAndPassword(username, password);
+
         userRepository.findByUsername(username).ifPresent(existing -> {
             if (existing.isEnabled()) {
                 throw new RuntimeException("Username already exists!");
@@ -64,7 +91,7 @@ public class UserService {
     public void savePendingUser(String fullName, String username,
                                 String password, String email, String otp, String role,
                                 String phone, String address, String idCard, String taxId,
-                                String idCardDocument) {  // <-- THÊM THAM SỐ
+                                String idCardDocument) {
         if (!"CUSTOMER".equalsIgnoreCase(role) && !"HOTEL_OWNER".equalsIgnoreCase(role)) {
             throw new RuntimeException("Invalid role selected!");
         }
@@ -93,7 +120,7 @@ public class UserService {
             owner.setAddress(address);
             owner.setIdCard(idCard);
             owner.setTaxId(taxId);
-            owner.setIdCardDocument(idCardDocument);  // <-- THÊM
+            owner.setIdCardDocument(idCardDocument);
             owner.setVerificationStatus("PENDING");
             hotelOwnerRepository.save(owner);
         }

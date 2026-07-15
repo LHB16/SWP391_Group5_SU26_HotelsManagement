@@ -199,10 +199,10 @@
         <div class="mt-5">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                    <i data-lucide="building-2" style="color: #4f46e5; width: 20px; height: 20px; stroke-width: 1.5;"></i>
+                    <i data-lucide="building-2" style="color: #c9a96e; width: 20px; height: 20px; stroke-width: 1.5;"></i>
                     Hotels Owned
                     <span class="ms-2 badge rounded-pill"
-                          style="background-color: #ede9fe; color: #4f46e5; font-size: 0.78rem; font-weight: 600;"
+                          style="background-color: #ede9fe; color: #c9a96e; font-size: 0.78rem; font-weight: 600;"
                           th:text="${#lists.size(ownerHotels)}">0</span>
                 </h5>
             </div>
@@ -295,7 +295,7 @@
                                             <div class="text-muted mb-1" style="font-size: 0.75rem; font-weight: 600;">Business Registration</div>
                                             <div th:if="${doc.businessRegistrationDoc != null && !doc.businessRegistrationDoc.isEmpty()}" class="d-flex gap-2">
                                                 <a th:href="${doc.businessRegistrationDoc}" target="_blank"
-                                                   style="color: #4f46e5; font-weight: 600; text-decoration: none; font-size: 0.8rem;">View</a>
+                                                   style="color: #c9a96e; font-weight: 600; text-decoration: none; font-size: 0.8rem;">View</a>
                                                 <a th:href="${doc.businessRegistrationDoc}"
                                                    th:download="${hotel.name + '_Business_Registration'}"
                                                    style="color: #64748b; font-weight: 600; text-decoration: none; font-size: 0.8rem;">Download</a>
@@ -310,7 +310,7 @@
                                             <div class="text-muted mb-1" style="font-size: 0.75rem; font-weight: 600;">Land Certificate</div>
                                             <div th:if="${doc.landCertificateDoc != null && !doc.landCertificateDoc.isEmpty()}" class="d-flex gap-2">
                                                 <a th:href="${doc.landCertificateDoc}" target="_blank"
-                                                   style="color: #4f46e5; font-weight: 600; text-decoration: none; font-size: 0.8rem;">View</a>
+                                                   style="color: #c9a96e; font-weight: 600; text-decoration: none; font-size: 0.8rem;">View</a>
                                                 <a th:href="${doc.landCertificateDoc}"
                                                    th:download="${hotel.name + '_Land_Certificate'}"
                                                    style="color: #64748b; font-weight: 600; text-decoration: none; font-size: 0.8rem;">Download</a>
@@ -325,7 +325,7 @@
                                             <div class="text-muted mb-1" style="font-size: 0.75rem; font-weight: 600;">Rental Contract</div>
                                             <div th:if="${doc.rentalContractDoc != null && !doc.rentalContractDoc.isEmpty()}" class="d-flex gap-2">
                                                 <a th:href="${doc.rentalContractDoc}" target="_blank"
-                                                   style="color: #4f46e5; font-weight: 600; text-decoration: none; font-size: 0.8rem;">View</a>
+                                                   style="color: #c9a96e; font-weight: 600; text-decoration: none; font-size: 0.8rem;">View</a>
                                                 <a th:href="${doc.rentalContractDoc}"
                                                    th:download="${hotel.name + '_Rental_Contract'}"
                                                    style="color: #64748b; font-weight: 600; text-decoration: none; font-size: 0.8rem;">Download</a>
