@@ -1057,11 +1057,11 @@ public class BookingController {
                 return false;
             }
 
-            String orderCodeStr = String.valueOf(bookingId);
             Payment payment = paymentRepository.findByBookingId(bookingId).orElse(null);
-            if (payment != null && payment.getTransactionId() != null && !payment.getTransactionId().isBlank()) {
-                orderCodeStr = payment.getTransactionId();
+            if (payment == null || payment.getTransactionId() == null || payment.getTransactionId().isBlank()) {
+                return false;
             }
+            String orderCodeStr = payment.getTransactionId();
 
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
