@@ -67,7 +67,8 @@ public class RegisterController {
                            HttpSession session,
                            Model model) {
         try {
-            userService.validateRegister(username, email);
+            // Validate username, password, email, username existence
+            userService.validateRegister(username, email, password);
 
             String otp = otpService.generateOtp();
             userService.savePendingUser(fullName, username, password, email, otp, role, null, null, null, null, null);
@@ -89,6 +90,9 @@ public class RegisterController {
             return "redirect:/verify-otp";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
+            model.addAttribute("fullName", fullName);
+            model.addAttribute("username", username);
+            model.addAttribute("email", email);
             return "auth/register";
         }
     }
@@ -106,6 +110,9 @@ public class RegisterController {
                                 HttpSession session,
                                 Model model) {
         try {
+            // Validate username, password, email, username existence
+            userService.validateRegister(username, email, password);
+
             // Validate thông tin bắt buộc và định dạng số điện thoại (E.164)
             if (phone == null || phone.trim().isEmpty()) {
                 throw new RuntimeException("Phone number is required!");
@@ -114,19 +121,14 @@ public class RegisterController {
                 throw new RuntimeException("Invalid phone number format! Must contain only numbers and be between 8 and 19 digits (e.g. +84912345678).");
             }
             if (address == null || address.trim().isEmpty()) {
-                model.addAttribute("error", "Address is required!");
-                return "auth/register-owner";
+                throw new RuntimeException("Address is required!");
             }
             if (idCard == null || idCard.trim().isEmpty()) {
-                model.addAttribute("error", "ID Card number is required!");
-                return "auth/register-owner";
+                throw new RuntimeException("ID Card number is required!");
             }
             if (taxId == null || taxId.trim().isEmpty()) {
-                model.addAttribute("error", "Tax ID is required!");
-                return "auth/register-owner";
+                throw new RuntimeException("Tax ID is required!");
             }
-
-            userService.validateRegister(username, email);
 
             // ===== XỬ LÝ UPLOAD ẢNH CCCD =====
             String idCardDocumentPath = null;
@@ -180,7 +182,6 @@ public class RegisterController {
             return "auth/register-owner";
         }
     }
-
 
     private String saveUploadedFile(MultipartFile file, String subDir) throws IOException {
         Path uploadPath = Paths.get(System.getProperty("user.dir"),

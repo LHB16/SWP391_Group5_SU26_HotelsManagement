@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragment/frag :: head}"></head>
+<link th:href="@{/assets/css/register-validation.css}" rel="stylesheet"/>
+
 <body class="bg-light d-flex flex-column min-vh-100">
 
 <nav th:replace="~{fragment/frag :: navBar}"></nav>
@@ -17,25 +19,22 @@
 
                 <form method="post" action="/register-owner" enctype="multipart/form-data">
 
-                    <!-- Full Name -->
                     <div class="mb-3">
                         <label class="form-label">Full Name <span class="text-danger">*</span></label>
                         <input type="text" name="fullName" class="form-control"
                                placeholder="Enter your full name..."
                                th:value="${fullName}"
-                               required minlength="2"/>
+                               required minlength="2" maxlength="255"/>
                     </div>
 
-                    <!-- Username -->
                     <div class="mb-3">
                         <label class="form-label">Username <span class="text-danger">*</span></label>
-                        <input type="text" name="username" class="form-control"
+                        <input type="text" id="ownerUsername" name="username" class="form-control"
                                placeholder="Enter your username..."
                                th:value="${username}"
-                               required minlength="3"/>
+                               required/>
                     </div>
 
-                    <!-- Email -->
                     <div class="mb-3">
                         <label class="form-label">Email <span class="text-danger">*</span></label>
                         <input type="email" name="email" class="form-control"
@@ -44,17 +43,15 @@
                                required/>
                     </div>
 
-                    <!-- Password -->
                     <div class="mb-3">
                         <label class="form-label">Password <span class="text-danger">*</span></label>
-                        <input type="password" name="password" class="form-control"
+                        <input type="password" id="ownerPassword" name="password" class="form-control"
                                placeholder="Enter your password..."
-                               required minlength="6"/>
+                               required/>
                     </div>
 
                     <hr class="my-4">
 
-                    <!-- Phone -->
                     <div class="mb-3">
                         <label class="form-label">Phone Number <span class="text-danger">*</span></label>
                         <input type="tel" name="phone" id="phone" class="form-control"
@@ -64,7 +61,6 @@
                         <div id="phone-error" class="text-danger small mt-1" style="display:none;"></div>
                     </div>
 
-                    <!-- Address -->
                     <div class="mb-3">
                         <label class="form-label">Address <span class="text-danger">*</span></label>
                         <input type="text" name="address" class="form-control"
@@ -73,7 +69,6 @@
                                required/>
                     </div>
 
-                    <!-- ID Card -->
                     <div class="mb-3">
                         <label class="form-label">ID Card <span class="text-danger">*</span></label>
                         <input type="text" name="idCard" class="form-control"
@@ -82,7 +77,6 @@
                                required/>
                     </div>
 
-                    <!-- Tax ID -->
                     <div class="mb-3">
                         <label class="form-label">Tax ID <span class="text-danger">*</span></label>
                         <input type="text" name="taxId" class="form-control"
@@ -91,9 +85,8 @@
                                required/>
                     </div>
 
-                    <!-- ===== THÊM PHẦN UPLOAD ẢNH CCCD ===== -->
                     <div class="mb-3">
-                        <label class="form-label">ID Card <span class="text-danger">*</span></label>
+                        <label class="form-label">ID Card Document <span class="text-danger">*</span></label>
                         <input type="file" name="idCardDocument" class="form-control"
                                accept="image/*,application/pdf" required/>
                         <small class="text-muted">Supports JPG, PNG, PDF. Maximum 10MB.</small>
@@ -122,51 +115,6 @@
 
 <footer th:replace="~{fragment/frag :: footer}"></footer>
 <div th:replace="~{fragment/frag :: scripts}"></div>
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const phoneInput = document.getElementById("phone");
-        const phoneError = document.getElementById("phone-error");
-        if (phoneInput) {
-            const iti = window.intlTelInput(phoneInput, {
-                initialCountry: "vn",
-                preferredCountries: ["vn"],
-                separateDialCode: true,
-                nationalMode: false,
-                utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.js"
-            });
-            
-            // Format phone number to international standard and validate before form submission
-            const form = phoneInput.closest("form");
-            if (form) {
-                form.addEventListener("submit", function(e) {
-                    if (phoneInput.value.trim()) {
-                        if (!iti.isValidNumber()) {
-                            e.preventDefault(); // Chặn việc submit form
-                            if (phoneError) {
-                                phoneError.textContent = "Invalid phone number format for the selected country.";
-                                phoneError.style.display = "block";
-                            }
-                            phoneInput.classList.add("is-invalid");
-                        } else {
-                            if (phoneError) {
-                                phoneError.style.display = "none";
-                            }
-                            phoneInput.classList.remove("is-invalid");
-                            phoneInput.value = iti.getNumber();
-                        }
-                    }
-                });
-            }
-
-            // Xóa thông báo lỗi khi người dùng chỉnh sửa
-            phoneInput.addEventListener("input", function() {
-                if (phoneError) {
-                    phoneError.style.display = "none";
-                }
-                phoneInput.classList.remove("is-invalid");
-            });
-        }
-    });
-</script>
+<script th:src="@{/assets/js/register-validation.js}"></script>
 </body>
 </html>
