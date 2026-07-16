@@ -42,11 +42,6 @@ public class UserService {
         userRepository.delete(user);
     }
 
-    /**
-     * Validate username and password constraints
-     * - Username: 8-30 characters
-     * - Password: at least 8 characters
-     */
     public void validateUsernameAndPassword(String username, String password) {
         if (username == null || username.trim().isEmpty()) {
             throw new RuntimeException("Username is required!");
@@ -58,6 +53,9 @@ public class UserService {
         if (trimmedUsername.length() > 30) {
             throw new RuntimeException("Username must not exceed 30 characters!");
         }
+        if (!trimmedUsername.matches("^[A-Za-z0-9_]+$")) {
+            throw new RuntimeException("Username can only contain letters, numbers, and underscores!");
+        }
         if (password == null || password.isEmpty()) {
             throw new RuntimeException("Password is required!");
         }
@@ -66,10 +64,31 @@ public class UserService {
         }
     }
 
+    public void validateEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            throw new RuntimeException("Email is required!");
+        }
+        String trimmedEmail = email.trim();
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+        if (!trimmedEmail.matches(emailRegex)) {
+            throw new RuntimeException("Please enter a valid email address!");
+        }
+    }
+
+    public void validatePhone(String phone) {
+        if (phone == null || phone.trim().isEmpty()) {
+            throw new RuntimeException("Phone number is required!");
+        }
+        String trimmedPhone = phone.trim();
+        if (!trimmedPhone.matches("^\\+?[0-9]{8,19}$")) {
+            throw new RuntimeException("Invalid phone number format! Must contain only numbers and be between 8 and 19 digits (e.g. +84912345678).");
+        }
+    }
+
     @Transactional
     public void validateRegister(String username, String email, String password) {
-        // Validate username and password constraints
         validateUsernameAndPassword(username, password);
+        validateEmail(email);
 
         userRepository.findByUsername(username).ifPresent(existing -> {
             if (existing.isEnabled()) {

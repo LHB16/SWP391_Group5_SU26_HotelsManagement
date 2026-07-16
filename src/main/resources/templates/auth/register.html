@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragment/frag :: head}"></head>
-<link th:href="@{/assets/css/register-validation.css}" rel="stylesheet"/>
-
 <body class="bg-light d-flex flex-column min-vh-100">
 
 <nav th:replace="~{fragment/frag :: navBar}"></nav>
@@ -55,15 +53,15 @@
                 </form>
 
                 <div class="text-center mt-3">
-                    <span class="text-muted small">Are you a hotel owner?
-                        <a th:href="@{/register-owner}" class="fw-bold">Register as Owner</a>
-                    </span>
+                <span class="text-muted small">Are you a hotel owner?
+                    <a th:href="@{/register-owner}" class="fw-bold">Register as Owner</a>
+                </span>
                 </div>
 
                 <div class="text-center mt-2">
-                    <span class="text-muted small">Already have an account?
-                        <a th:href="@{/login}">Login here</a>
-                    </span>
+                <span class="text-muted small">Already have an account?
+                    <a th:href="@{/login}">Login here</a>
+                </span>
                 </div>
 
             </div>
