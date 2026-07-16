@@ -67,7 +67,6 @@ public class RegisterController {
                            HttpSession session,
                            Model model) {
         try {
-            // Validate username, password, email, username existence
             userService.validateRegister(username, email, password);
 
             String otp = otpService.generateOtp();
@@ -110,16 +109,9 @@ public class RegisterController {
                                 HttpSession session,
                                 Model model) {
         try {
-            // Validate username, password, email, username existence
             userService.validateRegister(username, email, password);
+            userService.validatePhone(phone);
 
-            // Validate thông tin bắt buộc và định dạng số điện thoại (E.164)
-            if (phone == null || phone.trim().isEmpty()) {
-                throw new RuntimeException("Phone number is required!");
-            }
-            if (!phone.trim().matches("^\\+?[0-9]{8,19}$")) {
-                throw new RuntimeException("Invalid phone number format! Must contain only numbers and be between 8 and 19 digits (e.g. +84912345678).");
-            }
             if (address == null || address.trim().isEmpty()) {
                 throw new RuntimeException("Address is required!");
             }
@@ -130,7 +122,6 @@ public class RegisterController {
                 throw new RuntimeException("Tax ID is required!");
             }
 
-            // ===== XỬ LÝ UPLOAD ẢNH CCCD =====
             String idCardDocumentPath = null;
             if (idCardDocument != null && !idCardDocument.isEmpty()) {
                 try {
@@ -150,7 +141,6 @@ public class RegisterController {
 
             String otp = otpService.generateOtp();
 
-            // Owner có đầy đủ thông tin kèm đường dẫn ảnh CCCD
             userService.savePendingUser(fullName, username, password, email, otp, "HOTEL_OWNER",
                     phone, address, idCard, taxId, idCardDocumentPath);
 
@@ -171,7 +161,6 @@ public class RegisterController {
             return "redirect:/verify-otp";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
-            // Giữ lại giá trị đã nhập
             model.addAttribute("fullName", fullName);
             model.addAttribute("username", username);
             model.addAttribute("email", email);
