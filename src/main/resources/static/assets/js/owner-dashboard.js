@@ -13,15 +13,12 @@ function getCsrfHeaders() {
 
 document.addEventListener('DOMContentLoaded', function() {
 
-    // 1. Initialize Lucide Icons
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
 
-    // 2. Update Date/Time
     updateDateTime();
 
-    // 3. Sidebar Tab Switching
     const sidebarLinks = document.querySelectorAll('.sidebar-link[data-tab]');
     const tabPanels = document.querySelectorAll('.tab-panel');
 
@@ -39,7 +36,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Tự động switch sang tab tương ứng nếu URL chứa query parameter ?tab=xxx
     const urlParams = new URLSearchParams(window.location.search);
     const tabParam = urlParams.get('tab');
     if (tabParam) {
@@ -53,13 +49,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 4. Setup Flatpickr for Booking Date Filters
     setupBookingDateFilters();
-
-    // 5. Setup Booking Filter Events
     setupBookingFilterEvents();
 
-    // 6. Add Hotel Modal - Open
     window.openAddHotelModal = function() {
         const modal = document.getElementById('addHotelModal');
         if (modal) {
@@ -68,7 +60,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // 7. Add Hotel Modal - Close
     window.closeAddHotelModal = function() {
         const modal = document.getElementById('addHotelModal');
         if (modal) {
@@ -79,17 +70,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // 8. Apply Booking Filters on page load
     setTimeout(applyBookingFilters, 500);
-
-    // 9. Format booking dates after load
     setTimeout(formatAllBookingDates, 600);
-
 });
 
-// ============================================================
-// UPDATE DATE/TIME
-// ============================================================
 function updateDateTime() {
     const el = document.getElementById('currentDateTime');
     if (!el) return;
@@ -112,16 +96,13 @@ function updateDateTime() {
     setInterval(update, 1000);
 }
 
-// ============================================================
-// SETUP BOOKING DATE FILTERS WITH FLATPICKR
-// ============================================================
 function setupBookingDateFilters() {
     const checkinFilter = document.getElementById('bookingCheckinFilter');
     const checkoutFilter = document.getElementById('bookingCheckoutFilter');
 
     if (checkinFilter && typeof flatpickr === 'function') {
         flatpickr(checkinFilter, {
-            dateFormat: "Y-m-d",
+            dateFormat: "d/m/Y",
             altInput: true,
             altFormat: "d/m/Y",
             allowInput: false,
@@ -133,7 +114,7 @@ function setupBookingDateFilters() {
 
     if (checkoutFilter && typeof flatpickr === 'function') {
         flatpickr(checkoutFilter, {
-            dateFormat: "Y-m-d",
+            dateFormat: "d/m/Y",
             altInput: true,
             altFormat: "d/m/Y",
             allowInput: false,
@@ -144,9 +125,6 @@ function setupBookingDateFilters() {
     }
 }
 
-// ============================================================
-// SETUP BOOKING FILTER EVENTS
-// ============================================================
 function setupBookingFilterEvents() {
     const searchInput = document.getElementById('bookingSearchInput');
     const hotelFilter = document.getElementById('bookingHotelFilter');
@@ -169,9 +147,6 @@ function setupBookingFilterEvents() {
     }
 }
 
-// ============================================================
-// BOOKINGS FILTER FUNCTIONS
-// ============================================================
 function applyBookingFilters() {
     const searchInput = document.getElementById('bookingSearchInput');
     const hotelFilter = document.getElementById('bookingHotelFilter');
@@ -241,12 +216,33 @@ function applyBookingFilters() {
             }
         }
 
-        if (show && checkinVal && checkinText !== checkinVal) {
-            show = false;
-        }
+        // ============================================================
+        // FILTER THEO KHOẢNG NGÀY: check-in (từ) -> check-out (đến)
+        // Hiển thị booking nào có check-in VÀ check-out đều nằm
+        // trong khoảng [checkinVal, checkoutVal] đã chọn
+        // ============================================================
+        if (show && (checkinVal || checkoutVal)) {
+            const rangeStart = checkinVal ? parseDateDMY(checkinVal) : null;
+            const rangeEnd = checkoutVal ? parseDateDMY(checkoutVal) : null;
 
-        if (show && checkoutVal && checkoutText !== checkoutVal) {
-            show = false;
+            const bookingCheckin = parseDateDMY(checkinText);
+            const bookingCheckout = parseDateDMY(checkoutText);
+
+            if (rangeStart) rangeStart.setHours(0, 0, 0, 0);
+            if (rangeEnd) rangeEnd.setHours(23, 59, 59, 999);
+
+            if (rangeStart && bookingCheckin) {
+                if (bookingCheckin < rangeStart) show = false;
+            } else if (rangeStart) {
+                // Không parse được ngày check-in của booking -> loại
+                show = false;
+            }
+
+            if (show && rangeEnd && bookingCheckout) {
+                if (bookingCheckout > rangeEnd) show = false;
+            } else if (show && rangeEnd) {
+                show = false;
+            }
         }
 
         if (show) {
@@ -267,6 +263,56 @@ function applyBookingFilters() {
         `;
         tbody.appendChild(emptyRow);
     }
+}
+
+function parseDateDMY(dateStr) {
+    if (!dateStr) return null;
+
+    dateStr = dateStr.trim();
+
+    if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+            const day = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            const year = parseInt(parts[2], 10);
+            if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                return new Date(year, month, day);
+            }
+        }
+    }
+
+    return null;
+}
+
+function parseDateRange(dateStr) {
+    if (!dateStr) return null;
+
+    dateStr = dateStr.trim();
+
+    // Nếu có dấu gạch ngang -> khoảng ngày (vd: 01/01/2026 - 15/01/2026)
+    if (dateStr.includes(' - ') || dateStr.includes('–') || dateStr.includes('—')) {
+        var separator = ' - ';
+        if (dateStr.includes('–')) separator = ' – ';
+        if (dateStr.includes('—')) separator = ' — ';
+
+        var parts = dateStr.split(separator);
+        if (parts.length === 2) {
+            var startDate = parseDateDMY(parts[0].trim());
+            var endDate = parseDateDMY(parts[1].trim());
+            if (startDate && endDate) {
+                return { start: startDate, end: endDate };
+            }
+        }
+    }
+
+    // Nếu chỉ có 1 ngày, trả về cùng 1 ngày cho start và end
+    var singleDate = parseDateDMY(dateStr);
+    if (singleDate) {
+        return { start: singleDate, end: singleDate };
+    }
+
+    return null;
 }
 
 function clearBookingFilters() {
@@ -303,9 +349,6 @@ function openAddPromotionModal() {
     modal.show();
 }
 
-// ============================================================
-// FORMAT DATE YYYY-MM-DD TO DD/MM/YYYY
-// ============================================================
 function formatDateDisplay(dateStr) {
     if (!dateStr) return '';
     if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
@@ -318,9 +361,6 @@ function formatDateDisplay(dateStr) {
     return dateStr;
 }
 
-// ============================================================
-// FORMAT ALL BOOKING DATES
-// ============================================================
 function formatAllBookingDates() {
     const rows = document.querySelectorAll('#bookingTableBody tr');
     rows.forEach(row => {
@@ -346,9 +386,6 @@ function formatAllBookingDates() {
     });
 }
 
-// ============================================================
-// OPEN PAYOUT DETAIL MODAL FOR OWNER
-// ============================================================
 window.openOwnerPayoutDetail = function(bookingId, bankName, accountNumber, accountHolder, payoutAmount, feePercent, payoutAt) {
     const elBankName = document.getElementById('opd-bankName');
     const elAccountNumber = document.getElementById('opd-accountNumber');
@@ -376,10 +413,6 @@ window.openOwnerPayoutDetail = function(bookingId, bankName, accountNumber, acco
         modal.show();
     }
 };
-
-// ============================================================
-// BOOKING DETAIL MODAL
-// ============================================================
 
 function openBookingDetail(btn) {
     var bookingData = {
@@ -596,7 +629,7 @@ function updateActualTimeDisplay(elementId, isoString) {
     var el = document.getElementById(elementId);
     if (!el) return;
     if (isoString) {
-        el.textContent = 'Lúc: ' + formatActualDateTime(isoString);
+        el.textContent = 'At: ' + formatActualDateTime(isoString);
         el.style.display = 'block';
     } else {
         el.textContent = '';
@@ -608,7 +641,6 @@ function formatVND(amount) {
     return new Intl.NumberFormat('vi-VN', { style: 'decimal', minimumFractionDigits: 0 }).format(amount) + ' VND';
 }
 
-// ===== UPDATE CHECK-IN =====
 function triggerCheckInConfirm() {
     var bookingId = (document.getElementById('bd-bookingId').textContent || '').replace('#', '');
     if (!bookingId || bookingId === '?') {
@@ -707,7 +739,6 @@ function executeCheckInUpdate(bookingId, checked) {
         });
 }
 
-// ===== UPDATE CHECK-OUT =====
 function triggerCheckOutConfirm() {
     var bookingId = (document.getElementById('bd-bookingId').textContent || '').replace('#', '');
     if (!bookingId || bookingId === '?') {
@@ -743,10 +774,6 @@ function triggerUnCheckOutConfirm() {
         }
     );
 }
-
-// ============================================================
-// CUSTOM CONFIRM MODAL (không dùng alert)
-// ============================================================
 
 function showActionConfirmModal(title, body, btnClass, btnText, onConfirm) {
     var modalEl = document.getElementById('confirmActionModal');
@@ -884,10 +911,6 @@ function executeCheckOutUpdate(bookingId, checked) {
             console.error('Error:', err);
         });
 }
-
-// ============================================================
-// CUSTOM TOAST NOTIFICATION
-// ============================================================
 
 function showToast(message, type) {
     var oldToasts = document.querySelectorAll('.custom-toast-card');

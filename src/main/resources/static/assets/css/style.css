@@ -14974,12 +14974,7 @@ input[type="date"]::-webkit-datetime-edit {
 }
 
 /* ────────────────────────────────────────────────────────────
-   Base
-   ──────────────────────────────────────────────────────────── */
-/* [body{}] — font/background đã gộp vào block body tổng hợp bên dưới */
-
-/* ────────────────────────────────────────────────────────────
-   Brand Utility Classes (dùng chung trong trang này)
+   Brand Utility Classes
    ──────────────────────────────────────────────────────────── */
 
 /* Backgrounds */
