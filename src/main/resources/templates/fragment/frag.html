@@ -207,6 +207,196 @@
         };
         /*]]>*/
     </script>
+
+    <!-- AI Chatbot Widget -->
+    <div id="ai-chat-widget"
+         class="position-fixed ai-chat-widget-container"
+         th:style="${session.loggedInUser != null and session.loggedInUser.role == 'CUSTOMER'} ? 'bottom: 25px; right: 95px;' : 'bottom: 25px; right: 25px;'">
+        
+        <!-- Toggle Button -->
+        <button id="ai-chat-toggle-btn" class="btn btn-primary rounded-circle shadow d-flex align-items-center justify-content-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bot"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+        </button>
+
+        <!-- Chat Window -->
+        <div id="ai-chat-window" class="card shadow-lg border-0 d-none">
+            
+            <!-- Header -->
+            <div class="card-header d-flex align-items-center justify-content-between py-3 ai-chat-header">
+                <div class="d-flex align-items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bot ai-chat-header-bot-icon"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                    <div>
+                        <span class="fw-bold ai-chat-header-title">AI Booking Assistant</span>
+                    </div>
+                </div>
+                <button id="ai-chat-close-btn" class="btn btn-link text-white p-0 d-flex align-items-center ai-chat-close-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Messages Body -->
+            <div id="ai-chat-messages" class="card-body p-3">
+                <!-- Welcome Message -->
+                <div class="ai-chat-msg-bot-wrapper">
+                    <div class="ai-chat-msg-bot-icon-container">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bot"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                    </div>
+                    <div class="p-2.5 rounded bg-white shadow-sm border ai-chat-msg-bot-bubble">
+                        <p class="m-0">Hello! I am your <strong>Booking Hotels AI Assistant</strong>. How can I help you today? I can recommend premium hotels, search for available room types, and assist you with your booking options!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Input -->
+            <div class="card-footer ai-chat-footer">
+                <input id="ai-chat-input" type="text" class="form-control" placeholder="Ask me something...">
+                <button id="ai-chat-send-btn" class="btn d-flex align-items-center justify-content-center rounded-circle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send-horizontal"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const toggleBtn = document.getElementById("ai-chat-toggle-btn");
+            const chatWindow = document.getElementById("ai-chat-window");
+            const closeBtn = document.getElementById("ai-chat-close-btn");
+            const sendBtn = document.getElementById("ai-chat-send-btn");
+            const chatInput = document.getElementById("ai-chat-input");
+            const messagesContainer = document.getElementById("ai-chat-messages");
+
+            if (!toggleBtn || !chatWindow) return;
+
+            // Hover animation effects
+            toggleBtn.addEventListener("mouseenter", () => toggleBtn.style.transform = "scale(1.1)");
+            toggleBtn.addEventListener("mouseleave", () => toggleBtn.style.transform = "scale(1)");
+
+            // Toggle Open/Close
+            toggleBtn.addEventListener("click", function () {
+                chatWindow.classList.toggle("d-none");
+                if (!chatWindow.classList.contains("d-none")) {
+                    chatInput.focus();
+                    scrollToBottom();
+                }
+            });
+
+            if (closeBtn) {
+                closeBtn.addEventListener("click", function () {
+                    chatWindow.classList.add("d-none");
+                });
+            }
+
+            // Scroll to bottom helper
+            function scrollToBottom() {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+
+            // Create user message element
+            function appendUserMessage(text) {
+                const msgHtml = `
+                    <div class="ai-chat-msg-user-wrapper">
+                        <div class="p-2.5 rounded text-white shadow-sm ai-chat-msg-user-bubble">
+                            <p class="m-0">${escapeHTML(text)}</p>
+                        </div>
+                    </div>
+                `;
+                messagesContainer.insertAdjacentHTML('beforeend', msgHtml);
+                scrollToBottom();
+            }
+
+            // Create AI message element
+            function appendAiMessage(htmlContent) {
+                const msgHtml = `
+                    <div class="ai-chat-msg-bot-wrapper">
+                        <div class="ai-chat-msg-bot-icon-container">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bot"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                        </div>
+                        <div class="p-2.5 rounded bg-white shadow-sm border ai-chat-msg-bot-bubble ai-response-content">
+                            ${htmlContent}
+                        </div>
+                    </div>
+                `;
+                messagesContainer.insertAdjacentHTML('beforeend', msgHtml);
+                scrollToBottom();
+            }
+
+            // Create loading placeholder
+            function appendLoadingPlaceholder() {
+                const loaderId = "ai-loader-" + Date.now();
+                const loaderHtml = `
+                    <div id="${loaderId}" class="ai-chat-msg-bot-wrapper">
+                        <div class="ai-chat-msg-bot-icon-container">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bot"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                        </div>
+                        <div class="p-2.5 rounded bg-white shadow-sm border d-flex gap-1 align-items-center ai-chat-msg-bot-bubble" style="height: 38px;">
+                            <span class="spinner-grow spinner-grow-sm text-secondary ai-spinner-dot"></span>
+                            <span class="spinner-grow spinner-grow-sm text-secondary ai-spinner-dot ai-spinner-delay-1"></span>
+                            <span class="spinner-grow spinner-grow-sm text-secondary ai-spinner-dot ai-spinner-delay-2"></span>
+                        </div>
+                    </div>
+                `;
+                messagesContainer.insertAdjacentHTML('beforeend', loaderHtml);
+                scrollToBottom();
+                return loaderId;
+            }
+
+            // Remove loading placeholder
+            function removeLoadingPlaceholder(id) {
+                const el = document.getElementById(id);
+                if (el) el.remove();
+            }
+
+            function escapeHTML(str) {
+                return str.replace(/[&<>'"]/g, 
+                    tag => ({
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        "'": '&#39;',
+                        '"': '&quot;'
+                    }[tag] || tag)
+                );
+            }
+
+            // Send message function
+            function handleSend() {
+                const text = chatInput.value.trim();
+                if (!text) return;
+
+                chatInput.value = "";
+                appendUserMessage(text);
+                const loaderId = appendLoadingPlaceholder();
+
+                fetch('/api/ai-chat/consult', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: text })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    removeLoadingPlaceholder(loaderId);
+                    appendAiMessage(data.response);
+                })
+                .catch(err => {
+                    console.error("AI Error:", err);
+                    removeLoadingPlaceholder(loaderId);
+                    appendAiMessage("<p style='color: #ef4444;'>Failed to receive response from AI. Please try again later.</p>");
+                });
+            }
+
+            // Event Listeners
+            sendBtn.addEventListener("click", handleSend);
+            chatInput.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    handleSend();
+                }
+            });
+        });
+    </script>
 </nav>
 
 <footer th:fragment="footer" class="bg-dark text-white text-center py-3 mt-auto">
