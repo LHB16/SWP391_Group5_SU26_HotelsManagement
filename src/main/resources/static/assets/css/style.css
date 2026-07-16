@@ -14327,8 +14327,8 @@ main {
 
 .sidebar-link.active {
   color: #fff;
-  background: #4f46e5;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+  background: #c9a96e;
+  box-shadow: 0 4px 12px rgba(201, 169, 110, 0.15);
 }
 
 /* Stat Cards (No transform translation, no transition) */
