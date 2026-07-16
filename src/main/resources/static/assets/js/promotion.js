@@ -5,16 +5,11 @@ let allPromotionsData = [];
 let allHotelsData = [];
 let isLoading = false;
 
-// ============================================================
-// HELPER: Format Date YYYY-MM-DD to DD/MM/YYYY
-// ============================================================
 function formatDateDisplay(dateStr) {
     if (!dateStr) return '';
-    // Nếu đã có định dạng DD/MM/YYYY thì giữ nguyên
     if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
         return dateStr;
     }
-    // Chuyển từ YYYY-MM-DD sang DD/MM/YYYY
     const parts = dateStr.split('-');
     if (parts.length === 3) {
         return `${parts[2]}/${parts[1]}/${parts[0]}`;
@@ -22,9 +17,6 @@ function formatDateDisplay(dateStr) {
     return dateStr;
 }
 
-// ============================================================
-// LOAD PROMOTIONS
-// ============================================================
 function loadPromotions() {
     if (isLoading) {
         return;
@@ -83,27 +75,19 @@ function loadPromotions() {
         });
 }
 
-// ============================================================
-// SHOW ERROR
-// ============================================================
 function showPromotionError(message) {
     const tbody = document.getElementById('promotionTableBody');
     if (tbody) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="6" class="text-center text-danger py-4">
-                    <i data-lucide="alert-circle" class="d-block mx-auto mb-2" style="width: 32px; height: 32px;"></i>
                     ${message}
                 </td>
             </tr>
         `;
-        if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 }
 
-// ============================================================
-// RENDER PROMOTIONS
-// ============================================================
 function renderPromotions(promotions) {
     const tbody = document.getElementById('promotionTableBody');
     if (!tbody) return;
@@ -112,12 +96,10 @@ function renderPromotions(promotions) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="6" class="text-center text-muted py-4">
-                    <i data-lucide="inbox" class="d-block mx-auto mb-2" style="width: 32px; height: 32px; opacity: 0.4;"></i>
                     No promotions found.
                 </td>
             </tr>
         `;
-        if (typeof lucide !== 'undefined') lucide.createIcons();
         return;
     }
 
@@ -133,7 +115,6 @@ function renderPromotions(promotions) {
             if (hotel) hotelName = hotel.name;
         }
 
-        // Format date từ YYYY-MM-DD sang DD/MM/YYYY
         const startDate = formatDateDisplay(promo.startDate);
         const endDate = formatDateDisplay(promo.endDate);
 
@@ -161,13 +142,11 @@ function renderPromotions(promotions) {
                                 data-start="${promo.startDate || ''}"
                                 data-end="${promo.endDate || ''}"
                                 data-status="${promo.status}">
-                            <i data-lucide="pencil" style="width: 14px; height: 14px;"></i>
                             Edit
                         </button>
                         <button type="button" class="promo-action-btn promo-action-btn-delete" 
                                 data-bs-toggle="modal" 
                                 data-bs-target="#deleteModalPromo-${promo.id}">
-                            <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
                             Delete
                         </button>
                     </div>
@@ -177,15 +156,8 @@ function renderPromotions(promotions) {
     });
 
     tbody.innerHTML = html;
-
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
 }
 
-// ============================================================
-// HELPER: Escape HTML
-// ============================================================
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -193,9 +165,6 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// ============================================================
-// SETUP PROMOTION DATE FILTERS WITH FLATPICKR
-// ============================================================
 function setupPromotionDateFilters() {
     const startDateFilter = document.getElementById('promoStartDateFilter');
     const endDateFilter = document.getElementById('promoEndDateFilter');
@@ -225,9 +194,6 @@ function setupPromotionDateFilters() {
     }
 }
 
-// ============================================================
-// FILTER PROMOTIONS
-// ============================================================
 function applyPromotionFilters() {
     const searchInput = document.getElementById('promotionSearchInput');
     const hotelFilter = document.getElementById('hotelFilterSelect');
@@ -263,9 +229,6 @@ function applyPromotionFilters() {
     renderPromotions(filtered);
 }
 
-// ============================================================
-// CLEAR PROMOTION FILTERS
-// ============================================================
 function clearPromotionFilters() {
     const searchInput = document.getElementById('promotionSearchInput');
     const hotelFilter = document.getElementById('hotelFilterSelect');
@@ -291,9 +254,6 @@ function clearPromotionFilters() {
     renderPromotions(allPromotionsData);
 }
 
-// ============================================================
-// OPEN EDIT PROMOTION MODAL
-// ============================================================
 function openEditPromotionModal(button) {
     const promoId = button.getAttribute('data-promo-id');
     const hotelId = button.getAttribute('data-hotel-id');
@@ -304,13 +264,21 @@ function openEditPromotionModal(button) {
     const end = button.getAttribute('data-end');
     const status = button.getAttribute('data-status');
 
+    const errorEl = document.getElementById('editDiscountError');
+    if (errorEl) {
+        errorEl.style.display = 'none';
+    }
+    const input = document.getElementById('editDiscountPercent');
+    if (input) {
+        input.classList.remove('is-invalid', 'is-valid');
+    }
+
     document.getElementById('editPromotionId').value = promoId;
     document.getElementById('editHotelId').value = hotelId;
     document.getElementById('editTitle').value = title;
     document.getElementById('editDescription').value = description;
     document.getElementById('editDiscountPercent').value = discount;
 
-    // Gán ngày cho Flatpickr
     const startFp = document.getElementById('editStartDate')._flatpickr;
     if (startFp) {
         startFp.setDate(start);
@@ -331,11 +299,17 @@ function openEditPromotionModal(button) {
     modal.show();
 }
 
-// ============================================================
-// OPEN ADD PROMOTION MODAL
-// ============================================================
 function openAddPromotionModal() {
-    // Clear dữ liệu cũ trong modal add trước khi mở
+    const errorEl = document.getElementById('addDiscountError');
+    if (errorEl) {
+        errorEl.style.display = 'none';
+    }
+    const input = document.getElementById('addDiscountPercent');
+    if (input) {
+        input.classList.remove('is-invalid', 'is-valid');
+        input.value = '';
+    }
+
     const addStart = document.getElementById('addStartDate');
     const addEnd = document.getElementById('addEndDate');
     if (addStart && addStart._flatpickr) addStart._flatpickr.clear();
@@ -345,9 +319,6 @@ function openAddPromotionModal() {
     modal.show();
 }
 
-// ============================================================
-// SETUP PROMOTION FORM DATE PICKERS (ADD/EDIT) WITH FLATPICKR
-// ============================================================
 function setupPromotionFormDatePickers() {
     const addStart = document.getElementById('addStartDate');
     const addEnd = document.getElementById('addEndDate');
@@ -375,9 +346,6 @@ function setupPromotionFormDatePickers() {
     }
 }
 
-// ============================================================
-// SETUP PROMOTION EVENTS
-// ============================================================
 function setupPromotionEvents() {
     const searchInput = document.getElementById('promotionSearchInput');
     const hotelFilter = document.getElementById('hotelFilterSelect');
@@ -394,26 +362,74 @@ function setupPromotionEvents() {
     }
 }
 
-// ============================================================
-// AUTO-LOAD ON PAGE READY
-// ============================================================
+function validateDiscountInteger(input) {
+    if (!input) return;
+
+    const errorId = input.id === 'addDiscountPercent' ? 'addDiscountError' :
+        input.id === 'editDiscountPercent' ? 'editDiscountError' : null;
+    const errorEl = document.getElementById(errorId);
+    const val = input.value;
+
+    input.classList.remove('is-valid', 'is-invalid');
+
+    if (val && val.length > 0) {
+        const numVal = parseFloat(val);
+
+        if (val.includes('.')) {
+            if (errorEl) {
+                errorEl.style.display = 'block';
+                errorEl.textContent = 'Decimals are not allowed. Please enter a whole number.';
+            }
+            input.classList.add('is-invalid');
+            const intVal = Math.floor(numVal);
+            if (intVal >= 1 && intVal <= 100) {
+                input.value = intVal;
+                setTimeout(function() {
+                    validateDiscountInteger(input);
+                }, 100);
+            }
+            return;
+        }
+
+        if (numVal < 1) {
+            if (errorEl) {
+                errorEl.style.display = 'block';
+                errorEl.textContent = 'Discount must be at least 1%.';
+            }
+            input.classList.add('is-invalid');
+            return;
+        }
+
+        if (numVal > 100) {
+            if (errorEl) {
+                errorEl.style.display = 'block';
+                errorEl.textContent = 'Discount cannot exceed 100%.';
+            }
+            input.classList.add('is-invalid');
+            return;
+        }
+
+        if (errorEl) {
+            errorEl.style.display = 'none';
+        }
+        input.classList.add('is-valid');
+    } else {
+        if (errorEl) {
+            errorEl.style.display = 'none';
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
-    // Setup events
     setupPromotionEvents();
-
-    // Setup date filters with Flatpickr
     setupPromotionDateFilters();
-
-    // Setup add/edit form date pickers with Flatpickr
     setupPromotionFormDatePickers();
 
-    // Check if promotions tab is active
     const activeTab = document.querySelector('.tab-panel.active');
     if (activeTab && activeTab.id === 'promotions') {
         loadPromotions();
     }
 
-    // Listen for tab changes
     const sidebarLinks = document.querySelectorAll('.sidebar-link');
     sidebarLinks.forEach(link => {
         link.addEventListener('click', function () {
@@ -423,4 +439,148 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
+
+    const addForm = document.getElementById('addPromotionForm');
+    if (addForm) {
+        addForm.addEventListener('submit', function(e) {
+            const discountInput = document.getElementById('addDiscountPercent');
+            if (!discountInput) return;
+
+            const val = discountInput.value.trim();
+            const errorEl = document.getElementById('addDiscountError');
+
+            if (!val) {
+                e.preventDefault();
+                if (errorEl) {
+                    errorEl.style.display = 'block';
+                    errorEl.textContent = 'Discount percent is required.';
+                }
+                discountInput.classList.add('is-invalid');
+                discountInput.focus();
+                return false;
+            }
+
+            if (val.includes('.')) {
+                e.preventDefault();
+                if (errorEl) {
+                    errorEl.style.display = 'block';
+                    errorEl.textContent = 'Decimals are not allowed. Please enter a whole number (e.g., 10, 15, 20).';
+                }
+                discountInput.classList.add('is-invalid');
+                discountInput.focus();
+                return false;
+            }
+
+            const numVal = parseFloat(val);
+
+            if (numVal < 1 || numVal > 100) {
+                e.preventDefault();
+                if (errorEl) {
+                    errorEl.style.display = 'block';
+                    errorEl.textContent = 'Discount must be between 1% and 100%.';
+                }
+                discountInput.classList.add('is-invalid');
+                discountInput.focus();
+                return false;
+            }
+
+            if (errorEl) {
+                errorEl.style.display = 'none';
+            }
+            discountInput.classList.remove('is-invalid');
+            discountInput.classList.add('is-valid');
+            return true;
+        });
+    }
+
+    const editForm = document.getElementById('editPromotionForm');
+    if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+            const discountInput = document.getElementById('editDiscountPercent');
+            if (!discountInput) return;
+
+            const val = discountInput.value.trim();
+            const errorEl = document.getElementById('editDiscountError');
+
+            if (!val) {
+                e.preventDefault();
+                if (errorEl) {
+                    errorEl.style.display = 'block';
+                    errorEl.textContent = 'Discount percent is required.';
+                }
+                discountInput.classList.add('is-invalid');
+                discountInput.focus();
+                return false;
+            }
+
+            if (val.includes('.')) {
+                e.preventDefault();
+                if (errorEl) {
+                    errorEl.style.display = 'block';
+                    errorEl.textContent = 'Decimals are not allowed. Please enter a whole number (e.g., 10, 15, 20).';
+                }
+                discountInput.classList.add('is-invalid');
+                discountInput.focus();
+                return false;
+            }
+
+            const numVal = parseFloat(val);
+
+            if (numVal < 1 || numVal > 100) {
+                e.preventDefault();
+                if (errorEl) {
+                    errorEl.style.display = 'block';
+                    errorEl.textContent = 'Discount must be between 1% and 100%.';
+                }
+                discountInput.classList.add('is-invalid');
+                discountInput.focus();
+                return false;
+            }
+
+            if (errorEl) {
+                errorEl.style.display = 'none';
+            }
+            discountInput.classList.remove('is-invalid');
+            discountInput.classList.add('is-valid');
+            return true;
+        });
+    }
+
+    const addInput = document.getElementById('addDiscountPercent');
+    if (addInput) {
+        addInput.addEventListener('input', function() {
+            validateDiscountInteger(this);
+        });
+        addInput.addEventListener('blur', function() {
+            validateDiscountInteger(this);
+        });
+    }
+
+    const editInput = document.getElementById('editDiscountPercent');
+    if (editInput) {
+        editInput.addEventListener('input', function() {
+            validateDiscountInteger(this);
+        });
+        editInput.addEventListener('blur', function() {
+            validateDiscountInteger(this);
+        });
+    }
+
+    const addModal = document.getElementById('addPromotionModal');
+    if (addModal) {
+        addModal.addEventListener('shown.bs.modal', function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+    }
+
+    const editModal = document.getElementById('editPromotionModal');
+    if (editModal) {
+        editModal.addEventListener('shown.bs.modal', function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+    }
 });
