@@ -14386,6 +14386,38 @@ main {
   color: #3b82f6;
 }
 
+.stat-card.card-pending::before {
+  background: linear-gradient(135deg, #f97316, #fdba74);
+}
+
+.card-pending .stat-icon {
+  background: rgba(249, 115, 22, 0.08);
+  color: #f97316;
+}
+
+.stat-card.card-processed::before {
+  background: var(--success-gradient);
+}
+
+.card-processed .stat-icon {
+  background: rgba(16, 185, 129, 0.08);
+  color: #10b981;
+}
+
+.stat-card.card-rejected::before {
+  background: linear-gradient(135deg, #ef4444, #fca5a5);
+}
+
+.card-rejected .stat-icon {
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+}
+
+.stat-card .d-flex.align-items-center .stat-icon {
+  margin-bottom: 0;
+}
+
+
 .stat-value {
   font-size: 1.65rem;
   font-weight: 700;
