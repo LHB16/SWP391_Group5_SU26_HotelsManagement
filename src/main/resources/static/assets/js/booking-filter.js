@@ -29,9 +29,10 @@ document.addEventListener("DOMContentLoaded", function() {
             dateFormat: "Y-m-d",
             altInput: true,
             altFormat: "d/m/Y",
-            altInputClass: "form-control form-control-sm",
+            altInputClass: "form-control form-control-sm bg-light",
             minDate: "today",
             allowInput: false,
+            clickOpens: false,
             defaultDate: ciVal ? ciVal : null,
             onChange: function(selectedDates, dateStr) {
                 if (selectedDates[0] && coPicker) {
@@ -59,9 +60,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 dateFormat: "Y-m-d",
                 altInput: true,
                 altFormat: "d/m/Y",
-                altInputClass: "form-control form-control-sm",
+                altInputClass: "form-control form-control-sm bg-light",
                 minDate: minCoDate,
                 allowInput: false,
+                clickOpens: false,
                 defaultDate: coVal ? coVal : null
             });
         }
