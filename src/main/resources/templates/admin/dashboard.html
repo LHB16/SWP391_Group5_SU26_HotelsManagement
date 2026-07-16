@@ -181,6 +181,21 @@
                         </div>
                     </div>
 
+                    <!-- Chart Section -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-12">
+                            <div class="dashboard-section p-4" style="background: white; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);">
+                                <h2 class="section-title mb-4 d-flex align-items-center gap-2">
+                                    <i data-lucide="bar-chart-3" style="stroke-width: 1.5; color: #c9a96e;"></i>
+                                    Revenue Statistics Chart
+                                </h2>
+                                <div style="position: relative; height: 350px; width: 100%;">
+                                    <canvas id="revenueChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Filters -->
                     <div class="row g-4 mb-4">
                         <div class="col-12">
@@ -191,7 +206,7 @@
                                 </h2>
                                 
                                 <div class="d-flex align-items-center gap-3 flex-wrap">
-                                    <div class="search-pill-container flex-grow-1" style="max-width: 600px; border-radius: 12px; height: 50px;">
+                                    <div class="search-pill-container flex-grow-1" style="max-width: 500px; border-radius: 12px; height: 50px; min-width: 250px;">
                                         <!-- Start Date Filter -->
                                         <div class="search-pill-col" style="flex: 1; padding: 0 15px;">
                                             <label class="search-pill-label">Start Date:</label>
@@ -210,6 +225,46 @@
                                         </div>
                                     </div>
                                     
+                                    <!-- Month Filter -->
+                                    <div class="d-flex align-items-center gap-2" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 5px 15px; height: 50px;">
+                                        <label class="small fw-bold text-muted mb-0 me-1">Month:</label>
+                                        <select id="filterMonth" class="form-select border-0 bg-transparent p-0" style="font-size: 0.85rem; font-weight: 600; width: auto; min-width: 80px; box-shadow: none; cursor: pointer; color: #334155;">
+                                            <option value="">All</option>
+                                            <option value="01">Jan</option>
+                                            <option value="02">Feb</option>
+                                            <option value="03">Mar</option>
+                                            <option value="04">Apr</option>
+                                            <option value="05">May</option>
+                                            <option value="06">Jun</option>
+                                            <option value="07">Jul</option>
+                                            <option value="08">Aug</option>
+                                            <option value="09">Sep</option>
+                                            <option value="10">Oct</option>
+                                            <option value="11">Nov</option>
+                                            <option value="12">Dec</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Quarter Filter -->
+                                    <div class="d-flex align-items-center gap-2" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 5px 15px; height: 50px;">
+                                        <label class="small fw-bold text-muted mb-0 me-1">Quarter:</label>
+                                        <select id="filterQuarter" class="form-select border-0 bg-transparent p-0" style="font-size: 0.85rem; font-weight: 600; width: auto; min-width: 80px; box-shadow: none; cursor: pointer; color: #334155;">
+                                            <option value="">All</option>
+                                            <option value="1">Q1</option>
+                                            <option value="2">Q2</option>
+                                            <option value="3">Q3</option>
+                                            <option value="4">Q4</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Year Filter -->
+                                    <div class="d-flex align-items-center gap-2" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 5px 15px; height: 50px;">
+                                        <label class="small fw-bold text-muted mb-0 me-1">Year:</label>
+                                        <select id="filterYear" class="form-select border-0 bg-transparent p-0" style="font-size: 0.85rem; font-weight: 600; width: auto; min-width: 80px; box-shadow: none; cursor: pointer; color: #334155;">
+                                            <option value="">All</option>
+                                        </select>
+                                    </div>
+
                                     <div class="d-flex align-items-center">
                                         <button type="button" id="btnClearDateFilter" class="btn btn-outline-secondary py-2 px-3 d-flex align-items-center gap-1" style="border-radius: 10px; height: 50px; font-weight: 500; font-size: 0.9rem;">
                                             <i data-lucide="x" style="width: 16px; height: 16px;"></i> Clear Filter (All Time)
@@ -780,35 +835,41 @@
                                 <!-- Thống kê số lượng (Stats counters) -->
                                 <div class="row g-3 mb-4" th:if="${tab == 'refundPanel'}">
                                     <div class="col-md-4">
-                                        <div class="ra-stat-card ra-stat-pending p-3 bg-light rounded-3 shadow-sm d-flex align-items-center gap-3">
-                                            <div class="ra-stat-icon">
-                                                <i data-lucide="clock" style="stroke-width: 1.5; width: 22px; height: 22px;"></i>
-                                            </div>
-                                            <div class="ra-stat-body">
-                                                <div class="ra-stat-num fw-bold text-dark" th:text="${pendingCount}">0</div>
-                                                <div class="ra-stat-label text-muted small">Pending</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="ra-stat-card ra-stat-processed p-3 bg-light rounded-3 shadow-sm d-flex align-items-center gap-3">
-                                            <div class="ra-stat-icon">
-                                                <i data-lucide="check-circle" style="stroke-width: 1.5; width: 22px; height: 22px;"></i>
-                                            </div>
-                                            <div class="ra-stat-body">
-                                                <div class="ra-stat-num fw-bold text-dark" th:text="${processedCount}">0</div>
-                                                <div class="ra-stat-label text-muted small">Processed</div>
+                                        <div class="stat-card card-pending" style="padding: 20px;">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="stat-icon">
+                                                    <i data-lucide="clock" style="stroke-width: 1.5;"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="stat-value" th:text="${pendingCount}">0</div>
+                                                    <div class="stat-label">Pending</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
-                                        <div class="ra-stat-card ra-stat-rejected p-3 bg-light rounded-3 shadow-sm d-flex align-items-center gap-3">
-                                            <div class="ra-stat-icon">
-                                                <i data-lucide="x-circle" style="stroke-width: 1.5; width: 22px; height: 22px;"></i>
+                                        <div class="stat-card card-processed" style="padding: 20px;">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="stat-icon">
+                                                    <i data-lucide="check-circle" style="stroke-width: 1.5;"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="stat-value" th:text="${processedCount}">0</div>
+                                                    <div class="stat-label">Processed</div>
+                                                </div>
                                             </div>
-                                            <div class="ra-stat-body">
-                                                <div class="ra-stat-num fw-bold text-dark" th:text="${rejectedCount}">0</div>
-                                                <div class="ra-stat-label text-muted small">Rejected</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="stat-card card-rejected" style="padding: 20px;">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="stat-icon">
+                                                    <i data-lucide="x-circle" style="stroke-width: 1.5;"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="stat-value" th:text="${rejectedCount}">0</div>
+                                                    <div class="stat-label">Rejected</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -1571,6 +1632,9 @@
 
     <!-- Bootstrap Bundle and default scripts -->
     <th:block th:replace="~{fragment/frag :: scripts}"></th:block>
+
+    <!-- Connect Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Connect custom interactive JS file -->
     <script th:src="@{/assets/js/dashboard.js}"></script>
