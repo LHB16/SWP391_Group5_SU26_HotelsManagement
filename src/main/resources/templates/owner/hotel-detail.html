@@ -4,246 +4,225 @@
 <head th:replace="~{fragment/frag :: head}"></head>
 
 <body class="d-flex flex-column min-vh-100">
-<nav th:replace="~{fragment/frag :: navBar}"></nav>
+    <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
-<!-- ==================== HERO BANNER ==================== -->
-<section class="room-hero">
-    <div class="container">
-        <h1 class="room-hero-title" th:text="${hotel.name}">Hotel Name</h1>
-        <p class="room-hero-subtitle">
-            <i class="bi bi-geo-alt me-1"></i>
-            <span th:text="${hotel.address}">Hotel Address</span>
-        </p>
-        <div class="room-hero-divider"></div>
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <main class="flex-grow-1 py-4 bg-cream">
+        <div class="container-fluid px-3 px-md-4">
+            <div class="row g-4">
 
-        <div class="d-flex align-items-center gap-3 flex-wrap mt-3">
-            <span class="room-hero-badge">
-                <i class="bi bi-star-fill text-gold me-1"></i>
-                <span th:text="${hotel.rating} ">5 ★</span>
-            </span>
-            <span class="room-hero-badge">
-                <i class="bi bi-door-open me-1"></i>
-                <strong th:text="${rooms != null ? rooms.size() : 0}">0</strong>&nbsp;rooms
-            </span>
-            <span class="room-hero-badge" th:if="${hotel.active}">
-                <i class="bi bi-check-circle-fill text-success me-1"></i>
-                Active
-            </span>
-            <span class="room-hero-badge" th:unless="${hotel.active}">
-                <i class="bi bi-x-circle-fill text-danger me-1"></i>
-                Inactive
-            </span>
-            <span class="room-hero-badge">
-                <span class="badge"
-                      th:classappend="${hotel.approvalStatus == 'APPROVED'} ? 'bg-success' :
-                                     (${hotel.approvalStatus == 'REJECTED'} ? 'bg-danger' : 'bg-warning text-dark')"
-                      th:text="${hotel.approvalStatus ?: 'PENDING'}">
-                    PENDING
-                </span>
-            </span>
-        </div>
-    </div>
-</section>
-
-<!-- ==================== MAIN CONTENT ==================== -->
-<main class="flex-grow-1 py-4 bg-cream">
-    <div class="container-fluid px-3 px-md-4">
-        <div class="row g-4">
-
-            <!-- Back Button -->
-            <div class="col-12">
-                <a th:href="@{/owner/dashboard(tab='hotels')}" class="back-btn">
-                    <i class="bi bi-arrow-left me-2"></i>
-                    Back to Dashboard
-                </a>
-            </div>
-
-            <!-- ===== HOTEL INFORMATION ===== -->
-            <div class="col-12">
-                <div class="card border-0 shadow-sm card-custom-rounded">
-                    <div class="row g-0">
-                        <!-- Hotel Image -->
-                        <div class="col-12 col-md-4 hotel-detail-img-container">
-                            <img th:if="${hotel.imageUrl != null and !hotel.imageUrl.isEmpty()}"
-                                 th:src="@{${hotel.imageUrl}}" th:alt="${hotel.name}"
-                                 class="w-100 h-100 object-fit-cover hotel-detail-img-container" />
-                            <div th:if="${hotel.imageUrl == null or hotel.imageUrl.isEmpty()}"
-                                 class="w-100 h-100 d-flex align-items-center justify-content-center bg-light hotel-detail-img-container">
-                                <i class="bi bi-image text-muted fs-1"></i>
+                <!-- ===== HOTEL INFORMATION ===== -->
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm card-custom-rounded">
+                        <div class="row g-0">
+                            <!-- Hotel Image -->
+                            <div class="col-12 col-md-4 hotel-detail-img-container">
+                                <img th:if="${hotel.imageUrl != null and !hotel.imageUrl.isEmpty()}"
+                                    th:src="@{${hotel.imageUrl}}" th:alt="${hotel.name}"
+                                    class="w-100 h-100 object-fit-cover hotel-detail-img-container" />
+                                <div th:if="${hotel.imageUrl == null or hotel.imageUrl.isEmpty()}"
+                                    class="w-100 h-100 d-flex align-items-center justify-content-center bg-light hotel-detail-img-container">
+                                    <i class="bi bi-image text-muted fs-1"></i>
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Hotel Details -->
-                        <div class="col-12 col-md-8">
-                            <div class="card-body p-4">
-                                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-                                    <div>
-                                        <h2 class="fw-bold text-dark mb-1" th:text="${hotel.name}">Hotel Name</h2>
-                                        <p class="text-muted mb-2">
-                                            <i class="bi bi-geo-alt me-1"></i>
-                                            <span th:text="${hotel.address}">Address</span>
-                                        </p>
-                                        <p class="text-muted small" th:if="${hotel.city != null}">
-                                            <i class="bi bi-building me-1"></i>
-                                            <span th:text="${hotel.city} + (${hotel.district != null} ? ', ' + ${hotel.district} : '')">City</span>
+                            <!-- Hotel Details -->
+                            <div class="col-12 col-md-8">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                        <div>
+                                            <h2 class="fw-bold text-dark mb-1" th:text="${hotel.name}">Hotel Name</h2>
+                                            <p class="text-muted mb-2">
+                                                <i data-lucide="map-pin" class="owner-detail-icon-small"></i>
+                                                <span th:text="${hotel.address}">Address</span>
+                                            </p>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="fs-4 fw-bold text-gold" th:text="${hotel.rating} + ' ★'">5 ★
+                                            </div>
+                                            <small class="text-muted" th:text="${hotel.totalReviews} + ' feedbacks'">0
+                                                feedbacks</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-3">
+                                        <h6 class="fw-semibold text-dark mb-2">Description</h6>
+                                        <p class="text-muted"
+                                            th:text="${hotel.description != null ? hotel.description : 'No description available.'}">
+                                            Description
                                         </p>
                                     </div>
-                                    <div class="text-end">
-                                        <div class="fs-4 fw-bold text-gold" th:text="${hotel.rating} + ' ★'">5 ★</div>
-                                        <small class="text-muted" th:text="${hotel.totalReviews} + ' feedbacks'">0 feedbacks</small>
+
+                                    <div class="mt-3 d-flex gap-3 flex-wrap">
+                                        <span class="badge bg-light text-dark px-3 py-2" th:if="${hotel.active}">
+                                            <i data-lucide="check-circle"
+                                                class="owner-detail-icon-small owner-detail-icon-active"></i>
+                                            Active
+                                        </span>
+                                        <span class="badge bg-light text-dark px-3 py-2" th:unless="${hotel.active}">
+                                            <i data-lucide="x-circle"
+                                                class="owner-detail-icon-small owner-detail-icon-inactive"></i>
+                                            Inactive
+                                        </span>
+                                         <span class="badge bg-light text-dark px-3 py-2">
+                                             <i data-lucide="tag"
+                                                 class="owner-detail-icon-small"
+                                                 th:classappend="${hotel.approvalStatus == 'APPROVED'} ? 'owner-detail-icon-active' :
+                                                                (${hotel.approvalStatus == 'REJECTED'} ? 'owner-detail-icon-inactive' : 'owner-detail-icon-pending')"></i>
+                                             <span th:text="${hotel.approvalStatus ?: 'PENDING'}">PENDING</span>
+                                         </span>
                                     </div>
-                                </div>
 
-                                <div class="mt-3">
-                                    <h6 class="fw-semibold text-dark mb-2">Description</h6>
-                                    <p class="text-muted" th:text="${hotel.description != null ? hotel.description : 'No description available.'}">
-                                        Description
-                                    </p>
-                                </div>
-
-                                <div class="mt-3 d-flex gap-3 flex-wrap">
-                                    <span class="badge bg-light text-dark px-3 py-2">
-                                        <i class="bi me-1" th:classappend="${hotel.active} ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'"></i>
-                                        <span th:text="${hotel.active} ? 'Active' : 'Inactive'">Active</span>
-                                    </span>
-                                    <span class="badge bg-light text-dark px-3 py-2">
-                                        <i class="bi bi-tag me-1"></i>
-                                        <span th:text="${hotel.approvalStatus ?: 'PENDING'}">PENDING</span>
-                                    </span>
-                                </div>
-
-                                <div class="mt-3 d-flex gap-2">
-                                    <a th:href="@{/owner/hotels/{id}/edit(id=${hotel.id})}" class="btn btn-gold btn-sm">
-                                        <i class="bi bi-pencil me-1"></i>
-                                        Edit Hotel
-                                    </a>
+                                    <div class="mt-3 d-flex gap-2">
+                                        <a th:href="@{/owner/hotels/{id}/edit(id=${hotel.id})}"
+                                            class="btn btn-gold btn-sm">
+                                            <i data-lucide="pencil" class="owner-detail-icon-small"></i>
+                                            Edit Hotel
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- ===== ROOM LIST ===== -->
-            <div class="col-12 mt-3">
-                <!-- Flash messages -->
-                <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
-                    <i class="bi bi-check-circle-fill"></i>
-                    <span th:text="${successMessage}"></span>
-                </div>
-                <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                    <span th:text="${errorMessage}"></span>
-                </div>
+                <!-- ===== ROOM LIST ===== -->
+                <div class="col-12 mt-3">
+                    <!-- Flash messages -->
+                    <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span th:text="${successMessage}"></span>
+                    </div>
+                    <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span th:text="${errorMessage}"></span>
+                    </div>
 
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="fw-bold text-dark mb-0 d-inline-flex align-items-center">
-                        <i class="bi bi-door-open me-2 text-gold"></i>
-                        Rooms in this Hotel
-                        <span class="ms-2 badge badge-room-count"
-                              th:text="${rooms != null ? rooms.size() : 0}"
-                              style="font-size: 0.78rem; border-radius: 99px; font-family: 'Inter', sans-serif; font-weight: 700; color: #fff !important; background-color: var(--gold-dark) !important; padding: 4px 9px;">0</span>
-                    </h4>
-                    <a th:href="@{/hotels/{id}/rooms/new(id=${hotel.id})}" class="btn btn-gold btn-sm">
-                        <i class="bi bi-plus-lg me-1"></i>
-                        Add Room
-                    </a>
-                </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold text-dark mb-0 d-inline-flex align-items-center gap-2">
+                            <i data-lucide="door-open" class="owner-detail-icon-door"></i>
+                            Rooms in this Hotel
+                            <span class="badge badge-room-count owner-detail-badge-count" th:text="${rooms != null ? rooms.size() : 0}">0</span>
+                        </h4>
+                        <a th:href="@{/hotels/{id}/rooms/new(id=${hotel.id})}" class="btn btn-gold btn-sm">
+                            <i data-lucide="plus" class="owner-detail-icon-small"></i>
+                            Add Room
+                        </a>
+                    </div>
 
-                <!-- Empty State -->
-                <div th:if="${rooms == null or rooms.isEmpty()}" class="text-center py-5 bg-white shadow-sm rounded-3 border">
-                    <i class="bi bi-door-open fs-1 text-muted mb-3 opacity-50 d-block"></i>
-                    <h5 class="text-muted">No Rooms Available</h5>
-                    <p class="text-muted small">This hotel doesn't have any rooms yet.</p>
-                    <a th:href="@{/hotels/{id}/rooms/new(id=${hotel.id})}" class="btn btn-gold btn-sm mt-2">
-                        <i class="bi bi-plus-lg me-1"></i>
-                        Add First Room
-                    </a>
-                </div>
+                    <!-- Empty State -->
+                    <div th:if="${rooms == null or rooms.isEmpty()}"
+                        class="text-center py-5 bg-white shadow-sm rounded-3 border">
+                        <i class="bi bi-door-open fs-1 text-muted mb-3 opacity-50 d-block"></i>
+                        <h5 class="text-muted">No Rooms Available</h5>
+                        <p class="text-muted small">This hotel doesn't have any rooms yet.</p>
+                        <a th:href="@{/hotels/{id}/rooms/new(id=${hotel.id})}" class="btn btn-gold btn-sm mt-2">
+                            <i class="bi bi-plus-lg me-1"></i>
+                            Add First Room
+                        </a>
+                    </div>
 
-                <!-- Room List (Table view for Owner) -->
-                <div th:if="${rooms != null and !rooms.isEmpty()}" class="table-responsive bg-white rounded-3 shadow-sm p-3">
-                    <table class="owner-rooms-table align-middle table-hover">
-                        <thead>
-                            <tr>
-                                <th>nummber</th>
-                                <th>room_type</th>
-                                <th>room</th>
-                                <th>acreage</th>
-                                <th>bed</th>
-                                <th>person</th>
-                                <th>window</th>
-                                <th>room_status</th>
-                                <th>price</th>
-                                <th>action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="room, iterStat : ${rooms}">
-                                <td th:text="${iterStat.count}">1</td>
-                                <td th:text="${room.type}">Standard</td>
-                                <td th:text="${room.numberRooms}">5</td>
-                                <td th:text="${room.acreage + ' m²'}">25 m²</td>
-                                <td th:text="${room.bed}">1</td>
-                                <td th:text="${room.person}">2</td>
-                                <td th:text="${room.window}">1</td>
-                                <td>
-                                    <span class="badge" th:classappend="${room.roomStatus} ? 'bg-success' : 'bg-danger'"
-                                          th:text="${room.roomStatus} ? 'Active' : 'Inactive'">Active</span>
-                                </td>
-                                <td th:text="${#numbers.formatInteger(room.price, 0, 'COMMA') + ' VND'}">500,000 VND</td>
-                                <td>
-                                    <div class="d-flex gap-2 justify-content-center">
-                                        <a th:href="@{/hotels/{id}/rooms/{rid}(id=${hotel.id}, rid=${room.id})}"
-                                           class="btn-action-view">View</a>
-                                        <a th:href="@{/owner/hotels/{id}/rooms/{rid}/edit(id=${hotel.id}, rid=${room.id})}"
-                                           class="btn-action-modify">Modify</a>
-                                        <button type="button" class="btn-action-delete" data-bs-toggle="modal" th:data-bs-target="'#deleteModalRoom-' + ${room.id}">Delete</button>
+                    <!-- Room List (Table view for Owner) -->
+                    <div th:if="${rooms != null and !rooms.isEmpty()}"
+                        class="table-responsive bg-white rounded-3 shadow-sm p-3">
+                        <table class="owner-rooms-table align-middle table-hover">
+                            <thead>
+                                <tr>
+                                    <th>nummber</th>
+                                    <th>room_type</th>
+                                    <th>room</th>
+                                    <th>acreage</th>
+                                    <th>bed</th>
+                                    <th>person</th>
+                                    <th>window</th>
+                                    <th>room_status</th>
+                                    <th>price</th>
+                                    <th>action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="room, iterStat : ${rooms}">
+                                    <td th:text="${iterStat.count}">1</td>
+                                    <td th:text="${room.type}">Standard</td>
+                                    <td th:text="${room.numberRooms}">5</td>
+                                    <td th:text="${room.acreage + ' m²'}">25 m²</td>
+                                    <td th:text="${room.bed}">1</td>
+                                    <td th:text="${room.person}">2</td>
+                                    <td th:text="${room.window}">1</td>
+                                    <td>
+                                        <span class="badge"
+                                            th:classappend="${room.roomStatus} ? 'bg-success' : 'bg-danger'"
+                                            th:text="${room.roomStatus} ? 'Active' : 'Inactive'">Active</span>
+                                    </td>
+                                    <td th:text="${#numbers.formatInteger(room.price, 0, 'COMMA') + ' VND'}">500,000 VND
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2 justify-content-center">
+                                            <a th:href="@{/hotels/{id}/rooms/{rid}(id=${hotel.id}, rid=${room.id})}"
+                                                class="btn-action-view">View</a>
+                                            <a th:href="@{/owner/hotels/{id}/rooms/{rid}/edit(id=${hotel.id}, rid=${room.id})}"
+                                                class="btn-action-modify">Modify</a>
+                                            <button type="button" class="btn-action-delete" data-bs-toggle="modal"
+                                                th:data-bs-target="'#deleteModalRoom-' + ${room.id}">Delete</button>
 
-                                        <!-- Bootstrap Delete Modal -->
-                                        <div class="modal fade" th:id="'deleteModalRoom-' + ${room.id}" tabindex="-1" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered">
-                                                <div class="modal-content modal-content-rounded">
-                                                    <div class="modal-header border-0 pt-4 pb-0 justify-content-center">
-                                                        <div class="text-center">
-                                                            <i data-lucide="alert-triangle" class="text-gold" style="width: 48px; height: 48px; stroke-width: 1.5;"></i>
+                                            <!-- Bootstrap Delete Modal -->
+                                            <div class="modal fade" th:id="'deleteModalRoom-' + ${room.id}"
+                                                tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content modal-content-rounded">
+                                                        <div
+                                                            class="modal-header border-0 pt-4 pb-0 justify-content-center">
+                                                            <div class="text-center">
+                                                                <i data-lucide="alert-triangle" class="text-gold"
+                                                                    style="width: 48px; height: 48px; stroke-width: 1.5;"></i>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <div class="modal-body text-center px-4 py-3">
-                                                        <h4 class="fw-bold text-dark mb-3 modal-title-serif">Confirm Deletion</h4>
-                                                        <p class="text-muted mb-0 modal-text-desc">
-                                                            Are you sure you want to delete room <strong class="text-navy-primary" th:text="'\'' + ${room.type} + '\''">Room Type</strong> from <strong class="text-gold-dark" th:text="'\'' + ${hotel.name} + '\''">Hotel Name</strong>?
-                                                        </p>
-                                                    </div>
-                                                    <div class="modal-footer border-0 pb-4 pt-2 d-flex gap-3 justify-content-center">
-                                                        <button type="button" class="btn btn-light px-4 py-2 rounded-3 border fw-semibold text-secondary font-size-9" 
+                                                        <div class="modal-body text-center px-4 py-3">
+                                                            <h4 class="fw-bold text-dark mb-3 modal-title-serif">Confirm
+                                                                Deletion</h4>
+                                                            <p class="text-muted mb-0 modal-text-desc">
+                                                                Are you sure you want to delete room <strong
+                                                                    class="text-navy-primary"
+                                                                    th:text="'\'' + ${room.type} + '\''">Room
+                                                                    Type</strong> from <strong class="text-gold-dark"
+                                                                    th:text="'\'' + ${hotel.name} + '\''">Hotel
+                                                                    Name</strong>?
+                                                            </p>
+                                                        </div>
+                                                        <div
+                                                            class="modal-footer border-0 pb-4 pt-2 d-flex gap-3 justify-content-center">
+                                                            <button type="button"
+                                                                class="btn btn-light px-4 py-2 rounded-3 border fw-semibold text-secondary font-size-9"
                                                                 data-bs-dismiss="modal">
-                                                            No, Keep It
-                                                        </button>
-                                                        <form th:action="@{/owner/hotels/{id}/rooms/{rid}/delete(id=${hotel.id}, rid=${room.id})}"
-                                                              method="post" class="d-inline">
-                                                            <button type="submit" class="btn btn-danger px-4 py-2 rounded-3 fw-semibold text-white font-size-9">
-                                                                Yes, Delete
+                                                                No, Keep It
                                                             </button>
-                                                        </form>
+                                                            <form
+                                                                th:action="@{/owner/hotels/{id}/rooms/{rid}/delete(id=${hotel.id}, rid=${room.id})}"
+                                                                method="post" class="d-inline">
+                                                                <button type="submit"
+                                                                    class="btn btn-danger px-4 py-2 rounded-3 fw-semibold text-white font-size-9">
+                                                                    Yes, Delete
+                                                                </button>
+                                                            </form>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+
             </div>
-
         </div>
-    </div>
-</main>
+    </main>
 
-<footer th:replace="~{fragment/frag :: footer}"></footer>
-<div th:replace="~{fragment/frag :: scripts}"></div>
+    <footer th:replace="~{fragment/frag :: footer}"></footer>
+    <div th:replace="~{fragment/frag :: scripts}"></div>
 
 </body>
+
 </html>

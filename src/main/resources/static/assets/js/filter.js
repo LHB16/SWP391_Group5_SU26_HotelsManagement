@@ -180,10 +180,9 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // ==========================================
-    // 4. WISHLIST — Estimated Total (Tính tổng giá)
-    //    Dùng Bootstrap data-bs-toggle="button"
-    //    Khi nút active → cộng giá; inactive → trừ giá
+    // 4. WISHLIST — Estimated Total (Tính tổng giá) - REMOVED AS PER NEW SPEC
     // ==========================================
+    /*
     const wlContainer = document.getElementById('wishlistContainer');
     if (wlContainer) {
         const totalEl  = document.getElementById('wlTotalAmount');
@@ -265,6 +264,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         recalcTotal();
     }
+    */
 
 
 
