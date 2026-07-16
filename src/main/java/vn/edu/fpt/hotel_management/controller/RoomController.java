@@ -321,6 +321,7 @@ public class RoomController {
             @PathVariable("roomId") int roomId,
             @RequestParam(value = "checkin", required = false) String checkin,
             @RequestParam(value = "checkout", required = false) String checkout,
+            @RequestParam(value = "rooms", required = false) Integer rooms,
             HttpSession session,
             Model model,
             RedirectAttributes redirectAttributes
@@ -371,6 +372,7 @@ public class RoomController {
         model.addAttribute("checkin", checkin);
         model.addAttribute("checkout", checkout);
         model.addAttribute("minCheckout", minCheckout);
+        model.addAttribute("selectedRoomsCount", rooms != null ? rooms : 1);
         model.addAttribute("user", loggedInUser);
 
         if (loggedInUser != null && "HOTEL_OWNER".equals(loggedInUser.getRole())) {

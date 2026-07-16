@@ -210,14 +210,14 @@
                         <!-- Action Buttons -->
                         <div class="d-flex flex-column gap-2 mt-2">
                             <!-- Book Now -->
-                            <a th:href="@{/booking(hotelId=${hotel.id}, roomId=${room.id}, checkin=${checkin}, checkout=${checkout})}"
+                            <a th:href="@{/booking(hotelId=${hotel.id}, roomId=${room.id}, checkin=${checkin}, checkout=${checkout}, quantities=${selectedRoomsCount})}"
                                class="btn btn-submit w-100 py-3 d-flex align-items-center justify-content-center gap-2 fw-semibold">
                                 <i class="bi bi-calendar-check"></i>
                                 Book This Room Now
                             </a>
                             
                             <!-- Back to List -->
-                            <a th:href="@{/hotels/{id}/rooms(id=${hotel.id}, checkin=${checkin}, checkout=${checkout})}"
+                            <a th:href="@{/hotels/{id}/rooms(id=${hotel.id}, checkin=${checkin}, checkout=${checkout}, rooms=${selectedRoomsCount})}"
                                class="btn-cancel w-100 py-2 d-flex align-items-center justify-content-center gap-2">
                                 <i class="bi bi-arrow-left"></i>
                                 Back to Rooms
