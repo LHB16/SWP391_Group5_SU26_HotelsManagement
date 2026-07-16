@@ -35,6 +35,7 @@ public class PaymentService {
     private final HotelRepository hotelRepository;
     private final PromotionRepository promotionRepository;
     private final ExchangeRateService exchangeRateService;
+    private final EmailService emailService;
 
     // Thông tin tài khoản ngân hàng (đọc từ application.properties)
     @Value("${payment.bank-code:KLB}")
@@ -78,12 +79,14 @@ public class PaymentService {
                           PaymentRepository paymentRepository,
                           HotelRepository hotelRepository,
                           PromotionRepository promotionRepository,
-                          ExchangeRateService exchangeRateService) {
+                          ExchangeRateService exchangeRateService,
+                          EmailService emailService) {
         this.bookingRepository = bookingRepository;
         this.paymentRepository = paymentRepository;
         this.hotelRepository = hotelRepository;
         this.promotionRepository = promotionRepository;
         this.exchangeRateService = exchangeRateService;
+        this.emailService = emailService;
     }
 
     public String getBankCode() {
@@ -128,6 +131,21 @@ public class PaymentService {
             payment.setStatus("PAID");
             payment.setPaidAt(LocalDateTime.now());
             paymentRepository.save(payment);
+        }
+
+        // Gửi email xác nhận đặt phòng và hóa đơn điện tử
+        try {
+            String recipientEmail = booking.getEmail();
+            if (recipientEmail == null || recipientEmail.isBlank()) {
+                if (booking.getCustomer() != null && booking.getCustomer().getUserAccount() != null) {
+                    recipientEmail = booking.getCustomer().getUserAccount().getEmail();
+                }
+            }
+            if (recipientEmail != null && !recipientEmail.isBlank()) {
+                emailService.sendBookingConfirmation(recipientEmail, booking, payment);
+            }
+        } catch (Exception e) {
+            System.err.println("[Email Confirmation] Failed to send booking confirmation email: " + e.getMessage());
         }
     }
 

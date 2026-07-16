@@ -14327,7 +14327,7 @@ main {
 
 .sidebar-link.active {
   color: #fff;
-  background: #c9a96e;
+  background: #4f46e5;
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
 }
 
@@ -14794,10 +14794,6 @@ input[type="date"]::-webkit-datetime-edit {
   color: #b91c1c;
 }
 
-.badge-status-info {
-  background-color: #dbeafe;
-  color: #2a4a7a;
-}
 /* ==========================================================================
    Source: owner-dashboard.css
    ========================================================================== */
@@ -14988,7 +14984,8 @@ input[type="date"]::-webkit-datetime-edit {
 
 /* Backgrounds */
 .bg-hero {
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 60%, #1e3a5f 100%);
+  background: #0a0a0a !important;
+  margin-top: -1px !important;
 }
 
 .bg-navy {
@@ -15263,10 +15260,12 @@ input[type="date"]::-webkit-datetime-edit {
    Hero Banner - đầu trang tên khách sạn
    ──────────────────────────────────────────────────────────── */
 .room-hero {
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 60%, #1e3a5f 100%);
+  background: #0a0a0a !important;
   padding: 56px 0 85px;
   position: relative;
   overflow: hidden;
+  margin-top: -1px !important;
+  color: #fff;
 }
 
 .room-hero::before {
@@ -16657,8 +16656,9 @@ a.room-hero-badge:hover {
    Page Hero Header
    ──────────────────────────────────────────────────────────── */
 .create-hero {
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-lt) 70%, #1e3a5f 100%);
+  background: #0a0a0a !important;
   padding: 40px 0 32px;
+  margin-top: -1px !important;
 }
 
 .create-hero h1 {
@@ -17084,8 +17084,9 @@ a.room-hero-badge:hover {
    Hero Banner
    ──────────────────────────────────────────────────────────── */
 .create-hero {
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-lt) 70%, #1e3a5f 100%);
+  background: #0a0a0a !important;
   padding: 40px 0 32px;
+  margin-top: -1px !important;
 }
 
 .create-hero h1 {
@@ -21007,11 +21008,12 @@ h6,
 
 /* --- Create Hero Banner --- */
 .create-hero {
-  background: linear-gradient(135deg, var(--hotel-navy) 0%, #142038 60%, #1a2d4a 100%);
+  background: #0a0a0a !important;
   padding: 48px 0 36px;
   color: #fff;
   position: relative;
   overflow: hidden;
+  margin-top: -1px !important;
 }
 
 .create-hero::before {
@@ -22303,16 +22305,14 @@ h6,
   padding: 16px !important;
 }
 
-.custom-rooms-select,
-.custom-rooms-select option {
+.custom-rooms-select {
   border: 1px solid #cbd5e1 !important;
   border-radius: 4px !important;
   padding: 6px 12px !important;
   font-weight: 600 !important;
   color: var(--navy-primary) !important;
   cursor: pointer !important;
-  font-family: inherit !important;
-  font-size: 0.85rem !important;
+  font-family: 'Courier New', Courier, monospace !important;
   white-space: pre !important;
 }
 
@@ -23926,15 +23926,23 @@ body.overflow-hidden nav {
   --text-dark: #1e293b;
 }
 
+/* Unified Navbar Black Background to match Hero Sections */
+.navbar.bg-dark {
+  background-color: #0a0a0a !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
 /* --- Hero Search Area --- */
 .home-hero {
-  background: linear-gradient(135deg, #0a1628 0%, #1c2e4a 100%);
+  background: #0a0a0a !important;
   padding: 80px 0 100px;
   color: #fff;
   position: relative;
   overflow: hidden;
   border-bottom-left-radius: 40px;
   border-bottom-right-radius: 40px;
+  margin-top: -1px !important;
 }
 
 .home-hero::before {
@@ -23944,7 +23952,7 @@ body.overflow-hidden nav {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%);
+  background: none;
   pointer-events: none;
 }
 
@@ -24895,30 +24903,4 @@ body.overflow-hidden nav {
   text-align: center !important;
   box-sizing: border-box !important;
   line-height: 1.4 !important;
-}
-
-.rv-text-danger {
-  color: #dc3545 !important;
-}
-
-.rv-text-success {
-  color: #198754 !important;
-}
-
-.rv-is-invalid {
-  border-color: #dc3545 !important;
-  box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
-}
-
-.rv-is-valid {
-  border-color: #198754 !important;
-  box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25) !important;
-}
-
-.rv-small {
-  font-size: 0.875em;
-}
-
-.rv-mt-1 {
-  margin-top: 0.25rem;
 }
