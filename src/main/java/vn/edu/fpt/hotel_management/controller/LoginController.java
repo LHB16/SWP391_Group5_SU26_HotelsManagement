@@ -43,6 +43,12 @@ public class LoginController {
             User user = authService.login(username, password);
             session.setAttribute("loggedInUser", user);
 
+            String redirectUrl = (String) session.getAttribute("redirectAfterLogin");
+            if (redirectUrl != null) {
+                session.removeAttribute("redirectAfterLogin");
+                return "redirect:" + redirectUrl;
+            }
+
             // KIỂM TRA ROLE VÀ CHUYỂN HƯỚNG ĐÚNG
             if ("ADMIN".equalsIgnoreCase(user.getRole())) {
                 return "redirect:/admin/dashboard";
