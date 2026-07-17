@@ -212,11 +212,11 @@
                                             onfocus="if(this.options.length>5) this.size=5;"
                                             onblur="this.size=1;" onchange="this.size=1; this.blur();">
                                             <option
-                                                th:each="i : ${#numbers.sequence(1, room.numberRooms > 0 ? room.numberRooms : 1)}"
+                                                th:each="i : ${#numbers.sequence(1, availableRoomsMap != null and availableRoomsMap.containsKey(room.id) and availableRoomsMap.get(room.id) > 0 ? availableRoomsMap.get(room.id) : 1)}"
                                                 th:value="${i}"
                                                 th:selected="${i == quantities.get(iterStat.index)}"
                                                 th:with="
-                                                        maxRooms=${room.numberRooms > 0 ? room.numberRooms : 1},
+                                                        maxRooms=${availableRoomsMap != null and availableRoomsMap.containsKey(room.id) and availableRoomsMap.get(room.id) > 0 ? availableRoomsMap.get(room.id) : 1},
                                                         maxPriceStr=${#numbers.formatDecimal(roomSinglePricesMap.get(room.id).multiply(new java.math.BigDecimal(maxRooms)), 0, 'COMMA', 0, 'POINT')},
                                                         priceStr=${#numbers.formatDecimal(roomSinglePricesMap.get(room.id).multiply(new java.math.BigDecimal(i)), 0, 'COMMA', 0, 'POINT')},
                                                         numSpaces=${3 - (i + '').length() + 1},

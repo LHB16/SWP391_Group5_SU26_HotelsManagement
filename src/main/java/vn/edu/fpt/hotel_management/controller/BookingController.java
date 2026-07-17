@@ -776,6 +776,7 @@ public class BookingController {
         Map<Integer, BigDecimal> roomPricesMap = new java.util.HashMap<>();
         Map<Integer, BigDecimal> roomSinglePricesMap = new java.util.HashMap<>();
         Map<Integer, Long> roomNightsMap = new java.util.HashMap<>();
+        Map<Integer, Integer> availableRoomsMap = new java.util.HashMap<>();
 
         for (int i = 0; i < selectedRoomIds.size(); i++) {
             Integer rId = selectedRoomIds.get(i);
@@ -809,12 +810,26 @@ public class BookingController {
                 roomSinglePricesMap.put(rId, singleRoomSubtotal);
                 roomNightsMap.put(rId, nights);
                 subtotal = subtotal.add(totalRoomSubtotal);
+
+                // Calculate available rooms dynamically based on stay dates
+                long bookedCount = bookingRepository.sumQuantityByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
+                        r.getId(),
+                        "CONFIRMED",
+                        java.time.LocalDate.parse(co.trim()),
+                        java.time.LocalDate.parse(ci.trim())
+                );
+                int available = r.getNumberRooms() - (int) bookedCount;
+                if (available < 0) {
+                    available = 0;
+                }
+                availableRoomsMap.put(rId, available);
             }
         }
 
         model.addAttribute("roomPricesMap", roomPricesMap);
         model.addAttribute("roomSinglePricesMap", roomSinglePricesMap);
         model.addAttribute("roomNightsMap", roomNightsMap);
+        model.addAttribute("availableRoomsMap", availableRoomsMap);
 
         BigDecimal serviceFee = subtotal.compareTo(BigDecimal.ZERO) > 0 ? BigDecimal.valueOf(50000) : BigDecimal.ZERO;
         BigDecimal tax = subtotal.multiply(BigDecimal.valueOf(0.1)).setScale(0, java.math.RoundingMode.HALF_UP);
