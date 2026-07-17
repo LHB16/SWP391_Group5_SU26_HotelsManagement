@@ -9,15 +9,12 @@
 <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
 <!-- Hero Banner -->
-<section class="bg-hero border-bottom-gold pt-5 pb-5" style="padding-bottom: 80px !important;">
+<header class="home-hero">
     <div class="container">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
             <div>
-                <h1 class="text-white fw-bold mb-1"
-                    style="font-family:'Playfair Display',serif; font-size:clamp(1.8rem,4vw,2.8rem) !important; letter-spacing:0.02em;">
-                    Hotel List
-                </h1>
-                <p class="text-gold-light mb-0" style="font-size:0.95rem; opacity:0.85;">
+                <h1 class="home-hero-title">Hotel List</h1>
+                <p class="home-hero-subtitle">
                     Found <strong th:text="${totalResults}">0</strong> hotel(s) available
                 </p>
             </div>
@@ -28,13 +25,13 @@
             </a>
         </div>
     </div>
-</section>
+</header>
 
 <!-- Search widget card (Traveloka Pill Style - Embedded in Hotel List) -->
-<div class="bg-cream pb-4 search-widget-wrapper" style="position: relative; z-index: 999;">
-    <div class="container-fluid px-4">
+<div class="bg-cream pb-4 search-widget-wrapper">
+    <div class="container">
         <div class="row justify-content-center">
-            <div class="col-12">
+            <div class="col-lg-11 col-md-12">
                 <div class="search-card-traveloka">
                     <form th:action="@{/hotels}" method="get" class="search-pill-container">
                         <input type="hidden" name="persons" id="hiddenPersons" th:value="${persons}" />
@@ -129,7 +126,7 @@
                             </div>
                         </div>
                         <!-- Search Button -->
-                        <button type="submit" class="search-pill-btn-theme">
+                        <button type="submit" class="search-pill-btn-orange">
                             <i data-lucide="search" style="width: 20px; height: 20px; stroke-width: 3;"></i>
                         </button>
                     </form>
@@ -141,7 +138,9 @@
 
 <!-- Main Content -->
 <main class="flex-grow-1 pb-4 bg-cream main-content-pt-0">
-    <div class="container-fluid px-4">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-11 col-md-12">
 
         <!-- Flash messages -->
         <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3" role="alert">
@@ -477,6 +476,8 @@
 
             </div>
 
+        </div>
+        </div>
         </div>
     </div>
 </main>

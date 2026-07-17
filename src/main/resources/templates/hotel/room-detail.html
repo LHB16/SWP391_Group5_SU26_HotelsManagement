@@ -7,29 +7,24 @@
 <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
 <!-- ==================== BREADCRUMB HERO ==================== -->
-<section class="room-hero py-4 room-detail-hero">
+<header class="room-hero room-detail-hero">
     <div class="container">
-        <nav aria-label="breadcrumb" class="mb-3">
-            <a th:href="@{/hotels}" class="bc-link">Hotels</a>
-            <span class="bc-sep">/</span>
-            <a th:href="@{/hotels/{id}/rooms(id=${hotel.id}, checkin=${checkin}, checkout=${checkout})}" 
-               class="bc-link" th:text="${hotel.name}">Hotel</a>
-            <span class="bc-sep">/</span>
-            <span class="bc-active" th:text="${room.roomType} + ' Detail'">Room Detail</span>
-        </nav>
-        <h1 class="room-hero-title mb-1" th:text="${room.roomType}">Room Type</h1>
-        <p class="room-hero-subtitle text-muted mb-0 room-detail-hero-subtitle">
+
+        <h1 class="room-hero-title" th:text="${room.roomType}">Room Type</h1>
+        <p class="room-hero-subtitle room-detail-hero-subtitle">
             <i class="bi bi-geo-alt me-1"></i>
             <span th:text="${hotel.name} + ' · ' + ${hotel.address}">Hotel Name & Address</span>
         </p>
         <div class="hero-divider mt-3 room-detail-hero-divider"></div>
     </div>
-</section>
+</header>
 
 <!-- ==================== MAIN CONTENT ==================== -->
 <main class="flex-grow-1 py-5 bg-cream">
     <div class="container">
-        <div class="row g-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-11 col-md-12">
+                <div class="row g-5">
             
             <!-- ===== LEFT COLUMN: Media, Description, Facilities ===== -->
             <div class="col-12 col-lg-8">
@@ -229,6 +224,8 @@
 
             </div>
 
+        </div>
+        </div>
         </div>
     </div>
 </main>

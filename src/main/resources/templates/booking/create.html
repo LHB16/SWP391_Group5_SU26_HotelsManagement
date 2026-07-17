@@ -8,15 +8,41 @@
     <!-- NAVBAR -->
     <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
-    <!-- CSS riêng cho trang Booking -->
+    <!-- ==================== HERO BANNER ==================== -->
+    <header class="home-hero">
+        <div class="container">
+            <h1 class="home-hero-title">Room Reservation Checkout</h1>
+            <p class="home-hero-subtitle">Feedback your selection, choose dates of stay, and complete your reservation.</p>
+        </div>
+    </header>
+
     <!-- MAIN CONTENT -->
     <main class="flex-grow-1 py-5">
         <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-11 col-md-12">
 
-            <!-- Page Title -->
-            <div class="mb-4">
-                <h1 class="checkout-title mb-1">Room Reservation Checkout</h1>
-                <p class="text-muted">Feedback your selection, choose dates of stay, and complete your reservation.</p>
+            <!-- Steps indicator -->
+            <div class="booking-steps mb-4">
+                <div class="step-item">
+                    <div class="step-circle done">✓</div>
+                    <div class="step-label">Select Room</div>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step-item">
+                    <div class="step-circle active">2</div>
+                    <div class="step-label">Choose Dates</div>
+                </div>
+                <div class="step-connector" style="background:#e2e8f0;"></div>
+                <div class="step-item">
+                    <div class="step-circle pending">3</div>
+                    <div class="step-label">QR Payment</div>
+                </div>
+                <div class="step-connector" style="background:#e2e8f0;"></div>
+                <div class="step-item">
+                    <div class="step-circle pending">4</div>
+                    <div class="step-label">Confirmed</div>
+                </div>
             </div>
 
             <!-- Empty State -->
@@ -100,10 +126,10 @@
                                             </div>
 
                                             <!-- Apply Promotion button -->
-                                            <div class="d-flex justify-content-between align-items-end mt-2">
+                                            <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mt-2">
                                                 <div>
                                                     <span class="text-muted small text-uppercase fw-semibold booking-price-label">Room Price</span>
-                                                    <div class="d-flex align-items-baseline gap-1">
+                                                    <div class="d-flex align-items-baseline gap-1 booking-price-wrapper text-nowrap">
                                                         <span class="fw-bold text-gold booking-price-amount"
                                                             th:id="'room-price-' + ${room.id}"
                                                             th:data-base-price="${roomPricesMap.get(room.id)}"
@@ -269,6 +295,8 @@
                 </div>
             </form>
 
+        </div>
+        </div>
         </div>
     </main>
 

@@ -16,24 +16,20 @@
     <!-- Shared navbar -->
     <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
+    <!-- ==================== HERO BANNER ==================== -->
+    <header class="home-hero">
+        <div class="container">
+            <h1 class="home-hero-title">Complete Your Booking</h1>
+            <p class="home-hero-subtitle">Scan the VietQR code or choose PayPal to finalize your booking payment.</p>
+        </div>
+    </header>
+
     <!-- ==================== MAIN CONTENT ==================== -->
-    <main class="booking-page flex-grow-1">
-        <div class="container" style="max-width: 960px;">
-
-            <!-- Breadcrumb -->
-            <nav class="booking-breadcrumb">
-                <a th:href="@{/hotels}">Hotels</a>
-                <span>›</span>
-                <a th:href="@{/hotels/{id}/rooms(id=${hotel.id})}" th:text="${hotel.name}">Hotel Name</a>
-                <span>›</span>
-                <span>Book &amp; Pay</span>
-            </nav>
-
-            <!-- Page title -->
-            <div class="booking-section-title">Complete Your Booking</div>
-            <div class="booking-section-subtitle">Scan the QR code with your banking app to finalize payment.</div>
-
-            <!-- Steps indicator -->
+    <main class="booking-page flex-grow-1 py-5 bg-cream">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-11 col-md-12">
+                    <!-- Steps indicator -->
             <div class="booking-steps mb-4">
                 <div class="step-item">
                     <div class="step-circle done">✓</div>
@@ -418,6 +414,8 @@
                 <!-- ===== END RIGHT ===== -->
 
             </div><!-- end row -->
+                </div>
+            </div>
         </div><!-- /.container -->
     </main>
 
