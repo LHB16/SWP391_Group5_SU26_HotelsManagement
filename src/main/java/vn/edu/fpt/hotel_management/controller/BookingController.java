@@ -618,6 +618,7 @@ public class BookingController {
             @RequestParam(name = "checkins", required = false) List<String> checkins,
             @RequestParam(name = "checkouts", required = false) List<String> checkouts,
             @RequestParam(name = "quantities", required = false) List<Integer> quantities,
+            jakarta.servlet.http.HttpServletRequest request,
             HttpSession session,
             Model model,
             org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
@@ -625,6 +626,9 @@ public class BookingController {
         // Kiểm tra đăng nhập và vai trò (chỉ CUSTOMER đã đăng nhập mới được vào)
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
+            String queryString = request.getQueryString();
+            String currentUrl = request.getRequestURI() + (queryString != null ? "?" + queryString : "");
+            session.setAttribute("redirectAfterLogin", currentUrl);
             return "redirect:/login";
         }
         if (!"CUSTOMER".equalsIgnoreCase(loggedInUser.getRole())) {
