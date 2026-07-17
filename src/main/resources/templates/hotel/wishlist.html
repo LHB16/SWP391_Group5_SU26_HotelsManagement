@@ -7,29 +7,18 @@
     <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
     <!-- ==================== HERO BANNER ==================== -->
-    <section class="bg-hero border-bottom-gold py-5">
-        <div class="container-fluid px-4">
-            <h1 class="text-white fw-bold mb-1"
-                style="font-family:'Playfair Display',serif; font-size:clamp(1.6rem,3vw,2.1rem);">
-                My Wishlist
-            </h1>
-            <p class="text-gold-light mb-0">Your saved rooms, ready for booking whenever you are.</p>
+    <header class="home-hero">
+        <div class="container">
+            <h1 class="home-hero-title">My Wishlist</h1>
+            <p class="home-hero-subtitle"><span th:text="${wishlists != null ? wishlists.size() : 0}">0</span> room(s) saved</p>
         </div>
-    </section>
+    </header>
 
     <!-- ==================== MAIN CONTENT ==================== -->
     <main class="flex-grow-1 py-4 bg-cream">
-        <div class="container-fluid px-3 px-md-4">
-
-            <!-- Results header -->
-            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                <div>
-                    <span class="fs-5 fw-bold text-navy">My Wishlist</span>
-                    <span class="text-muted small ms-2">
-                        — <span th:text="${wishlists != null ? wishlists.size() : 0}">0</span> room(s) saved
-                    </span>
-                </div>
-            </div>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-11 col-md-12">
 
             <!-- Empty state -->
             <div th:if="${wishlists == null or wishlists.isEmpty()}"
@@ -51,33 +40,33 @@
                         class="wishlist-top-bar wishlist-card-filter-form row align-items-center g-2 px-3 py-2 border-bottom w-100 m-0">
                         <input type="hidden" name="id" th:value="${wl.id}" />
 
-                        <!-- Tên khách sạn (Cột 1 - 25% chiều rộng) -->
-                        <div class="col-12 col-lg-3 text-truncate">
+                        <!-- Tên khách sạn (Cột 1 - 41.6% chiều rộng) -->
+                        <div class="col-12 col-lg-5 text-truncate">
                             <span class="fw-bold text-navy wl-hotel-name" th:text="${wishlistHotelNamesMap != null and wishlistHotelNamesMap.containsKey(wl.id)
                                          ? wishlistHotelNamesMap.get(wl.id) : 'Hotel'}">
                                 Hotel Name
                             </span>
                         </div>
 
-                        <!-- Check-in (Cột 2 - 33.3% chiều rộng) -->
-                        <div class="col-12 col-sm-5 col-lg-4 d-flex align-items-center gap-1">
-                            <label class="small fw-semibold text-muted mb-0 text-nowrap">Check-in:</label>
-                            <input type="text" name="checkin"
-                                class="form-control form-control-sm wl-checkin-picker w-100"
-                                th:value="${wl.checkInDate != null ? wl.checkInDate : todayDate}"
-                                placeholder="dd/mm/yyyy" />
+                        <!-- Check-in & Check-out Combined (Cột 2 - 50% chiều rộng) -->
+                        <div class="col-12 col-sm-10 col-lg-6 d-flex align-items-center gap-2">
+                            <div class="d-flex align-items-center gap-1 flex-grow-1">
+                                <label class="small fw-semibold text-muted mb-0 text-nowrap">Check-in:</label>
+                                <input type="text" name="checkin"
+                                    class="form-control form-control-sm wl-checkin-picker w-100"
+                                    th:value="${wl.checkInDate != null ? wl.checkInDate : todayDate}"
+                                    placeholder="dd/mm/yyyy" />
+                            </div>
+                            <div class="d-flex align-items-center gap-1 flex-grow-1">
+                                <label class="small fw-semibold text-muted mb-0 text-nowrap">Check-out:</label>
+                                <input type="text" name="checkout"
+                                    class="form-control form-control-sm wl-checkout-picker w-100"
+                                    th:value="${wl.checkOutDate != null ? wl.checkOutDate : (wl.checkInDate != null ? wl.checkInDate.plusDays(1) : tomorrowDate)}"
+                                    placeholder="dd/mm/yyyy" />
+                            </div>
                         </div>
 
-                        <!-- Check-out (Cột 3 - 33.3% chiều rộng) -->
-                        <div class="col-12 col-sm-5 col-lg-4 d-flex align-items-center gap-1">
-                            <label class="small fw-semibold text-muted mb-0 text-nowrap">Check-out:</label>
-                            <input type="text" name="checkout"
-                                class="form-control form-control-sm wl-checkout-picker w-100"
-                                th:value="${wl.checkOutDate != null ? wl.checkOutDate : (wl.checkInDate != null ? wl.checkInDate.plusDays(1) : tomorrowDate)}"
-                                placeholder="dd/mm/yyyy" />
-                        </div>
-
-                        <!-- Filter button (Cột 4 - 8.3% chiều rộng) -->
+                        <!-- Filter button (Cột 3 - 8.3% chiều rộng) -->
                         <div class="col-12 col-sm-2 col-lg-1 text-end">
                             <button type="submit"
                                 class="btn btn-gold btn-sm w-100 fw-semibold text-nowrap d-inline-flex align-items-center justify-content-center">
@@ -161,7 +150,7 @@
                                         th:text="${wishlistFilteredMap.get(wl.id)} ? 'Total Price' : 'Price per Night'">
                                         Price per Night
                                     </div>
-                                    <div class="text-nowrap lh-1 d-flex align-items-baseline custom-hl-price-container">
+                                    <div class="wishlist-price-container text-nowrap lh-1 d-flex align-items-baseline">
                                         <span class="fw-bold text-gold-dark custom-hl-price-number wishlist-price-number"
                                             th:text="${#numbers.formatInteger(wishlistPricesMap.get(wl.id), 0, 'COMMA')}">
                                             500,000
@@ -192,6 +181,8 @@
                 </div>
             </div><!-- end wishlistContainer -->
 
+        </div>
+        </div>
         </div>
     </main>
 

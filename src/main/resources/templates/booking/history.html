@@ -11,9 +11,19 @@
     <!-- Thanh điều hướng -->
     <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
-    <main class="bh-main">
+    <!-- ==================== HERO BANNER ==================== -->
+    <header class="home-hero">
         <div class="container">
-            <div class="row">
+            <h1 class="home-hero-title">Booking History</h1>
+            <p class="home-hero-subtitle">Review your past hotel bookings, payment status, and reservations.</p>
+        </div>
+    </header>
+
+    <main class="bh-main py-5 bg-cream">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-11 col-md-12">
+                    <div class="row">
 
                 <!-- ========== Cột trái: Filter Panel ========== -->
                 <div class="col-md-3 mb-4">
@@ -72,10 +82,7 @@
                 <!-- ========== Cột phải: Nội dung chính ========== -->
                 <div class="col-md-9">
 
-                    <!-- Tiêu đề khu vực nội dung -->
-                    <div class="bh-content-header">
-                        <div class="bh-content-title">Booking History</div>
-                    </div>
+
 
                     <!-- Thông báo Flash từ Backend -->
 
@@ -201,6 +208,8 @@
 
                 </div>
                 <!-- /Cột phải -->
+                    </div>
+                </div>
             </div>
         </div>
     </main>

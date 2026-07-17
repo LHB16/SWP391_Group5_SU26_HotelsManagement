@@ -7,19 +7,23 @@
     <!-- Nhúng thanh điều hướng navBar chứa Avatar Dropdown -->
     <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
+    <!-- ==================== HERO BANNER ==================== -->
+    <header class="home-hero">
+        <div class="container">
+            <h1 class="home-hero-title">My Profile</h1>
+            <p class="home-hero-subtitle">Manage your personal information, role, and security settings.</p>
+        </div>
+    </header>
+
     <!-- Khu vực hiển thị thông tin chính -->
-    <main class="container mt-5 flex-grow-1 profile-container">
-        <div class="row">
-            <div class="col-lg-12 mx-auto">
-                <!-- Global Popups -->
-                <th:block th:replace="~{fragment/frag :: alerts}"></th:block>
+    <main class="flex-grow-1 py-5 profile-container bg-cream">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-11 col-md-12">
+                    <!-- Global Popups -->
+                    <th:block th:replace="~{fragment/frag :: alerts}"></th:block>
 
-                <!-- Tiêu đề Profile ở trên cùng -->
-                <div class="bh-content-header mb-4">
-                    <div class="bh-content-title" style="color: #0a1628; font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700;">Profile</div>
-                </div>
-
-                <div class="row g-4">
+                    <div class="row g-4">
                     <!-- Cột Trái: Thông tin tổng quan (Quick Info Card) + Tab Bar Menu -->
                     <div class="col-lg-4">
                         <div class="card border-0 shadow-sm p-4 text-center" style="border-radius: 12px; background-color: #ffffff; border: 1px solid #eff4ff !important;">
@@ -297,6 +301,7 @@
              th:if="${user.role == 'HOTEL_OWNER'}"
              th:attr="data-bank-name=${bankName}, data-bank-number=${bankAccountNumber}, data-bank-holder=${bankAccountHolder}">
         </div>
+            </div> <!-- closes container -->
     </main>
 
     <!-- Nhúng footer chân trang -->

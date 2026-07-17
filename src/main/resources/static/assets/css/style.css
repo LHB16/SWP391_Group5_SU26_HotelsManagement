@@ -15288,7 +15288,7 @@ input[type="date"]::-webkit-datetime-edit {
    ──────────────────────────────────────────────────────────── */
 .room-hero {
   background: #0a0a0a !important;
-  padding: 56px 0 85px;
+  padding: 30px 0;
   position: relative;
   overflow: hidden;
   margin-top: -1px !important;
@@ -23168,6 +23168,20 @@ td .discount-badge {
   background-color: transparent !important;
   border-radius: 8px !important;
   transition: all 0.2s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  max-width: 200px !important;
+  white-space: nowrap !important;
+}
+
+.booking-select-promo-btn span {
+  display: inline-block !important;
+  max-width: 130px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  vertical-align: middle !important;
 }
 
 .booking-select-promo-btn:hover {
@@ -24581,7 +24595,7 @@ body.overflow-hidden nav {
   padding: 20px 24px;
   margin-top: -50px;
   position: relative;
-  z-index: 150;
+  z-index: 999 !important;
   border: 1px solid rgba(2, 100, 200, 0.06);
   max-width: none;
   margin-left: auto;
@@ -24889,7 +24903,7 @@ body.overflow-hidden nav {
 /* Clean code helpers - Search widget styles */
 .search-widget-wrapper {
   position: relative;
-  z-index: 10;
+  z-index: 999 !important;
 }
 
 .search-pill-col-destination {
@@ -24908,6 +24922,29 @@ body.overflow-hidden nav {
 
 .cursor-pointer {
   cursor: pointer !important;
+}
+
+/* Wishlist Price Layout Fix */
+.wishlist-price-container {
+  max-width: none !important;
+  white-space: nowrap !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: baseline !important;
+}
+
+.wishlist-price-number {
+  font-size: 1.15rem !important;
+  font-weight: 700 !important;
+  color: var(--gold-accent) !important;
+  white-space: nowrap !important;
+}
+
+.wishlist-price-desc {
+  white-space: nowrap !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  margin-left: 4px !important;
 }
 
 /* Hero Banner Chat Button */
@@ -25262,3 +25299,166 @@ body.overflow-hidden nav {
   background-color: #e8eef5;
   color: #2a4a7a;
 }
+
+/* Unified Hero Banner Styles across all Hotel Pages to match Home Page */
+.home-hero,
+.bg-hero,
+.room-hero,
+.room-detail-hero {
+  background: #0a0a0a !important;
+  color: #fff !important;
+  position: relative !important;
+  overflow: hidden !important;
+  border-bottom-left-radius: 40px !important;
+  border-bottom-right-radius: 40px !important;
+  margin-top: -1px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  min-height: 200px !important;
+  padding: 30px 0 !important;
+}
+
+.home-hero > .container,
+.bg-hero > .container,
+.room-hero > .container,
+.room-detail-hero > .container {
+  width: 100% !important;
+}
+
+.home-hero::before,
+.bg-hero::before,
+.room-hero::before,
+.room-detail-hero::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: none !important;
+  pointer-events: none !important;
+}
+
+/* Unified Hero titles (2.5rem, serif Playfair Display) */
+.home-hero-title,
+.room-hero-title {
+  font-family: 'Playfair Display', serif !important;
+  font-size: 2.5rem !important;
+  font-weight: 700 !important;
+  margin-top: 0 !important;
+  margin-bottom: 12px !important;
+  color: #ffffff !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.02em !important;
+}
+
+/* Unified Hero subtitles (1.1rem, Inter, gold text color) */
+.home-hero-subtitle,
+.room-hero-subtitle {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 1.1rem !important;
+  font-weight: 400 !important;
+  color: var(--gold-light, #e8d5a3) !important;
+  opacity: 0.9 !important;
+  margin-top: 0 !important;
+  margin-bottom: 12px !important;
+  line-height: 1.5 !important;
+}
+
+/* Hotel Overview Card inside content body of Room List (Premium White & Gold-Cream Capsule theme) */
+.hotel-overview-card {
+  background: #ffffff !important; /* Crisp luxury white */
+  border-radius: 20px !important;
+  padding: 28px !important;
+  box-shadow: 0 10px 30px rgba(201, 169, 110, 0.06), 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  border: 1px solid rgba(201, 169, 110, 0.25) !important; /* Elegant gold border outline */
+  margin-bottom: 30px !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.hotel-overview-title {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  color: #1e293b !important; /* Dark slate title */
+  margin-bottom: 15px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+.hotel-overview-badge {
+  font-family: 'Inter', sans-serif !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 8px 16px !important;
+  background: #faf6ec !important; /* Warm gold-cream badge background for contrast */
+  border: 1px solid rgba(201, 169, 110, 0.25) !important; /* Soft gold border */
+  color: #1e293b !important; /* Dark grey text */
+  border-radius: 30px !important;
+  font-size: 0.88rem !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.hotel-overview-badge i,
+.hotel-overview-badge svg {
+  color: var(--gold-accent, #c9a96e) !important; /* Rich gold icons */
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.hotel-overview-badge:hover {
+  background: #f4edd9 !important; /* Slightly deeper tone on hover */
+  border-color: var(--gold-accent, #c9a96e) !important;
+  color: #0f172a !important;
+}
+
+.btn-chat-owner {
+  font-family: 'Inter', sans-serif !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 10px 24px !important;
+  background: var(--gold-accent, #c9a96e) !important; /* Brand gold background */
+  color: #ffffff !important; /* White text */
+  border: none !important;
+  border-radius: 30px !important;
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  box-shadow: 0 4px 12px rgba(201, 169, 110, 0.15) !important;
+}
+
+.btn-chat-owner i,
+.btn-chat-owner svg {
+  width: 16px !important;
+  height: 16px !important;
+  color: #ffffff !important; /* White icon */
+}
+
+.btn-chat-owner:hover {
+  background: #b59253 !important; /* Slightly deeper gold */
+  color: #ffffff !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 16px rgba(201, 169, 110, 0.25) !important;
+}
+
+@media (min-width: 768px) {
+  .border-end-md {
+    border-right: 1px solid rgba(201, 169, 110, 0.2) !important; /* Soft gold vertical divider */
+  }
+}
+
+
+/* Booking Price Wrapper */
+.booking-price-wrapper {
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}

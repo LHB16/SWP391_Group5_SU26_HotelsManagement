@@ -10,130 +10,19 @@
     <!-- ==================== HERO BANNER ==================== -->
     <section class="room-hero">
         <div class="container">
-            <h1 class="room-hero-title mb-2" th:text="${hotel.name}">Hotel Name</h1>
-            
-            <p class="room-hero-subtitle mb-0">
+            <h1 class="room-hero-title" th:text="${hotel.name}">Hotel Name</h1>
+            <p class="room-hero-subtitle">
                 <i class="bi bi-geo-alt me-1"></i>
                 <span th:text="${hotel.address}">Hotel Address</span>
             </p>
-
-            <!-- Group badge & chat (Split into 2 columns layout) -->
-            <div class="row mt-4 align-items-center text-white">
-                <!-- Column 1: feedback, room found, chat with owner (30% width) -->
-                <div class="room-hero-col-left col-12 col-md-4 col-lg-3 mb-3 d-flex flex-column align-items-center justify-content-center text-center">
-                    <!-- Container bọc để căn trái nội dung nhưng căn giữa tổng thể cột -->
-                    <div class="room-hero-col-left-container d-flex flex-column gap-2 align-items-stretch">
-                        <!-- Row 1: feedback -->
-                        <a href="#feedbacks" class="room-hero-badge mt-0">
-                            <i data-lucide="star"></i>
-                            <span th:text="${avgRating > 0 ? avgRating + ' (' + totalReviews + ' feedbacks)' : 'No feedbacks yet'}">No feedbacks yet</span>
-                        </a>
-                        
-                        <!-- Row 2: rooms found -->
-                        <span class="room-hero-badge mt-0">
-                            <i data-lucide="door-open"></i>
-                            <span><strong th:text="${totalResults}">0</strong> rooms found</span>
-                        </span>
-                        
-                        <!-- Row 3: Chat with Owner Button -->
-                        <button type="button"
-                           th:onclick="'window.handleChatClick(' + ${hotel.id} + ')'"
-                           class="btn btn-outline-gold btn-sm customer-support-hero-btn text-center"
-                           th:style="${user != null and user.role == 'HOTEL_OWNER'} ? 'background: #94a3b8 !important; border-color: #94a3b8 !important; color: #fff !important; pointer-events: none; cursor: not-allowed; opacity: 0.7;' : ''">
-                           <i data-lucide="message-square"></i>
-                           <span>Chat with Owner</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Column 2: Facilities and Views (70% width) -->
-                <div class="room-hero-col-right col-12 col-md-8 col-lg-9 mb-3 d-flex flex-column align-items-start">
-                    <!-- Row 1: Most popular facilities title -->
-                    <h6 class="text-gold fw-bold mb-2 text-uppercase room-hero-column-title">Most popular facilities</h6>
-                    
-                    <!-- Row 2: Most popular facilities content -->
-                    <div th:if="${hotel.facility != null}" class="d-flex flex-wrap gap-2 mb-3 justify-content-start">
-                        <span th:if="${hotel.facility.parking}" class="room-hero-badge mt-0 d-inline-flex align-items-center gap-1">
-                            <i data-lucide="parking-circle"></i> Parking
-                        </span>
-                        <span th:if="${hotel.facility.restaurant}" class="room-hero-badge mt-0 d-inline-flex align-items-center gap-1">
-                            <i data-lucide="utensils"></i> Restaurant
-                        </span>
-                        <span th:if="${hotel.facility.breakfastAvailable}" class="room-hero-badge mt-0 d-inline-flex align-items-center gap-1">
-                            <i data-lucide="coffee"></i> Breakfast
-                        </span>
-                        <span th:if="${hotel.facility.fitnessCentre}" class="room-hero-badge mt-0 d-inline-flex align-items-center gap-1">
-                            <i data-lucide="dumbbell"></i> Fitness
-                        </span>
-                        <span th:if="${hotel.facility.nonSmokingRooms}" class="room-hero-badge mt-0 d-inline-flex align-items-center gap-1">
-                            <i data-lucide="ban"></i> Non-smoking
-                        </span>
-                        <span th:if="${hotel.facility.airportShuttle}" class="room-hero-badge mt-0 d-inline-flex align-items-center gap-1">
-                            <i data-lucide="plane"></i> Shuttle
-                        </span>
-                        <span th:if="${hotel.facility.spaWellnessCentre}" class="room-hero-badge mt-0 d-inline-flex align-items-center gap-1">
-                            <i data-lucide="sparkles"></i> Spa
-                        </span>
-                        <span th:if="${hotel.facility.freeWifi}" class="room-hero-badge mt-0 d-inline-flex align-items-center gap-1">
-                            <i data-lucide="wifi"></i> Wifi
-                        </span>
-                        <span th:if="${hotel.facility.evChargingStation}" class="room-hero-badge mt-0 d-inline-flex align-items-center gap-1">
-                            <i data-lucide="plug-zap"></i> EV Charging
-                        </span>
-                        <span th:if="${hotel.facility.wheelchairAccessible}" class="room-hero-badge mt-0 d-inline-flex align-items-center gap-1">
-                            <i data-lucide="accessibility"></i> Wheelchair
-                        </span>
-                        <span th:if="${hotel.facility.swimmingPool}" class="room-hero-badge mt-0 d-inline-flex align-items-center gap-1">
-                            <i data-lucide="waves"></i> Pool
-                        </span>
-                        <span th:if="${hotel.facility.barPub}" class="room-hero-badge mt-0 d-inline-flex align-items-center gap-1">
-                            <i data-lucide="beer"></i> Bar
-                        </span>
-                        <span th:if="${hotel.facility.rentVehicle}" class="room-hero-badge mt-0 d-inline-flex align-items-center gap-1">
-                            <i data-lucide="car"></i> Rent Vehicle
-                        </span>
-                    </div>
-                    <div th:if="${hotel.facility == null}" class="text-white-50 mt-1 mb-3" style="font-size: 0.85rem;">
-                        No facilities listed
-                    </div>
-
-                    <!-- Row 3: Hotel View title -->
-                    <h6 class="text-gold fw-bold mb-2 text-uppercase room-hero-column-title">Hotel View</h6>
-                    
-                    <!-- Row 4: Hotel View content -->
-                    <div th:if="${hotel.view != null}" class="d-flex flex-wrap gap-2 justify-content-start">
-                        <span th:if="${hotel.view.cityView}" class="room-hero-badge mt-0 d-inline-flex align-items-center gap-1">
-                            <i data-lucide="building"></i> City View
-                        </span>
-                        <span th:if="${hotel.view.beachView}" class="room-hero-badge mt-0 d-inline-flex align-items-center gap-1">
-                            <i data-lucide="umbrella"></i> Beach View
-                        </span>
-                        <span th:if="${hotel.view.gardenView}" class="room-hero-badge mt-0 d-inline-flex align-items-center gap-1">
-                            <i data-lucide="sprout"></i> Garden View
-                        </span>
-                        <span th:if="${hotel.view.poolView}" class="room-hero-badge mt-0 d-inline-flex align-items-center gap-1">
-                            <i data-lucide="waves"></i> Pool View
-                        </span>
-                        <span th:if="${hotel.view.riverView}" class="room-hero-badge mt-0 d-inline-flex align-items-center gap-1">
-                            <i data-lucide="droplets"></i> River View
-                        </span>
-                        <span th:if="${hotel.view.mountainView}" class="room-hero-badge mt-0 d-inline-flex align-items-center gap-1">
-                            <i data-lucide="mountain"></i> Mountain View
-                        </span>
-                    </div>
-                    <div th:if="${hotel.view == null}" class="text-white-50 mt-1" style="font-size: 0.85rem;">
-                        No views listed
-                    </div>
-                </div>
-            </div>
         </div>
     </section>
 
     <!-- Search widget card (Traveloka Pill Style - Embedded in Room List) -->
-    <div class="bg-cream pb-4 search-widget-wrapper" style="position: relative; z-index: 999;">
-        <div class="container-fluid px-4">
+    <div class="bg-cream pb-4 search-widget-wrapper">
+        <div class="container">
             <div class="row justify-content-center">
-                <div class="col-12">
+                <div class="col-lg-11 col-md-12">
                     <div class="search-card-traveloka">
                         <form th:action="@{/hotels/{id}/rooms(id=${hotel.id})}" method="get" class="search-pill-container">
                             <input type="hidden" name="persons" id="hiddenPersons" th:value="${selectedPersons}" />
@@ -203,7 +92,7 @@
                                 </div>
                             </div>
                             <!-- Search Button -->
-                            <button type="submit" class="search-pill-btn-theme">
+                            <button type="submit" class="search-pill-btn-orange">
                                 <i data-lucide="search" style="width: 20px; height: 20px; stroke-width: 3;"></i>
                             </button>
                         </form>
@@ -215,8 +104,110 @@
 
     <!-- ==================== MAIN CONTENT ==================== -->
     <main class="flex-grow-1 pb-4 bg-cream main-content-pt-0">
-        <div class="container-fluid px-3 px-md-4">
-            <div class="row g-4">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-11 col-md-12">
+                    <!-- Hotel Overview Card -->
+                    <div class="hotel-overview-card mt-4">
+                        <div class="row g-3 align-items-center">
+                            <!-- Left: Facilities & Views -->
+                            <div class="col-md-9 border-end-md pe-md-4">
+                                <div class="mb-3">
+                                    <div class="hotel-overview-title">Most popular facilities</div>
+                                    <div th:if="${hotel.facility != null}" class="d-flex flex-wrap gap-2">
+                                        <span th:if="${hotel.facility.parking}" class="hotel-overview-badge">
+                                            <i data-lucide="parking-circle"></i> Parking
+                                        </span>
+                                        <span th:if="${hotel.facility.restaurant}" class="hotel-overview-badge">
+                                            <i data-lucide="utensils"></i> Restaurant
+                                        </span>
+                                        <span th:if="${hotel.facility.breakfastAvailable}" class="hotel-overview-badge">
+                                            <i data-lucide="coffee"></i> Breakfast
+                                        </span>
+                                        <span th:if="${hotel.facility.fitnessCentre}" class="hotel-overview-badge">
+                                            <i data-lucide="dumbbell"></i> Fitness
+                                        </span>
+                                        <span th:if="${hotel.facility.nonSmokingRooms}" class="hotel-overview-badge">
+                                            <i data-lucide="ban"></i> Non-smoking
+                                        </span>
+                                        <span th:if="${hotel.facility.airportShuttle}" class="hotel-overview-badge">
+                                            <i data-lucide="plane"></i> Shuttle
+                                        </span>
+                                        <span th:if="${hotel.facility.spaWellnessCentre}" class="hotel-overview-badge">
+                                            <i data-lucide="sparkles"></i> Spa
+                                        </span>
+                                        <span th:if="${hotel.facility.freeWifi}" class="hotel-overview-badge">
+                                            <i data-lucide="wifi"></i> Wifi
+                                        </span>
+                                        <span th:if="${hotel.facility.evChargingStation}" class="hotel-overview-badge">
+                                            <i data-lucide="plug-zap"></i> EV Charging
+                                        </span>
+                                        <span th:if="${hotel.facility.wheelchairAccessible}" class="hotel-overview-badge">
+                                            <i data-lucide="accessibility"></i> Wheelchair
+                                        </span>
+                                        <span th:if="${hotel.facility.swimmingPool}" class="hotel-overview-badge">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-waves-ladder-icon lucide-waves-ladder"><path d="M19 5a2 2 0 0 0-2 2v11"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M7 13h10"/><path d="M7 9h10"/><path d="M9 5a2 2 0 0 0-2 2v11"/></svg> Pool
+                                        </span>
+                                        <span th:if="${hotel.facility.barPub}" class="hotel-overview-badge">
+                                            <i data-lucide="beer"></i> Bar
+                                        </span>
+                                        <span th:if="${hotel.facility.rentVehicle}" class="hotel-overview-badge">
+                                            <i data-lucide="car"></i> Rent Vehicle
+                                        </span>
+                                    </div>
+                                    <div th:if="${hotel.facility == null}" class="text-muted small">No facilities listed</div>
+                                </div>
+                                
+                                <div>
+                                    <div class="hotel-overview-title">Hotel View</div>
+                                    <div th:if="${hotel.view != null}" class="d-flex flex-wrap gap-2">
+                                        <span th:if="${hotel.view.cityView}" class="hotel-overview-badge">
+                                            <i data-lucide="building"></i> City View
+                                        </span>
+                                         <span th:if="${hotel.view.beachView}" class="hotel-overview-badge">
+                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-parasol-icon lucide-parasol"><path d="M12.5 11.134 18.196 21"/><path d="M20.425 5.299a10 10 0 0 0-16.941 9.78c.183.563.843.774 1.355.478L20.16 6.711c.512-.296.66-.973.264-1.413"/><path d="M21 21H3"/></svg> Beach View
+                                         </span>
+                                        <span th:if="${hotel.view.gardenView}" class="hotel-overview-badge">
+                                            <i data-lucide="sprout"></i> Garden View
+                                        </span>
+                                         <span th:if="${hotel.view.poolView}" class="hotel-overview-badge">
+                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-waves-ladder-icon lucide-waves-ladder"><path d="M19 5a2 2 0 0 0-2 2v11"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M7 13h10"/><path d="M7 9h10"/><path d="M9 5a2 2 0 0 0-2 2v11"/></svg> Pool View
+                                         </span>
+                                        <span th:if="${hotel.view.riverView}" class="hotel-overview-badge">
+                                            <i data-lucide="droplets"></i> River View
+                                        </span>
+                                        <span th:if="${hotel.view.mountainView}" class="hotel-overview-badge">
+                                            <i data-lucide="mountain"></i> Mountain View
+                                        </span>
+                                    </div>
+                                    <div th:if="${hotel.view == null}" class="text-muted small">No views listed</div>
+                                </div>
+                            </div>
+
+                            <!-- Right: Rating & Support Info -->
+                            <div class="col-md-3 ps-md-4">
+                                <div class="d-flex flex-column gap-2 mx-auto" style="max-width: 250px;">
+                                    <a href="#feedbacks" class="hotel-overview-badge justify-content-center text-center">
+                                        <i data-lucide="star"></i>
+                                        <span th:text="${avgRating > 0 ? avgRating + ' (' + totalReviews + ' feedbacks)' : 'No feedbacks yet'}">No feedbacks yet</span>
+                                    </a>
+                                    <div class="hotel-overview-badge justify-content-center text-center">
+                                        <i data-lucide="door-open"></i>
+                                        <span><strong th:text="${totalResults}">0</strong> rooms found</span>
+                                    </div>
+                                    <button type="button"
+                                        th:onclick="'window.handleChatClick(' + ${hotel.id} + ')'"
+                                        class="btn-chat-owner mt-2 justify-content-center"
+                                        th:style="${user != null and user.role == 'HOTEL_OWNER'} ? 'background: #94a3b8 !important; pointer-events: none; cursor: not-allowed; opacity: 0.7;' : ''">
+                                        <i data-lucide="message-square"></i>
+                                        <span>Chat with Owner</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
 
                 <!-- ===== DANH SÁCH PHÒNG ===== -->
                 <div class="col-12">
@@ -794,7 +785,7 @@
             </div>
         </div>
         </div>
-
+        </div>
         </div>
     </main>
 
