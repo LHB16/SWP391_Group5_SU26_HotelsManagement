@@ -82,19 +82,17 @@
                                            style="background-color: var(--gold) !important; color: white !important; text-decoration: none; display: inline-block; vertical-align: middle;">
                                             Feedback
                                         </a>
-                                        <th:block th:if="${hasFeedback}">
-                                            <a th:href="@{/hotels/{hotelId}/rooms(hotelId=${hotel.id})} + '#feedback-' + ${feedback.id}"
-                                               class="bd-status-label bd-status-confirmed ms-2"
-                                               style="vertical-align: middle; text-decoration: none; cursor: pointer; display: inline-block;"
-                                               title="View your feedback">
-                                                Reviewed
-                                            </a>
-                                            <button class="bd-status-label ms-2" 
-                                                    style="background-color: #6d28d9 !important; color: white !important; border: none; cursor: pointer; display: inline-block; vertical-align: middle; text-decoration: none;"
-                                                    th:onclick="'handleRebook(' + ${hotel.id} + ', ' + ${room.id} + ')'">
-                                                Rebook
-                                            </button>
-                                        </th:block>
+                                        <a th:if="${hasFeedback}" th:href="@{/hotels/{hotelId}/rooms(hotelId=${hotel.id})} + '#feedback-' + ${feedback.id}"
+                                           class="bd-status-label bd-status-confirmed ms-2"
+                                           style="vertical-align: middle; text-decoration: none; cursor: pointer; display: inline-block;"
+                                           title="View your feedback">
+                                            Reviewed
+                                        </a>
+                                        <button class="bd-status-label ms-2" 
+                                                style="background-color: #6d28d9 !important; color: white !important; border: none; cursor: pointer; display: inline-block; vertical-align: middle; text-decoration: none;"
+                                                th:onclick="'handleRebook(' + ${hotel.id} + ', ' + ${room.id} + ')'">
+                                            Rebook
+                                        </button>
                                     </th:block>
                                     <span th:if="${booking.status == 'CANCELLED'}" class="bd-status-label bd-status-cancelled">Cancelled</span>
                                 </th:block>
@@ -129,39 +127,7 @@
         });
 
         function handleRebook(hotelId, roomId) {
-            const now = new Date();
-            
-            let checkInDate = new Date(now);
-            let checkOutDate = new Date(now);
-            
-            // Check-in là ngày mai, Check-out là ngày mốt (ngày kia)
-            checkInDate.setDate(now.getDate() + 1);
-            checkOutDate.setDate(now.getDate() + 2);
-            
-            const formatDate = (date) => {
-                const yyyy = date.getFullYear();
-                const mm = String(date.getMonth() + 1).padStart(2, '0');
-                const dd = String(date.getDate()).padStart(2, '0');
-                return `${yyyy}-${mm}-${dd}`;
-            };
-            
-            const checkinStr = formatDate(checkInDate);
-            const checkoutStr = formatDate(checkOutDate);
-            
-            fetch('/api/rooms/' + roomId + '/check-availability?checkin=' + checkinStr + '&checkout=' + checkoutStr)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.available) {
-                        window.location.href = '/booking/create?roomId=' + roomId + '&checkin=' + checkinStr + '&checkout=' + checkoutStr;
-                    } else {
-                        alert('The room you selected is no longer available.');
-                        window.location.href = '/hotels';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error checking availability:', error);
-                    alert('An error occurred while checking room availability.');
-                });
+            window.location.href = '/hotels/' + hotelId + '/rooms';
         }
     </script>
 
