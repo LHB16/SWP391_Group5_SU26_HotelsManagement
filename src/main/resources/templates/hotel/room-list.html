@@ -369,12 +369,12 @@
                                     </div>
                                     <div class="room-action-btns d-flex gap-2">
                                         <!-- Room Detail Link -->
-                                        <a th:href="@{/hotels/{hotelId}/rooms/{roomId}(hotelId=${hotel.id}, roomId=${room.id}, checkin=${checkin}, checkout=${checkout})}"
+                                        <a th:href="@{/hotels/{hotelId}/rooms/{roomId}(hotelId=${hotel.id}, roomId=${room.id}, checkin=${checkin}, checkout=${checkout}, rooms=${selectedRoomsCount})}"
                                             class="btn-outline-gold" th:id="${'detail-btn-' + room.id}">
                                             Room detail
                                         </a>
                                         <!-- Booking Link -->
-                                        <a th:href="${avail == 0 or (user != null and user.role == 'HOTEL_OWNER')} ? 'javascript:void(0)' : @{/booking(hotelId=${hotel.id}, roomId=${room.id}, checkin=${checkin}, checkout=${checkout})}"
+                                        <a th:href="${avail == 0 or (user != null and user.role == 'HOTEL_OWNER')} ? 'javascript:void(0)' : @{/booking(hotelId=${hotel.id}, roomId=${room.id}, checkin=${checkin}, checkout=${checkout}, quantities=${selectedRoomsCount})}"
                                             class="btn btn-gold btn-sm"
                                             th:style="${avail == 0 or (user != null and user.role == 'HOTEL_OWNER')} ? 'background: #94a3b8 !important; border-color: #94a3b8 !important; color: #fff !important; pointer-events: none; cursor: not-allowed; opacity: 0.7;' : ''"
                                             th:id="${'booking-btn-' + room.id}">
