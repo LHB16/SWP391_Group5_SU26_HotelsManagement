@@ -48,12 +48,22 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
                         LocalDate checkout,
                         LocalDate checkin);
 
+        default long countForConfirmedAndPending(int roomId, LocalDate checkout, LocalDate checkin) {
+                return countByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(roomId, "CONFIRMED", checkout, checkin)
+                        + countByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(roomId, "PENDING", checkout, checkin);
+        }
+
         @Query("SELECT COALESCE(SUM(b.quantity), 0) FROM Booking b WHERE b.room.id = :roomId AND b.status = :status AND b.checkInDate < :checkout AND b.checkOutDate > :checkin")
         long sumQuantityByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
                         @Param("roomId") int roomId,
                         @Param("status") String status,
                         @Param("checkout") LocalDate checkout,
                         @Param("checkin") LocalDate checkin);
+
+        default long sumQuantityForConfirmedAndPending(int roomId, LocalDate checkout, LocalDate checkin) {
+                return sumQuantityByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(roomId, "CONFIRMED", checkout, checkin)
+                        + sumQuantityByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(roomId, "PENDING", checkout, checkin);
+        }
 
         // ===== FILTER METHODS FOR BOOKINGS =====
 
