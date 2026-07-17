@@ -265,6 +265,13 @@ public class RoomController {
             availableRoomsMap.put(r.getId(), available);
         }
 
+        rooms = rooms.stream()
+                .sorted((r1, r2) -> {
+                    BigDecimal p1 = roomPricesMap.getOrDefault(r1.getId(), r1.getPrice() != null ? r1.getPrice() : BigDecimal.ZERO);
+                    BigDecimal p2 = roomPricesMap.getOrDefault(r2.getId(), r2.getPrice() != null ? r2.getPrice() : BigDecimal.ZERO);
+                    return p1.compareTo(p2);
+                })
+                .collect(java.util.stream.Collectors.toList());
 
         List<FeedbackReply> replies = feedbackReplyRepository.findByHotelId(id);
         Map<Integer, FeedbackReply> repliesMap = new HashMap<>();
@@ -350,18 +357,36 @@ public class RoomController {
         boolean isFiltered = false;
         BigDecimal roomPrice = room.getPrice();
 
+        java.time.LocalDate d1 = java.time.LocalDate.now();
+        java.time.LocalDate d2 = java.time.LocalDate.now().plusDays(1);
+
         if (checkin != null && checkout != null && !checkin.trim().isEmpty() && !checkout.trim().isEmpty()) {
             try {
-                java.time.LocalDate d1 = java.time.LocalDate.parse(checkin.trim());
-                java.time.LocalDate d2 = java.time.LocalDate.parse(checkout.trim());
+                d1 = java.time.LocalDate.parse(checkin.trim());
+                d2 = java.time.LocalDate.parse(checkout.trim());
                 if (d2.isAfter(d1)) {
                     nights = java.time.temporal.ChronoUnit.DAYS.between(d1, d2);
                     isFiltered = true;
                     roomPrice = calculateRoomSubtotal(room.getPrice(), d1, d2);
+                } else {
+                    d2 = d1.plusDays(1);
                 }
             } catch (Exception e) {
                 isFiltered = false;
+                d1 = java.time.LocalDate.now();
+                d2 = java.time.LocalDate.now().plusDays(1);
             }
+        }
+
+        long bookedCount = bookingRepository.sumQuantityByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
+                room.getId(),
+                "CONFIRMED",
+                d2,
+                d1
+        );
+        int available = room.getNumberRooms() - (int) bookedCount;
+        if (available < 0) {
+            available = 0;
         }
 
         model.addAttribute("hotel", hotel);
@@ -374,6 +399,7 @@ public class RoomController {
         model.addAttribute("minCheckout", minCheckout);
         model.addAttribute("selectedRoomsCount", rooms != null ? rooms : 1);
         model.addAttribute("user", loggedInUser);
+        model.addAttribute("available", available);
 
         if (loggedInUser != null && "HOTEL_OWNER".equals(loggedInUser.getRole())) {
             return "owner/room-detail";

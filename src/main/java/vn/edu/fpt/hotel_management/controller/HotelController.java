@@ -29,6 +29,7 @@ public class HotelController {
     private final HotelVerificationDocumentRepository hotelVerificationDocumentRepository;
     private final RoomFacilityRepository roomFacilityRepository;
     private final OwnerService ownerService;
+    private final BookingRepository bookingRepository;
 
     private static final String HOTEL_IMAGE_SUBDIR = "assets/images/hotel";
     private static final String HOTEL_IMAGE_URL_PREFIX = "/assets/images/hotel/";
@@ -39,13 +40,15 @@ public class HotelController {
                            HotelOwnerRepository hotelOwnerRepository,
                            HotelVerificationDocumentRepository hotelVerificationDocumentRepository,
                            RoomFacilityRepository roomFacilityRepository,
-                           OwnerService ownerService) {
+                           OwnerService ownerService,
+                           BookingRepository bookingRepository) {
         this.hotelRepository = hotelRepository;
         this.roomRepository = roomRepository;
         this.hotelOwnerRepository = hotelOwnerRepository;
         this.hotelVerificationDocumentRepository = hotelVerificationDocumentRepository;
         this.roomFacilityRepository = roomFacilityRepository;
         this.ownerService = ownerService;
+        this.bookingRepository = bookingRepository;
     }
 
     private String saveUploadedFile(MultipartFile file, String subDir) throws IOException {
@@ -207,10 +210,14 @@ public class HotelController {
         long nights = 1;
         boolean isFiltered = false;
         java.util.Map<Integer, BigDecimal> hotelPricesMap = new java.util.HashMap<>();
-        if (checkin != null && checkout != null && !checkin.trim().isEmpty() && !checkout.trim().isEmpty()) {
-            try {
-                java.time.LocalDate d1 = java.time.LocalDate.parse(checkin.trim());
-                java.time.LocalDate d2 = java.time.LocalDate.parse(checkout.trim());
+
+        java.time.LocalDate d1 = java.time.LocalDate.now();
+        java.time.LocalDate d2 = java.time.LocalDate.now().plusDays(1);
+
+        try {
+            if (checkin != null && checkout != null && !checkin.trim().isEmpty() && !checkout.trim().isEmpty()) {
+                d1 = java.time.LocalDate.parse(checkin.trim());
+                d2 = java.time.LocalDate.parse(checkout.trim());
                 if (d2.isAfter(d1)) {
                     nights = java.time.temporal.ChronoUnit.DAYS.between(d1, d2);
                     isFiltered = true;
@@ -220,31 +227,63 @@ public class HotelController {
                     nights = 1;
                     isFiltered = true;
                 }
-                for (Hotel h : hotels) {
-                    BigDecimal basePrice = roomRepository.findFirstByHotelIdOrderByPriceAsc(h.getId())
-                            .map(Room::getPrice)
-                            .orElse(BigDecimal.ZERO);
-                    BigDecimal actualPrice = calculateHotelSubtotal(basePrice, d1, d2);
-                    hotelPricesMap.put(h.getId(), actualPrice);
-                }
-            } catch (Exception e) {
-                isFiltered = false;
-                for (Hotel h : hotels) {
-                    BigDecimal basePrice = roomRepository.findFirstByHotelIdOrderByPriceAsc(h.getId())
-                            .map(Room::getPrice)
-                            .orElse(BigDecimal.ZERO);
-                    hotelPricesMap.put(h.getId(), basePrice);
-                }
             }
-        } else {
-            for (Hotel h : hotels) {
-                BigDecimal basePrice = roomRepository.findFirstByHotelIdOrderByPriceAsc(h.getId())
-                        .map(Room::getPrice)
-                        .orElse(BigDecimal.ZERO);
-                hotelPricesMap.put(h.getId(), basePrice);
-            }
+        } catch (Exception e) {
+            isFiltered = false;
+            d1 = java.time.LocalDate.now();
+            d2 = java.time.LocalDate.now().plusDays(1);
         }
 
+        final java.time.LocalDate finalD1 = d1;
+        final java.time.LocalDate finalD2 = d2;
+        final boolean finalIsFiltered = isFiltered;
+
+        for (Hotel h : hotels) {
+            List<Room> hotelRooms = roomRepository.findByHotelId(h.getId());
+            
+            // Tìm phòng còn trống (available) có giá thấp nhất
+            BigDecimal basePrice = hotelRooms.stream()
+                    .filter(r -> {
+                        long bookedCount = bookingRepository.sumQuantityByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
+                                r.getId(),
+                                "CONFIRMED",
+                                finalD2,
+                                finalD1
+                        );
+                        int available = r.getNumberRooms() - (int) bookedCount;
+                        return available > 0;
+                    })
+                    .map(Room::getPrice)
+                    .min(BigDecimal::compareTo)
+                    .orElse(null);
+
+            // Nếu không có phòng nào còn trống, lấy giá của phòng rẻ nhất tổng thể
+            if (basePrice == null) {
+                basePrice = hotelRooms.stream()
+                        .map(Room::getPrice)
+                        .min(BigDecimal::compareTo)
+                        .orElse(BigDecimal.ZERO);
+            }
+
+            BigDecimal actualPrice = finalIsFiltered ? calculateHotelSubtotal(basePrice, finalD1, finalD2) : basePrice;
+            hotelPricesMap.put(h.getId(), actualPrice);
+        }
+
+        hotels = hotels.stream()
+                .sorted((h1, h2) -> {
+                    double r1 = h1.getRating();
+                    double r2 = h2.getRating();
+                    int ratingCompare = Double.compare(r2, r1); // Giảm dần
+                    
+                    if (ratingCompare != 0) {
+                        return ratingCompare;
+                    }
+                    
+                    BigDecimal p1 = hotelPricesMap.getOrDefault(h1.getId(), BigDecimal.ZERO);
+                    BigDecimal p2 = hotelPricesMap.getOrDefault(h2.getId(), BigDecimal.ZERO);
+                    return p1.compareTo(p2); // Tăng dần
+                })
+                .collect(java.util.stream.Collectors.toList());
 
         model.addAttribute("hotels", hotels);
         model.addAttribute("hotelPricesMap", hotelPricesMap);
