@@ -237,9 +237,8 @@ public class RoomController {
         // Lọc theo roomsQuery (số phòng trống khả dụng)
         if (roomsQuery != null && roomsQuery > 0) {
             rooms = rooms.stream().filter(r -> {
-                long bookedCount = bookingRepository.sumQuantityByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
+                long bookedCount = bookingRepository.sumQuantityForConfirmedAndPending(
                         r.getId(),
-                        "CONFIRMED",
                         finalD2,
                         finalD1
                 );
@@ -252,9 +251,8 @@ public class RoomController {
             BigDecimal actualPrice = isFiltered ? calculateRoomSubtotal(r.getPrice(), d1, d2) : r.getPrice();
             roomPricesMap.put(r.getId(), actualPrice);
 
-            long bookedCount = bookingRepository.sumQuantityByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
+            long bookedCount = bookingRepository.sumQuantityForConfirmedAndPending(
                     r.getId(),
-                    "CONFIRMED",
                     finalD2,
                     finalD1
             );
@@ -378,9 +376,8 @@ public class RoomController {
             }
         }
 
-        long bookedCount = bookingRepository.sumQuantityByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
+        long bookedCount = bookingRepository.sumQuantityForConfirmedAndPending(
                 room.getId(),
-                "CONFIRMED",
                 d2,
                 d1
         );
@@ -923,9 +920,8 @@ public class RoomController {
         try {
             LocalDate d1 = LocalDate.parse(checkin);
             LocalDate d2 = LocalDate.parse(checkout);
-            long bookedCount = bookingRepository.sumQuantityByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
+            long bookedCount = bookingRepository.sumQuantityForConfirmedAndPending(
                     r.getId(),
-                    "CONFIRMED",
                     d2,
                     d1
             );

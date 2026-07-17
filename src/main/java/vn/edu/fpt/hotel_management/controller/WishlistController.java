@@ -83,9 +83,8 @@ public class WishlistController {
 
             LocalDate checkin = d1 != null ? d1 : LocalDate.now();
             LocalDate checkout = d2 != null && d2.isAfter(checkin) ? d2 : checkin.plusDays(1);
-            long bookedCount = bookingRepository.countByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
+            long bookedCount = bookingRepository.countForConfirmedAndPending(
                     room.getId(),
-                    "CONFIRMED",
                     checkout,
                     checkin
             );

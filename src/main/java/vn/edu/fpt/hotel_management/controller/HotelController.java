@@ -158,42 +158,6 @@ public class HotelController {
             }).collect(java.util.stream.Collectors.toList());
         }
 
-        if (roomFacilities != null && !roomFacilities.isEmpty()) {
-            hotels = hotels.stream().filter(h -> {
-                List<Room> hotelRooms = roomRepository.findByHotelId(h.getId());
-                if (hotelRooms == null || hotelRooms.isEmpty()) return false;
-                for (Room r : hotelRooms) {
-                    RoomFacility rf = r.getFacility();
-                    if (rf == null) continue;
-                    boolean matchAll = true;
-                    for (String f : roomFacilities) {
-                        if ("freeToiletries".equals(f) && !rf.isFreeToiletries()) { matchAll = false; break; }
-                        if ("shower".equals(f) && !rf.isShower()) { matchAll = false; break; }
-                        if ("bathrobe".equals(f) && !rf.isBathrobe()) { matchAll = false; break; }
-                        if ("toilet".equals(f) && !rf.isToilet()) { matchAll = false; break; }
-                        if ("towels".equals(f) && !rf.isTowels()) { matchAll = false; break; }
-                        if ("slippers".equals(f) && !rf.isSlippers()) { matchAll = false; break; }
-                        if ("hairdryer".equals(f) && !rf.isHairdryer()) { matchAll = false; break; }
-                        if ("toiletPaper".equals(f) && !rf.isToiletPaper()) { matchAll = false; break; }
-                        if ("airConditioning".equals(f) && !rf.isAirConditioning()) { matchAll = false; break; }
-                        if ("safetyDepositBox".equals(f) && !rf.isSafetyDepositBox()) { matchAll = false; break; }
-                        if ("desk".equals(f) && !rf.isDesk()) { matchAll = false; break; }
-                        if ("television".equals(f) && !rf.isTelevision()) { matchAll = false; break; }
-                        if ("telephone".equals(f) && !rf.isTelephone()) { matchAll = false; break; }
-                        if ("iron".equals(f) && !rf.isIron()) { matchAll = false; break; }
-                        if ("electricKettle".equals(f) && !rf.isElectricKettle()) { matchAll = false; break; }
-                        if ("cableChannels".equals(f) && !rf.isCableChannels()) { matchAll = false; break; }
-                        if ("wakeUpService".equals(f) && !rf.isWakeUpService()) { matchAll = false; break; }
-                        if ("wardrobeCloset".equals(f) && !rf.isWardrobeCloset()) { matchAll = false; break; }
-                        if ("clothesRack".equals(f) && !rf.isClothesRack()) { matchAll = false; break; }
-                        if ("freeBottledWater".equals(f) && rf.getFreeBottledWater() <= 0) { matchAll = false; break; }
-                    }
-                    if (matchAll) return true;
-                }
-                return false;
-            }).collect(java.util.stream.Collectors.toList());
-        }
-
         // Nếu checkin hoặc checkout chưa có, gán mặc định là hôm nay và ngày mai
         if (checkin == null || checkin.trim().isEmpty()) {
             checkin = java.time.LocalDate.now().toString();
@@ -238,36 +202,87 @@ public class HotelController {
         final java.time.LocalDate finalD2 = d2;
         final boolean finalIsFiltered = isFiltered;
 
+        List<Hotel> filteredHotels = new java.util.ArrayList<>();
+
         for (Hotel h : hotels) {
             List<Room> hotelRooms = roomRepository.findByHotelId(h.getId());
+            if (hotelRooms == null || hotelRooms.isEmpty()) {
+                continue;
+            }
             
-            // Tìm phòng còn trống (available) có giá thấp nhất
-            BigDecimal basePrice = hotelRooms.stream()
-                    .filter(r -> {
-                        long bookedCount = bookingRepository.sumQuantityByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
-                                r.getId(),
-                                "CONFIRMED",
-                                finalD2,
-                                finalD1
-                        );
-                        int available = r.getNumberRooms() - (int) bookedCount;
-                        return available > 0;
-                    })
+            // Tìm các phòng thỏa mãn tiện ích phòng, sức chứa và tính tổng số phòng trống khả dụng
+            int totalAvailableRooms = 0;
+            java.util.List<Room> roomsWithAvailable = new java.util.ArrayList<>();
+            
+            for (Room r : hotelRooms) {
+                // 1. Kiểm tra phòng phải active (roomStatus == true)
+                if (r.getNumberRooms() == null || r.getNumberRooms() <= 0) continue;
+                if (r.getRoomStatus() != null && !r.getRoomStatus()) continue;
+                
+                // 2. Lọc theo số lượng người (persons)
+                int reqPersons = (persons != null) ? persons : 1;
+                if (r.getPerson() < reqPersons) continue;
+
+                // 3. Lọc theo tiện ích phòng (roomFacilities) nếu có
+                if (roomFacilities != null && !roomFacilities.isEmpty()) {
+                    RoomFacility rf = r.getFacility();
+                    if (rf == null) continue;
+                    boolean facilityMatch = true;
+                    for (String f : roomFacilities) {
+                        if ("freeToiletries".equals(f) && !rf.isFreeToiletries()) { facilityMatch = false; break; }
+                        if ("shower".equals(f) && !rf.isShower()) { facilityMatch = false; break; }
+                        if ("bathrobe".equals(f) && !rf.isBathrobe()) { facilityMatch = false; break; }
+                        if ("toilet".equals(f) && !rf.isToilet()) { facilityMatch = false; break; }
+                        if ("towels".equals(f) && !rf.isTowels()) { facilityMatch = false; break; }
+                        if ("slippers".equals(f) && !rf.isSlippers()) { facilityMatch = false; break; }
+                        if ("hairdryer".equals(f) && !rf.isHairdryer()) { facilityMatch = false; break; }
+                        if ("toiletPaper".equals(f) && !rf.isToiletPaper()) { facilityMatch = false; break; }
+                        if ("airConditioning".equals(f) && !rf.isAirConditioning()) { facilityMatch = false; break; }
+                        if ("safetyDepositBox".equals(f) && !rf.isSafetyDepositBox()) { facilityMatch = false; break; }
+                        if ("desk".equals(f) && !rf.isDesk()) { facilityMatch = false; break; }
+                        if ("television".equals(f) && !rf.isTelevision()) { facilityMatch = false; break; }
+                        if ("telephone".equals(f) && !rf.isTelephone()) { facilityMatch = false; break; }
+                        if ("iron".equals(f) && !rf.isIron()) { facilityMatch = false; break; }
+                        if ("electricKettle".equals(f) && !rf.isElectricKettle()) { facilityMatch = false; break; }
+                        if ("cableChannels".equals(f) && !rf.isCableChannels()) { facilityMatch = false; break; }
+                        if ("wakeUpService".equals(f) && !rf.isWakeUpService()) { facilityMatch = false; break; }
+                        if ("wardrobeCloset".equals(f) && !rf.isWardrobeCloset()) { facilityMatch = false; break; }
+                        if ("clothesRack".equals(f) && !rf.isClothesRack()) { facilityMatch = false; break; }
+                        if ("freeBottledWater".equals(f) && rf.getFreeBottledWater() <= 0) { facilityMatch = false; break; }
+                    }
+                    if (!facilityMatch) continue;
+                }
+
+                // 4. Kiểm tra phòng còn trống trong khoảng thời gian đã chọn hay không
+                long bookedCount = bookingRepository.sumQuantityForConfirmedAndPending(
+                        r.getId(),
+                        finalD2,
+                        finalD1
+                );
+                int available = r.getNumberRooms() - (int) bookedCount;
+                if (available > 0) {
+                    totalAvailableRooms += available;
+                    roomsWithAvailable.add(r);
+                }
+            }
+
+            // Kiểm tra xem tổng số phòng trống của các phòng thỏa mãn filter có đủ số lượng phòng yêu cầu (rooms) không
+            int reqRooms = (rooms != null) ? rooms : 1;
+            if (totalAvailableRooms < reqRooms || roomsWithAvailable.isEmpty()) {
+                continue;
+            }
+
+            // Lấy phòng có giá thấp nhất trong các phòng hợp lệ
+            BigDecimal basePrice = roomsWithAvailable.stream()
                     .map(Room::getPrice)
                     .min(BigDecimal::compareTo)
-                    .orElse(null);
-
-            // Nếu không có phòng nào còn trống, lấy giá của phòng rẻ nhất tổng thể
-            if (basePrice == null) {
-                basePrice = hotelRooms.stream()
-                        .map(Room::getPrice)
-                        .min(BigDecimal::compareTo)
-                        .orElse(BigDecimal.ZERO);
-            }
+                    .orElse(BigDecimal.ZERO);
 
             BigDecimal actualPrice = finalIsFiltered ? calculateHotelSubtotal(basePrice, finalD1, finalD2) : basePrice;
             hotelPricesMap.put(h.getId(), actualPrice);
+            filteredHotels.add(h);
         }
+        hotels = filteredHotels;
 
         hotels = hotels.stream()
                 .sorted((h1, h2) -> {

@@ -69,6 +69,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (doneBtn) {
             doneBtn.addEventListener('click', function() {
                 dropdown.classList.add('d-none');
+                const form = doneBtn.closest('form');
+                if (form) {
+                    form.submit();
+                }
             });
         }
     }
