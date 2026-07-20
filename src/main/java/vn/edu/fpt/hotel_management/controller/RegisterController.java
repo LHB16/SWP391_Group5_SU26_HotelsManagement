@@ -173,6 +173,35 @@ public class RegisterController {
     }
 
     private String saveUploadedFile(MultipartFile file, String subDir) throws IOException {
+        if (file == null || file.isEmpty()) {
+            return null;
+        }
+
+        // 1. Kiểm tra kích thước tệp tin (Giới hạn tối đa 10MB)
+        long maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.getSize() > maxSize) {
+            throw new IOException("File size exceeds the 10MB limit!");
+        }
+
+        // 2. Kiểm tra định dạng tệp tin dựa trên loại tài liệu
+        String contentType = file.getContentType();
+        if (contentType == null) {
+            throw new IOException("Invalid file type!");
+        }
+
+        if ("owner_docs".equals(subDir)) {
+            // Đối với tài liệu CMND/CCCD của Owner: cho phép ảnh hoặc PDF
+            if (!contentType.startsWith("image/") && !contentType.equals("application/pdf")) {
+                throw new IOException("ID Card document must be an image (PNG, JPG) or a PDF file!");
+            }
+        } else if ("hotel_docs".equals(subDir)) {
+            // Đối với tài liệu xác minh khách sạn: chỉ cho phép PDF
+            if (!contentType.equals("application/pdf")) {
+                throw new IOException("Hotel verification document must be a PDF file!");
+            }
+        }
+
+        // 3. Tiến hành lưu tệp tin vào thư mục src
         Path uploadPath = Paths.get(System.getProperty("user.dir"),
                 "src", "main", "resources", "static", "assets", "docs", subDir);
         if (!Files.exists(uploadPath)) {
@@ -183,6 +212,16 @@ public class RegisterController {
                 (originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_") : "document.pdf");
         Path target = uploadPath.resolve(safeFilename);
         Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+
+        // 4. Đồng bộ sang thư mục target/classes để hiển thị ngay lập tức ở runtime
+        Path classesPath = Paths.get(System.getProperty("user.dir"), "target", "classes", "static", "assets", "docs", subDir).toAbsolutePath().normalize();
+        if (Files.exists(Paths.get(System.getProperty("user.dir"), "target", "classes", "static"))) {
+            if (!Files.exists(classesPath)) {
+                Files.createDirectories(classesPath);
+            }
+            Files.copy(target, classesPath.resolve(safeFilename), StandardCopyOption.REPLACE_EXISTING);
+        }
+
         return "/assets/docs/" + subDir + "/" + safeFilename;
     }
 }
