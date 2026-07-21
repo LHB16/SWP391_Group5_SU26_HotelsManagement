@@ -9,7 +9,7 @@
     <meta th:if="${_csrf != null}" name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 
-<body class="d-flex flex-column h-100">
+<body class="d-flex flex-column h-100 dashboard-page">
 
 <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
@@ -601,8 +601,13 @@
 
                         <div class="col-12">
                             <label class="form-label fw-semibold">Hotel Image <span class="text-danger">*</span></label>
-                            <input type="file" name="imageFile" class="form-control" accept="image/jpeg,image/png,image/webp,image/jpg" required />
-                            <small class="text-muted">JPG, PNG, WEBP · Max 10MB</small>
+                            <div class="input-group">
+                                <input type="file" name="imageFile" id="ownerHotelImageInput" class="d-none" accept="image/jpeg,image/png,image/webp,image/jpg" required="required"
+                                       onchange="document.getElementById('ownerHotelImageFileNameDisplay').value = this.files[0] ? this.files[0].name : 'No file chosen';" />
+                                <input type="text" id="ownerHotelImageFileNameDisplay" class="form-control text-muted custom-file-text-input" placeholder="No file chosen" readonly onclick="document.getElementById('ownerHotelImageInput').click();" />
+                                <button class="btn btn-outline-secondary custom-file-browse-btn" type="button" onclick="document.getElementById('ownerHotelImageInput').click();">Browse...</button>
+                            </div>
+                            <small class="text-muted d-block mt-1">JPG, PNG, WEBP · Max 10MB</small>
                             <div class="mt-2" id="hotelImagePreview"></div>
                         </div>
 

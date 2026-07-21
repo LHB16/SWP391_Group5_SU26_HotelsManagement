@@ -3,7 +3,7 @@
 
 <head th:replace="~{fragment/frag :: head}"></head>
 
-<body class="d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100 dashboard-page">
     <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
     <!-- ==================== MAIN CONTENT ==================== -->
@@ -135,7 +135,7 @@
                                     <th>bed</th>
                                     <th>person</th>
                                     <th>window</th>
-                                    <th>room_status</th>
+                                    <th>status</th>
                                     <th>price</th>
                                     <th>action</th>
                                 </tr>
@@ -159,10 +159,10 @@
                                     <td>
                                         <div class="d-flex gap-2 justify-content-center">
                                             <a th:href="@{/hotels/{id}/rooms/{rid}(id=${hotel.id}, rid=${room.id})}"
-                                                class="btn-action-view">View</a>
+                                                class="btn btn-sm btn-outline-info">View</a>
                                             <a th:href="@{/owner/hotels/{id}/rooms/{rid}/edit(id=${hotel.id}, rid=${room.id})}"
-                                                class="btn-action-modify">Modify</a>
-                                            <button type="button" class="btn-action-delete" data-bs-toggle="modal"
+                                                class="btn btn-sm btn-outline-primary">Modify</a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
                                                 th:data-bs-target="'#deleteModalRoom-' + ${room.id}">Delete</button>
 
                                             <!-- Bootstrap Delete Modal -->

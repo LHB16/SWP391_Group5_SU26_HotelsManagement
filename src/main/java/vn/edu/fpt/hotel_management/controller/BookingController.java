@@ -816,9 +816,8 @@ public class BookingController {
                 subtotal = subtotal.add(totalRoomSubtotal);
 
                 // Calculate available rooms dynamically based on stay dates
-                long bookedCount = bookingRepository.sumQuantityByRoomIdAndStatusAndCheckInDateBeforeAndCheckOutDateAfter(
+                long bookedCount = bookingRepository.sumQuantityForConfirmedAndPending(
                         r.getId(),
-                        "CONFIRMED",
                         java.time.LocalDate.parse(co.trim()),
                         java.time.LocalDate.parse(ci.trim())
                 );

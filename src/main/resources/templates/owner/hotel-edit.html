@@ -114,8 +114,13 @@
                                     <span th:if="${hotel.imageUrl != null and !hotel.imageUrl.isEmpty()}">Change Image</span>
                                     <span th:unless="${hotel.imageUrl != null and !hotel.imageUrl.isEmpty()}">Hotel Image</span>
                                 </label>
-                                <input type="file" name="imageFile" id="imageFile" class="form-control"
-                                       accept="image/jpeg,image/png,image/webp,image/jpg" />
+                                <div class="input-group">
+                                    <input type="file" name="imageFile" id="imageFile" class="d-none"
+                                           accept="image/jpeg,image/png,image/webp,image/jpg"
+                                           onchange="document.getElementById('hotelEditFileNameDisplay').value = this.files[0] ? this.files[0].name : 'No file chosen';" />
+                                    <input type="text" id="hotelEditFileNameDisplay" class="form-control text-muted custom-file-text-input" placeholder="No file chosen" readonly onclick="document.getElementById('imageFile').click();" />
+                                    <button class="btn btn-outline-secondary custom-file-browse-btn" type="button" onclick="document.getElementById('imageFile').click();">Browse...</button>
+                                </div>
                                 <div class="form-text text-muted mt-1">
                                     <span th:if="${hotel.imageUrl != null and !hotel.imageUrl.isEmpty()}">Leave blank to keep current image</span>
                                     <span th:unless="${hotel.imageUrl != null and !hotel.imageUrl.isEmpty()}">JPG, PNG, WEBP · Max 10MB</span>
