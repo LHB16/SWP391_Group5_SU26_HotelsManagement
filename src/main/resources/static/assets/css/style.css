@@ -25656,4 +25656,13 @@ body.dashboard-page .custom-nav-container {
   width: 100% !important;
   padding-left: 1.5rem !important;
   padding-right: 1.5rem !important;
+}
+
+/* Prevent wrapping for booking select promotion button */
+.booking-select-promo-btn {
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+.booking-promo-action-wrap {
+  flex-shrink: 0 !important;
 }
