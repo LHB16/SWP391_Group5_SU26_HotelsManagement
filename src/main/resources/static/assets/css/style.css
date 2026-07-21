@@ -25728,6 +25728,16 @@ body.dashboard-page .custom-nav-container {
   flex-shrink: 0 !important;
   display: inline-block !important;
   vertical-align: middle !important;
+}
+
+/* Wishlist spec icons & Room detail spec icons */
+.wl-spec-icon,
+.rd-spec-icon {
+  width: 16px !important;
+  height: 16px !important;
+  vertical-align: middle !important;
+}
+
 /* Prevent wrapping for booking select promotion button */
 .booking-select-promo-btn {
   white-space: nowrap !important;

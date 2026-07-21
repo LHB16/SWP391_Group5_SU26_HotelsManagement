@@ -3,1104 +3,1215 @@
 
 <head>
     <th:block th:replace="~{fragment/frag :: head}"></th:block>
-    <link th:href="@{/assets/css/dashboard.css}" rel="stylesheet"/>
+    <link th:href="@{/assets/css/dashboard.css}" rel="stylesheet" />
     <script src="https://unpkg.com/lucide@latest"></script>
-    <meta th:if="${_csrf != null}" name="_csrf" th:content="${_csrf.token}"/>
-    <meta th:if="${_csrf != null}" name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta th:if="${_csrf != null}" name="_csrf" th:content="${_csrf.token}" />
+    <meta th:if="${_csrf != null}" name="_csrf_header" th:content="${_csrf.headerName}" />
 </head>
 
 <body class="d-flex flex-column h-100 dashboard-page">
 
-<nav th:replace="~{fragment/frag :: navBar}"></nav>
+    <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
-<main class="flex-shrink-0 dashboard-container container-fluid">
-    <div class="row">
+    <main class="flex-shrink-0 dashboard-container container-fluid">
+        <div class="row">
 
-        <!-- ==================== SIDEBAR ==================== -->
-        <div class="col-lg-3 col-md-4 mb-4">
-            <div class="sidebar-box">
-                <div class="px-3 mb-4 text-muted text-uppercase small font-weight-bold">
-                    Owner Navigation
-                </div>
-                <div class="sidebar-nav">
-                    <button class="sidebar-link active" data-tab="bookings">
-                        <i data-lucide="calendar-check" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
-                        <span>Bookings</span>
-                    </button>
-                    <button class="sidebar-link" data-tab="hotels">
-                        <i data-lucide="hotel" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
-                        <span>My Hotels</span>
-                    </button>
-                    <button class="sidebar-link" data-tab="promotions">
-                        <i data-lucide="percent" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
-                        <span>Promotions</span>
-                    </button>
-                    <a th:href="@{/chat/inbox}" class="sidebar-link text-decoration-none text-dark d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-2">
-                            <i data-lucide="message-square" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
-                            <span>Inbox (Chat)</span>
-                        </div>
-                        <span th:if="${unreadMessageCount != null and unreadMessageCount > 0}"
-                              class="badge rounded-pill bg-danger"
-                              style="font-size: 0.75rem; padding: 4px 8px;"
-                              th:text="${unreadMessageCount}">
-                            0
-                        </span>
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- ==================== CONTENT ==================== -->
-        <div class="col-lg-9 col-md-8">
-
-            <!-- ========================================================= -->
-            <!-- PANEL 1: BOOKINGS -->
-            <!-- ========================================================= -->
-            <div id="bookings" class="tab-panel active">
-
-                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3 flex-wrap gap-2">
-                    <div>
-                        <h1 class="fw-bold text-dark m-0" style="font-family: 'Playfair Display', serif; font-size: 1.6rem;">Bookings Management</h1>
-                        <p class="text-muted m-0 mt-1" style="font-size: 0.9rem;">View and manage all bookings for your hotels</p>
+            <!-- ==================== SIDEBAR ==================== -->
+            <div class="col-lg-3 col-md-4 mb-4">
+                <div class="sidebar-box">
+                    <div class="px-3 mb-4 text-muted text-uppercase small font-weight-bold">
+                        Owner Navigation
                     </div>
-                    <div class="text-muted d-flex align-items-center gap-2" style="font-size: 0.85rem;" th:if="${verificationStatus == 'APPROVED'}">
-                        <i data-lucide="calendar-check" style="width: 18px; height: 18px;"></i>
-                        <span><strong th:text="${totalBookings}">0</strong> bookings</span>
-                    </div>
-                </div>
-
-                <!-- PENDING VERIFICATION -->
-                <div th:if="${verificationStatus == 'PENDING'}" class="pending-verification-card mb-4">
-                    <div class="pending-verification-inner">
-                        <div class="pending-verification-icon">
-                            <i data-lucide="clock" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
-                        </div>
-                        <div class="pending-verification-content">
-                            <h4 class="pending-verification-title">Account Pending Verification</h4>
-                            <p class="pending-verification-text">
-                                Your account is being reviewed by admin. Bookings management will be available after approval.
-                            </p>
-                            <div class="pending-verification-status">
-                                <span class="badge-status badge-status-warning">
-                                    <i data-lucide="hourglass" style="width: 14px; height: 14px;"></i>
-                                    Status: PENDING
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- REJECTED VERIFICATION -->
-                <div th:if="${verificationStatus == 'REJECTED'}" class="rejected-verification-card mb-4">
-                    <div class="rejected-verification-inner">
-                        <div class="rejected-verification-icon">
-                            <i data-lucide="x-circle" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
-                        </div>
-                        <div class="rejected-verification-content">
-                            <h4 class="rejected-verification-title">Account Rejected</h4>
-                            <p class="rejected-verification-text">Your account has been rejected by admin.</p>
-                            <a th:href="@{/logout}" class="btn btn-danger btn-sm">Logout</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- APPROVED - SHOW BOOKINGS -->
-                <div th:if="${verificationStatus == 'APPROVED'}">
-                    <div class="dashboard-section">
-                        <h2 class="section-title">
-                            <i data-lucide="list" style="stroke-width: 1.5; color: #c9a96e;"></i>
-                            All Bookings
-                        </h2>
-
-                        <!-- Filter Row -->
-                        <div class="row g-3 mb-3 align-items-end">
-                            <div class="col-12 col-md-3">
-                                <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Search Customer</label>
-                                <input type="text" id="bookingSearchInput" class="form-control form-control-sm"
-                                       placeholder="Search customer name..." />
-                            </div>
-                            <div class="col-6 col-md-2">
-                                <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Hotel</label>
-                                <div class="scrollable-select-wrapper">
-                                    <select id="bookingHotelFilter" class="form-select form-select-sm scrollable-select"
-                                            onfocus="this.size=5;" onblur="this.size=1;" onchange="this.size=1; this.blur();">
-                                        <option value="all">All Hotels</option>
-                                        <option th:each="hotel : ${approvedHotels}" th:value="${hotel.id}" th:text="${hotel.name}"></option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-2">
-                                <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Status</label>
-                                <select id="bookingStatusFilter" class="form-select form-select-sm">
-                                    <option value="all">All Status</option>
-                                    <option value="CONFIRMED">CONFIRMED</option>
-                                    <option value="COMPLETED">COMPLETED</option>
-                                </select>
-                            </div>
-                            <div class="col-6 col-md-2">
-                                <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Check-in</label>
-                                <input type="text" id="bookingCheckinFilter" class="form-control form-control-sm"
-                                       placeholder="dd/mm/yyyy" readonly />
-                            </div>
-                            <div class="col-6 col-md-2">
-                                <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Check-out</label>
-                                <input type="text" id="bookingCheckoutFilter" class="form-control form-control-sm"
-                                       placeholder="dd/mm/yyyy" readonly />
-                            </div>
-                            <div class="col-12 col-md-1">
-                                <button class="btn btn-outline-secondary btn-sm w-100" onclick="clearBookingFilters()" style="font-size: 0.75rem;">
-                                    <i data-lucide="x" style="width: 14px; height: 14px;"></i> Clear
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Booking Table -->
-                        <div class="custom-table-container">
-                            <table class="custom-table">
-                                <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Customer</th>
-                                    <th>Hotel</th>
-                                    <th>Status</th>
-                                    <th>Check-in</th>
-                                    <th>Check-out</th>
-                                    <th>Total</th>
-                                    <th>Action</th>
-                                </tr>
-                                </thead>
-                                <tbody id="bookingTableBody">
-                                <tr th:each="b : ${recentBookings}">
-                                    <td><strong th:text="'#' + ${b.bookingId}">#1</strong></td>
-                                    <td th:text="${b.customerName}">Customer</td>
-                                    <td th:text="${b.hotelName}">Hotel</td>
-                                    <td>
-                <span class="badge-status"
-                      th:classappend="${b.bookingStatus == 'CONFIRMED'} ? 'badge-status-success' :
-                                     (${b.bookingStatus == 'COMPLETED'} ? 'badge-status-info' :
-                                     (${b.bookingStatus == 'PENDING'} ? 'badge-status-warning' :
-                                     (${b.bookingStatus == 'CANCELLED'} ? 'badge-status-danger' : 'badge-status-neutral')))"
-                      th:text="${b.bookingStatus}">
-                    PENDING
-                </span>
-                                    </td>
-                                    <td th:text="${b.checkInDate}" class="booking-date">In</td>
-                                    <td th:text="${b.checkOutDate}" class="booking-date">Out</td>
-                                    <td>
-                                        <strong class="text-success"
-                                                th:text="${#numbers.formatDecimal(b.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' VND'">
-                                            0 VND
-                                        </strong>
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary view-detail-btn"
-                                                th:data-booking-id="${b.bookingId}"
-                                                th:data-customer-name="${b.customerName}"
-                                                th:data-hotel-name="${b.hotelName}"
-                                                th:data-room-type="${b.roomType}"
-                                                th:data-checkin="${b.checkInDate}"
-                                                th:data-checkout="${b.checkOutDate}"
-                                                th:data-total="${b.totalPrice}"
-                                                th:data-status="${b.bookingStatus}"
-                                                th:data-payment="${b.paymentStatus}"
-                                                th:data-payout="${b.payoutStatus}"
-                                                th:data-payout-amount="${b.ownerPayoutAmount}"
-                                                th:data-platform-fee="${b.platformFeePercent}"
-                                                th:data-payout-bank="${b.payoutBankName}"
-                                                th:data-payout-account="${b.payoutBankAccountNumber}"
-                                                th:data-payout-holder="${b.payoutBankAccountHolder}"
-                                                th:data-checkin-status="${b.checkInStatus}"
-                                                th:data-checkout-status="${b.checkOutStatus}"
-                                                th:data-notes="${b.specialNotes}"
-                                                onclick="openBookingDetail(this)">
-                                            <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
-                                            View Detail
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr th:if="${#lists.isEmpty(recentBookings)}">
-                                    <td colspan="8" class="text-center text-muted py-5">
-                                        <i data-lucide="inbox" class="d-block mx-auto mb-2" style="width: 40px; height: 40px; opacity: 0.4;"></i>
-                                        No bookings found.
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- ========================================================= -->
-            <!-- PANEL 2: MY HOTELS -->
-            <!-- ========================================================= -->
-            <div id="hotels" class="tab-panel" th:classappend="${tab == 'hotels'} ? 'active' : ''">
-
-                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3 flex-wrap gap-2">
-                    <div>
-                        <h1 class="fw-bold text-dark m-0" style="font-family: 'Playfair Display', serif; font-size: 1.6rem;">My Hotels</h1>
-                        <p class="text-muted m-0 mt-1" style="font-size: 0.9rem;">Manage your hotel properties</p>
-                    </div>
-                    <div class="d-flex align-items-center gap-3">
-                        <span class="text-muted small" th:if="${verificationStatus == 'APPROVED'}">
-                            <i data-lucide="hotel" style="width: 16px; height: 16px;"></i>
-                            <strong th:text="${totalHotels}">0</strong> hotels
-                        </span>
-                        <button class="btn-gold" onclick="openAddHotelModal()"
-                                th:if="${verificationStatus == 'APPROVED'}">
-                            <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
-                            Add New Hotel
+                    <div class="sidebar-nav">
+                        <button class="sidebar-link active" data-tab="bookings">
+                            <i data-lucide="calendar-check" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
+                            <span>Bookings</span>
                         </button>
-                    </div>
-                </div>
-
-                <div th:if="${verificationStatus == 'PENDING'}" class="pending-verification-card mb-4">
-                    <div class="pending-verification-inner">
-                        <div class="pending-verification-icon">
-                            <i data-lucide="clock" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
-                        </div>
-                        <div class="pending-verification-content">
-                            <h4 class="pending-verification-title">Account Pending Verification</h4>
-                            <p class="pending-verification-text">
-                                Your account is being reviewed by admin. Hotel management will be available after approval.
-                            </p>
-                            <div class="pending-verification-status">
-                                <span class="badge-status badge-status-warning">
-                                    <i data-lucide="hourglass" style="width: 14px; height: 14px;"></i>
-                                    Status: PENDING
-                                </span>
+                        <button class="sidebar-link" data-tab="hotels">
+                            <i data-lucide="hotel" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
+                            <span>My Hotels</span>
+                        </button>
+                        <button class="sidebar-link" data-tab="promotions">
+                            <i data-lucide="percent" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
+                            <span>Promotions</span>
+                        </button>
+                        <a th:href="@{/chat/inbox}"
+                            class="sidebar-link text-decoration-none text-dark d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2">
+                                <i data-lucide="message-square"
+                                    style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
+                                <span>Inbox (Chat)</span>
                             </div>
-                        </div>
+                            <span th:if="${unreadMessageCount != null and unreadMessageCount > 0}"
+                                class="badge rounded-pill bg-danger" style="font-size: 0.75rem; padding: 4px 8px;"
+                                th:text="${unreadMessageCount}">
+                                0
+                            </span>
+                        </a>
                     </div>
                 </div>
+            </div>
 
-                <div th:if="${verificationStatus == 'REJECTED'}" class="rejected-verification-card mb-4">
-                    <div class="rejected-verification-inner">
-                        <div class="rejected-verification-icon">
-                            <i data-lucide="x-circle" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
+            <!-- ==================== CONTENT ==================== -->
+            <div class="col-lg-9 col-md-8">
+
+                <!-- ========================================================= -->
+                <!-- PANEL 1: BOOKINGS -->
+                <!-- ========================================================= -->
+                <div id="bookings" class="tab-panel active">
+
+                    <div
+                        class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3 flex-wrap gap-2">
+                        <div>
+                            <h1 class="fw-bold text-dark m-0"
+                                style="font-family: 'Playfair Display', serif; font-size: 1.6rem;">Bookings Management
+                            </h1>
+                            <p class="text-muted m-0 mt-1" style="font-size: 0.9rem;">View and manage all bookings for
+                                your hotels</p>
                         </div>
-                        <div class="rejected-verification-content">
-                            <h4 class="rejected-verification-title">Account Rejected</h4>
-                            <p class="rejected-verification-text">Your account has been rejected by admin.</p>
-                            <a th:href="@{/logout}" class="btn btn-danger btn-sm">Logout</a>
+                        <div class="text-muted d-flex align-items-center gap-2" style="font-size: 0.85rem;"
+                            th:if="${verificationStatus == 'APPROVED'}">
+                            <i data-lucide="calendar-check" style="width: 18px; height: 18px;"></i>
+                            <span><strong th:text="${totalBookings}">0</strong> bookings</span>
                         </div>
                     </div>
-                </div>
 
-                <div th:if="${verificationStatus == 'APPROVED'}">
-                    <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
-                        <i data-lucide="check-circle"></i>
-                        <span th:text="${successMessage}"></span>
-                    </div>
-                    <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
-                        <i data-lucide="alert-circle"></i>
-                        <span th:text="${errorMessage}"></span>
-                    </div>
-
-                    <div th:if="${not #lists.isEmpty(hotels)}" class="row g-4">
-                        <div th:each="hotel : ${hotels}" class="col-12 col-md-6 col-lg-4">
-                            <div class="card h-100 hotel-card" style="border-radius: 14px; border: 1px solid #f1f5f9; box-shadow: 0 4px 16px rgba(0,0,0,0.04); overflow: hidden;">
-
-                                <div class="position-relative overflow-hidden" style="height: 180px; background: #f1f5f9;">
-                                    <img th:if="${hotel.imageUrl != null and !hotel.imageUrl.isEmpty()}"
-                                         th:src="@{${hotel.imageUrl}}" th:alt="${hotel.name}"
-                                         class="w-100 h-100 object-fit-cover" />
-                                    <div th:if="${hotel.imageUrl == null or hotel.imageUrl.isEmpty()}"
-                                         class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
-                                        <i data-lucide="image" class="text-muted" style="width: 40px; height: 40px; opacity: 0.3;"></i>
-                                    </div>
-                                    <span class="badge position-absolute top-0 end-0 m-2"
-                                          th:classappend="${hotel.approvalStatus == 'APPROVED'} ? 'bg-success' :
-                                                         (${hotel.approvalStatus == 'REJECTED'} ? 'bg-danger' : 'bg-warning text-dark')"
-                                          th:text="${hotel.approvalStatus ?: 'PENDING'}">PENDING</span>
-                                    <span class="badge position-absolute bottom-0 start-0 m-2"
-                                          style="background: rgba(0,0,0,0.6); color: #f59e0b; backdrop-filter: blur(4px);">
-                                        <i data-lucide="star" style="width: 12px; height: 12px; fill: #f59e0b;"></i>
-                                        <span th:text="${hotel.rating}">0.0</span>
+                    <!-- PENDING VERIFICATION -->
+                    <div th:if="${verificationStatus == 'PENDING'}" class="pending-verification-card mb-4">
+                        <div class="pending-verification-inner">
+                            <div class="pending-verification-icon">
+                                <i data-lucide="clock" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
+                            </div>
+                            <div class="pending-verification-content">
+                                <h4 class="pending-verification-title">Account Pending Verification</h4>
+                                <p class="pending-verification-text">
+                                    Your account is being reviewed by admin. Bookings management will be available after
+                                    approval.
+                                </p>
+                                <div class="pending-verification-status">
+                                    <span class="badge-status badge-status-warning">
+                                        <i data-lucide="hourglass" style="width: 14px; height: 14px;"></i>
+                                        Status: PENDING
                                     </span>
                                 </div>
-
-                                <div class="card-body">
-                                    <h6 class="fw-bold text-dark mb-1" th:text="${hotel.name}">Hotel Name</h6>
-                                    <p class="text-muted small mb-0">
-                                        <i data-lucide="map-pin" style="width: 12px; height: 12px;"></i>
-                                        <span th:text="${hotel.address}">Address</span>
-                                    </p>
-                                    <div class="mt-2 d-flex gap-2 flex-wrap">
-                                        <span class="badge bg-light text-dark">
-                                            <i data-lucide="star" style="width: 12px; height: 12px; color: #f59e0b;"></i>
-                                            <span th:text="${hotel.rating}">0.0</span>
-                                        </span>
-                                        <span class="badge bg-light text-dark">
-                                            <i data-lucide="door-open" style="width: 12px; height: 12px;"></i>
-                                            <span th:text="${roomCountMap.get(hotel.id)}">0</span> rooms
-                                        </span>
-                                        <span class="badge bg-light text-dark" th:if="${hotel.active}">
-                                            <i data-lucide="check-circle" style="width: 12px; height: 12px; color: #22c55e;"></i>
-                                            Active
-                                        </span>
-                                        <span class="badge bg-light text-dark" th:unless="${hotel.active}">
-                                            <i data-lucide="x-circle" style="width: 12px; height: 12px; color: #ef4444;"></i>
-                                            Inactive
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                    <div class="d-flex gap-2">
-                                        <a th:href="@{/hotels/{id}/rooms#feedbacks(id=${hotel.id})}"
-                                           class="btn btn-sm btn-outline-info">
-                                            <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
-                                            View
-                                        </a>
-                                        <a th:href="@{/owner/hotels/{id}(id=${hotel.id})}"
-                                           class="btn btn-sm btn-outline-primary">
-                                            <i data-lucide="hotel" style="width: 14px; height: 14px;"></i>
-                                            Detail
-                                        </a>
-                                    </div>
-                                    <div class="d-flex gap-2">
-                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" th:data-bs-target="'#deleteModalHotel-' + ${hotel.id}">
-                                            <i data-lucide="trash-2" style="width: 14px; height: 14px; vertical-align: middle;"></i>
-                                            Delete
-                                        </button>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div th:if="${#lists.isEmpty(hotels)}" class="text-center py-5">
-                        <i data-lucide="building" class="d-block mx-auto mb-3" style="width: 60px; height: 60px; opacity: 0.3; color: #94a3b8;"></i>
-                        <h5 class="text-muted">You don't have any hotels yet</h5>
-                        <p class="text-muted">Register your first hotel to start managing</p>
-                        <button class="btn-gold mt-2" onclick="openAddHotelModal()">
-                            <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
-                            Add Your First Hotel
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ========================================================= -->
-            <!-- PANEL 3: PROMOTIONS -->
-            <!-- ========================================================= -->
-            <div id="promotions" class="tab-panel" th:classappend="${tab == 'promotions'} ? 'active' : ''">
-                <style>
-                    #promotions table thead th:not(:first-child),
-                    #promotionTableBody td:not(:first-child) {
-                        text-align: center !important;
-                    }
-                </style>
-
-                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3 flex-wrap gap-2">
-                    <div>
-                        <h1 class="fw-bold text-dark m-0" style="font-family: 'Playfair Display', serif; font-size: 1.6rem;">Promotions Management</h1>
-                        <p class="text-muted m-0 mt-1" style="font-size: 0.9rem;">Create and manage special offers for your hotels</p>
-                    </div>
-                    <div class="d-flex align-items-center gap-3">
-                        <span class="text-muted small" th:if="${verificationStatus == 'APPROVED'}">
-                            <i data-lucide="percent" style="width: 16px; height: 16px;"></i>
-                            <strong id="totalPromotionsCount">0</strong> promotions
-                        </span>
-                        <button class="btn-gold" onclick="openAddPromotionModal()"
-                                th:if="${verificationStatus == 'APPROVED'}">
-                            <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
-                            Add Promotion
-                        </button>
-                    </div>
-                </div>
-
-                <div th:if="${verificationStatus == 'PENDING'}" class="pending-verification-card mb-4">
-                    <div class="pending-verification-inner">
-                        <div class="pending-verification-icon">
-                            <i data-lucide="clock" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
-                        </div>
-                        <div class="pending-verification-content">
-                            <h4 class="pending-verification-title">Account Pending Verification</h4>
-                            <p class="pending-verification-text">
-                                Your account is being reviewed by admin. Promotion management will be available after approval.
-                            </p>
-                            <div class="pending-verification-status">
-                                <span class="badge-status badge-status-warning">
-                                    <i data-lucide="hourglass" style="width: 14px; height: 14px;"></i>
-                                    Status: PENDING
-                                </span>
+                    <!-- REJECTED VERIFICATION -->
+                    <div th:if="${verificationStatus == 'REJECTED'}" class="rejected-verification-card mb-4">
+                        <div class="rejected-verification-inner">
+                            <div class="rejected-verification-icon">
+                                <i data-lucide="x-circle" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
+                            </div>
+                            <div class="rejected-verification-content">
+                                <h4 class="rejected-verification-title">Account Rejected</h4>
+                                <p class="rejected-verification-text">Your account has been rejected by admin.</p>
+                                <a th:href="@{/logout}" class="btn btn-danger btn-sm">Logout</a>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div th:if="${verificationStatus == 'REJECTED'}" class="rejected-verification-card mb-4">
-                    <div class="rejected-verification-inner">
-                        <div class="rejected-verification-icon">
-                            <i data-lucide="x-circle" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
-                        </div>
-                        <div class="rejected-verification-content">
-                            <h4 class="rejected-verification-title">Account Rejected</h4>
-                            <p class="rejected-verification-text">Your account has been rejected by admin.</p>
-                            <a th:href="@{/logout}" class="btn btn-danger btn-sm">Logout</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div th:if="${verificationStatus == 'APPROVED'}">
-
-                    <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
-                        <i data-lucide="check-circle"></i>
-                        <span th:text="${successMessage}"></span>
-                    </div>
-                    <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
-                        <i data-lucide="alert-circle"></i>
-                        <span th:text="${errorMessage}"></span>
-                    </div>
-
-                    <div th:if="${not #lists.isEmpty(approvedHotels)}">
-
+                    <!-- APPROVED - SHOW BOOKINGS -->
+                    <div th:if="${verificationStatus == 'APPROVED'}">
                         <div class="dashboard-section">
                             <h2 class="section-title">
-                                <i data-lucide="percent" style="stroke-width: 1.5; color: #c9a96e;"></i>
-                                All Promotions
+                                <i data-lucide="list" style="stroke-width: 1.5; color: #c9a96e;"></i>
+                                All Bookings
                             </h2>
 
                             <!-- Filter Row -->
                             <div class="row g-3 mb-3 align-items-end">
                                 <div class="col-12 col-md-3">
-                                    <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Search Promotion</label>
-                                    <input type="text" id="promotionSearchInput" class="form-control form-control-sm"
-                                           placeholder="Search promotion name..." />
+                                    <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Search
+                                        Customer</label>
+                                    <input type="text" id="bookingSearchInput" class="form-control form-control-sm"
+                                        placeholder="Search customer name..." />
                                 </div>
                                 <div class="col-6 col-md-2">
                                     <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Hotel</label>
                                     <div class="scrollable-select-wrapper">
-                                        <select id="hotelFilterSelect" class="form-select form-select-sm scrollable-select"
-                                                onfocus="this.size=5;" onblur="this.size=1;" onchange="this.size=1; this.blur();">
+                                        <select id="bookingHotelFilter"
+                                            class="form-select form-select-sm scrollable-select" onfocus="this.size=5;"
+                                            onblur="this.size=1;" onchange="this.size=1; this.blur();">
                                             <option value="all">All Hotels</option>
-                                            <option th:each="hotel : ${approvedHotels}" th:value="${hotel.id}" th:text="${hotel.name}"></option>
+                                            <option th:each="hotel : ${approvedHotels}" th:value="${hotel.id}"
+                                                th:text="${hotel.name}"></option>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-2">
                                     <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Status</label>
-                                    <select id="promotionStatusFilter" class="form-select form-select-sm">
+                                    <select id="bookingStatusFilter" class="form-select form-select-sm">
                                         <option value="all">All Status</option>
-                                        <option value="ACTIVE">Active</option>
-                                        <option value="INACTIVE">Inactive</option>
-                                        <option value="EXPIRED">Expired</option>
+                                        <option value="CONFIRMED">CONFIRMED</option>
+                                        <option value="COMPLETED">COMPLETED</option>
                                     </select>
                                 </div>
                                 <div class="col-6 col-md-2">
-                                    <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Start Date</label>
-                                    <input type="text" id="promoStartDateFilter" class="form-control form-control-sm"
-                                           placeholder="dd/mm/yyyy" readonly />
+                                    <label class="form-label fw-semibold mb-1"
+                                        style="font-size: 0.8rem;">Check-in</label>
+                                    <input type="text" id="bookingCheckinFilter" class="form-control form-control-sm"
+                                        placeholder="dd/mm/yyyy" readonly />
                                 </div>
                                 <div class="col-6 col-md-2">
-                                    <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">End Date</label>
-                                    <input type="text" id="promoEndDateFilter" class="form-control form-control-sm"
-                                           placeholder="dd/mm/yyyy" readonly />
+                                    <label class="form-label fw-semibold mb-1"
+                                        style="font-size: 0.8rem;">Check-out</label>
+                                    <input type="text" id="bookingCheckoutFilter" class="form-control form-control-sm"
+                                        placeholder="dd/mm/yyyy" readonly />
                                 </div>
                                 <div class="col-12 col-md-1">
-                                    <button class="btn btn-outline-secondary btn-sm w-100" onclick="clearPromotionFilters()" style="font-size: 0.75rem;">
+                                    <button class="btn btn-outline-secondary btn-sm w-100"
+                                        onclick="clearBookingFilters()" style="font-size: 0.75rem;">
                                         <i data-lucide="x" style="width: 14px; height: 14px;"></i> Clear
                                     </button>
                                 </div>
                             </div>
 
-                            <!-- Promotion Table -->
+                            <!-- Booking Table -->
                             <div class="custom-table-container">
                                 <table class="custom-table">
                                     <thead>
-                                    <tr>
-                                        <th>Title</th>
-                                        <th style="text-align: center;">Discount</th>
-                                        <th style="text-align: center;">Start Date</th>
-                                        <th style="text-align: center;">End Date</th>
-                                        <th style="text-align: center;">Status</th>
-                                        <th style="text-align: center;">Actions</th>
-                                    </tr>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Customer</th>
+                                            <th>Hotel</th>
+                                            <th>Status</th>
+                                            <th>Check-in</th>
+                                            <th>Check-out</th>
+                                            <th>Total</th>
+                                            <th>Action</th>
+                                        </tr>
                                     </thead>
-                                    <tbody id="promotionTableBody">
-                                    <!-- Promotion data will be loaded by JavaScript -->
+                                    <tbody id="bookingTableBody">
+                                        <tr th:each="b : ${recentBookings}">
+                                            <td><strong th:text="'#' + ${b.bookingId}">#1</strong></td>
+                                            <td th:text="${b.customerName}">Customer</td>
+                                            <td th:text="${b.hotelName}">Hotel</td>
+                                            <td>
+                                                <span class="badge-status"
+                                                    th:classappend="${b.bookingStatus == 'CONFIRMED'} ? 'badge-status-success' :
+                                     (${b.bookingStatus == 'COMPLETED'} ? 'badge-status-info' :
+                                     (${b.bookingStatus == 'PENDING'} ? 'badge-status-warning' :
+                                     (${b.bookingStatus == 'CANCELLED'} ? 'badge-status-danger' : 'badge-status-neutral')))"
+                                                    th:text="${b.bookingStatus}">
+                                                    PENDING
+                                                </span>
+                                            </td>
+                                            <td th:text="${b.checkInDate}" class="booking-date">In</td>
+                                            <td th:text="${b.checkOutDate}" class="booking-date">Out</td>
+                                            <td>
+                                                <strong class="text-success"
+                                                    th:text="${#numbers.formatDecimal(b.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' VND'">
+                                                    0 VND
+                                                </strong>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary view-detail-btn d-inline-flex align-items-center gap-1"
+                                                    th:data-booking-id="${b.bookingId}"
+                                                    th:data-customer-name="${b.customerName}"
+                                                    th:data-hotel-name="${b.hotelName}"
+                                                    th:data-room-type="${b.roomType}" th:data-checkin="${b.checkInDate}"
+                                                    th:data-checkout="${b.checkOutDate}" th:data-total="${b.totalPrice}"
+                                                    th:data-status="${b.bookingStatus}"
+                                                    th:data-payment="${b.paymentStatus}"
+                                                    th:data-payout="${b.payoutStatus}"
+                                                    th:data-payout-amount="${b.ownerPayoutAmount}"
+                                                    th:data-platform-fee="${b.platformFeePercent}"
+                                                    th:data-payout-bank="${b.payoutBankName}"
+                                                    th:data-payout-account="${b.payoutBankAccountNumber}"
+                                                    th:data-payout-holder="${b.payoutBankAccountHolder}"
+                                                    th:data-checkin-status="${b.checkInStatus}"
+                                                    th:data-checkout-status="${b.checkOutStatus}"
+                                                    th:data-notes="${b.specialNotes}" onclick="openBookingDetail(this)">
+                                                    <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                                                    View
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr th:if="${#lists.isEmpty(recentBookings)}">
+                                            <td colspan="8" class="text-center text-muted py-5">
+                                                <i data-lucide="inbox" class="d-block mx-auto mb-2"
+                                                    style="width: 40px; height: 40px; opacity: 0.4;"></i>
+                                                No bookings found.
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
+                </div>
+                <!-- ========================================================= -->
+                <!-- PANEL 2: MY HOTELS -->
+                <!-- ========================================================= -->
+                <div id="hotels" class="tab-panel" th:classappend="${tab == 'hotels'} ? 'active' : ''">
 
-                    <div th:if="${#lists.isEmpty(approvedHotels)}" class="text-center py-5">
-                        <i data-lucide="building" class="d-block mx-auto mb-3" style="width: 60px; height: 60px; opacity: 0.3; color: #94a3b8;"></i>
-                        <h5 class="text-muted">No approved hotels yet</h5>
-                        <p class="text-muted">You need at least one approved hotel to manage promotions.</p>
-                        <a th:href="@{/owner/dashboard(tab='hotels')}" class="btn-gold mt-2">
-                            <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
-                            View My Hotels
-                        </a>
+                    <div
+                        class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3 flex-wrap gap-2">
+                        <div>
+                            <h1 class="fw-bold text-dark m-0"
+                                style="font-family: 'Playfair Display', serif; font-size: 1.6rem;">My Hotels</h1>
+                            <p class="text-muted m-0 mt-1" style="font-size: 0.9rem;">Manage your hotel properties</p>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="text-muted small" th:if="${verificationStatus == 'APPROVED'}">
+                                <i data-lucide="hotel" style="width: 16px; height: 16px;"></i>
+                                <strong th:text="${totalHotels}">0</strong> hotels
+                            </span>
+                            <button class="btn-gold" onclick="openAddHotelModal()"
+                                th:if="${verificationStatus == 'APPROVED'}">
+                                <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+                                Add New Hotel
+                            </button>
+                        </div>
                     </div>
 
-                </div>
-            </div>
-
-        </div>
-    </div>
-</main>
-
-<!-- ========================================================= -->
-<!-- MODAL: Add Hotel -->
-<!-- ========================================================= -->
-<div class="modal fade" id="addHotelModal" tabindex="-1" aria-labelledby="addHotelModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content shadow border-0" style="border-radius: 16px;">
-            <div class="modal-header border-0 pb-0" style="padding: 24px 24px 0;">
-                <div>
-                    <h5 class="modal-title fw-bold" id="addHotelModalLabel">
-                        <i data-lucide="building" style="width: 20px; height: 20px; color: #c9a96e;"></i>
-                        Add New Hotel
-                    </h5>
-                    <p class="text-muted small mt-1">Fill in all hotel information below to register your hotel</p>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-
-            <div class="modal-body" style="padding: 20px 24px 0;">
-                <form th:action="@{/owner/dashboard/add-hotel}"
-                      method="post"
-                      enctype="multipart/form-data"
-                      id="addHotelForm">
-
-                    <div class="row g-4">
-                        <div class="col-12">
-                            <label class="form-label fw-semibold">Hotel Name <span class="text-danger">*</span></label>
-                            <input type="text" name="name" class="form-control" placeholder="Enter hotel name" required maxlength="200" />
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label fw-semibold">Address <span class="text-danger">*</span></label>
-                            <input type="text" name="address" class="form-control" placeholder="Enter full address" required maxlength="500" />
-                        </div>
-
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold">District <span class="text-danger">*</span></label>
-                            <input type="text" name="district" class="form-control" placeholder="Enter district" required maxlength="100" />
-                        </div>
-
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold">City <span class="text-danger">*</span></label>
-                            <input type="text" name="city" class="form-control" placeholder="Enter city" required maxlength="100" />
-                        </div>
-
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold">Phone Number <span class="text-danger">*</span></label>
-                            <input type="tel" name="phone" class="form-control" placeholder="Enter hotel phone number" required maxlength="20" />
-                            <small class="text-muted">Contact phone number for the hotel</small>
-                        </div>
-
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
-                            <input type="email" name="email" class="form-control" placeholder="Enter hotel email" required maxlength="255" />
-                            <small class="text-muted">Contact email for the hotel</small>
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label fw-semibold">Description <span class="text-danger">*</span></label>
-                            <textarea name="description" class="form-control" rows="3" placeholder="Describe your hotel, services, amenities..." style="resize: vertical;" required></textarea>
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label fw-semibold">Hotel Image <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <input type="file" name="imageFile" id="ownerHotelImageInput" class="d-none" accept="image/jpeg,image/png,image/webp,image/jpg" required="required"
-                                       onchange="document.getElementById('ownerHotelImageFileNameDisplay').value = this.files[0] ? this.files[0].name : 'No file chosen';" />
-                                <input type="text" id="ownerHotelImageFileNameDisplay" class="form-control text-muted custom-file-text-input" placeholder="No file chosen" readonly onclick="document.getElementById('ownerHotelImageInput').click();" />
-                                <button class="btn btn-outline-secondary custom-file-browse-btn" type="button" onclick="document.getElementById('ownerHotelImageInput').click();">Browse...</button>
+                    <div th:if="${verificationStatus == 'PENDING'}" class="pending-verification-card mb-4">
+                        <div class="pending-verification-inner">
+                            <div class="pending-verification-icon">
+                                <i data-lucide="clock" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
                             </div>
-                            <small class="text-muted d-block mt-1">JPG, PNG, WEBP · Max 10MB</small>
-                            <div class="mt-2" id="hotelImagePreview"></div>
-                        </div>
-
-                        <div class="col-12">
-                            <hr style="border-color: rgba(201,169,110,0.3);">
-                            <h6 class="fw-bold mb-2" style="color: var(--hotel-navy);">
-                                <i data-lucide="file-text" style="width: 18px; height: 18px; color: #c9a96e;"></i>
-                                Hotel Verification Documents
-                            </h6>
-                            <p class="text-muted small mb-3">
-                                Upload required documents for hotel verification.
-                                These will be reviewed by admin before your hotel is approved.
-                                <span class="text-danger">*</span> Required
-                            </p>
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label fw-semibold">Business Registration <span class="text-danger">*</span></label>
-                            <input type="file" name="businessRegistrationDoc" class="form-control" accept="application/pdf" required />
-                            <small class="text-muted">PDF only - Max 10MB</small>
-                            <div class="mt-2" id="businessRegistrationPreview"></div>
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label fw-semibold">Land Certificate <span class="text-danger">*</span></label>
-                            <input type="file" name="landCertificateDoc" class="form-control" accept="application/pdf" required />
-                            <small class="text-muted">PDF only - Max 10MB</small>
-                            <div class="mt-2" id="landCertificatePreview"></div>
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label fw-semibold">Rental Contract</label>
-                            <input type="file" name="rentalContractDoc" class="form-control" accept="application/pdf" />
-                            <small class="text-muted">PDF only - Max 10MB</small>
-                            <div class="mt-2" id="rentalContractPreview"></div>
-                        </div>
-
-                        <div class="col-12">
-                            <div class="p-3 bg-light rounded-3" style="border-left: 4px solid #c9a96e;">
-                                <small class="text-muted">
-                                    <i data-lucide="info" style="width: 14px; height: 14px; color: #c9a96e;"></i>
-                                    After registration, your hotel and documents will be reviewed by admin before becoming visible to customers.
-                                </small>
+                            <div class="pending-verification-content">
+                                <h4 class="pending-verification-title">Account Pending Verification</h4>
+                                <p class="pending-verification-text">
+                                    Your account is being reviewed by admin. Hotel management will be available after
+                                    approval.
+                                </p>
+                                <div class="pending-verification-status">
+                                    <span class="badge-status badge-status-warning">
+                                        <i data-lucide="hourglass" style="width: 14px; height: 14px;"></i>
+                                        Status: PENDING
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </form>
-            </div>
 
-            <div class="modal-footer border-0" style="padding: 16px 24px 24px;">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-                    <i data-lucide="x" style="width: 14px; height: 14px;"></i>
-                    Cancel
-                </button>
-                <button type="button" class="btn-gold" onclick="document.getElementById('addHotelForm').submit();">
-                    <i data-lucide="save" style="width: 16px; height: 16px;"></i>
-                    Register Hotel
-                </button>
+                    <div th:if="${verificationStatus == 'REJECTED'}" class="rejected-verification-card mb-4">
+                        <div class="rejected-verification-inner">
+                            <div class="rejected-verification-icon">
+                                <i data-lucide="x-circle" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
+                            </div>
+                            <div class="rejected-verification-content">
+                                <h4 class="rejected-verification-title">Account Rejected</h4>
+                                <p class="rejected-verification-text">Your account has been rejected by admin.</p>
+                                <a th:href="@{/logout}" class="btn btn-danger btn-sm">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${verificationStatus == 'APPROVED'}">
+                        <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
+                            <i data-lucide="check-circle"></i>
+                            <span th:text="${successMessage}"></span>
+                        </div>
+                        <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+                            <i data-lucide="alert-circle"></i>
+                            <span th:text="${errorMessage}"></span>
+                        </div>
+
+                        <div th:if="${not #lists.isEmpty(hotels)}" class="row g-4">
+                            <div th:each="hotel : ${hotels}" class="col-12 col-md-6 col-lg-4">
+                                <div class="card h-100 hotel-card"
+                                    style="border-radius: 14px; border: 1px solid #f1f5f9; box-shadow: 0 4px 16px rgba(0,0,0,0.04); overflow: hidden;">
+
+                                    <div class="position-relative overflow-hidden"
+                                        style="height: 180px; background: #f1f5f9;">
+                                        <img th:if="${hotel.imageUrl != null and !hotel.imageUrl.isEmpty()}"
+                                            th:src="@{${hotel.imageUrl}}" th:alt="${hotel.name}"
+                                            class="w-100 h-100 object-fit-cover" />
+                                        <div th:if="${hotel.imageUrl == null or hotel.imageUrl.isEmpty()}"
+                                            class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
+                                            <i data-lucide="image" class="text-muted"
+                                                style="width: 40px; height: 40px; opacity: 0.3;"></i>
+                                        </div>
+                                        <span class="badge position-absolute top-0 end-0 m-2"
+                                            th:classappend="${hotel.approvalStatus == 'APPROVED'} ? 'bg-success' :
+                                                         (${hotel.approvalStatus == 'REJECTED'} ? 'bg-danger' : 'bg-warning text-dark')"
+                                            th:text="${hotel.approvalStatus ?: 'PENDING'}">PENDING</span>
+                                        <span class="badge position-absolute bottom-0 start-0 m-2"
+                                            style="background: rgba(0,0,0,0.6); color: #f59e0b; backdrop-filter: blur(4px);">
+                                            <i data-lucide="star" style="width: 12px; height: 12px; fill: #f59e0b;"></i>
+                                            <span th:text="${hotel.rating}">0.0</span>
+                                        </span>
+                                    </div>
+
+                                    <div class="card-body">
+                                        <h6 class="fw-bold text-dark mb-1" th:text="${hotel.name}">Hotel Name</h6>
+                                        <p class="text-muted small mb-0">
+                                            <i data-lucide="map-pin" style="width: 12px; height: 12px;"></i>
+                                            <span th:text="${hotel.address}">Address</span>
+                                        </p>
+                                        <div class="mt-2 d-flex gap-2 flex-wrap">
+                                            <span class="badge bg-light text-dark">
+                                                <i data-lucide="star"
+                                                    style="width: 12px; height: 12px; color: #f59e0b;"></i>
+                                                <span th:text="${hotel.rating}">0.0</span>
+                                            </span>
+                                            <span class="badge bg-light text-dark">
+                                                <i data-lucide="door-open" style="width: 12px; height: 12px;"></i>
+                                                <span th:text="${roomCountMap.get(hotel.id)}">0</span> rooms
+                                            </span>
+                                            <span class="badge bg-light text-dark" th:if="${hotel.active}">
+                                                <i data-lucide="check-circle"
+                                                    style="width: 12px; height: 12px; color: #22c55e;"></i>
+                                                Active
+                                            </span>
+                                            <span class="badge bg-light text-dark" th:unless="${hotel.active}">
+                                                <i data-lucide="x-circle"
+                                                    style="width: 12px; height: 12px; color: #ef4444;"></i>
+                                                Inactive
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <div class="d-flex gap-2">
+                                            <a th:href="@{/hotels/{id}/rooms#feedbacks(id=${hotel.id})}"
+                                                class="btn btn-sm btn-outline-info">
+                                                <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                                                View
+                                            </a>
+                                            <a th:href="@{/owner/hotels/{id}(id=${hotel.id})}"
+                                                class="btn btn-sm btn-outline-primary">
+                                                <i data-lucide="hotel" style="width: 14px; height: 14px;"></i>
+                                                Detail
+                                            </a>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                data-bs-toggle="modal"
+                                                th:data-bs-target="'#deleteModalHotel-' + ${hotel.id}">
+                                                <i data-lucide="trash-2"
+                                                    style="width: 14px; height: 14px; vertical-align: middle;"></i>
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div th:if="${#lists.isEmpty(hotels)}" class="text-center py-5">
+                            <i data-lucide="building" class="d-block mx-auto mb-3"
+                                style="width: 60px; height: 60px; opacity: 0.3; color: #94a3b8;"></i>
+                            <h5 class="text-muted">You don't have any hotels yet</h5>
+                            <p class="text-muted">Register your first hotel to start managing</p>
+                            <button class="btn-gold mt-2" onclick="openAddHotelModal()">
+                                <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+                                Add Your First Hotel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========================================================= -->
+                <!-- PANEL 3: PROMOTIONS -->
+                <!-- ========================================================= -->
+                <div id="promotions" class="tab-panel" th:classappend="${tab == 'promotions'} ? 'active' : ''">
+                    <style>
+                        #promotions table thead th:not(:first-child),
+                        #promotionTableBody td:not(:first-child) {
+                            text-align: center !important;
+                        }
+                    </style>
+
+                    <div
+                        class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3 flex-wrap gap-2">
+                        <div>
+                            <h1 class="fw-bold text-dark m-0"
+                                style="font-family: 'Playfair Display', serif; font-size: 1.6rem;">Promotions Management
+                            </h1>
+                            <p class="text-muted m-0 mt-1" style="font-size: 0.9rem;">Create and manage special offers
+                                for your hotels</p>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="text-muted small" th:if="${verificationStatus == 'APPROVED'}">
+                                <i data-lucide="percent" style="width: 16px; height: 16px;"></i>
+                                <strong id="totalPromotionsCount">0</strong> promotions
+                            </span>
+                            <button class="btn-gold" onclick="openAddPromotionModal()"
+                                th:if="${verificationStatus == 'APPROVED'}">
+                                <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+                                Add Promotion
+                            </button>
+                        </div>
+                    </div>
+
+                    <div th:if="${verificationStatus == 'PENDING'}" class="pending-verification-card mb-4">
+                        <div class="pending-verification-inner">
+                            <div class="pending-verification-icon">
+                                <i data-lucide="clock" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
+                            </div>
+                            <div class="pending-verification-content">
+                                <h4 class="pending-verification-title">Account Pending Verification</h4>
+                                <p class="pending-verification-text">
+                                    Your account is being reviewed by admin. Promotion management will be available
+                                    after approval.
+                                </p>
+                                <div class="pending-verification-status">
+                                    <span class="badge-status badge-status-warning">
+                                        <i data-lucide="hourglass" style="width: 14px; height: 14px;"></i>
+                                        Status: PENDING
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${verificationStatus == 'REJECTED'}" class="rejected-verification-card mb-4">
+                        <div class="rejected-verification-inner">
+                            <div class="rejected-verification-icon">
+                                <i data-lucide="x-circle" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
+                            </div>
+                            <div class="rejected-verification-content">
+                                <h4 class="rejected-verification-title">Account Rejected</h4>
+                                <p class="rejected-verification-text">Your account has been rejected by admin.</p>
+                                <a th:href="@{/logout}" class="btn btn-danger btn-sm">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${verificationStatus == 'APPROVED'}">
+
+                        <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
+                            <i data-lucide="check-circle"></i>
+                            <span th:text="${successMessage}"></span>
+                        </div>
+                        <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+                            <i data-lucide="alert-circle"></i>
+                            <span th:text="${errorMessage}"></span>
+                        </div>
+
+                        <div th:if="${not #lists.isEmpty(approvedHotels)}">
+
+                            <div class="dashboard-section">
+                                <h2 class="section-title">
+                                    <i data-lucide="percent" style="stroke-width: 1.5; color: #c9a96e;"></i>
+                                    All Promotions
+                                </h2>
+
+                                <!-- Filter Row -->
+                                <div class="row g-3 mb-3 align-items-end">
+                                    <div class="col-12 col-md-3">
+                                        <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Search
+                                            Promotion</label>
+                                        <input type="text" id="promotionSearchInput"
+                                            class="form-control form-control-sm"
+                                            placeholder="Search promotion name..." />
+                                    </div>
+                                    <div class="col-6 col-md-2">
+                                        <label class="form-label fw-semibold mb-1"
+                                            style="font-size: 0.8rem;">Hotel</label>
+                                        <div class="scrollable-select-wrapper">
+                                            <select id="hotelFilterSelect"
+                                                class="form-select form-select-sm scrollable-select"
+                                                onfocus="this.size=5;" onblur="this.size=1;"
+                                                onchange="this.size=1; this.blur();">
+                                                <option value="all">All Hotels</option>
+                                                <option th:each="hotel : ${approvedHotels}" th:value="${hotel.id}"
+                                                    th:text="${hotel.name}"></option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-2">
+                                        <label class="form-label fw-semibold mb-1"
+                                            style="font-size: 0.8rem;">Status</label>
+                                        <select id="promotionStatusFilter" class="form-select form-select-sm">
+                                            <option value="all">All Status</option>
+                                            <option value="ACTIVE">Active</option>
+                                            <option value="INACTIVE">Inactive</option>
+                                            <option value="EXPIRED">Expired</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6 col-md-2">
+                                        <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Start
+                                            Date</label>
+                                        <input type="text" id="promoStartDateFilter"
+                                            class="form-control form-control-sm" placeholder="dd/mm/yyyy" readonly />
+                                    </div>
+                                    <div class="col-6 col-md-2">
+                                        <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">End
+                                            Date</label>
+                                        <input type="text" id="promoEndDateFilter" class="form-control form-control-sm"
+                                            placeholder="dd/mm/yyyy" readonly />
+                                    </div>
+                                    <div class="col-12 col-md-1">
+                                        <button class="btn btn-outline-secondary btn-sm w-100"
+                                            onclick="clearPromotionFilters()" style="font-size: 0.75rem;">
+                                            <i data-lucide="x" style="width: 14px; height: 14px;"></i> Clear
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Promotion Table -->
+                                <div class="custom-table-container">
+                                    <table class="custom-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Title</th>
+                                                <th style="text-align: center;">Discount</th>
+                                                <th style="text-align: center;">Start Date</th>
+                                                <th style="text-align: center;">End Date</th>
+                                                <th style="text-align: center;">Status</th>
+                                                <th style="text-align: center;">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="promotionTableBody">
+                                            <!-- Promotion data will be loaded by JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div th:if="${#lists.isEmpty(approvedHotels)}" class="text-center py-5">
+                            <i data-lucide="building" class="d-block mx-auto mb-3"
+                                style="width: 60px; height: 60px; opacity: 0.3; color: #94a3b8;"></i>
+                            <h5 class="text-muted">No approved hotels yet</h5>
+                            <p class="text-muted">You need at least one approved hotel to manage promotions.</p>
+                            <a th:href="@{/owner/dashboard(tab='hotels')}" class="btn-gold mt-2">
+                                <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
+                                View My Hotels
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- ========================================================= -->
+    <!-- MODAL: Add Hotel -->
+    <!-- ========================================================= -->
+    <div class="modal fade" id="addHotelModal" tabindex="-1" aria-labelledby="addHotelModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content shadow border-0" style="border-radius: 16px;">
+                <div class="modal-header border-0 pb-0" style="padding: 24px 24px 0;">
+                    <div>
+                        <h5 class="modal-title fw-bold" id="addHotelModalLabel">
+                            <i data-lucide="building" style="width: 20px; height: 20px; color: #c9a96e;"></i>
+                            Add New Hotel
+                        </h5>
+                        <p class="text-muted small mt-1">Fill in all hotel information below to register your hotel</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body" style="padding: 20px 24px 0;">
+                    <form th:action="@{/owner/dashboard/add-hotel}" method="post" enctype="multipart/form-data"
+                        id="addHotelForm">
+
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Hotel Name <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" name="name" class="form-control" placeholder="Enter hotel name"
+                                    required maxlength="200" />
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Address <span class="text-danger">*</span></label>
+                                <input type="text" name="address" class="form-control" placeholder="Enter full address"
+                                    required maxlength="500" />
+                            </div>
+
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label fw-semibold">District <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" name="district" class="form-control" placeholder="Enter district"
+                                    required maxlength="100" />
+                            </div>
+
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label fw-semibold">City <span class="text-danger">*</span></label>
+                                <input type="text" name="city" class="form-control" placeholder="Enter city" required
+                                    maxlength="100" />
+                            </div>
+
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label fw-semibold">Phone Number <span
+                                        class="text-danger">*</span></label>
+                                <input type="tel" name="phone" class="form-control"
+                                    placeholder="Enter hotel phone number" required maxlength="20" />
+                                <small class="text-muted">Contact phone number for the hotel</small>
+                            </div>
+
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                                <input type="email" name="email" class="form-control" placeholder="Enter hotel email"
+                                    required maxlength="255" />
+                                <small class="text-muted">Contact email for the hotel</small>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Description <span
+                                        class="text-danger">*</span></label>
+                                <textarea name="description" class="form-control" rows="3"
+                                    placeholder="Describe your hotel, services, amenities..." style="resize: vertical;"
+                                    required></textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Hotel Image <span
+                                        class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="file" name="imageFile" id="ownerHotelImageInput" class="d-none"
+                                        accept="image/jpeg,image/png,image/webp,image/jpg" required="required"
+                                        onchange="document.getElementById('ownerHotelImageFileNameDisplay').value = this.files[0] ? this.files[0].name : 'No file chosen';" />
+                                    <input type="text" id="ownerHotelImageFileNameDisplay"
+                                        class="form-control text-muted custom-file-text-input"
+                                        placeholder="No file chosen" readonly
+                                        onclick="document.getElementById('ownerHotelImageInput').click();" />
+                                    <button class="btn btn-outline-secondary custom-file-browse-btn" type="button"
+                                        onclick="document.getElementById('ownerHotelImageInput').click();">Browse...</button>
+                                </div>
+                                <small class="text-muted d-block mt-1">JPG, PNG, WEBP · Max 10MB</small>
+                                <div class="mt-2" id="hotelImagePreview"></div>
+                            </div>
+
+                            <div class="col-12">
+                                <hr style="border-color: rgba(201,169,110,0.3);">
+                                <h6 class="fw-bold mb-2" style="color: var(--hotel-navy);">
+                                    <i data-lucide="file-text" style="width: 18px; height: 18px; color: #c9a96e;"></i>
+                                    Hotel Verification Documents
+                                </h6>
+                                <p class="text-muted small mb-3">
+                                    Upload required documents for hotel verification.
+                                    These will be reviewed by admin before your hotel is approved.
+                                    <span class="text-danger">*</span> Required
+                                </p>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Business Registration <span
+                                        class="text-danger">*</span></label>
+                                <input type="file" name="businessRegistrationDoc" class="form-control"
+                                    accept="application/pdf" required />
+                                <small class="text-muted">PDF only - Max 10MB</small>
+                                <div class="mt-2" id="businessRegistrationPreview"></div>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Land Certificate <span
+                                        class="text-danger">*</span></label>
+                                <input type="file" name="landCertificateDoc" class="form-control"
+                                    accept="application/pdf" required />
+                                <small class="text-muted">PDF only - Max 10MB</small>
+                                <div class="mt-2" id="landCertificatePreview"></div>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Rental Contract</label>
+                                <input type="file" name="rentalContractDoc" class="form-control"
+                                    accept="application/pdf" />
+                                <small class="text-muted">PDF only - Max 10MB</small>
+                                <div class="mt-2" id="rentalContractPreview"></div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="p-3 bg-light rounded-3" style="border-left: 4px solid #c9a96e;">
+                                    <small class="text-muted">
+                                        <i data-lucide="info" style="width: 14px; height: 14px; color: #c9a96e;"></i>
+                                        After registration, your hotel and documents will be reviewed by admin before
+                                        becoming visible to customers.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer border-0" style="padding: 16px 24px 24px;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                        <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                        Cancel
+                    </button>
+                    <button type="button" class="btn-gold" onclick="document.getElementById('addHotelForm').submit();">
+                        <i data-lucide="save" style="width: 16px; height: 16px;"></i>
+                        Register Hotel
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- ========================================================= -->
-<!-- MODAL: Add Promotion -->
-<!-- ========================================================= -->
-<div class="modal fade" id="addPromotionModal" tabindex="-1" aria-labelledby="addPromotionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow border-0" style="border-radius: 16px;">
-            <div class="modal-header border-0 pb-0" style="padding: 24px 24px 0;">
-                <div>
-                    <h5 class="modal-title fw-bold" id="addPromotionModalLabel">
-                        <i data-lucide="percent" style="width: 20px; height: 20px; color: #c9a96e;"></i>
-                        Create New Promotion
-                    </h5>
-                    <p class="text-muted small mt-1">Create a special offer to attract more customers</p>
+    <!-- ========================================================= -->
+    <!-- MODAL: Add Promotion -->
+    <!-- ========================================================= -->
+    <div class="modal fade" id="addPromotionModal" tabindex="-1" aria-labelledby="addPromotionModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow border-0" style="border-radius: 16px;">
+                <div class="modal-header border-0 pb-0" style="padding: 24px 24px 0;">
+                    <div>
+                        <h5 class="modal-title fw-bold" id="addPromotionModalLabel">
+                            <i data-lucide="percent" style="width: 20px; height: 20px; color: #c9a96e;"></i>
+                            Create New Promotion
+                        </h5>
+                        <p class="text-muted small mt-1">Create a special offer to attract more customers</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
 
-            <div class="modal-body promo-modal-body">
-                <form th:action="@{/owner/promotions/create}" method="post" id="addPromotionForm">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Hotel <span class="text-danger">*</span></label>
-                        <div class="scrollable-select-wrapper custom-select-lg-wrapper">
-                            <select name="hotelId" class="form-select scrollable-select" required
+                <div class="modal-body promo-modal-body">
+                    <form th:action="@{/owner/promotions/create}" method="post" id="addPromotionForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Hotel <span class="text-danger">*</span></label>
+                            <div class="scrollable-select-wrapper custom-select-lg-wrapper">
+                                <select name="hotelId" class="form-select scrollable-select" required
                                     onfocus="this.size=5;" onblur="this.size=1;" onchange="this.size=1; this.blur();">
-                                <option value="">Select hotel...</option>
-                                <option th:each="h : ${approvedHotels}" th:value="${h.id}" th:text="${h.name}"></option>
+                                    <option value="">Select hotel...</option>
+                                    <option th:each="h : ${approvedHotels}" th:value="${h.id}" th:text="${h.name}">
+                                    </option>
+                                </select>
+                            </div>
+                            <small class="text-muted" th:if="${#lists.isEmpty(approvedHotels)}" style="color: #dc2626;">
+                                No approved hotels available. Please wait for admin approval.
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Promotion Title <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" name="title" class="form-control" placeholder="Enter promotion title"
+                                required maxlength="255" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Description</label>
+                            <textarea name="description" class="form-control" rows="3"
+                                placeholder="Describe your promotion..." style="resize: vertical;"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Discount (%) <span
+                                    class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" name="discountPercent" id="addDiscountPercent" class="form-control"
+                                    placeholder="Enter discount" min="1" max="100" step="1" required
+                                    oninput="validateDiscountInteger(this)" />
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <div id="addDiscountError" class="text-danger small mt-1" style="display:none;">
+                                <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
+                                Discount must be a whole number (e.g., 10, 15, 20). Decimals are not allowed.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Start Date <span class="text-danger">*</span></label>
+                            <input type="text" name="startDate" id="addStartDate" class="form-control"
+                                placeholder="Select start date" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">End Date <span class="text-danger">*</span></label>
+                            <input type="text" name="endDate" id="addEndDate" class="form-control"
+                                placeholder="Select end date" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="ACTIVE">Active</option>
+                                <option value="INACTIVE">Inactive</option>
                             </select>
                         </div>
-                        <small class="text-muted" th:if="${#lists.isEmpty(approvedHotels)}" style="color: #dc2626;">
-                            No approved hotels available. Please wait for admin approval.
-                        </small>
-                    </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Promotion Title <span class="text-danger">*</span></label>
-                        <input type="text" name="title" class="form-control" placeholder="Enter promotion title" required maxlength="255" />
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Description</label>
-                        <textarea name="description" class="form-control" rows="3" placeholder="Describe your promotion..." style="resize: vertical;"></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Discount (%) <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <input type="number"
-                                   name="discountPercent"
-                                   id="addDiscountPercent"
-                                   class="form-control"
-                                   placeholder="Enter discount"
-                                   min="1"
-                                   max="100"
-                                   step="1"
-                                   required
-                                   oninput="validateDiscountInteger(this)" />
-                            <span class="input-group-text">%</span>
+                        <div class="promo-modal-footer">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                                <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn-gold" id="addPromotionSubmitBtn">
+                                <i data-lucide="save" style="width: 16px; height: 16px;"></i>
+                                Create Promotion
+                            </button>
                         </div>
-                        <div id="addDiscountError" class="text-danger small mt-1" style="display:none;">
-                            <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
-                            Discount must be a whole number (e.g., 10, 15, 20). Decimals are not allowed.
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Start Date <span class="text-danger">*</span></label>
-                        <input type="text" name="startDate" id="addStartDate" class="form-control" placeholder="Select start date" required />
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">End Date <span class="text-danger">*</span></label>
-                        <input type="text" name="endDate" id="addEndDate" class="form-control" placeholder="Select end date" required />
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Status</label>
-                        <select name="status" class="form-select">
-                            <option value="ACTIVE">Active</option>
-                            <option value="INACTIVE">Inactive</option>
-                        </select>
-                    </div>
-
-                    <div class="promo-modal-footer">
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-                            <i data-lucide="x" style="width: 14px; height: 14px;"></i>
-                            Cancel
-                        </button>
-                        <button type="submit" class="btn-gold" id="addPromotionSubmitBtn">
-                            <i data-lucide="save" style="width: 16px; height: 16px;"></i>
-                            Create Promotion
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ========================================================= -->
-<!-- MODAL: Edit Promotion -->
-<!-- ========================================================= -->
-<div class="modal fade" id="editPromotionModal" tabindex="-1" aria-labelledby="editPromotionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow border-0" style="border-radius: 16px;">
-            <div class="modal-header border-0 pb-0" style="padding: 24px 24px 0;">
-                <div>
-                    <h5 class="modal-title fw-bold" id="editPromotionModalLabel">
-                        <i data-lucide="pencil" style="width: 20px; height: 20px; color: #c9a96e;"></i>
-                        Edit Promotion
-                    </h5>
-                    <p class="text-muted small mt-1">Update your promotion details</p>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-
-            <div class="modal-body promo-modal-body">
-                <form th:action="@{/owner/promotions/update}" method="post" id="editPromotionForm">
-                    <input type="hidden" name="promotionId" id="editPromotionId" />
-                    <input type="hidden" name="hotelId" id="editHotelId" />
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Promotion Title <span class="text-danger">*</span></label>
-                        <input type="text" name="title" id="editTitle" class="form-control" required maxlength="255" />
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Description</label>
-                        <textarea name="description" id="editDescription" class="form-control" rows="3" style="resize: vertical;"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Discount (%) <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <input type="number"
-                                   name="discountPercent"
-                                   id="editDiscountPercent"
-                                   class="form-control"
-                                   min="1"
-                                   max="100"
-                                   step="1"
-                                   required
-                                   oninput="validateDiscountInteger(this)" />
-                            <span class="input-group-text">%</span>
-                        </div>
-                        <div id="editDiscountError" class="text-danger small mt-1" style="display:none;">
-                            <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
-                            Discount must be a whole number (e.g., 10, 15, 20). Decimals are not allowed.
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Start Date <span class="text-danger">*</span></label>
-                        <input type="text" name="startDate" id="editStartDate" class="form-control" placeholder="Select start date" required />
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">End Date <span class="text-danger">*</span></label>
-                        <input type="text" name="endDate" id="editEndDate" class="form-control" placeholder="Select end date" required />
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Status</label>
-                        <select name="status" id="editStatus" class="form-select">
-                            <option value="ACTIVE">Active</option>
-                            <option value="INACTIVE">Inactive</option>
-                        </select>
-                    </div>
-
-                    <div class="promo-modal-footer">
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-                            <i data-lucide="x" style="width: 14px; height: 14px;"></i>
-                            Cancel
-                        </button>
-                        <button type="submit" class="btn-gold" style="border-radius: 8px; padding: 10px 24px; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;">
-                            <i data-lucide="save" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
-                            <span>Update Promotion</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ========================================================= -->
-<!-- MODAL: DELETE PROMOTION -->
-<!-- ========================================================= -->
-<div th:each="promo : ${allPromotions}">
-    <div class="modal fade" th:id="'deleteModalPromo-' + ${promo.id}" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content modal-content-rounded">
-                <div class="modal-header border-0 pt-4 pb-0 justify-content-center">
-                    <div class="text-center">
-                        <i class="bi bi-exclamation-triangle icon-warning-large text-gold"></i>
-                    </div>
-                </div>
-                <div class="modal-body text-center px-4 py-3">
-                    <h4 class="fw-bold text-dark mb-3 modal-title-serif">Confirm Deletion</h4>
-                    <p class="text-muted mb-0 modal-text-desc">
-                        Are you sure you want to delete promotion <strong class="text-navy-primary" th:text="'\'' + ${promo.title} + '\''">Promotion Title</strong>?
-                        <br>
-                        <span class="text-danger small">This action cannot be undone!</span>
-                    </p>
-                </div>
-                <div class="modal-footer border-0 pb-4 pt-2 d-flex gap-3 justify-content-center">
-                    <button type="button" class="btn btn-light px-4 py-2 rounded-3 border fw-semibold text-secondary font-size-9" data-bs-dismiss="modal">
-                        No, Keep It
-                    </button>
-                    <form th:action="@{/owner/promotions/delete}" method="post" class="d-inline">
-                        <input type="hidden" name="promotionId" th:value="${promo.id}" />
-                        <input type="hidden" name="hotelId" th:value="${promo.hotel.id}" />
-                        <button type="submit" class="btn btn-delete-modal px-4 py-2 rounded-3 fw-semibold text-white">
-                            Yes, Delete
-                        </button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<footer th:replace="~{fragment/frag :: footer}"></footer>
-<th:block th:replace="~{fragment/frag :: scripts}"></th:block>
-<script th:src="@{/assets/js/owner-dashboard.js}"></script>
-<script th:src="@{/assets/js/promotion.js}"></script>
-
-<!-- Modal: Chi tiết Payout đã nhận -->
-<div class="modal fade" id="ownerPayoutDetailModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow border-0" style="border-radius: 14px;">
-            <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold" style="color:#0f172a;">
-                    <i data-lucide="banknote" style="stroke-width:1.5; width:20px; height:20px; color:#10b981;"></i>
-                    Payout Received
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body px-4 pb-1">
-                <div class="alert alert-success border-0 py-2 px-3 mb-3" style="background:#f0fdf4; border-radius:8px;">
-                    <small class="text-success fw-semibold">Admin has processed this payout to your bank account.</small>
+    <!-- ========================================================= -->
+    <!-- MODAL: Edit Promotion -->
+    <!-- ========================================================= -->
+    <div class="modal fade" id="editPromotionModal" tabindex="-1" aria-labelledby="editPromotionModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow border-0" style="border-radius: 16px;">
+                <div class="modal-header border-0 pb-0" style="padding: 24px 24px 0;">
+                    <div>
+                        <h5 class="modal-title fw-bold" id="editPromotionModalLabel">
+                            <i data-lucide="pencil" style="width: 20px; height: 20px; color: #c9a96e;"></i>
+                            Edit Promotion
+                        </h5>
+                        <p class="text-muted small mt-1">Update your promotion details</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <table class="table table-borderless table-sm">
-                    <tr><td class="text-muted small" style="width:140px;">Bank Name</td><td class="fw-semibold" id="opd-bankName">-</td></tr>
-                    <tr><td class="text-muted small">Account Number</td><td class="fw-semibold" id="opd-accountNumber">-</td></tr>
-                    <tr><td class="text-muted small">Account Holder</td><td class="fw-semibold" id="opd-accountHolder">-</td></tr>
-                    <tr><td class="text-muted small">Platform Fee</td><td class="fw-semibold text-muted" id="opd-feePercent">-</td></tr>
-                    <tr>
-                        <td class="text-muted small">Amount Received</td>
-                        <td class="fw-bold text-success fs-6" id="opd-payoutAmount">-</td>
-                    </tr>
-                    <tr><td class="text-muted small">Transferred At</td><td class="small text-muted" id="opd-payoutAt">-</td></tr>
-                </table>
-            </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
+                <div class="modal-body promo-modal-body">
+                    <form th:action="@{/owner/promotions/update}" method="post" id="editPromotionForm">
+                        <input type="hidden" name="promotionId" id="editPromotionId" />
+                        <input type="hidden" name="hotelId" id="editHotelId" />
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Promotion Title <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" name="title" id="editTitle" class="form-control" required
+                                maxlength="255" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Description</label>
+                            <textarea name="description" id="editDescription" class="form-control" rows="3"
+                                style="resize: vertical;"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Discount (%) <span
+                                    class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" name="discountPercent" id="editDiscountPercent"
+                                    class="form-control" min="1" max="100" step="1" required
+                                    oninput="validateDiscountInteger(this)" />
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <div id="editDiscountError" class="text-danger small mt-1" style="display:none;">
+                                <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
+                                Discount must be a whole number (e.g., 10, 15, 20). Decimals are not allowed.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Start Date <span class="text-danger">*</span></label>
+                            <input type="text" name="startDate" id="editStartDate" class="form-control"
+                                placeholder="Select start date" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">End Date <span class="text-danger">*</span></label>
+                            <input type="text" name="endDate" id="editEndDate" class="form-control"
+                                placeholder="Select end date" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Status</label>
+                            <select name="status" id="editStatus" class="form-select">
+                                <option value="ACTIVE">Active</option>
+                                <option value="INACTIVE">Inactive</option>
+                            </select>
+                        </div>
+
+                        <div class="promo-modal-footer">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                                <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn-gold"
+                                style="border-radius: 8px; padding: 10px 24px; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;">
+                                <i data-lucide="save" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
+                                <span>Update Promotion</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
-<!-- ========================================================= -->
-<!-- MODAL: BOOKING DETAIL -->
-<!-- ========================================================= -->
-<div class="modal fade" id="bookingDetailModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content shadow border-0" style="border-radius: 16px;">
 
-            <div class="modal-header border-0" style="padding: 20px 24px 0;">
-                <div>
-                    <h5 class="modal-title fw-bold" style="font-family: 'Playfair Display', serif;">
-                        <i data-lucide="file-text" style="width: 20px; height: 20px; color: #c9a96e;"></i>
-                        Booking Detail
+    <!-- ========================================================= -->
+    <!-- MODAL: DELETE PROMOTION -->
+    <!-- ========================================================= -->
+    <div th:each="promo : ${allPromotions}">
+        <div class="modal fade" th:id="'deleteModalPromo-' + ${promo.id}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content modal-content-rounded">
+                    <div class="modal-header border-0 pt-4 pb-0 justify-content-center">
+                        <div class="text-center">
+                            <i class="bi bi-exclamation-triangle icon-warning-large text-gold"></i>
+                        </div>
+                    </div>
+                    <div class="modal-body text-center px-4 py-3">
+                        <h4 class="fw-bold text-dark mb-3 modal-title-serif">Confirm Deletion</h4>
+                        <p class="text-muted mb-0 modal-text-desc">
+                            Are you sure you want to delete promotion <strong class="text-navy-primary"
+                                th:text="'\'' + ${promo.title} + '\''">Promotion Title</strong>?
+                            <br>
+                            <span class="text-danger small">This action cannot be undone!</span>
+                        </p>
+                    </div>
+                    <div class="modal-footer border-0 pb-4 pt-2 d-flex gap-3 justify-content-center">
+                        <button type="button"
+                            class="btn btn-light px-4 py-2 rounded-3 border fw-semibold text-secondary font-size-9"
+                            data-bs-dismiss="modal">
+                            No, Keep It
+                        </button>
+                        <form th:action="@{/owner/promotions/delete}" method="post" class="d-inline">
+                            <input type="hidden" name="promotionId" th:value="${promo.id}" />
+                            <input type="hidden" name="hotelId" th:value="${promo.hotel.id}" />
+                            <button type="submit"
+                                class="btn btn-delete-modal px-4 py-2 rounded-3 fw-semibold text-white">
+                                Yes, Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragment/frag :: footer}"></footer>
+    <th:block th:replace="~{fragment/frag :: scripts}"></th:block>
+    <script th:src="@{/assets/js/owner-dashboard.js}"></script>
+    <script th:src="@{/assets/js/promotion.js}"></script>
+
+    <!-- Modal: Chi tiết Payout đã nhận -->
+    <div class="modal fade" id="ownerPayoutDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow border-0" style="border-radius: 14px;">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold" style="color:#0f172a;">
+                        <i data-lucide="banknote" style="stroke-width:1.5; width:20px; height:20px; color:#10b981;"></i>
+                        Payout Received
                     </h5>
-                    <p class="text-muted small mt-1">Complete booking information</p>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-
-            <div class="modal-body" id="bookingDetailBody" style="padding: 20px 24px;">
-
-                <!-- Header: Booking ID + Status badges -->
-                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-                    <h5 class="fw-bold mb-0" id="bd-bookingId" style="color: #0a1628;">#?</h5>
-                    <div class="d-flex gap-2 align-items-center">
-                        <span class="booking-status-badge" id="bd-status-badge">-</span>
-                        <span class="payment-status-badge" id="bd-payment-badge">-</span>
+                <div class="modal-body px-4 pb-1">
+                    <div class="alert alert-success border-0 py-2 px-3 mb-3"
+                        style="background:#f0fdf4; border-radius:8px;">
+                        <small class="text-success fw-semibold">Admin has processed this payout to your bank
+                            account.</small>
                     </div>
+                    <table class="table table-borderless table-sm">
+                        <tr>
+                            <td class="text-muted small" style="width:140px;">Bank Name</td>
+                            <td class="fw-semibold" id="opd-bankName">-</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted small">Account Number</td>
+                            <td class="fw-semibold" id="opd-accountNumber">-</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted small">Account Holder</td>
+                            <td class="fw-semibold" id="opd-accountHolder">-</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted small">Platform Fee</td>
+                            <td class="fw-semibold text-muted" id="opd-feePercent">-</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted small">Amount Received</td>
+                            <td class="fw-bold text-success fs-6" id="opd-payoutAmount">-</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted small">Transferred At</td>
+                            <td class="small text-muted" id="opd-payoutAt">-</td>
+                        </tr>
+                    </table>
                 </div>
-
-                <!-- 2 columns: Left = Customer/Hotel/Room, Right = Dates/Total -->
-                <div class="row g-4">
-                    <!-- LEFT COLUMN -->
-                    <div class="col-md-6">
-                        <!-- Customer -->
-                        <div class="mb-3">
-                            <label class="text-muted small text-uppercase fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Customer</label>
-                            <p class="fw-semibold mb-0" id="bd-customerName" style="color: #0a1628;">N/A</p>
-                        </div>
-                        <!-- Hotel -->
-                        <div class="mb-3">
-                            <label class="text-muted small text-uppercase fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Hotel</label>
-                            <p class="fw-semibold mb-0" id="bd-hotelName" style="color: #0a1628;">N/A</p>
-                        </div>
-                        <!-- Room Type -->
-                        <div class="mb-3">
-                            <label class="text-muted small text-uppercase fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Room Type</label>
-                            <p class="fw-semibold mb-0" id="bd-roomType" style="color: #0a1628;">N/A</p>
-                        </div>
-                    </div>
-
-                    <!-- RIGHT COLUMN -->
-                    <div class="col-md-6">
-                        <!-- Check-in -->
-                        <div class="mb-3">
-                            <label class="text-muted small text-uppercase fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Check-in</label>
-                            <p class="fw-semibold mb-0" id="bd-checkin" style="color: #0a1628;">-</p>
-                        </div>
-                        <!-- Check-out -->
-                        <div class="mb-3">
-                            <label class="text-muted small text-uppercase fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Check-out</label>
-                            <p class="fw-semibold mb-0" id="bd-checkout" style="color: #0a1628;">-</p>
-                        </div>
-                        <!-- Total -->
-                        <div class="mb-0">
-                            <label class="text-muted small text-uppercase fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Total</label>
-                            <p class="fw-bold fs-5 mb-0" id="bd-total" style="color: #10b981;">0 VND</p>
-                        </div>
-                    </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
-
-                <!-- Divider -->
-                <hr class="my-3" style="border-color: #e8ecf1;">
-
-                <!-- Payout Section -->
-                <div class="mb-3">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <label class="text-muted small text-uppercase fw-semibold mb-0" style="font-size: 0.7rem; letter-spacing: 0.05em;">Payout Status</label>
-                        <span id="bd-payout-badge">-</span>
-                    </div>
-                    <div id="bd-payout-detail" style="display:none; background: #f8fafc; border-radius: 8px; padding: 12px 16px; margin-top: 4px;">
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <span class="text-muted small" style="font-size: 0.7rem;">Bank Name</span>
-                                <p class="fw-semibold mb-0 small" id="bd-payout-bank">-</p>
-                            </div>
-                            <div class="col-6">
-                                <span class="text-muted small" style="font-size: 0.7rem;">Account Number</span>
-                                <p class="fw-semibold mb-0 small" id="bd-payout-account">-</p>
-                            </div>
-                            <div class="col-6">
-                                <span class="text-muted small" style="font-size: 0.7rem;">Account Holder</span>
-                                <p class="fw-semibold mb-0 small" id="bd-payout-holder">-</p>
-                            </div>
-                            <div class="col-6">
-                                <span class="text-muted small" style="font-size: 0.7rem;">Platform Fee</span>
-                                <p class="fw-semibold mb-0 small" id="bd-platform-fee">10%</p>
-                            </div>
-                            <div class="col-12">
-                                <span class="text-muted small" style="font-size: 0.7rem;">Amount Received</span>
-                                <p class="fw-bold mb-0" id="bd-payout-amount" style="color: #10b981;">0 VND</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Divider -->
-                <hr class="my-3" style="border-color: #e8ecf1;">
-
-                <!-- Check-in / Check-out Status -->
-                <div class="row g-3 mb-3">
-                    <div class="col-md-6">
-                        <div class="p-3 rounded-3" style="background: #f8fafc; border: 1px solid #e8ecf1;">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <label class="text-muted small text-uppercase fw-semibold mb-1 d-block" style="font-size: 0.7rem; letter-spacing: 0.05em;">Check-in Status</label>
-                                    <span id="bd-checkin-label" class="small text-secondary">Not Checked In</span>
-                                    <span id="bd-checkin-actual" class="small text-muted d-block mt-1" style="display:none;"></span>
-                                </div>
-                                <div id="bd-checkin-action-wrapper">
-                                    <button class="btn btn-sm btn-gold px-3" id="bd-checkin-btn" onclick="triggerCheckInConfirm()" style="font-size: 0.75rem; padding: 4px 12px;">
-                                        Check-in
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary px-2" id="bd-uncheckin-btn" onclick="triggerUnCheckInConfirm()" style="display:none; font-size: 0.75rem; padding: 4px 12px;">
-                                        Undo
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="p-3 rounded-3" style="background: #f8fafc; border: 1px solid #e8ecf1;">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <label class="text-muted small text-uppercase fw-semibold mb-1 d-block" style="font-size: 0.7rem; letter-spacing: 0.05em;">Check-out Status</label>
-                                    <span id="bd-checkout-label" class="small text-secondary">Not Checked Out</span>
-                                    <span id="bd-checkout-actual" class="small text-muted d-block mt-1" style="display:none;"></span>
-                                </div>
-                                <div id="bd-checkout-action-wrapper">
-                                    <button class="btn btn-sm btn-gold px-3" id="bd-checkout-btn" onclick="triggerCheckOutConfirm()" style="font-size: 0.75rem; padding: 4px 12px;">
-                                        Check-out
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary px-2" id="bd-uncheckout-btn" onclick="triggerUnCheckOutConfirm()" style="display:none; font-size: 0.75rem; padding: 4px 12px;">
-                                        Undo
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Special Notes -->
-                <div id="bd-special-notes" style="display:none; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px 16px;">
-                    <label class="text-muted small text-uppercase fw-semibold mb-1 d-block" style="font-size: 0.7rem; letter-spacing: 0.05em;">Special Notes</label>
-                    <p class="mb-0 small" id="bd-notes-content" style="color: #78350f;"></p>
-                </div>
-
-            </div>
-
-            <div class="modal-footer border-0" style="padding: 16px 24px 24px;">
-                <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-dismiss="modal" style="border-radius: 8px;">
-                    Close
-                </button>
             </div>
         </div>
     </div>
-</div>
+    <!-- ========================================================= -->
+    <!-- MODAL: BOOKING DETAIL -->
+    <!-- ========================================================= -->
+    <div class="modal fade" id="bookingDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content shadow border-0" style="border-radius: 16px;">
+
+                <div class="modal-header border-0" style="padding: 20px 24px 0;">
+                    <div>
+                        <h5 class="modal-title fw-bold" style="font-family: 'Playfair Display', serif;">
+                            <i data-lucide="file-text" style="width: 20px; height: 20px; color: #c9a96e;"></i>
+                            Booking Detail
+                        </h5>
+                        <p class="text-muted small mt-1">Complete booking information</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body" id="bookingDetailBody" style="padding: 20px 24px;">
+
+                    <!-- Header: Booking ID + Status badges -->
+                    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                        <h5 class="fw-bold mb-0" id="bd-bookingId" style="color: #0a1628;">#?</h5>
+                        <div class="d-flex gap-2 align-items-center">
+                            <span class="booking-status-badge" id="bd-status-badge">-</span>
+                            <span class="payment-status-badge" id="bd-payment-badge">-</span>
+                        </div>
+                    </div>
+
+                    <!-- 2 columns: Left = Customer/Hotel/Room, Right = Dates/Total -->
+                    <div class="row g-4">
+                        <!-- LEFT COLUMN -->
+                        <div class="col-md-6">
+                            <!-- Customer -->
+                            <div class="mb-3">
+                                <label class="text-muted small text-uppercase fw-semibold mb-1"
+                                    style="font-size: 0.7rem; letter-spacing: 0.05em;">Customer</label>
+                                <p class="fw-semibold mb-0" id="bd-customerName" style="color: #0a1628;">N/A</p>
+                            </div>
+                            <!-- Hotel -->
+                            <div class="mb-3">
+                                <label class="text-muted small text-uppercase fw-semibold mb-1"
+                                    style="font-size: 0.7rem; letter-spacing: 0.05em;">Hotel</label>
+                                <p class="fw-semibold mb-0" id="bd-hotelName" style="color: #0a1628;">N/A</p>
+                            </div>
+                            <!-- Room Type -->
+                            <div class="mb-3">
+                                <label class="text-muted small text-uppercase fw-semibold mb-1"
+                                    style="font-size: 0.7rem; letter-spacing: 0.05em;">Room Type</label>
+                                <p class="fw-semibold mb-0" id="bd-roomType" style="color: #0a1628;">N/A</p>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT COLUMN -->
+                        <div class="col-md-6">
+                            <!-- Check-in -->
+                            <div class="mb-3">
+                                <label class="text-muted small text-uppercase fw-semibold mb-1"
+                                    style="font-size: 0.7rem; letter-spacing: 0.05em;">Check-in</label>
+                                <p class="fw-semibold mb-0" id="bd-checkin" style="color: #0a1628;">-</p>
+                            </div>
+                            <!-- Check-out -->
+                            <div class="mb-3">
+                                <label class="text-muted small text-uppercase fw-semibold mb-1"
+                                    style="font-size: 0.7rem; letter-spacing: 0.05em;">Check-out</label>
+                                <p class="fw-semibold mb-0" id="bd-checkout" style="color: #0a1628;">-</p>
+                            </div>
+                            <!-- Total -->
+                            <div class="mb-0">
+                                <label class="text-muted small text-uppercase fw-semibold mb-1"
+                                    style="font-size: 0.7rem; letter-spacing: 0.05em;">Total</label>
+                                <p class="fw-bold fs-5 mb-0" id="bd-total" style="color: #10b981;">0 VND</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Divider -->
+                    <hr class="my-3" style="border-color: #e8ecf1;">
+
+                    <!-- Payout Section -->
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <label class="text-muted small text-uppercase fw-semibold mb-0"
+                                style="font-size: 0.7rem; letter-spacing: 0.05em;">Payout Status</label>
+                            <span id="bd-payout-badge">-</span>
+                        </div>
+                        <div id="bd-payout-detail"
+                            style="display:none; background: #f8fafc; border-radius: 8px; padding: 12px 16px; margin-top: 4px;">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <span class="text-muted small" style="font-size: 0.7rem;">Bank Name</span>
+                                    <p class="fw-semibold mb-0 small" id="bd-payout-bank">-</p>
+                                </div>
+                                <div class="col-6">
+                                    <span class="text-muted small" style="font-size: 0.7rem;">Account Number</span>
+                                    <p class="fw-semibold mb-0 small" id="bd-payout-account">-</p>
+                                </div>
+                                <div class="col-6">
+                                    <span class="text-muted small" style="font-size: 0.7rem;">Account Holder</span>
+                                    <p class="fw-semibold mb-0 small" id="bd-payout-holder">-</p>
+                                </div>
+                                <div class="col-6">
+                                    <span class="text-muted small" style="font-size: 0.7rem;">Platform Fee</span>
+                                    <p class="fw-semibold mb-0 small" id="bd-platform-fee">10%</p>
+                                </div>
+                                <div class="col-12">
+                                    <span class="text-muted small" style="font-size: 0.7rem;">Amount Received</span>
+                                    <p class="fw-bold mb-0" id="bd-payout-amount" style="color: #10b981;">0 VND</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Divider -->
+                    <hr class="my-3" style="border-color: #e8ecf1;">
+
+                    <!-- Check-in / Check-out Status -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-3" style="background: #f8fafc; border: 1px solid #e8ecf1;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <label class="text-muted small text-uppercase fw-semibold mb-1 d-block"
+                                            style="font-size: 0.7rem; letter-spacing: 0.05em;">Check-in Status</label>
+                                        <span id="bd-checkin-label" class="small text-secondary">Not Checked In</span>
+                                        <span id="bd-checkin-actual" class="small text-muted d-block mt-1"
+                                            style="display:none;"></span>
+                                    </div>
+                                    <div id="bd-checkin-action-wrapper">
+                                        <button class="btn btn-sm btn-gold px-3" id="bd-checkin-btn"
+                                            onclick="triggerCheckInConfirm()"
+                                            style="font-size: 0.75rem; padding: 4px 12px;">
+                                            Check-in
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary px-2" id="bd-uncheckin-btn"
+                                            onclick="triggerUnCheckInConfirm()"
+                                            style="display:none; font-size: 0.75rem; padding: 4px 12px;">
+                                            Undo
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-3" style="background: #f8fafc; border: 1px solid #e8ecf1;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <label class="text-muted small text-uppercase fw-semibold mb-1 d-block"
+                                            style="font-size: 0.7rem; letter-spacing: 0.05em;">Check-out Status</label>
+                                        <span id="bd-checkout-label" class="small text-secondary">Not Checked Out</span>
+                                        <span id="bd-checkout-actual" class="small text-muted d-block mt-1"
+                                            style="display:none;"></span>
+                                    </div>
+                                    <div id="bd-checkout-action-wrapper">
+                                        <button class="btn btn-sm btn-gold px-3" id="bd-checkout-btn"
+                                            onclick="triggerCheckOutConfirm()"
+                                            style="font-size: 0.75rem; padding: 4px 12px;">
+                                            Check-out
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary px-2" id="bd-uncheckout-btn"
+                                            onclick="triggerUnCheckOutConfirm()"
+                                            style="display:none; font-size: 0.75rem; padding: 4px 12px;">
+                                            Undo
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Special Notes -->
+                    <div id="bd-special-notes"
+                        style="display:none; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px 16px;">
+                        <label class="text-muted small text-uppercase fw-semibold mb-1 d-block"
+                            style="font-size: 0.7rem; letter-spacing: 0.05em;">Special Notes</label>
+                        <p class="mb-0 small" id="bd-notes-content" style="color: #78350f;"></p>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer border-0" style="padding: 16px 24px 24px;">
+                    <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-dismiss="modal"
+                        style="border-radius: 8px;">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </body>
+
 </html>

@@ -123,23 +123,19 @@
                                 <!-- Amenities -->
                                 <div class="room-amenities d-flex flex-wrap gap-2 mb-3">
                                     <span class="badge bg-light text-secondary border px-2 py-1 small">
-                                        <i data-lucide="maximize" class="me-1"
-                                            style="width: 16px; height: 16px; vertical-align: middle;"></i>
+                                        <i data-lucide="maximize" class="me-1 wl-spec-icon"></i>
                                         <span th:text="${wl.room.acreage + ' m²'}">25 m²</span>
                                     </span>
                                     <span class="badge bg-light text-secondary border px-2 py-1 small">
-                                        <i data-lucide="users" class="me-1"
-                                            style="width: 16px; height: 16px; vertical-align: middle;"></i>
+                                        <i data-lucide="users" class="me-1 wl-spec-icon"></i>
                                         <span th:text="${wl.room.person + ' guest(s)'}">2 guest(s)</span>
                                     </span>
                                     <span class="badge bg-light text-secondary border px-2 py-1 small">
-                                        <i data-lucide="bed" class="me-1"
-                                            style="width: 16px; height: 16px; vertical-align: middle;"></i>
+                                        <i data-lucide="bed" class="me-1 wl-spec-icon"></i>
                                         <span th:text="${wl.room.bed + ' bed(s)'}">2 bed(s)</span>
                                     </span>
                                     <span class="badge bg-light text-secondary border px-2 py-1 small">
-                                        <i data-lucide="layout-grid" class="me-1"
-                                            style="width: 16px; height: 16px; vertical-align: middle;"></i>
+                                        <i data-lucide="layout-grid" class="me-1 wl-spec-icon"></i>
                                         <span th:text="${wl.room.window + ' window(s)'}">2 window(s)</span>
                                     </span>
                                 </div>
@@ -171,7 +167,7 @@
                                     <a th:with="avail=${wishlistAvailableRoomsMap != null and wishlistAvailableRoomsMap.containsKey(wl.id) ? wishlistAvailableRoomsMap.get(wl.id) : 0}"
                                         th:href="${avail == 0 or (user != null and user.role == 'HOTEL_OWNER')} ? 'javascript:void(0)' : @{/booking(hotelId=${wl.room.hotelId}, roomId=${wl.room.id}, checkin=${wl.checkInDate != null ? wl.checkInDate : todayDate}, checkout=${wl.checkOutDate != null ? wl.checkOutDate : tomorrowDate})}"
                                         class="btn btn-gold btn-sm"
-                                        th:style="${avail == 0 or (user != null and user.role == 'HOTEL_OWNER')} ? 'background: #94a3b8 !important; border-color: #94a3b8 !important; color: #fff !important; pointer-events: none; cursor: not-allowed; opacity: 0.7;' : ''"
+                                        th:classappend="${avail == 0 or (user != null and user.role == 'HOTEL_OWNER')} ? 'disabled-booking-btn' : ''"
                                         th:id="${'booking-btn-' + wl.room.id}">
                                         Booking
                                     </a>

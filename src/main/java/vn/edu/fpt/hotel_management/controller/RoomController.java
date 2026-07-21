@@ -398,9 +398,6 @@ public class RoomController {
         model.addAttribute("user", loggedInUser);
         model.addAttribute("available", available);
 
-        if (loggedInUser != null && "HOTEL_OWNER".equals(loggedInUser.getRole())) {
-            return "owner/room-detail";
-        }
         return "hotel/room-detail";
     }
 
