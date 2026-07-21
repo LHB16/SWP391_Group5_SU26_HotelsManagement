@@ -100,8 +100,10 @@ function setupBookingDateFilters() {
     const checkinFilter = document.getElementById('bookingCheckinFilter');
     const checkoutFilter = document.getElementById('bookingCheckoutFilter');
 
-    if (checkinFilter && typeof flatpickr === 'function') {
-        flatpickr(checkinFilter, {
+    let fpCheckout;
+
+    if (checkoutFilter && typeof flatpickr === 'function') {
+        fpCheckout = flatpickr(checkoutFilter, {
             dateFormat: "d/m/Y",
             altInput: true,
             altFormat: "d/m/Y",
@@ -112,13 +114,27 @@ function setupBookingDateFilters() {
         });
     }
 
-    if (checkoutFilter && typeof flatpickr === 'function') {
-        flatpickr(checkoutFilter, {
+    if (checkinFilter && typeof flatpickr === 'function') {
+        flatpickr(checkinFilter, {
             dateFormat: "d/m/Y",
             altInput: true,
             altFormat: "d/m/Y",
             allowInput: false,
-            onChange: function() {
+            onChange: function(selectedDates) {
+                if (fpCheckout) {
+                    if (selectedDates[0]) {
+                        const minDate = new Date(selectedDates[0]);
+                        minDate.setDate(minDate.getDate() + 1);
+                        fpCheckout.set('minDate', minDate);
+                        
+                        // If checkout date is before or equal to check-in, clear it
+                        if (fpCheckout.selectedDates[0] && fpCheckout.selectedDates[0] <= selectedDates[0]) {
+                            fpCheckout.clear();
+                        }
+                    } else {
+                        fpCheckout.set('minDate', null);
+                    }
+                }
                 applyBookingFilters();
             }
         });
@@ -332,7 +348,10 @@ function clearBookingFilters() {
     }
     if (checkoutFilter) {
         const fp = checkoutFilter._flatpickr;
-        if (fp) fp.clear();
+        if (fp) {
+            fp.clear();
+            fp.set('minDate', null);
+        }
         checkoutFilter.value = '';
     }
 

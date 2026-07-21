@@ -13,7 +13,7 @@
 </head>
 
 <nav th:fragment="navBar" class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
+    <div class="container custom-nav-container">
         <a class="navbar-brand fw-bold"
            th:href="${session.loggedInUser != null && session.loggedInUser.role == 'HOTEL_OWNER'} ? @{/owner/dashboard} : (${session.loggedInUser != null && session.loggedInUser.role == 'ADMIN'} ? @{/admin/dashboard} : @{/})">
             <span th:if="${session.loggedInUser != null && session.loggedInUser.role == 'HOTEL_OWNER'}">
@@ -195,7 +195,9 @@
         
         window.handleChatClick = function(hotelId) {
             if (!window.isUserLoggedIn) {
-                window.location.href = /*[[@{/login}]]*/ '/login';
+                sessionStorage.setItem('postLoginOpenChatWithHotel', hotelId);
+                const loginUrl = /*[[@{/login}]]*/ '/login';
+                window.location.href = loginUrl + '?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
                 return;
             }
             if (window.userRole === 'HOTEL_OWNER') {
@@ -205,6 +207,24 @@
                 window.openChatWidget(hotelId);
             }
         };
+
+        document.addEventListener("DOMContentLoaded", function() {
+            if (window.isUserLoggedIn) {
+                const openChatHotelId = sessionStorage.getItem('postLoginOpenChatWithHotel');
+                if (openChatHotelId) {
+                    sessionStorage.removeItem('postLoginOpenChatWithHotel');
+                    setTimeout(() => {
+                        if (typeof window.openChatWidget === 'function') {
+                            window.openChatWidget(openChatHotelId);
+                        }
+                    }, 800);
+                }
+            } else {
+                if (!window.location.pathname.startsWith('/login')) {
+                    sessionStorage.removeItem('postLoginOpenChatWithHotel');
+                }
+            }
+        });
         /*]]>*/
     </script>
 </nav>

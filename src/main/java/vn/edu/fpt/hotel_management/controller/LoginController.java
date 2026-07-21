@@ -20,7 +20,12 @@ public class LoginController {
     }
 
     @GetMapping("/login")
-    public String showLoginForm(HttpSession session) {
+    public String showLoginForm(
+            @RequestParam(value = "redirect", required = false) String redirect,
+            HttpSession session) {
+        if (redirect != null && !redirect.isBlank()) {
+            session.setAttribute("redirectAfterLogin", redirect);
+        }
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser != null) {
             if ("ADMIN".equalsIgnoreCase(loggedInUser.getRole())) {
