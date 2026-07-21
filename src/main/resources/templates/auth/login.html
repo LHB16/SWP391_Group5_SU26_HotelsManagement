@@ -37,10 +37,15 @@
 
                 <div class="mb-3">
                     <label for="password" class="form-label">Password</label>
-                    <input type="password" id="password" name="password"
-                           class="form-control"
-                           placeholder="Enter your password..."
-                           required/>
+                    <div class="input-group">
+                        <input type="password" id="password" name="password"
+                               class="form-control"
+                               placeholder="Enter your password..."
+                               required/>
+                        <button class="btn password-toggle-btn" type="button" id="togglePasswordBtn" onclick="togglePasswordVisibility('password', 'togglePasswordIcon')">
+                            <i class="bi bi-eye-slash" id="togglePasswordIcon"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn btn-primary w-100">Login</button>

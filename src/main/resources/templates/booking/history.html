@@ -147,10 +147,16 @@
                                                     <i class="bi bi-calendar3 bh-meta-icon"></i>
                                                     <span th:text="${#temporals.format(booking.checkInDate, 'dd/MM/yyyy')} + ' – ' + ${#temporals.format(booking.checkOutDate, 'dd/MM/yyyy')}">18/07/2026 – 22/07/2026</span>
                                                 </div>
-                                                <div class="bh-meta-row bh-card-meta-nights">
-                                                    <i class="bi bi-moon bh-meta-icon"></i>
-                                                    <span th:text="${booking.checkInDate != null and booking.checkOutDate != null ?
-                                                                     T(java.time.temporal.ChronoUnit).DAYS.between(booking.checkInDate, booking.checkOutDate) : '-'} + ' night' + ${booking.checkInDate != null and booking.checkOutDate != null and T(java.time.temporal.ChronoUnit).DAYS.between(booking.checkInDate, booking.checkOutDate) != 1 ? 's' : ''}">4 nights</span>
+                                                <div class="bh-meta-row bh-card-meta-nights flex-wrap gap-3">
+                                                    <span class="d-inline-flex align-items-center">
+                                                        <i class="bi bi-moon bh-meta-icon" style="margin-right: 4px !important;"></i>
+                                                        <span th:text="${booking.checkInDate != null and booking.checkOutDate != null ?
+                                                                         T(java.time.temporal.ChronoUnit).DAYS.between(booking.checkInDate, booking.checkOutDate) : '-'} + ' night' + ${booking.checkInDate != null and booking.checkOutDate != null and T(java.time.temporal.ChronoUnit).DAYS.between(booking.checkInDate, booking.checkOutDate) != 1 ? 's' : ''}">4 nights</span>
+                                                    </span>
+                                                    <span class="d-inline-flex align-items-center">
+                                                        <i class="bi bi-door-open bh-meta-icon" style="margin-right: 4px !important;"></i>
+                                                        <span th:text="${booking.quantity != null ? booking.quantity : 1} + ' Room' + ${(booking.quantity != null ? booking.quantity : 1) > 1 ? 's' : ''}">1 Room</span>
+                                                    </span>
                                                 </div>
                                             </div>
 

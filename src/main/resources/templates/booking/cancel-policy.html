@@ -125,14 +125,12 @@
                             I have read and agree to the cancellation policy terms.
                         </label>
 
-                        <div class="d-flex gap-3" style="margin-top: 10px;">
-                            <a th:href="@{/booking/detail/{id}(id=${booking.id})}" class="cp-btn-back"
-                                style="text-decoration: none; padding: 10px 24px; display: flex; align-items: center;">
+                        <div class="cp-actions" style="margin-top: 10px;">
+                            <a th:href="@{/booking/detail/{id}(id=${booking.id})}" class="cp-btn-back">
                                 Keep Booking
                             </a>
                             <a th:href="@{/booking/cancel/{id}(id=${booking.id})}" id="proceedCancelBtn"
-                                class="btn btn-danger disabled"
-                                style="padding: 10px 24px; border-radius: 30px; font-weight: 600; text-decoration: none; pointer-events: none; opacity: 0.6; display: flex; align-items: center; gap: 8px;">
+                                class="cp-btn-confirm">
                                 Proceed to Cancellation
                             </a>
                         </div>
@@ -163,13 +161,9 @@
             if (checkbox && proceedBtn) {
                 checkbox.addEventListener('change', function () {
                     if (this.checked) {
-                        proceedBtn.classList.remove('disabled');
-                        proceedBtn.style.pointerEvents = 'auto';
-                        proceedBtn.style.opacity = '1';
+                        proceedBtn.classList.add('active');
                     } else {
-                        proceedBtn.classList.add('disabled');
-                        proceedBtn.style.pointerEvents = 'none';
-                        proceedBtn.style.opacity = '0.6';
+                        proceedBtn.classList.remove('active');
                     }
                 });
             }

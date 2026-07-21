@@ -21,7 +21,7 @@
             <div class="bd-banner" th:style="'background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.5)), url(' + (${hotel.imageUrl != null and !#strings.isEmpty(hotel.imageUrl)} ? ${hotel.imageUrl} : '/assets/images/hotel-placeholder.jpg') + ');'">
                 <div class="bd-banner-content">
                     <h1 class="bd-banner-room-name">
-                        <span th:text="${room.type}">Room Type</span>
+                        <span th:text="${hotel.name}">Hotel Name</span>
                     </h1>
                 </div>
             </div>
@@ -29,25 +29,31 @@
             <!-- Nội dung dưới: Thông tin cơ bản -->
             <div class="bd-info-card">
                 <div class="bd-hotel-row">
-                    <!-- Ảnh khách sạn góc trái -->
+                    <!-- Ảnh phòng/khách sạn góc trái -->
                     <div class="bd-hotel-img-wrap">
-                        <img th:if="${hotel.imageUrl != null and !#strings.isEmpty(hotel.imageUrl)}"
+                        <img th:if="${room.imgUrl != null and !#strings.isEmpty(room.imgUrl)}"
+                             th:src="${room.imgUrl}"
+                             th:alt="${room.type}"
+                             class="bd-hotel-img"/>
+                        <img th:if="${(room.imgUrl == null or #strings.isEmpty(room.imgUrl)) and hotel.imageUrl != null and !#strings.isEmpty(hotel.imageUrl)}"
                              th:src="${hotel.imageUrl}"
                              th:alt="${hotel.name}"
                              class="bd-hotel-img"/>
-                        <div th:unless="${hotel.imageUrl != null and !#strings.isEmpty(hotel.imageUrl)}"
+                        <div th:unless="${(room.imgUrl != null and !#strings.isEmpty(room.imgUrl)) or (hotel.imageUrl != null and !#strings.isEmpty(hotel.imageUrl))}"
                              class="bd-hotel-img-placeholder">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hotel"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                         </div>
                     </div>
 
-                    <!-- Tên khách sạn và thông tin checkin/checkout -->
+                    <!-- Tên phòng và thông tin checkin/checkout -->
                     <div class="bd-hotel-details">
-                        <h2 class="bd-hotel-name" th:text="${hotel.name}">Hotel Name</h2>
+                        <h2 class="bd-hotel-name" th:text="${room.type}">Room Type</h2>
                         <div class="bd-hotel-meta">
                             <span th:text="${#temporals.format(booking.checkInDate, 'dd/MM/yyyy')} + ' – ' + ${#temporals.format(booking.checkOutDate, 'dd/MM/yyyy')}">Apr 15 – Apr 17</span>
                             &nbsp;·&nbsp;
-                            <span th:text="${room.type}">Samal</span>
+                            <span th:text="${booking.checkInDate != null and booking.checkOutDate != null ? T(java.time.temporal.ChronoUnit).DAYS.between(booking.checkInDate, booking.checkOutDate) : '-'} + ' night' + ${booking.checkInDate != null and booking.checkOutDate != null and T(java.time.temporal.ChronoUnit).DAYS.between(booking.checkInDate, booking.checkOutDate) != 1 ? 's' : ''}">1 night</span>
+                            &nbsp;·&nbsp;
+                            <span th:text="${booking.quantity != null ? booking.quantity : 1} + ' Room' + ${(booking.quantity != null ? booking.quantity : 1) > 1 ? 's' : ''}">1 Room</span>
                             &nbsp;·&nbsp;
                             <span th:if="${booking.status == 'EXPIRED' or (booking.status == 'CANCELLED' and booking.payment != null and booking.payment.status == 'EXPIRED')}">Expired</span>
                             <th:block th:unless="${booking.status == 'EXPIRED' or (booking.status == 'CANCELLED' and booking.payment != null and booking.payment.status == 'EXPIRED')}">
@@ -74,7 +80,7 @@
                                 <th:block th:unless="${booking.status == 'PENDING'}">
                                     <!-- Trạng thái thanh toán khác -->
                                     <span th:if="${booking.status == 'CONFIRMED'}" class="bd-status-label bd-status-confirmed">Confirmed</span>
-                                    <a th:if="${booking.status == 'CONFIRMED' and cancelable}" th:href="@{/booking/cancel-policy(bookingId=${booking.id},action='cancel')}" class="btn btn-danger btn-sm ms-2" style="font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 600; text-decoration: none;">Cancel</a>
+                                    <a th:if="${booking.status == 'CONFIRMED' and cancelable}" th:href="@{/booking/cancel-policy(bookingId=${booking.id},action='cancel')}" class="bd-status-label ms-2" style="background-color: #dc2626 !important; color: white !important; text-decoration: none; display: inline-block; vertical-align: middle; cursor: pointer;">Cancel</a>
                                     <span th:if="${booking.status == 'DONE' or booking.status == 'COMPLETED'}" class="bd-status-label bd-status-done">Completed</span>
                                     <th:block th:if="${booking.status == 'DONE' or booking.status == 'COMPLETED'}">
                                         <a th:if="${!hasFeedback}" th:href="@{/booking/{id}/feedback(id=${booking.id})}" 

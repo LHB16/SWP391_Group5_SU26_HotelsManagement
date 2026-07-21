@@ -19203,6 +19203,7 @@ h6,
   font-size: 15px;
   border-radius: 10px;
   text-decoration: none;
+  white-space: nowrap;
   transition: all 0.2s ease;
 }
 
@@ -19225,6 +19226,9 @@ h6,
   border: none;
   border-radius: 10px;
   cursor: not-allowed;
+  pointer-events: none;
+  text-decoration: none;
+  white-space: nowrap;
   transition: all 0.2s ease;
 }
 
@@ -19232,6 +19236,8 @@ h6,
   background: #b91c1c;
   color: #ffffff;
   cursor: pointer;
+  pointer-events: auto;
+  text-decoration: none;
 }
 
 .cp-btn-confirm.active:hover {
@@ -20264,6 +20270,11 @@ h6,
   font-size: 13px;
   color: #64748b;
   margin-bottom: 12px;
+}
+
+.bd-hotel-meta span {
+  white-space: nowrap !important;
+  display: inline-block !important;
 }
 
 .bd-status-action {
@@ -25665,4 +25676,26 @@ body.dashboard-page .custom-nav-container {
 }
 .booking-promo-action-wrap {
   flex-shrink: 0 !important;
+}
+
+/* Custom Password Toggle Button style to prevent default hover color shift */
+.password-toggle-btn {
+  border-color: #ced4da !important;
+  background-color: #ffffff !important;
+  color: #6c757d !important;
+  border-left: none !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.password-toggle-btn:hover {
+  background-color: #f8f9fa !important;
+  color: var(--hotel-gold, #c9a96e) !important;
+  border-color: #ced4da !important;
+}
+
+.password-toggle-btn:focus {
+  box-shadow: none !important;
+  background-color: #ffffff !important;
+  color: #6c757d !important;
+  border-color: #ced4da !important;
 }
