@@ -9,7 +9,7 @@
 
 </head>
 
-<body class="d-flex flex-column" style="min-height: 100vh;">
+<body class="d-flex flex-column min-vh-100">
     <!-- Navigation Bar -->
     <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
@@ -26,7 +26,7 @@
     </header>
 
     <!-- Main Container -->
-    <main class="container flex-grow-1" style="padding-bottom: 50px;">
+    <main class="container flex-grow-1 home-main-container">
         
         <!-- Search widget overlay card (Traveloka Pill Style) -->
         <div class="row justify-content-center">
@@ -39,32 +39,16 @@
                         <div class="search-pill-col search-pill-col-destination position-relative">
                             <label class="search-pill-label">Enter City:</label>
                             <div class="search-pill-input-wrapper">
-                                <i data-lucide="map-pin" style="width: 18px; height: 18px;"></i>
+                                <i data-lucide="map-pin" class="icon-search-widget"></i>
                                 <input type="text" name="search" id="destInput" class="search-pill-input" placeholder="Enter City..." autocomplete="off" />
                             </div>
-
+ 
                             <!-- Destination Autocomplete suggestions dropdown (Traveloka style) -->
-                            <div id="destSuggestions" class="guests-dropdown-card d-none" style="width: 100%; top: calc(100% + 5px); left: 0; z-index: 1000; max-height: 250px; overflow-y: auto; padding: 8px 0;">
-                                <div class="px-3 py-1 text-muted small fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.05em;">Popular Cities</div>
-                                <div class="suggestion-item px-3 py-2" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" data-val="Cần Thơ">
-                                    <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #c9a96e;"></i>
-                                    <span class="fw-semibold text-dark">Cần Thơ</span>
-                                </div>
-                                <div class="suggestion-item px-3 py-2" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" data-val="Đà Nẵng">
-                                    <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #c9a96e;"></i>
-                                    <span class="fw-semibold text-dark">Đà Nẵng</span>
-                                </div>
-                                <div class="suggestion-item px-3 py-2" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" data-val="Hồ Chí Minh">
-                                    <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #c9a96e;"></i>
-                                    <span class="fw-semibold text-dark">Hồ Chí Minh</span>
-                                </div>
-                                <div class="suggestion-item px-3 py-2" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" data-val="Đà Lạt">
-                                    <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #c9a96e;"></i>
-                                    <span class="fw-semibold text-dark">Đà Lạt</span>
-                                </div>
-                                <div class="suggestion-item px-3 py-2" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" data-val="Hà Nội">
-                                    <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #c9a96e;"></i>
-                                    <span class="fw-semibold text-dark">Hà Nội</span>
+                            <div id="destSuggestions" class="guests-dropdown-card dest-suggestions-card d-none">
+                                <div class="px-3 py-1 text-muted small fw-bold text-uppercase dropdown-cities-title">Cities</div>
+                                <div th:each="cityName : ${cities}" class="suggestion-item px-3 py-2" th:data-val="${cityName}">
+                                    <i data-lucide="map-pin" class="icon-city-suggestion"></i>
+                                    <span class="fw-semibold text-dark" th:text="${cityName}">City Name</span>
                                 </div>
                             </div>
                         </div>
@@ -72,7 +56,7 @@
                         <div class="search-pill-col">
                             <label class="search-pill-label">Check-in Date:</label>
                             <div class="search-pill-input-wrapper">
-                                <i data-lucide="calendar" style="width: 18px; height: 18px;"></i>
+                                <i data-lucide="calendar" class="icon-search-widget"></i>
                                 <input type="text" name="checkin" id="checkinInput" class="search-pill-input" readonly placeholder="Choose Date" />
                             </div>
                         </div>
@@ -80,7 +64,7 @@
                         <div class="search-pill-col">
                             <label class="search-pill-label">Check-out Date:</label>
                             <div class="search-pill-input-wrapper">
-                                <i data-lucide="calendar" style="width: 18px; height: 18px;"></i>
+                                <i data-lucide="calendar" class="icon-search-widget"></i>
                                 <input type="text" name="checkout" id="checkoutInput" class="search-pill-input" readonly placeholder="Choose Date" />
                             </div>
                         </div>
@@ -88,16 +72,16 @@
                         <div class="search-pill-col position-relative">
                             <label class="search-pill-label">Guests and Rooms:</label>
                             <div class="search-pill-input-wrapper cursor-pointer" id="guestsPickerTrigger">
-                                <i data-lucide="users" style="width: 18px; height: 18px;"></i>
+                                <i data-lucide="users" class="icon-search-widget"></i>
                                 <input type="text" id="guestsInputDisplay" class="search-pill-input cursor-pointer" value="1 Person, 1 Room" readonly />
                             </div>
-
+ 
                             <!-- Popover Dropdown (Traveloka Style) -->
                             <div id="guestsDropdown" class="guests-dropdown-card d-none">
                                 <!-- Person Row -->
                                 <div class="guests-dropdown-row">
                                     <div class="guests-dropdown-label-box">
-                                        <i data-lucide="user" style="width: 18px; height: 18px; color: #0194f3;"></i>
+                                        <i data-lucide="user" class="icon-counter-picker"></i>
                                         <span class="fw-semibold">Person</span>
                                     </div>
                                     <div class="guests-counter-controls">
@@ -109,7 +93,7 @@
                                 <!-- Rooms Row -->
                                 <div class="guests-dropdown-row">
                                     <div class="guests-dropdown-label-box">
-                                        <i data-lucide="door-open" style="width: 18px; height: 18px; color: #0194f3;"></i>
+                                        <i data-lucide="door-open" class="icon-counter-picker"></i>
                                         <span class="fw-semibold">Rooms</span>
                                     </div>
                                     <div class="guests-counter-controls">
@@ -126,14 +110,14 @@
                         </div>
                         <!-- Search Button -->
                         <button type="submit" class="search-pill-btn-orange">
-                            <i data-lucide="search" style="width: 20px; height: 20px; stroke-width: 3;"></i>
+                            <i data-lucide="search" class="icon-search-btn"></i>
                         </button>
                     </form>
                 </div>
             </div>
         </div>
 
-        <div style="margin-top: 50px;"></div>
+        <div class="margin-top-50"></div>
 
         <!-- 1. Centered Large Banner Carousel Slider -->
         <div class="row justify-content-center mb-5">
@@ -211,14 +195,14 @@
                             <div class="hotel-card-image-box">
                                 <img th:src="${h.imageUrl != null and !#strings.isEmpty(h.imageUrl)} ? ${h.imageUrl} : @{/assets/images/hotel/no-hotel.jpg}" alt="Hotel image" class="hotel-card-image" />
                                 <div class="hotel-rating-overlay">
-                                    <span style="color: #facc15;">★</span>
+                                    <span class="star-gold">★</span>
                                     <span th:text="${h.rating}">4.8</span>
                                 </div>
                             </div>
                             <div class="hotel-card-body">
                                 <h5 class="hotel-card-title" th:text="${h.name}">Hotel Name</h5>
                                 <div class="hotel-card-location">
-                                    <i data-lucide="map-pin" style="width: 14px; height: 14px; color: #94a3b8;"></i>
+                                    <i data-lucide="map-pin" class="icon-card-pin"></i>
                                     <span th:text="${h.city}">Can Tho</span>
                                 </div>
                                 <div class="hotel-card-price-section">
@@ -226,7 +210,7 @@
                                         <span class="price-label">Price starting from</span>
                                         <span class="price-value-amount">View Rooms</span>
                                     </div>
-                                    <i data-lucide="chevron-right" style="width: 18px; height: 18px; color: var(--gold);"></i>
+                                    <i data-lucide="chevron-right" class="icon-card-chevron"></i>
                                 </div>
                             </div>
                         </a>
@@ -259,14 +243,14 @@
                                      th:with="disc=${promoDiscountMap != null ? promoDiscountMap.get(h.id) : null}"
                                      th:text="${disc != null} ? |Save ${disc}%| : 'PROMO'">PROMO</div>
                                 <div class="hotel-rating-overlay">
-                                    <span style="color: #facc15;">★</span>
+                                    <span class="star-gold">★</span>
                                     <span th:text="${h.rating}">4.8</span>
                                 </div>
                             </div>
                             <div class="hotel-card-body">
                                 <h5 class="hotel-card-title" th:text="${h.name}">Hotel Name</h5>
                                 <div class="hotel-card-location">
-                                    <i data-lucide="map-pin" style="width: 14px; height: 14px; color: #94a3b8;"></i>
+                                    <i data-lucide="map-pin" class="icon-card-pin"></i>
                                     <span th:text="${h.city}">Da Nang</span>
                                 </div>
                                 <div class="hotel-card-price-section">
@@ -274,7 +258,7 @@
                                         <span class="price-label">Get exclusive discounts</span>
                                         <span class="price-value-amount">View Details</span>
                                     </div>
-                                    <i data-lucide="chevron-right" style="width: 18px; height: 18px; color: var(--gold);"></i>
+                                    <i data-lucide="chevron-right" class="icon-card-chevron"></i>
                                 </div>
                             </div>
                         </a>

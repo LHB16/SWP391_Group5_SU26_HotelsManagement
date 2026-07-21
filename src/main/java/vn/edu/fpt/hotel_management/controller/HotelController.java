@@ -138,6 +138,9 @@ public class HotelController {
             HttpSession session,
             Model model
     ) {
+        List<String> cities = hotelRepository.findDistinctCitiesAlphabetically();
+        model.addAttribute("cities", cities);
+
         BigDecimal resolvedMinPrice = (minPrice != null) ? minPrice : BigDecimal.valueOf(100000);
         BigDecimal resolvedMaxPrice = (maxPrice != null) ? maxPrice : BigDecimal.valueOf(50000000);
 

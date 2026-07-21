@@ -40,32 +40,16 @@
                         <div class="search-pill-col search-pill-col-destination position-relative">
                             <label class="search-pill-label">Enter City:</label>
                             <div class="search-pill-input-wrapper">
-                                <i data-lucide="map-pin" style="width: 18px; height: 18px;"></i>
+                                <i data-lucide="map-pin" class="icon-search-widget"></i>
                                 <input type="text" name="search" id="destInput" class="search-pill-input" placeholder="Enter City..." autocomplete="off" th:value="${search}" />
                             </div>
-
+ 
                             <!-- Destination Autocomplete suggestions dropdown (Traveloka style) -->
-                            <div id="destSuggestions" class="guests-dropdown-card d-none" style="width: 100%; top: calc(100% + 5px); left: 0; z-index: 1000; max-height: 250px; overflow-y: auto; padding: 8px 0;">
-                                <div class="px-3 py-1 text-muted small fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.05em;">Popular Cities</div>
-                                <div class="suggestion-item px-3 py-2" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" data-val="Cần Thơ">
-                                    <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #c9a96e;"></i>
-                                    <span class="fw-semibold text-dark">Cần Thơ</span>
-                                </div>
-                                <div class="suggestion-item px-3 py-2" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" data-val="Đà Nẵng">
-                                    <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #c9a96e;"></i>
-                                    <span class="fw-semibold text-dark">Đà Nẵng</span>
-                                </div>
-                                <div class="suggestion-item px-3 py-2" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" data-val="Hồ Chí Minh">
-                                    <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #c9a96e;"></i>
-                                    <span class="fw-semibold text-dark">Hồ Chí Minh</span>
-                                </div>
-                                <div class="suggestion-item px-3 py-2" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" data-val="Đà Lạt">
-                                    <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #c9a96e;"></i>
-                                    <span class="fw-semibold text-dark">Đà Lạt</span>
-                                </div>
-                                <div class="suggestion-item px-3 py-2" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" data-val="Hà Nội">
-                                    <i data-lucide="map-pin" style="width: 15px; height: 15px; color: #c9a96e;"></i>
-                                    <span class="fw-semibold text-dark">Hà Nội</span>
+                            <div id="destSuggestions" class="guests-dropdown-card dest-suggestions-card d-none">
+                                <div class="px-3 py-1 text-muted small fw-bold text-uppercase dropdown-cities-title">Cities</div>
+                                <div th:each="cityName : ${cities}" class="suggestion-item px-3 py-2" th:data-val="${cityName}">
+                                    <i data-lucide="map-pin" class="icon-city-suggestion"></i>
+                                    <span class="fw-semibold text-dark" th:text="${cityName}">City Name</span>
                                 </div>
                             </div>
                         </div>
@@ -73,7 +57,7 @@
                         <div class="search-pill-col">
                             <label class="search-pill-label">Check-in Date:</label>
                             <div class="search-pill-input-wrapper">
-                                <i data-lucide="calendar" style="width: 18px; height: 18px;"></i>
+                                <i data-lucide="calendar" class="icon-search-widget"></i>
                                 <input type="text" name="checkin" id="checkinInput" class="search-pill-input" readonly placeholder="Choose Date" th:value="${checkin}" />
                             </div>
                         </div>
@@ -81,7 +65,7 @@
                         <div class="search-pill-col">
                             <label class="search-pill-label">Check-out Date:</label>
                             <div class="search-pill-input-wrapper">
-                                <i data-lucide="calendar" style="width: 18px; height: 18px;"></i>
+                                <i data-lucide="calendar" class="icon-search-widget"></i>
                                 <input type="text" name="checkout" id="checkoutInput" class="search-pill-input" readonly placeholder="Choose Date" th:value="${checkout}" />
                             </div>
                         </div>
@@ -89,16 +73,16 @@
                         <div class="search-pill-col position-relative">
                             <label class="search-pill-label">Guests and Rooms:</label>
                             <div class="search-pill-input-wrapper cursor-pointer" id="guestsPickerTrigger">
-                                <i data-lucide="users" style="width: 18px; height: 18px;"></i>
+                                <i data-lucide="users" class="icon-search-widget"></i>
                                 <input type="text" id="guestsInputDisplay" class="search-pill-input cursor-pointer" readonly />
                             </div>
-
+ 
                             <!-- Popover Dropdown (Traveloka Style) -->
                             <div id="guestsDropdown" class="guests-dropdown-card d-none">
                                 <!-- Person Row -->
                                 <div class="guests-dropdown-row">
                                     <div class="guests-dropdown-label-box">
-                                        <i data-lucide="user" style="width: 18px; height: 18px; color: #0194f3;"></i>
+                                        <i data-lucide="user" class="icon-counter-picker"></i>
                                         <span class="fw-semibold">Person</span>
                                     </div>
                                     <div class="guests-counter-controls">
@@ -110,7 +94,7 @@
                                 <!-- Rooms Row -->
                                 <div class="guests-dropdown-row">
                                     <div class="guests-dropdown-label-box">
-                                        <i data-lucide="door-open" style="width: 18px; height: 18px; color: #0194f3;"></i>
+                                        <i data-lucide="door-open" class="icon-counter-picker"></i>
                                         <span class="fw-semibold">Rooms</span>
                                     </div>
                                     <div class="guests-counter-controls">
@@ -127,7 +111,7 @@
                         </div>
                         <!-- Search Button -->
                         <button type="submit" class="search-pill-btn-orange">
-                            <i data-lucide="search" style="width: 20px; height: 20px; stroke-width: 3;"></i>
+                            <i data-lucide="search" class="icon-search-btn"></i>
                         </button>
                     </form>
                 </div>
@@ -431,7 +415,7 @@
                         <div class="card h-100 hotel-card">
 
                             <!-- Image -->
-                            <div class="position-relative overflow-hidden" style="height:210px;">
+                            <div class="position-relative overflow-hidden hotel-card-img-wrapper">
                                 <img th:if="${hotel.imageUrl != null and !hotel.imageUrl.isEmpty()}"
                                     th:src="@{${hotel.imageUrl}}" th:alt="${hotel.name}"
                                     class="w-100 h-100 object-fit-cover hotel-card img-fluid" />
