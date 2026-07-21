@@ -122,10 +122,13 @@
                             </div>
                             <div class="col-6 col-md-2">
                                 <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Hotel</label>
-                                <select id="bookingHotelFilter" class="form-select form-select-sm">
-                                    <option value="all">All Hotels</option>
-                                    <option th:each="hotel : ${approvedHotels}" th:value="${hotel.id}" th:text="${hotel.name}"></option>
-                                </select>
+                                <div class="scrollable-select-wrapper">
+                                    <select id="bookingHotelFilter" class="form-select form-select-sm scrollable-select"
+                                            onfocus="this.size=5;" onblur="this.size=1;" onchange="this.size=1; this.blur();">
+                                        <option value="all">All Hotels</option>
+                                        <option th:each="hotel : ${approvedHotels}" th:value="${hotel.id}" th:text="${hotel.name}"></option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="col-6 col-md-2">
                                 <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Status</label>
@@ -469,10 +472,13 @@
                                 </div>
                                 <div class="col-6 col-md-2">
                                     <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Hotel</label>
-                                    <select id="hotelFilterSelect" class="form-select form-select-sm">
-                                        <option value="all">All Hotels</option>
-                                        <option th:each="hotel : ${approvedHotels}" th:value="${hotel.id}" th:text="${hotel.name}"></option>
-                                    </select>
+                                    <div class="scrollable-select-wrapper">
+                                        <select id="hotelFilterSelect" class="form-select form-select-sm scrollable-select"
+                                                onfocus="this.size=5;" onblur="this.size=1;" onchange="this.size=1; this.blur();">
+                                            <option value="all">All Hotels</option>
+                                            <option th:each="hotel : ${approvedHotels}" th:value="${hotel.id}" th:text="${hotel.name}"></option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div class="col-6 col-md-2">
                                     <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Status</label>
@@ -687,10 +693,13 @@
                 <form th:action="@{/owner/promotions/create}" method="post" id="addPromotionForm">
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Hotel <span class="text-danger">*</span></label>
-                        <select name="hotelId" class="form-select" required>
-                            <option value="">Select hotel...</option>
-                            <option th:each="h : ${approvedHotels}" th:value="${h.id}" th:text="${h.name}"></option>
-                        </select>
+                        <div class="scrollable-select-wrapper custom-select-lg-wrapper">
+                            <select name="hotelId" class="form-select scrollable-select" required
+                                    onfocus="this.size=5;" onblur="this.size=1;" onchange="this.size=1; this.blur();">
+                                <option value="">Select hotel...</option>
+                                <option th:each="h : ${approvedHotels}" th:value="${h.id}" th:text="${h.name}"></option>
+                            </select>
+                        </div>
                         <small class="text-muted" th:if="${#lists.isEmpty(approvedHotels)}" style="color: #dc2626;">
                             No approved hotels available. Please wait for admin approval.
                         </small>
