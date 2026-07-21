@@ -78,12 +78,14 @@
                     <div class="d-flex flex-column flex-md-row position-relative wishlist-card-content">
 
                         <!-- Rooms Available Badge -->
-                        <div class="room-qty-badge wishlist-qty-badge">
-                            <i class="bi bi-door-open me-1"></i>
-                            <span
-                                th:text="${wishlistAvailableRoomsMap != null and wishlistAvailableRoomsMap.containsKey(wl.id)
-                            ? (wishlistAvailableRoomsMap.get(wl.id) + ' Available Rooms')
-                            : (wl.room.numberRooms != null ? wl.room.numberRooms + ' Available Rooms' : '0 Available Rooms')}">
+                        <div th:with="avail=${wishlistAvailableRoomsMap != null and wishlistAvailableRoomsMap.containsKey(wl.id) ? wishlistAvailableRoomsMap.get(wl.id) : 0}"
+                             class="room-qty-badge wishlist-qty-badge"
+                             th:classappend="${avail == 0} ? 'sold-out' : ''">
+                            <!-- SVG Lucide Ban when Sold Out -->
+                            <i th:if="${avail == 0}" data-lucide="ban" class="lucide-ban-icon me-1"></i>
+                            <!-- Default Door Icon when Available -->
+                            <i th:if="${avail != 0}" class="bi bi-door-open me-1"></i>
+                            <span th:text="${avail == 0 ? 'Sold Out' : avail + ' Available Rooms'}">
                                 5 Available Rooms
                             </span>
                         </div>
