@@ -13,9 +13,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const tomorrow = new Date();
         tomorrow.setDate(today.getDate() + 1);
 
-        // Get initial dates from inputs if set, else default
         const initCheckin = checkinInput.value ? new Date(checkinInput.value) : today;
-        const initCheckout = checkoutInput.value ? new Date(checkoutInput.value) : tomorrow;
+        let initCheckout;
+        if (checkoutInput.value) {
+            initCheckout = new Date(checkoutInput.value);
+        } else {
+            initCheckout = new Date(initCheckin);
+            initCheckout.setDate(initCheckout.getDate() + 1);
+        }
+
+        const minCheckoutLimit = new Date(initCheckin);
+        minCheckoutLimit.setDate(minCheckoutLimit.getDate() + 1);
 
         const checkinPicker = flatpickr(checkinInput, {
             dateFormat: "Y-m-d",
@@ -42,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
             altInput: true,
             altFormat: "d/m/Y",
             altInputClass: "search-pill-input",
-            minDate: initCheckout,
+            minDate: minCheckoutLimit,
             defaultDate: initCheckout
         });
     }

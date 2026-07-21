@@ -40,6 +40,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
+            var confirmPassword = document.getElementById('regConfirmPassword');
+            if (password && confirmPassword) {
+                if (password.value !== confirmPassword.value) {
+                    isValid = false;
+                    errorMsg += 'Passwords do not match.\n';
+                    confirmPassword.classList.add('is-invalid');
+                    var matchErr = document.getElementById('regMatchError');
+                    if (matchErr) matchErr.style.display = 'block';
+                } else {
+                    confirmPassword.classList.remove('is-invalid');
+                    confirmPassword.classList.add('is-valid');
+                    var matchErr = document.getElementById('regMatchError');
+                    if (matchErr) matchErr.style.display = 'none';
+                }
+            }
+
             if (!isValid) {
                 e.preventDefault();
                 alert(errorMsg);
@@ -53,7 +69,11 @@ document.addEventListener('DOMContentLoaded', function() {
         customerForm.querySelectorAll('input').forEach(function(input) {
             input.addEventListener('input', function() {
                 this.classList.remove('is-invalid', 'is-valid');
-                var errorDiv = this.parentElement.querySelector('.text-danger');
+                var container = this.parentElement;
+                if (container.classList.contains('input-group')) {
+                    container = container.parentElement;
+                }
+                var errorDiv = container.querySelector('.text-danger, .text-success');
                 if (errorDiv) {
                     errorDiv.remove();
                 }
@@ -101,6 +121,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
+            var confirmPassword = document.getElementById('ownerConfirmPassword');
+            if (password && confirmPassword) {
+                if (password.value !== confirmPassword.value) {
+                    isValid = false;
+                    errorMsg += 'Passwords do not match.\n';
+                    confirmPassword.classList.add('is-invalid');
+                    var matchErr = document.getElementById('ownerMatchError');
+                    if (matchErr) matchErr.style.display = 'block';
+                } else {
+                    confirmPassword.classList.remove('is-invalid');
+                    confirmPassword.classList.add('is-valid');
+                    var matchErr = document.getElementById('ownerMatchError');
+                    if (matchErr) matchErr.style.display = 'none';
+                }
+            }
+
             if (!isValid) {
                 e.preventDefault();
                 alert(errorMsg);
@@ -114,7 +150,11 @@ document.addEventListener('DOMContentLoaded', function() {
         ownerForm.querySelectorAll('input').forEach(function(input) {
             input.addEventListener('input', function() {
                 this.classList.remove('is-invalid', 'is-valid');
-                var errorDiv = this.parentElement.querySelector('.text-danger');
+                var container = this.parentElement;
+                if (container.classList.contains('input-group')) {
+                    container = container.parentElement;
+                }
+                var errorDiv = container.querySelector('.text-danger, .text-success');
                 if (errorDiv) {
                     errorDiv.remove();
                 }
@@ -127,13 +167,17 @@ document.addEventListener('DOMContentLoaded', function() {
         customerUsername.addEventListener('input', function() {
             var val = this.value.trim();
             var errorId = 'regUsernameError';
-            var errorEl = document.getElementById(errorId);
+            var container = this.parentElement;
+            if (container.classList.contains('input-group')) {
+                container = container.parentElement;
+            }
+            var errorEl = container.querySelector('#' + errorId);
 
             if (!errorEl) {
                 errorEl = document.createElement('div');
                 errorEl.id = errorId;
                 errorEl.className = 'text-danger small mt-1';
-                this.parentElement.appendChild(errorEl);
+                container.appendChild(errorEl);
             }
 
             if (val.length > 0) {
@@ -172,13 +216,17 @@ document.addEventListener('DOMContentLoaded', function() {
         customerPassword.addEventListener('input', function() {
             var val = this.value;
             var errorId = 'regPasswordError';
-            var errorEl = document.getElementById(errorId);
+            var container = this.parentElement;
+            if (container.classList.contains('input-group')) {
+                container = container.parentElement;
+            }
+            var errorEl = container.querySelector('#' + errorId);
 
             if (!errorEl) {
                 errorEl = document.createElement('div');
                 errorEl.id = errorId;
                 errorEl.className = 'text-danger small mt-1';
-                this.parentElement.appendChild(errorEl);
+                container.appendChild(errorEl);
             }
 
             if (val.length > 0) {
@@ -207,13 +255,17 @@ document.addEventListener('DOMContentLoaded', function() {
         ownerUsername.addEventListener('input', function() {
             var val = this.value.trim();
             var errorId = 'ownerUsernameError';
-            var errorEl = document.getElementById(errorId);
+            var container = this.parentElement;
+            if (container.classList.contains('input-group')) {
+                container = container.parentElement;
+            }
+            var errorEl = container.querySelector('#' + errorId);
 
             if (!errorEl) {
                 errorEl = document.createElement('div');
                 errorEl.id = errorId;
                 errorEl.className = 'text-danger small mt-1';
-                this.parentElement.appendChild(errorEl);
+                container.appendChild(errorEl);
             }
 
             if (val.length > 0) {
@@ -252,13 +304,17 @@ document.addEventListener('DOMContentLoaded', function() {
         ownerPassword.addEventListener('input', function() {
             var val = this.value;
             var errorId = 'ownerPasswordError';
-            var errorEl = document.getElementById(errorId);
+            var container = this.parentElement;
+            if (container.classList.contains('input-group')) {
+                container = container.parentElement;
+            }
+            var errorEl = container.querySelector('#' + errorId);
 
             if (!errorEl) {
                 errorEl = document.createElement('div');
                 errorEl.id = errorId;
                 errorEl.className = 'text-danger small mt-1';
-                this.parentElement.appendChild(errorEl);
+                container.appendChild(errorEl);
             }
 
             if (val.length > 0) {

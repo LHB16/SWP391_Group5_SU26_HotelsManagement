@@ -99,12 +99,19 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
 
+        let initMinCheckout = "today";
+        if (checkinVal) {
+            const next = new Date(checkinVal);
+            next.setDate(next.getDate() + 1);
+            initMinCheckout = next;
+        }
+
         const checkoutPicker = flatpickr(checkoutInput, {
             dateFormat: "Y-m-d",
             altInput: true,
             altFormat: "d/m/Y",
             altInputClass: "form-control form-control-sm filter-input w-100",
-            minDate: "today",
+            minDate: initMinCheckout,
             allowInput: false,
             defaultDate: checkoutVal ? checkoutVal : null
         });

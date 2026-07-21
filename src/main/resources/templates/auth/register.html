@@ -44,9 +44,29 @@
 
                     <div class="mb-3">
                         <label class="form-label">Password <span class="text-danger">*</span></label>
-                        <input type="password" id="regPassword" name="password" class="form-control"
-                               placeholder="Enter your password..."
-                               required/>
+                        <div class="input-group">
+                            <input type="password" id="regPassword" name="password" class="form-control"
+                                   placeholder="Enter your password..."
+                                   required/>
+                            <button class="btn password-toggle-btn" type="button" id="toggleRegPasswordBtn" onclick="togglePasswordVisibility('regPassword', 'toggleRegPasswordIcon')">
+                                <i class="bi bi-eye-slash" id="toggleRegPasswordIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="password" id="regConfirmPassword" class="form-control"
+                                   placeholder="Confirm your password..."
+                                   required/>
+                            <button class="btn password-toggle-btn" type="button" id="toggleRegConfirmPasswordBtn" onclick="togglePasswordVisibility('regConfirmPassword', 'toggleRegConfirmPasswordIcon')">
+                                <i class="bi bi-eye-slash" id="toggleRegConfirmPasswordIcon"></i>
+                            </button>
+                        </div>
+                        <div id="regMatchError" class="text-danger small mt-1" style="display:none;">
+                            Passwords do not match!
+                        </div>
                     </div>
 
                     <button type="submit" class="btn btn-success w-100">Register as Customer</button>
