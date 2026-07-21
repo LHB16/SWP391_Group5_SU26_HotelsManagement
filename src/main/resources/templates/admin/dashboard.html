@@ -55,7 +55,7 @@
     </style>
 </head>
 
-<body class="d-flex flex-column h-100">
+<body class="d-flex flex-column h-100 dashboard-page">
 
     <!-- Use system common navbar for consistent styling -->
     <nav th:replace="~{fragment/frag :: navBar}"></nav>
@@ -1216,15 +1216,19 @@
                         <div class="col-lg-4">
                             <div class="card border-0 shadow-sm p-4 bg-white" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
                                 <h5 class="fw-bold text-navy mb-4 d-flex align-items-center gap-2">
-                                    <i data-lucide="plus-circle" style="stroke-width: 1.5; width: 18px; height: 18px; color: #4f46e5;"></i>
+                                    <i data-lucide="plus-circle" style="stroke-width: 1.5; width: 18px; height: 18px; color: var(--hotel-gold, #c9a96e);"></i>
                                     Add New Banner
                                 </h5>
                                 <form th:action="@{/admin/banners/add}" method="post" enctype="multipart/form-data">
                                     <div class="mb-3">
                                         <label class="form-label small fw-semibold text-uppercase text-muted">Upload Image File (1200x280 recommended)</label>
-                                        <input type="file" name="bannerImage" accept="image/*" class="form-control" style="border-radius: 6px;" required="required" />
+                                        <div class="input-group">
+                                            <input type="file" name="bannerImage" id="bannerImageInput" accept="image/*" class="d-none" required="required" onchange="document.getElementById('bannerFileNameDisplay').value = this.files[0] ? this.files[0].name : 'No file chosen';" />
+                                            <input type="text" id="bannerFileNameDisplay" class="form-control text-muted admin-banner-text-input" placeholder="No file chosen" readonly onclick="document.getElementById('bannerImageInput').click();" />
+                                            <button class="btn btn-outline-secondary admin-banner-browse-btn" type="button" onclick="document.getElementById('bannerImageInput').click();">Browse...</button>
+                                        </div>
                                     </div>
-                                    <button type="submit" class="btn text-white w-100 py-2 fw-semibold text-uppercase" style="border-radius: 6px; background-color: #4f46e5; border: none;">
+                                    <button type="submit" class="btn text-white w-100 py-2 fw-semibold text-uppercase admin-banner-submit-btn">
                                         Add Banner
                                     </button>
                                 </form>
@@ -1235,7 +1239,7 @@
                         <div class="col-lg-8">
                             <div class="card border-0 shadow-sm p-4 bg-white" style="border-radius: 12px; border: 1px solid #e2e8f0 !important; min-height: 400px;">
                                 <h5 class="fw-bold text-navy mb-4 d-flex align-items-center gap-2">
-                                    <i data-lucide="image" style="stroke-width: 1.5; width: 18px; height: 18px; color: #4f46e5;"></i>
+                                    <i data-lucide="image" style="stroke-width: 1.5; width: 18px; height: 18px; color: var(--hotel-gold, #c9a96e);"></i>
                                     Active Banners
                                 </h5>
 

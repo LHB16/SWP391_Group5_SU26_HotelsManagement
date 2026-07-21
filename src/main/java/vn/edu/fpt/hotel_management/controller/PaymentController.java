@@ -161,6 +161,18 @@ public class PaymentController {
         for (int i = 0; i < validRoomIds.size(); i++) {
             Room r = roomRepository.findById(validRoomIds.get(i)).orElse(null);
             int qtyVal = validQuantities.get(i);
+
+            // Verify room availability before creating bookings
+            long bookedCount = bookingRepository.sumQuantityForConfirmedAndPending(r.getId(), checkOutDate, checkInDate);
+            int available = r.getNumberRooms() - (int) bookedCount;
+            if (available < 0) {
+                available = 0;
+            }
+            if (qtyVal > available) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Only " + available + " room(s) of type '" + r.getType() + "' are available for this stay.");
+                return "redirect:/hotels/" + hotel.getId() + "/rooms?checkin=" + checkin + "&checkout=" + checkout;
+            }
+
             BigDecimal baseSub = paymentService.calculateRoomSubtotal(r.getPrice(), checkInDate, checkOutDate);
             BigDecimal rSubOriginal = baseSub.multiply(BigDecimal.valueOf(qtyVal));
             BigDecimal rSub = rSubOriginal;

@@ -179,33 +179,12 @@ function openPayoutDetailModal(bookingId, bankName, accountNumber, accountHolder
  * Hiện toast thông báo thành công sau khi xử lý payout.
  */
 function showPayoutSuccessToast(data) {
-    // Tạo toast container nếu chưa có
-    let toastContainer = document.getElementById('payoutToastContainer');
-    if (!toastContainer) {
-        toastContainer = document.createElement('div');
-        toastContainer.id = 'payoutToastContainer';
-        toastContainer.style.cssText = 'position:fixed; top:20px; right:20px; z-index:9999;';
-        document.body.appendChild(toastContainer);
+    const msg = `Payout Successful! Transferred ${formatVND(data.ownerPayoutAmount)} to ${data.payoutBankAccountHolder || 'Owner'} (${data.payoutBankName || ''} - ${data.payoutBankAccountNumber || ''})`;
+    if (typeof window.showCustomToast === 'function') {
+        window.showCustomToast(msg, 'success');
+    } else {
+        alert(msg);
     }
-
-    const toastEl = document.createElement('div');
-    toastEl.className = 'toast align-items-center text-white bg-success border-0 show';
-    toastEl.setAttribute('role', 'alert');
-    toastEl.style.cssText = 'min-width:300px; border-radius:10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);';
-    toastEl.innerHTML = `
-        <div class="d-flex align-items-center p-3">
-            <div class="flex-grow-1">
-                <div class="fw-bold mb-1">✅ Payout Successful!</div>
-                <div class="small">Transferred ${formatVND(data.ownerPayoutAmount)} to ${data.payoutBankAccountHolder || 'Owner'}</div>
-                <div class="small opacity-75">${data.payoutBankName || ''} - ${data.payoutBankAccountNumber || ''}</div>
-            </div>
-            <button type="button" class="btn-close btn-close-white ms-3" onclick="this.closest('.toast').remove()"></button>
-        </div>
-    `;
-    toastContainer.appendChild(toastEl);
-
-    // Tự xóa sau 4s
-    setTimeout(() => toastEl.remove(), 4000);
 }
 
 /**

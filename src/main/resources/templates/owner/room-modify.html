@@ -147,8 +147,13 @@
                                     <img th:src="${room.imgUrl}" alt="Current image" class="img-thumbnail w-25" />
                                     <div class="form-text text-muted mt-1">Current image preview. Upload a new file below if you wish to change it.</div>
                                 </div>
-                                <input type="file" name="imageFile" id="imageFile" class="form-control"
-                                       accept="image/jpeg,image/png,image/webp,image/jpg" />
+                                <div class="input-group">
+                                    <input type="file" name="imageFile" id="imageFile" class="d-none"
+                                           accept="image/jpeg,image/png,image/webp,image/jpg"
+                                           onchange="document.getElementById('roomModifyFileNameDisplay').value = this.files[0] ? this.files[0].name : 'No file chosen';" />
+                                    <input type="text" id="roomModifyFileNameDisplay" class="form-control text-muted custom-file-text-input" placeholder="No file chosen" readonly onclick="document.getElementById('imageFile').click();" />
+                                    <button class="btn btn-outline-secondary custom-file-browse-btn" type="button" onclick="document.getElementById('imageFile').click();">Browse...</button>
+                                </div>
                                 <div class="form-text text-muted mt-1">JPG, PNG, WEBP · Max 10MB</div>
                             </div>
                         </div>
