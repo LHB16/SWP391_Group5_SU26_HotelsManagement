@@ -57,4 +57,7 @@ public interface HotelRepository extends JpaRepository<Hotel, Integer> {
     long countByApprovalStatus(String approvalStatus);
     
     long countByApprovalStatusAndOwnerId(String approvalStatus, int ownerId);
+
+    @Query("SELECT DISTINCT h.city FROM Hotel h WHERE h.city IS NOT NULL AND TRIM(h.city) <> '' ORDER BY h.city ASC")
+    List<String> findDistinctCitiesAlphabetically();
 }

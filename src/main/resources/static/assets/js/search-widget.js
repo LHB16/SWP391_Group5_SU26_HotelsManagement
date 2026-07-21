@@ -71,6 +71,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 dropdown.classList.add('d-none');
                 const form = doneBtn.closest('form');
                 if (form) {
+                    const checkin = form.querySelector('#checkinInput');
+                    const checkout = form.querySelector('#checkoutInput');
+                    if (checkin && checkout && checkin.value && checkout.value) {
+                        const d1 = new Date(checkin.value);
+                        const d2 = new Date(checkout.value);
+                        const diffTime = d2.getTime() - d1.getTime();
+                        const diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
+                        if (diffDays > 90) {
+                            if (typeof window.showCustomToast === 'function') {
+                                window.showCustomToast("Sorry, reservations for more than 90 nights are not possible.", "error");
+                            } else {
+                                alert("Sorry, reservations for more than 90 nights are not possible.");
+                            }
+                            return;
+                        }
+                    }
                     form.submit();
                 }
             });
@@ -156,5 +172,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 destDropdown.classList.add('d-none');
             });
         });
+
+        // Filter cities suggestion dynamically when typing
+        destInput.addEventListener('input', function() {
+            const filterVal = this.value.trim().toLowerCase();
+            const itemsList = destDropdown.querySelectorAll('.suggestion-item');
+            itemsList.forEach(item => {
+                const textVal = (item.getAttribute('data-val') || '').toLowerCase();
+                if (textVal.includes(filterVal)) {
+                    item.style.setProperty('display', 'flex', 'important');
+                } else {
+                    item.style.setProperty('display', 'none', 'important');
+                }
+            });
+        });
     }
+
+    // 6. Max 90 Days Booking Night Filter Validation
+    const searchForms = document.querySelectorAll('.search-pill-container');
+    searchForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const checkin = form.querySelector('#checkinInput');
+            const checkout = form.querySelector('#checkoutInput');
+            if (checkin && checkout && checkin.value && checkout.value) {
+                const d1 = new Date(checkin.value);
+                const d2 = new Date(checkout.value);
+                const diffTime = d2.getTime() - d1.getTime();
+                const diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
+                if (diffDays > 90) {
+                    e.preventDefault();
+                    if (typeof window.showCustomToast === 'function') {
+                        window.showCustomToast("Sorry, reservations for more than 90 nights are not possible.", "error");
+                    } else {
+                        alert("Sorry, reservations for more than 90 nights are not possible.");
+                    }
+                }
+            }
+        });
+    });
 });
