@@ -122,6 +122,7 @@ public class UserService {
         user.setRole(role.toUpperCase());
         user.setOtp(otp);
         user.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
+        user.setOtpType("REGISTER");
         user.setEnabled(false);
 
         User savedUser = userRepository.save(user);

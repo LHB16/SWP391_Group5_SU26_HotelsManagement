@@ -45,6 +45,7 @@ public class OtpController {
 
         // Tính cooldown còn lại cho resend OTP
         Boolean resetFlow = (Boolean) session.getAttribute("resetFlow");
+        model.addAttribute("resetFlow", Boolean.TRUE.equals(resetFlow));
         String sessionKey = Boolean.TRUE.equals(resetFlow) ? "FORGOT_PASSWORD" : "REGISTER";
         Integer resendCount = (Integer) session.getAttribute("otp_resend_count_" + sessionKey);
         LocalDateTime lastSent = (LocalDateTime) session.getAttribute("otp_last_sent_" + sessionKey);
@@ -98,6 +99,7 @@ public class OtpController {
 
             // Tính cooldown còn lại khi xảy ra lỗi nhập để giữ timer hoạt động chính xác
             Boolean resetFlow = (Boolean) session.getAttribute("resetFlow");
+            model.addAttribute("resetFlow", Boolean.TRUE.equals(resetFlow));
             String sessionKey = Boolean.TRUE.equals(resetFlow) ? "FORGOT_PASSWORD" : "REGISTER";
             Integer resendCount = (Integer) session.getAttribute("otp_resend_count_" + sessionKey);
             LocalDateTime lastSent = (LocalDateTime) session.getAttribute("otp_last_sent_" + sessionKey);
@@ -127,7 +129,7 @@ public class OtpController {
             Boolean resetFlow = (Boolean) session.getAttribute("resetFlow");
             email = (String) session.getAttribute("pendingEmail");
             if (email == null) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Phiên làm việc đã hết hạn. Vui lòng đăng ký lại."));
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Session expired. Please register again."));
             }
             if (Boolean.TRUE.equals(resetFlow)) {
                 sessionKey = "FORGOT_PASSWORD";
@@ -140,7 +142,7 @@ public class OtpController {
         } else if ("profile_edit".equals(type)) {
             User loggedInUser = (User) session.getAttribute("loggedInUser");
             if (loggedInUser == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Bạn chưa đăng nhập."));
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "You are not logged in."));
             }
             email = loggedInUser.getEmail();
             sessionKey = "UPDATE_PROFILE";
@@ -148,16 +150,16 @@ public class OtpController {
         } else if ("profile_new_email".equals(type)) {
             User loggedInUser = (User) session.getAttribute("loggedInUser");
             if (loggedInUser == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Bạn chưa đăng nhập."));
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "You are not logged in."));
             }
             email = (String) session.getAttribute("pendingNewEmail");
             if (email == null) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Không tìm thấy yêu cầu đổi email mới."));
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "New email request not found."));
             }
             sessionKey = "UPDATE_EMAIL";
             otpType = "UPDATE_PROFILE";
         } else {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Loại yêu cầu không hợp lệ."));
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Invalid request type."));
         }
 
         String countAttr = "otp_resend_count_" + sessionKey;
@@ -177,7 +179,7 @@ public class OtpController {
             long secondsToWait = java.time.Duration.between(now, nextAllowedTime).getSeconds();
             return ResponseEntity.badRequest().body(Map.of(
                 "success", false,
-                "message", "Vui lòng đợi " + secondsToWait + " giây trước khi gửi lại OTP.",
+                "message", "Please wait " + secondsToWait + " seconds before resending OTP.",
                 "remainingSeconds", secondsToWait
             ));
         }
@@ -192,11 +194,11 @@ public class OtpController {
                 long nextCooldown = 60L * (1L << (resendCount + 1));
                 return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "message", "Mã OTP mới đã được gửi tới email của bạn.",
+                    "message", "A new OTP code has been sent to your email.",
                     "nextCooldown", nextCooldown
                 ));
             } else {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Không tìm thấy tài khoản để gửi OTP."));
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Account not found to send OTP."));
             }
         }
 
@@ -231,7 +233,7 @@ public class OtpController {
 
         return ResponseEntity.ok(Map.of(
             "success", true,
-            "message", "Mã OTP mới đã được gửi tới email của bạn.",
+            "message", "A new OTP code has been sent to your email.",
             "nextCooldown", nextCooldown
         ));
     }

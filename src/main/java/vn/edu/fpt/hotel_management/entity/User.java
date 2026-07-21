@@ -30,6 +30,9 @@ public class User {
     
     @Column(name = "otp_type")
     private String otpType;
+
+    @Column(name = "otp_attempts", nullable = false, columnDefinition = "INT NOT NULL DEFAULT 0")
+    private int otpAttempts = 0;
     
     @Column(nullable = false)
     private boolean enabled = false;
@@ -79,6 +82,8 @@ public class User {
     public void setOtpExpiry(LocalDateTime otpExpiry) { this.otpExpiry = otpExpiry; }
     public String getOtpType() { return otpType; }
     public void setOtpType(String otpType) { this.otpType = otpType; }
+    public int getOtpAttempts() { return otpAttempts; }
+    public void setOtpAttempts(int otpAttempts) { this.otpAttempts = otpAttempts; }
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
     public LocalDateTime getCreatedAt() { return createdAt; }
