@@ -169,28 +169,75 @@ function setupPromotionDateFilters() {
     const startDateFilter = document.getElementById('promoStartDateFilter');
     const endDateFilter = document.getElementById('promoEndDateFilter');
 
-    if (startDateFilter && typeof flatpickr === 'function') {
-        flatpickr(startDateFilter, {
-            dateFormat: "Y-m-d",
-            altInput: true,
-            altFormat: "d/m/Y",
-            allowInput: false,
-            onChange: function () {
-                applyPromotionFilters();
-            }
-        });
+    let startPicker, endPicker;
+
+    let initMinEnd = null;
+    if (startDateFilter && startDateFilter.value) {
+        const startD = new Date(startDateFilter.value);
+        if (!isNaN(startD.getTime())) {
+            initMinEnd = new Date(startD);
+            initMinEnd.setDate(initMinEnd.getDate() + 1);
+        }
     }
 
-    if (endDateFilter && typeof flatpickr === 'function') {
-        flatpickr(endDateFilter, {
+    if (startDateFilter && endDateFilter && typeof flatpickr === 'function') {
+        startPicker = flatpickr(startDateFilter, {
             dateFormat: "Y-m-d",
             altInput: true,
             altFormat: "d/m/Y",
             allowInput: false,
-            onChange: function () {
+            defaultDate: startDateFilter.value ? new Date(startDateFilter.value) : null,
+            onChange: function (selectedDates) {
+                if (selectedDates[0]) {
+                    const next = new Date(selectedDates[0]);
+                    next.setDate(next.getDate() + 1);
+                    endPicker.set("minDate", next);
+                } else {
+                    endPicker.set("minDate", null);
+                }
                 applyPromotionFilters();
             }
         });
+
+        endPicker = flatpickr(endDateFilter, {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            allowInput: false,
+            minDate: initMinEnd,
+            defaultDate: endDateFilter.value ? new Date(endDateFilter.value) : null,
+            onChange: function (selectedDates) {
+                if (selectedDates[0] && startPicker.selectedDates[0]) {
+                    if (selectedDates[0] <= startPicker.selectedDates[0]) {
+                        endPicker.clear();
+                    }
+                }
+                applyPromotionFilters();
+            }
+        });
+    } else {
+        if (startDateFilter && typeof flatpickr === 'function') {
+            flatpickr(startDateFilter, {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                allowInput: false,
+                onChange: function () {
+                    applyPromotionFilters();
+                }
+            });
+        }
+        if (endDateFilter && typeof flatpickr === 'function') {
+            flatpickr(endDateFilter, {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                allowInput: false,
+                onChange: function () {
+                    applyPromotionFilters();
+                }
+            });
+        }
     }
 }
 
@@ -325,24 +372,82 @@ function setupPromotionFormDatePickers() {
     const editStart = document.getElementById('editStartDate');
     const editEnd = document.getElementById('editEndDate');
 
-    const config = {
-        dateFormat: "Y-m-d",
-        altInput: true,
-        altFormat: "d/m/Y",
-        allowInput: false
-    };
+    if (addStart && addEnd && typeof flatpickr === 'function') {
+        let addStartPicker, addEndPicker;
+        
+        addStartPicker = flatpickr(addStart, {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            allowInput: false,
+            minDate: "today",
+            onChange: function(selectedDates) {
+                if (selectedDates[0]) {
+                    const next = new Date(selectedDates[0]);
+                    next.setDate(next.getDate() + 1);
+                    addEndPicker.set("minDate", next);
+                    const curEnd = addEndPicker.selectedDates[0];
+                    if (!curEnd || curEnd <= selectedDates[0]) {
+                        addEndPicker.setDate(next);
+                    }
+                } else {
+                    addEndPicker.set("minDate", "today");
+                }
+            }
+        });
 
-    if (addStart && typeof flatpickr === 'function') {
-        flatpickr(addStart, config);
+        addEndPicker = flatpickr(addEnd, {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            allowInput: false,
+            minDate: "today",
+            onChange: function(selectedDates) {
+                if (selectedDates[0] && addStartPicker.selectedDates[0]) {
+                    if (selectedDates[0] <= addStartPicker.selectedDates[0]) {
+                        addEndPicker.clear();
+                    }
+                }
+            }
+        });
     }
-    if (addEnd && typeof flatpickr === 'function') {
-        flatpickr(addEnd, config);
-    }
-    if (editStart && typeof flatpickr === 'function') {
-        flatpickr(editStart, config);
-    }
-    if (editEnd && typeof flatpickr === 'function') {
-        flatpickr(editEnd, config);
+
+    if (editStart && editEnd && typeof flatpickr === 'function') {
+        let editStartPicker, editEndPicker;
+
+        editStartPicker = flatpickr(editStart, {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            allowInput: false,
+            onChange: function(selectedDates) {
+                if (selectedDates[0]) {
+                    const next = new Date(selectedDates[0]);
+                    next.setDate(next.getDate() + 1);
+                    editEndPicker.set("minDate", next);
+                    const curEnd = editEndPicker.selectedDates[0];
+                    if (!curEnd || curEnd <= selectedDates[0]) {
+                        editEndPicker.setDate(next);
+                    }
+                } else {
+                    editEndPicker.set("minDate", null);
+                }
+            }
+        });
+
+        editEndPicker = flatpickr(editEnd, {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            allowInput: false,
+            onChange: function(selectedDates) {
+                if (selectedDates[0] && editStartPicker.selectedDates[0]) {
+                    if (selectedDates[0] <= editStartPicker.selectedDates[0]) {
+                        editEndPicker.clear();
+                    }
+                }
+            }
+        });
     }
 }
 

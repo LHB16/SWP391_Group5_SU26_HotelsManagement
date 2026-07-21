@@ -43,9 +43,29 @@
 
                     <div class="mb-3">
                         <label class="form-label">Password <span class="text-danger">*</span></label>
-                        <input type="password" id="ownerPassword" name="password" class="form-control"
-                               placeholder="Enter your password..."
-                               required/>
+                        <div class="input-group">
+                            <input type="password" id="ownerPassword" name="password" class="form-control"
+                                   placeholder="Enter your password..."
+                                   required/>
+                            <button class="btn password-toggle-btn" type="button" id="toggleOwnerPasswordBtn" onclick="togglePasswordVisibility('ownerPassword', 'toggleOwnerPasswordIcon')">
+                                <i class="bi bi-eye-slash" id="toggleOwnerPasswordIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="password" id="ownerConfirmPassword" class="form-control"
+                                   placeholder="Confirm your password..."
+                                   required/>
+                            <button class="btn password-toggle-btn" type="button" id="toggleOwnerConfirmPasswordBtn" onclick="togglePasswordVisibility('ownerConfirmPassword', 'toggleOwnerConfirmPasswordIcon')">
+                                <i class="bi bi-eye-slash" id="toggleOwnerConfirmPasswordIcon"></i>
+                            </button>
+                        </div>
+                        <div id="ownerMatchError" class="text-danger small mt-1" style="display:none;">
+                            Passwords do not match!
+                        </div>
                     </div>
 
                     <hr class="my-4">

@@ -102,12 +102,36 @@ function setupBookingDateFilters() {
 
     let fpCheckout;
 
+    // Helper to parse d/m/Y date string
+    function parseDMY(dateStr) {
+        if (!dateStr) return null;
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+            const day = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            const year = parseInt(parts[2], 10);
+            return new Date(year, month, day);
+        }
+        return null;
+    }
+
+    let initMinCheckout = null;
+    if (checkinFilter && checkinFilter.value) {
+        const checkinDate = parseDMY(checkinFilter.value);
+        if (checkinDate) {
+            initMinCheckout = new Date(checkinDate);
+            initMinCheckout.setDate(initMinCheckout.getDate() + 1);
+        }
+    }
+
     if (checkoutFilter && typeof flatpickr === 'function') {
         fpCheckout = flatpickr(checkoutFilter, {
             dateFormat: "d/m/Y",
             altInput: true,
             altFormat: "d/m/Y",
             allowInput: false,
+            minDate: initMinCheckout,
+            defaultDate: checkoutFilter.value ? parseDMY(checkoutFilter.value) : null,
             onChange: function() {
                 applyBookingFilters();
             }
@@ -120,17 +144,13 @@ function setupBookingDateFilters() {
             altInput: true,
             altFormat: "d/m/Y",
             allowInput: false,
+            defaultDate: checkinFilter.value ? parseDMY(checkinFilter.value) : null,
             onChange: function(selectedDates) {
                 if (fpCheckout) {
                     if (selectedDates[0]) {
                         const minDate = new Date(selectedDates[0]);
                         minDate.setDate(minDate.getDate() + 1);
                         fpCheckout.set('minDate', minDate);
-                        
-                        // If checkout date is before or equal to check-in, clear it
-                        if (fpCheckout.selectedDates[0] && fpCheckout.selectedDates[0] <= selectedDates[0]) {
-                            fpCheckout.clear();
-                        }
                     } else {
                         fpCheckout.set('minDate', null);
                     }
