@@ -144,4 +144,11 @@ public class UserService {
             hotelOwnerRepository.save(owner);
         }
     }
+
+    public boolean isUsernameTaken(String username) {
+        if (username == null) return false;
+        return userRepository.findByUsername(username.trim())
+                .map(User::isEnabled)
+                .orElse(false);
+    }
 }
