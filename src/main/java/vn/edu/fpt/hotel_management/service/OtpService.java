@@ -26,28 +26,36 @@ public class OtpService {
 
     @Transactional
     public User verifyOtp(String email, String otp) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Account not found!"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Mã OTP không chính xác."));
 
         if (user.getOtpExpiry() == null || user.getOtpExpiry().isBefore(LocalDateTime.now())) {
             if (!user.isEnabled()) {
                 userRepository.delete(user);
             }
-            throw new RuntimeException("OTP has expired! Please register again.");
+            throw new RuntimeException("Mã OTP đã hết hạn! Vui lòng yêu cầu mã OTP mới.");
         }
 
         if (!user.getOtp().equals(otp)) {
-            throw new RuntimeException("Invalid OTP!");
+            int attempts = user.getOtpAttempts() + 1;
+            user.setOtpAttempts(attempts);
+            if (attempts >= 5) {
+                user.setOtp(null);
+                user.setOtpExpiry(null);
+                user.setOtpAttempts(0);
+                userRepository.save(user);
+                throw new RuntimeException("Mã OTP đã bị vô hiệu hóa do nhập sai quá 5 lần. Vui lòng yêu cầu mã OTP mới.");
+            } else {
+                userRepository.save(user);
+                throw new RuntimeException("Mã OTP không chính xác! Bạn còn " + (5 - attempts) + " lần thử.");
+            }
         }
 
         user.setEnabled(true);
         user.setOtp(null);
         user.setOtpExpiry(null);
+        user.setOtpAttempts(0);
         
         User savedUser = userRepository.save(user);
-        
-        // Account activation is handled by user.setEnabled(true) above
-        // Customer.isVerifiedEmail was removed to match SQL schema
-        
         
         return savedUser;
     }

@@ -86,6 +86,10 @@ public class RegisterController {
             session.setAttribute("pendingFullName", fullName);
             session.setAttribute("pendingUsername", username);
 
+            // Initialize resend OTP tracking for Register
+            session.setAttribute("otp_resend_count_REGISTER", 0);
+            session.setAttribute("otp_last_sent_REGISTER", java.time.LocalDateTime.now());
+
             return "redirect:/verify-otp";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
@@ -158,6 +162,10 @@ public class RegisterController {
             session.setAttribute("pendingFullName", fullName);
             session.setAttribute("pendingUsername", username);
 
+            // Initialize resend OTP tracking for Register
+            session.setAttribute("otp_resend_count_REGISTER", 0);
+            session.setAttribute("otp_last_sent_REGISTER", java.time.LocalDateTime.now());
+
             return "redirect:/verify-otp";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
@@ -223,5 +231,47 @@ public class RegisterController {
         }
 
         return "/assets/docs/" + subDir + "/" + safeFilename;
+    }
+
+    @GetMapping("/register/check-username")
+    @ResponseBody
+    public java.util.Map<String, Object> checkUsername(@RequestParam String username) {
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        try {
+            if (username == null || username.trim().isEmpty()) {
+                response.put("valid", false);
+                response.put("message", "Username is required!");
+                return response;
+            }
+            String trimmed = username.trim();
+            if (trimmed.length() < 8) {
+                response.put("valid", false);
+                response.put("message", "Username must be at least 8 characters long.");
+                return response;
+            }
+            if (trimmed.length() > 30) {
+                response.put("valid", false);
+                response.put("message", "Username must not exceed 30 characters.");
+                return response;
+            }
+            if (!trimmed.matches("^[A-Za-z0-9_]+$")) {
+                response.put("valid", false);
+                response.put("message", "Username can only contain letters, numbers, and underscores.");
+                return response;
+            }
+
+            boolean exists = userService.isUsernameTaken(trimmed);
+            if (exists) {
+                response.put("valid", false);
+                response.put("message", "Username is already taken!");
+            } else {
+                response.put("valid", true);
+                response.put("message", "Username is available.");
+            }
+        } catch (Exception e) {
+            response.put("valid", false);
+            response.put("message", "System error: " + e.getMessage());
+        }
+        return response;
     }
 }

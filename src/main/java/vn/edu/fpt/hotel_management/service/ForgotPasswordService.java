@@ -26,17 +26,18 @@ public class ForgotPasswordService {
 
     public void sendResetOtp(String email) {
         email = normalizeEmail(email);
-        User user = userRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new RuntimeException("Email not found!"));
-
-        if (!user.isEnabled()) {
-            throw new RuntimeException("Account not verified!");
+        java.util.Optional<User> userOpt = userRepository.findByEmailIgnoreCase(email);
+        if (userOpt.isEmpty() || !userOpt.get().isEnabled()) {
+            // Do not throw exception, just return to hide email existence.
+            return;
         }
 
+        User user = userOpt.get();
         String otp = otpService.generateOtp();
         user.setOtp(otp);
         user.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
         user.setOtpType("FORGOT_PASSWORD");
+        user.setOtpAttempts(0); // Reset incorrect attempts on new OTP creation
         userRepository.save(user);
 
         final String targetEmail = email;

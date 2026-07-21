@@ -59,6 +59,11 @@ public class ForgotPasswordController {
             forgotPasswordService.sendResetOtp(email);
             session.setAttribute("pendingEmail", email);
             session.setAttribute("resetFlow", true);
+
+            // Initialize resend OTP tracking for Forgot Password
+            session.setAttribute("otp_resend_count_FORGOT_PASSWORD", 0);
+            session.setAttribute("otp_last_sent_FORGOT_PASSWORD", java.time.LocalDateTime.now());
+
             return "redirect:/verify-otp";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
