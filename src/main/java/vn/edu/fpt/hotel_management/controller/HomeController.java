@@ -37,6 +37,10 @@ public class HomeController {
             model.addAttribute("user", loggedInUser);
         }
 
+        // 0. Load unique cities for search filter
+        List<String> cities = hotelRepository.findDistinctCitiesAlphabetically();
+        model.addAttribute("cities", cities);
+
         // 1. Load active banners
         List<Banner> activeBanners = bannerRepository.findByActiveTrue();
         model.addAttribute("banners", activeBanners);

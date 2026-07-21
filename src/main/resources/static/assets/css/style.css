@@ -24973,8 +24973,82 @@ body.overflow-hidden nav {
 }
 
 /* Suggestion Dropdown Items Hover styling */
+.dest-suggestions-card {
+  width: 100%;
+  top: calc(100% + 5px);
+  left: 0;
+  z-index: 1000;
+  max-height: 190px;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.suggestion-item {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .suggestion-item:hover {
   background-color: #f1f5f9;
+}
+
+/* --- Global Icon & Size Classes (Refactored from inline HTML styles) --- */
+.icon-search-widget {
+  width: 18px;
+  height: 18px;
+}
+
+.icon-city-suggestion {
+  width: 15px;
+  height: 15px;
+  color: #c9a96e;
+}
+
+.icon-counter-picker {
+  width: 18px;
+  height: 18px;
+  color: #0194f3;
+}
+
+.icon-search-btn {
+  width: 20px;
+  height: 20px;
+  stroke-width: 3;
+}
+
+.icon-card-pin {
+  width: 14px;
+  height: 14px;
+  color: #94a3b8;
+}
+
+.icon-card-chevron {
+  width: 18px;
+  height: 18px;
+  color: var(--gold);
+}
+
+.star-gold {
+  color: #facc15;
+}
+
+.home-main-container {
+  padding-bottom: 50px;
+}
+
+.margin-top-50 {
+  margin-top: 50px;
+}
+
+.hotel-card-img-wrapper {
+  height: 210px;
+}
+
+.dropdown-cities-title {
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
 }
 
 /* --- Horizontal Card Slider Carousel --- */
