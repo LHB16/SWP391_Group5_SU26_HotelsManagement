@@ -21576,11 +21576,24 @@ h6,
   z-index: 10;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  line-height: 1 !important;
   box-shadow: var(--shadow-sm);
 }
 
 .room-qty-badge i {
   color: var(--gold);
+}
+
+/* Trạng thái hết phòng (Sold Out) */
+.room-qty-badge.sold-out {
+  background: #fef2f2 !important; /* Đỏ nhạt sang trọng */
+  color: #ef4444 !important;      /* Chữ đỏ rõ ràng */
+  border: 1px solid #fca5a5 !important; /* Viền đỏ hồng mỏng */
+}
+
+.room-qty-badge.sold-out i {
+  color: #ef4444 !important; /* Icon cũng màu đỏ */
 }
 
 /* --- Dual Range Slider --- */
@@ -22268,6 +22281,10 @@ h6,
   font-size: 0.75rem !important;
   font-weight: 600 !important;
   z-index: 10 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
 }
 
 /* ── Nút trái tim xóa phòng trên ảnh (Đổi sang custom-wishlist-heart-btn) ── */
@@ -25104,6 +25121,52 @@ body.overflow-hidden nav {
   letter-spacing: 0.05em;
 }
 
+/* --- Scrollable Select Dropdowns --- */
+.scrollable-select-wrapper {
+  position: relative;
+  height: 31px; /* Chiều cao cố định tương ứng form-select-sm */
+}
+
+.scrollable-select-wrapper.custom-select-lg-wrapper {
+  height: 38px; /* Chiều cao cố định tương ứng form-select thông thường */
+}
+
+.scrollable-select {
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+  left: 0;
+  top: 0;
+  scrollbar-width: thin; /* Hỗ trợ Firefox */
+  scrollbar-color: #cbd5e1 #f1f5f9; /* Hỗ trợ Firefox */
+}
+
+.scrollable-select:focus {
+  z-index: 1000;
+  height: auto;
+  overflow-x: auto;
+}
+
+/* Tùy biến thanh cuộn nhỏ gọn cho Chrome, Edge, Safari */
+.scrollable-select::-webkit-scrollbar {
+  height: 6px; /* Kích thước thanh cuộn ngang nhỏ gọn */
+  width: 6px;  /* Kích thước thanh cuộn dọc */
+}
+
+.scrollable-select::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.scrollable-select::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.scrollable-select::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 /* --- Horizontal Card Slider Carousel --- */
 .slider-wrapper {
   position: relative;
@@ -25658,6 +25721,13 @@ body.dashboard-page .custom-nav-container {
   padding-right: 1.5rem !important;
 }
 
+/* Custom size for Lucide Ban SVG icon inside badges */
+.lucide-ban-icon {
+  width: 16px !important;
+  height: 16px !important;
+  flex-shrink: 0 !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
 /* Prevent wrapping for booking select promotion button */
 .booking-select-promo-btn {
   white-space: nowrap !important;
@@ -25665,4 +25735,4 @@ body.dashboard-page .custom-nav-container {
 }
 .booking-promo-action-wrap {
   flex-shrink: 0 !important;
-}
+}
