@@ -26,13 +26,10 @@ public class OtpService {
 
     @Transactional
     public User verifyOtp(String email, String otp) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Mã OTP không chính xác."));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Invalid OTP code."));
 
         if (user.getOtpExpiry() == null || user.getOtpExpiry().isBefore(LocalDateTime.now())) {
-            if (!user.isEnabled()) {
-                userRepository.delete(user);
-            }
-            throw new RuntimeException("Mã OTP đã hết hạn! Vui lòng yêu cầu mã OTP mới.");
+            throw new RuntimeException("OTP code has expired! Please request a new OTP.");
         }
 
         if (!user.getOtp().equals(otp)) {
@@ -43,10 +40,10 @@ public class OtpService {
                 user.setOtpExpiry(null);
                 user.setOtpAttempts(0);
                 userRepository.save(user);
-                throw new RuntimeException("Mã OTP đã bị vô hiệu hóa do nhập sai quá 5 lần. Vui lòng yêu cầu mã OTP mới.");
+                throw new RuntimeException("OTP code has been disabled due to exceeding 5 attempts. Please request a new OTP.");
             } else {
                 userRepository.save(user);
-                throw new RuntimeException("Mã OTP không chính xác! Bạn còn " + (5 - attempts) + " lần thử.");
+                throw new RuntimeException("Incorrect OTP code! You have " + (5 - attempts) + " attempts remaining.");
             }
         }
 

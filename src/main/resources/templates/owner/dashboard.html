@@ -112,8 +112,153 @@
                         </div>
                     </div>
 
-                    <!-- APPROVED - SHOW BOOKINGS -->
+                    <!-- APPROVED - SHOW DASHBOARD METRICS & BOOKINGS -->
                     <div th:if="${verificationStatus == 'APPROVED'}">
+
+                        <!-- Cards Section for overview stats -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-3">
+                                <div class="stat-card card-revenue h-100">
+                                    <div class="stat-icon">
+                                        <i data-lucide="dollar-sign" style="stroke-width: 1.5;"></i>
+                                    </div>
+                                    <div class="stat-value" id="ownerTotalRevenue">0 VND</div>
+                                    <div class="stat-label">Total Revenue</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card card-hotels h-100">
+                                    <div class="stat-icon">
+                                        <i data-lucide="banknote" style="stroke-width: 1.5;"></i>
+                                    </div>
+                                    <div class="stat-value" id="ownerNetPayout">0 VND</div>
+                                    <div class="stat-label">Net Revenue</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card card-bookings h-100">
+                                    <div class="stat-icon">
+                                        <i data-lucide="shopping-bag" style="stroke-width: 1.5;"></i>
+                                    </div>
+                                    <div class="stat-value" id="ownerTotalBookings">0</div>
+                                    <div class="stat-label">Successful Bookings</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card card-refunds h-100">
+                                    <div class="stat-icon">
+                                        <i data-lucide="hotel" style="stroke-width: 1.5;"></i>
+                                    </div>
+                                    <div class="stat-value" th:text="${totalHotels} + ' Hotels / ' + ${totalRooms} + ' Rooms'">0 Hotels</div>
+                                    <div class="stat-label">Total Hotels & Rooms</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chart Section -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-12">
+                                <div class="dashboard-section p-4" style="background: white; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);">
+                                    <h2 class="section-title mb-4 d-flex align-items-center gap-2">
+                                        <i data-lucide="bar-chart-3" style="stroke-width: 1.5; color: #c9a96e;"></i>
+                                        Revenue Statistics Chart
+                                    </h2>
+                                    <div style="position: relative; height: 350px; width: 100%;">
+                                        <canvas id="ownerRevenueChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Time Period & Hotel Filters Section -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-12">
+                                <div class="dashboard-section">
+                                    <h2 class="section-title">
+                                        <i data-lucide="calendar" style="stroke-width: 1.5; color: #c9a96e;"></i>
+                                        Time Period Filter
+                                    </h2>
+                                    
+                                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                                        <div class="search-pill-container flex-grow-1" style="max-width: 500px; border-radius: 12px; height: 50px; min-width: 250px;">
+                                            <!-- Start Date Filter -->
+                                            <div class="search-pill-col" style="flex: 1; padding: 0 15px;">
+                                                <label class="search-pill-label">Start Date:</label>
+                                                <div class="search-pill-input-wrapper">
+                                                    <i data-lucide="calendar" style="width: 16px; height: 16px;"></i>
+                                                    <input type="text" id="ownerFilterStartDate" class="search-pill-input" readonly placeholder="Choose Date" style="font-size: 0.85rem; font-weight: 500;" />
+                                                </div>
+                                            </div>
+                                            <!-- End Date Filter -->
+                                            <div class="search-pill-col" style="flex: 1; padding: 0 15px;">
+                                                <label class="search-pill-label">End Date:</label>
+                                                <div class="search-pill-input-wrapper">
+                                                    <i data-lucide="calendar" style="width: 16px; height: 16px;"></i>
+                                                    <input type="text" id="ownerFilterEndDate" class="search-pill-input" readonly placeholder="Choose Date" style="font-size: 0.85rem; font-weight: 500;" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Month Filter -->
+                                        <div class="d-flex align-items-center gap-2" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 5px 15px; height: 50px;">
+                                            <label class="small fw-bold text-muted mb-0 me-1">Month:</label>
+                                            <select id="ownerFilterMonth" class="form-select border-0 bg-transparent p-0" style="font-size: 0.85rem; font-weight: 600; width: auto; min-width: 80px; box-shadow: none; cursor: pointer; color: #334155;">
+                                                <option value="">All</option>
+                                                <option value="01">Jan</option>
+                                                <option value="02">Feb</option>
+                                                <option value="03">Mar</option>
+                                                <option value="04">Apr</option>
+                                                <option value="05">May</option>
+                                                <option value="06">Jun</option>
+                                                <option value="07">Jul</option>
+                                                <option value="08">Aug</option>
+                                                <option value="09">Sep</option>
+                                                <option value="10">Oct</option>
+                                                <option value="11">Nov</option>
+                                                <option value="12">Dec</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Quarter Filter -->
+                                        <div class="d-flex align-items-center gap-2" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 5px 15px; height: 50px;">
+                                            <label class="small fw-bold text-muted mb-0 me-1">Quarter:</label>
+                                            <select id="ownerFilterQuarter" class="form-select border-0 bg-transparent p-0" style="font-size: 0.85rem; font-weight: 600; width: auto; min-width: 80px; box-shadow: none; cursor: pointer; color: #334155;">
+                                                <option value="">All</option>
+                                                <option value="1">Q1</option>
+                                                <option value="2">Q2</option>
+                                                <option value="3">Q3</option>
+                                                <option value="4">Q4</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Year Filter -->
+                                        <div class="d-flex align-items-center gap-2" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 5px 15px; height: 50px;">
+                                            <label class="small fw-bold text-muted mb-0 me-1">Year:</label>
+                                            <select id="ownerFilterYear" class="form-select border-0 bg-transparent p-0" style="font-size: 0.85rem; font-weight: 600; width: auto; min-width: 80px; box-shadow: none; cursor: pointer; color: #334155;">
+                                                <option value="">All</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Hotel Filter -->
+                                        <div class="d-flex align-items-center gap-2" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 5px 15px; height: 50px;">
+                                            <label class="small fw-bold text-muted mb-0 me-1">Hotel:</label>
+                                            <select id="ownerFilterHotel" class="form-select border-0 bg-transparent p-0" style="font-size: 0.85rem; font-weight: 600; width: auto; min-width: 120px; box-shadow: none; cursor: pointer; color: #334155;">
+                                                <option value="all">All Hotels</option>
+                                                <option th:each="h : ${approvedHotels}" th:value="${h.id}" th:text="${h.name}"></option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Clear Button -->
+                                        <div class="d-flex align-items-center">
+                                            <button type="button" id="ownerClearFiltersBtn" class="btn btn-outline-secondary py-2 px-3 d-flex align-items-center gap-1" style="border-radius: 10px; height: 50px; font-weight: 500; font-size: 0.9rem;">
+                                                <i data-lucide="x" style="width: 16px; height: 16px;"></i> Clear Filter (All Time)
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="dashboard-section">
                             <h2 class="section-title">
                                 <i data-lucide="list" style="stroke-width: 1.5; color: #c9a96e;"></i>
@@ -1212,6 +1357,252 @@
         </div>
     </div>
 
+    <!-- Dependencies: Flatpickr & Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script th:inline="javascript">
+        /* Global dataset passed from Thymeleaf */
+        window.ownerRevenueBookings = /*[[${revenueBookings}]]*/ [];
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const bookings = window.ownerRevenueBookings || [];
+
+            const startDateInput = document.getElementById("ownerFilterStartDate");
+            const endDateInput = document.getElementById("ownerFilterEndDate");
+            const monthSelect = document.getElementById("ownerFilterMonth");
+            const quarterSelect = document.getElementById("ownerFilterQuarter");
+            const yearSelect = document.getElementById("ownerFilterYear");
+            const hotelSelect = document.getElementById("ownerFilterHotel");
+            const resetBtn = document.getElementById("ownerClearFiltersBtn");
+
+            const totalRevenueEl = document.getElementById("ownerTotalRevenue");
+            const netPayoutEl = document.getElementById("ownerNetPayout");
+            const totalBookingsEl = document.getElementById("ownerTotalBookings");
+
+            let fpStart = null;
+            let fpEnd = null;
+            let chartInstance = null;
+
+            if (startDateInput && typeof flatpickr !== 'undefined') {
+                fpStart = flatpickr(startDateInput, {
+                    dateFormat: "Y-m-d",
+                    onChange: function(selectedDates, dateStr) {
+                        if (fpEnd) fpEnd.set("minDate", dateStr);
+                        applyOwnerFilters();
+                    }
+                });
+            }
+
+            if (endDateInput && typeof flatpickr !== 'undefined') {
+                fpEnd = flatpickr(endDateInput, {
+                    dateFormat: "Y-m-d",
+                    onChange: function(selectedDates, dateStr) {
+                        if (fpStart) fpStart.set("maxDate", dateStr);
+                        applyOwnerFilters();
+                    }
+                });
+            }
+
+            // Populate Year dropdown based on booking dates
+            if (yearSelect) {
+                const years = new Set();
+                bookings.forEach(b => {
+                    if (b.createdAt) {
+                        const y = b.createdAt.substring(0, 4);
+                        if (y && y.length === 4) years.add(y);
+                    }
+                });
+                const currentYear = new Date().getFullYear().toString();
+                years.add(currentYear);
+                Array.from(years).sort().reverse().forEach(y => {
+                    const opt = document.createElement("option");
+                    opt.value = y;
+                    opt.textContent = y;
+                    yearSelect.appendChild(opt);
+                });
+            }
+
+            // Filter Listeners
+            if (monthSelect) monthSelect.addEventListener("change", applyOwnerFilters);
+            if (quarterSelect) quarterSelect.addEventListener("change", applyOwnerFilters);
+            if (yearSelect) yearSelect.addEventListener("change", applyOwnerFilters);
+            if (hotelSelect) hotelSelect.addEventListener("change", applyOwnerFilters);
+            if (resetBtn) {
+                resetBtn.addEventListener("click", function () {
+                    if (fpStart) fpStart.clear();
+                    if (fpEnd) fpEnd.clear();
+                    if (monthSelect) monthSelect.value = "";
+                    if (quarterSelect) quarterSelect.value = "";
+                    if (yearSelect) yearSelect.value = "";
+                    if (hotelSelect) hotelSelect.value = "all";
+                    applyOwnerFilters();
+                });
+            }
+
+            function formatVND(val) {
+                return new Intl.NumberFormat('vi-VN').format(val || 0) + " VND";
+            }
+
+            function applyOwnerFilters() {
+                const startVal = startDateInput ? startDateInput.value : "";
+                const endVal = endDateInput ? endDateInput.value : "";
+                const monthVal = monthSelect ? monthSelect.value : "";
+                const quarterVal = quarterSelect ? quarterSelect.value : "";
+                const yearVal = yearSelect ? yearSelect.value : "";
+                const hotelVal = hotelSelect ? hotelSelect.value : "all";
+
+                const filtered = bookings.filter(b => {
+                    // Hotel filter
+                    if (hotelVal !== "all" && b.hotelId && b.hotelId.toString() !== hotelVal.toString()) {
+                        return false;
+                    }
+                    // Date string prefix check
+                    const created = b.createdAt ? b.createdAt.substring(0, 10) : "";
+                    if (!created) return false;
+
+                    if (startVal && created < startVal) return false;
+                    if (endVal && created > endVal) return false;
+
+                    const bYear = created.substring(0, 4);
+                    const bMonth = created.substring(5, 7);
+
+                    if (yearVal && bYear !== yearVal) return false;
+                    if (monthVal && bMonth !== monthVal) return false;
+
+                    if (quarterVal) {
+                        const m = parseInt(bMonth, 10);
+                        if ((quarterVal === "1" || quarterVal === "Q1") && !(m >= 1 && m <= 3)) return false;
+                        if ((quarterVal === "2" || quarterVal === "Q2") && !(m >= 4 && m <= 6)) return false;
+                        if ((quarterVal === "3" || quarterVal === "Q3") && !(m >= 7 && m <= 9)) return false;
+                        if ((quarterVal === "4" || quarterVal === "Q4") && !(m >= 10 && m <= 12)) return false;
+                    }
+
+                    return true;
+                });
+
+                // Compute totals
+                let totalRevenue = 0;
+                let totalNetPayout = 0;
+                let successfulCount = 0;
+
+                filtered.forEach(b => {
+                    const st = (b.bookingStatus || "").toUpperCase();
+                    const paySt = (b.paymentStatus || "").toUpperCase();
+                    if ((st === "CONFIRMED" || st === "COMPLETED") && paySt === "PAID") {
+                        totalRevenue += (b.totalPrice || 0);
+                        totalNetPayout += (b.ownerPayoutAmount || 0);
+                        successfulCount++;
+                    }
+                });
+
+                if (totalRevenueEl) totalRevenueEl.textContent = formatVND(totalRevenue);
+                if (netPayoutEl) netPayoutEl.textContent = formatVND(totalNetPayout);
+                if (totalBookingsEl) totalBookingsEl.textContent = successfulCount;
+
+                // Group data for Chart
+                renderChart(filtered);
+            }
+
+            function renderChart(dataList) {
+                const ctx = document.getElementById("ownerRevenueChart");
+                if (!ctx || typeof Chart === 'undefined') return;
+
+                // Group by Date
+                const dateMap = {};
+                dataList.forEach(b => {
+                    const dateStr = b.createdAt ? b.createdAt.substring(0, 10) : "Unknown";
+                    if (!dateMap[dateStr]) {
+                        dateMap[dateStr] = { revenue: 0, payout: 0 };
+                    }
+                    const st = (b.bookingStatus || "").toUpperCase();
+                    const paySt = (b.paymentStatus || "").toUpperCase();
+                    if ((st === "CONFIRMED" || st === "COMPLETED") && paySt === "PAID") {
+                        dateMap[dateStr].revenue += (b.totalPrice || 0);
+                        dateMap[dateStr].payout += (b.ownerPayoutAmount || 0);
+                    }
+                });
+
+                const sortedDates = Object.keys(dateMap).sort();
+                const labels = sortedDates.length > 0 ? sortedDates : ["No Data"];
+                const revData = sortedDates.map(d => dateMap[d].revenue);
+                const payoutData = sortedDates.map(d => dateMap[d].payout);
+
+                if (chartInstance) {
+                    chartInstance.destroy();
+                }
+
+                chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Total Revenue (VND)',
+                                data: revData,
+                                backgroundColor: '#3b82f6',
+                                borderRadius: 6,
+                                maxBarThickness: 35
+                            },
+                            {
+                                label: 'Net Revenue (VND)',
+                                data: payoutData,
+                                backgroundColor: '#10b981',
+                                borderRadius: 6,
+                                maxBarThickness: 35
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    font: { family: 'Inter, sans-serif', size: 12, weight: '500' },
+                                    color: '#64748b'
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: '#0f172a',
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) label += ': ';
+                                        if (context.raw !== null) {
+                                            label += new Intl.NumberFormat('vi-VN').format(context.raw) + " VND";
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { font: { family: 'Inter, sans-serif', size: 11 }, color: '#64748b' }
+                            },
+                            y: {
+                                grid: { color: '#f1f5f9' },
+                                ticks: {
+                                    font: { family: 'Inter, sans-serif', size: 11 },
+                                    color: '#64748b',
+                                    callback: function(value) {
+                                        if (value >= 1e6) return (value / 1e6).toFixed(1) + 'M';
+                                        return value.toLocaleString('vi-VN');
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Initial render
+            applyOwnerFilters();
+        });
+    </script>
 </body>
 
 </html>

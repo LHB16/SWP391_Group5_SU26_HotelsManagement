@@ -35,12 +35,13 @@
 
             <div class="text-center mt-2">
                 <button type="button" id="resendOtpBtn" class="btn btn-link text-decoration-none small text-muted p-0" disabled>
-                    Gửi lại OTP (60s)
+                    Resend OTP (60s)
                 </button>
             </div>
 
             <div class="text-center mt-3">
-                <a th:href="@{/register}" class="text-muted small">Back to Register</a>
+                <a th:if="${resetFlow}" th:href="@{/login}" class="text-muted small">Back to Login</a>
+                <a th:unless="${resetFlow}" th:href="@{/register}" class="text-muted small">Back to Register</a>
             </div>
 
         </div>
@@ -71,7 +72,7 @@
             function startCountdown(duration) {
                 if (duration <= 0) {
                     resendBtn.disabled = false;
-                    resendBtn.innerText = "Gửi lại OTP";
+                    resendBtn.innerText = "Resend OTP";
                     resendBtn.classList.remove("text-muted");
                     resendBtn.classList.add("text-primary");
                     return;
@@ -79,7 +80,7 @@
                 resendBtn.disabled = true;
                 resendBtn.classList.add("text-muted");
                 resendBtn.classList.remove("text-primary");
-                resendBtn.innerText = `Gửi lại OTP (${duration}s)`;
+                resendBtn.innerText = `Resend OTP (${duration}s)`;
 
                 clearInterval(countdownTimer);
                 countdownTimer = setInterval(() => {
@@ -87,11 +88,11 @@
                     if (duration <= 0) {
                         clearInterval(countdownTimer);
                         resendBtn.disabled = false;
-                        resendBtn.innerText = "Gửi lại OTP";
+                        resendBtn.innerText = "Resend OTP";
                         resendBtn.classList.remove("text-muted");
                         resendBtn.classList.add("text-primary");
                     } else {
-                        resendBtn.innerText = `Gửi lại OTP (${duration}s)`;
+                        resendBtn.innerText = `Resend OTP (${duration}s)`;
                     }
                 }, 1000);
             }
@@ -100,7 +101,7 @@
 
             resendBtn.addEventListener("click", function() {
                 resendBtn.disabled = true;
-                resendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang gửi...';
+                resendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Sending...';
 
                 fetch("/resend-otp?type=auth", {
                     method: "POST"
@@ -108,15 +109,15 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert(data.message || "Đã gửi lại mã OTP thành công!");
+                        alert(data.message || "OTP code resent successfully!");
                         startCountdown(data.nextCooldown);
                     } else {
-                        alert(data.message || "Gửi lại mã OTP thất bại!");
+                        alert(data.message || "Failed to resend OTP code!");
                         if (data.remainingSeconds) {
                             startCountdown(data.remainingSeconds);
                         } else {
                             resendBtn.disabled = false;
-                            resendBtn.innerText = "Gửi lại OTP";
+                            resendBtn.innerText = "Resend OTP";
                             resendBtn.classList.remove("text-muted");
                             resendBtn.classList.add("text-primary");
                         }
@@ -124,9 +125,9 @@
                 })
                 .catch(error => {
                     console.error("Error resending OTP:", error);
-                    alert("Lỗi hệ thống. Vui lòng thử lại sau.");
+                    alert("System error. Please try again later.");
                     resendBtn.disabled = false;
-                    resendBtn.innerText = "Gửi lại OTP";
+                    resendBtn.innerText = "Resend OTP";
                     resendBtn.classList.remove("text-muted");
                     resendBtn.classList.add("text-primary");
                 });
