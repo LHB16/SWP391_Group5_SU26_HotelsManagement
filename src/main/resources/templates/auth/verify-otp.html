@@ -7,7 +7,7 @@
 
 <main class="flex-grow-1 d-flex align-items-center py-5">
 <div class="container d-flex justify-content-center">
-    <div class="card shadow border-0" style="width: 440px;">
+    <div class="card shadow border-0 verify-otp-card">
         <div class="card-header login-header text-center py-4">
             <h3 class="mb-1 fw-bold" th:text="${pageTitle != null ? pageTitle : 'Verify OTP'}">Verify OTP</h3>
             <p class="mb-0 text-white-50 small" th:if="${subtitle}" th:text="${subtitle}"></p>
@@ -28,11 +28,11 @@
 
                 <div class="mb-3">
                     <label for="otp" class="form-label text-muted fw-semibold d-block text-center small">ENTER 6-DIGIT OTP CODE</label>
-                    <input type="text" id="otp" name="otp" class="form-control mx-auto text-center fw-bold fs-4"
-                           required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" style="letter-spacing: 4px; max-width: 260px;"
+                    <input type="text" id="otp" name="otp" class="form-control mx-auto text-center fw-bold fs-4 otp-input-field"
+                           required maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
                            placeholder="123456"/>
-                    <p class="text-center text-muted small mt-2 mb-0" style="font-size: 0.825rem;">
-                        <i class="bi bi-info-circle me-1"></i>Note: Entering an incorrect OTP code 5 times will invalidate it.
+                    <p class="text-center text-muted small mt-2 mb-0 otp-note-text">
+                        <i class="bi bi-info-circle me-1"></i>Note: Entering an incorrect OTP code 5 times will&nbsp;invalidate&nbsp;it.
                     </p>
                 </div>
 
