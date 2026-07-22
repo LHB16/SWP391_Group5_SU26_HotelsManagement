@@ -60,6 +60,7 @@ public class OtpController {
             session.setAttribute("otp_last_sent_" + sessionKey, LocalDateTime.now());
         }
         model.addAttribute("cooldown", cooldown);
+        model.addAttribute("resendType", "auth");
 
         return "auth/verify-otp";
     }
@@ -96,6 +97,7 @@ public class OtpController {
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
             model.addAttribute("email", email);
+            model.addAttribute("resendType", "auth");
 
             // Tính cooldown còn lại khi xảy ra lỗi nhập để giữ timer hoạt động chính xác
             Boolean resetFlow = (Boolean) session.getAttribute("resetFlow");

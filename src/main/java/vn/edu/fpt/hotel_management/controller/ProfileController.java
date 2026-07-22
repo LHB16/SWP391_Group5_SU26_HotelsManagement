@@ -209,7 +209,14 @@ public class ProfileController {
         model.addAttribute("cooldown", cooldown);
 
         model.addAttribute("pendingEmail", loggedInUser.getEmail());
-        return "user/verify-edit-profile-otp";
+        model.addAttribute("pageTitle", "Verify OTP");
+        model.addAttribute("subtitle", "Enter the verification code to edit profile");
+        model.addAttribute("actionUrl", "/profile/verify-edit");
+        model.addAttribute("submitText", "Verify & Edit");
+        model.addAttribute("backUrl", "/profile");
+        model.addAttribute("backText", "Back");
+        model.addAttribute("resendType", "profile_edit");
+        return "auth/verify-otp";
     }
 
     // =====================================================
@@ -259,6 +266,13 @@ public class ProfileController {
                     model.addAttribute("errorMessage", "Mã OTP không chính xác! Bạn còn " + (5 - attempts) + " lần thử.");
                 }
                 model.addAttribute("pendingEmail", loggedInUser.getEmail());
+                model.addAttribute("pageTitle", "Verify OTP");
+                model.addAttribute("subtitle", "Enter the verification code to edit profile");
+                model.addAttribute("actionUrl", "/profile/verify-edit");
+                model.addAttribute("submitText", "Verify & Edit");
+                model.addAttribute("backUrl", "/profile");
+                model.addAttribute("backText", "Back");
+                model.addAttribute("resendType", "profile_edit");
 
                 // Tính cooldown
                 String sessionKey = "UPDATE_PROFILE";
@@ -274,7 +288,7 @@ public class ProfileController {
                 }
                 model.addAttribute("cooldown", cooldown);
 
-                return "user/verify-edit-profile-otp";
+                return "auth/verify-otp";
             }
 
             // Xác thực thành công: Xóa OTP và các thông tin liên quan trong Database
@@ -495,7 +509,14 @@ public class ProfileController {
         model.addAttribute("cooldown", cooldown);
 
         model.addAttribute("pendingEmail", pendingNewEmail);
-        return "user/verify-new-email-otp";
+        model.addAttribute("pageTitle", "Verify New Email");
+        model.addAttribute("subtitle", "Enter the verification code sent to your new email address");
+        model.addAttribute("actionUrl", "/profile/verify-new-email");
+        model.addAttribute("submitText", "Confirm Change");
+        model.addAttribute("backUrl", "/profile/cancel-edit");
+        model.addAttribute("backText", "Cancel");
+        model.addAttribute("resendType", "profile_new_email");
+        return "auth/verify-otp";
     }
 
     // Xử lý xác thực OTP email mới để lưu thay đổi
@@ -544,6 +565,13 @@ public class ProfileController {
                     model.addAttribute("errorMessage", "Mã OTP không chính xác! Bạn còn " + (5 - attempts) + " lần thử.");
                 }
                 model.addAttribute("pendingEmail", pendingNewEmail);
+                model.addAttribute("pageTitle", "Verify New Email");
+                model.addAttribute("subtitle", "Enter the verification code sent to your new email address");
+                model.addAttribute("actionUrl", "/profile/verify-new-email");
+                model.addAttribute("submitText", "Confirm Change");
+                model.addAttribute("backUrl", "/profile/cancel-edit");
+                model.addAttribute("backText", "Cancel");
+                model.addAttribute("resendType", "profile_new_email");
 
                 // Tính cooldown
                 String sessionKey = "UPDATE_EMAIL";
@@ -559,7 +587,7 @@ public class ProfileController {
                 }
                 model.addAttribute("cooldown", cooldown);
 
-                return "user/verify-new-email-otp";
+                return "auth/verify-otp";
             }
 
             // Lưu email mới vào DB

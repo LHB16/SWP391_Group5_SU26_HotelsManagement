@@ -7,41 +7,54 @@
 
 <main class="flex-grow-1 d-flex align-items-center py-5">
 <div class="container d-flex justify-content-center">
-    <div class="card shadow" style="width: 420px;">
-        <div class="card-header login-header text-center">
-            <h4 class="mb-0">Verify OTP</h4>
+    <div class="card shadow border-0" style="width: 440px;">
+        <div class="card-header login-header text-center py-4">
+            <h3 class="mb-1 fw-bold" th:text="${pageTitle != null ? pageTitle : 'Verify OTP'}">Verify OTP</h3>
+            <p class="mb-0 text-white-50 small" th:if="${subtitle}" th:text="${subtitle}"></p>
         </div>
         <div class="card-body p-4">
 
-            <p class="text-center text-muted">
-                OTP code has been sent to:<br/>
-                <strong th:text="${email}"></strong>
+            <div th:if="${errorMessage}" class="alert alert-danger border-0 px-3 py-2 mb-3" th:text="${errorMessage}"></div>
+            <div th:if="${error}" class="alert alert-danger border-0 px-3 py-2 mb-3" th:text="${error}"></div>
+            <div th:if="${successMessage}" class="alert alert-success border-0 px-3 py-2 mb-3" th:text="${successMessage}"></div>
+
+            <p class="text-center text-muted mb-4">
+                We have sent a 6-digit OTP code to:<br/>
+                <strong class="text-dark" th:text="${pendingEmail != null ? pendingEmail : email}">email@example.com</strong>
             </p>
 
-            <form method="post" action="/verify-otp">
-                <input type="hidden" name="email" th:value="${email}"/>
+            <form method="post" th:action="@{${actionUrl != null ? actionUrl : '/verify-otp'}}">
+                <input type="hidden" name="email" th:value="${pendingEmail != null ? pendingEmail : email}"/>
 
                 <div class="mb-3">
-                    <label class="form-label">Enter OTP Code</label>
-                    <input type="text" name="otp" class="form-control text-center fs-4"
-                           required maxlength="6"
-                           placeholder="Enter 6-digit OTP"/>
+                    <label for="otp" class="form-label text-muted fw-semibold d-block text-center small">ENTER 6-DIGIT OTP CODE</label>
+                    <input type="text" id="otp" name="otp" class="form-control mx-auto text-center fw-bold fs-4"
+                           required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" style="letter-spacing: 4px; max-width: 260px;"
+                           placeholder="123456"/>
+                    <p class="text-center text-muted small mt-2 mb-0" style="font-size: 0.825rem;">
+                        <i class="bi bi-info-circle me-1"></i>Note: Entering an incorrect OTP code 5 times will invalidate it.
+                    </p>
                 </div>
 
-                <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
-
-                <button type="submit" class="btn btn-primary w-100">Verify</button>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold" th:text="${submitText != null ? submitText : 'Verify'}">Verify</button>
+                </div>
             </form>
 
-            <div class="text-center mt-2">
+            <div class="text-center mt-3">
                 <button type="button" id="resendOtpBtn" class="btn btn-link text-decoration-none small text-muted p-0" disabled>
                     Resend OTP (60s)
                 </button>
             </div>
 
             <div class="text-center mt-3">
-                <a th:if="${resetFlow}" th:href="@{/login}" class="text-muted small">Back to Login</a>
-                <a th:unless="${resetFlow}" th:href="@{/register}" class="text-muted small">Back to Register</a>
+                <th:block th:if="${backUrl != null}">
+                    <a th:href="@{${backUrl}}" class="text-muted small" th:text="${backText != null ? backText : 'Back'}">Back</a>
+                </th:block>
+                <th:block th:unless="${backUrl != null}">
+                    <a th:if="${resetFlow}" th:href="@{/login}" class="text-muted small">Back to Login</a>
+                    <a th:unless="${resetFlow}" th:href="@{/register}" class="text-muted small">Back to Register</a>
+                </th:block>
             </div>
 
         </div>
@@ -55,7 +68,14 @@
     document.addEventListener("DOMContentLoaded", function() {
         const form = document.querySelector("form");
         if (form) {
-            form.addEventListener("submit", function() {
+            form.addEventListener("submit", function(e) {
+                const otpInput = document.getElementById("otp");
+                const otpVal = otpInput ? otpInput.value.trim() : "";
+                if (!/^\d{6}$/.test(otpVal)) {
+                    e.preventDefault();
+                    alert("Please enter a valid 6-digit OTP code.");
+                    return false;
+                }
                 const button = form.querySelector("button[type='submit']");
                 if (button) {
                     button.disabled = true;
@@ -67,6 +87,7 @@
         const resendBtn = document.getElementById("resendOtpBtn");
         if (resendBtn) {
             let cooldown = [[${cooldown}]];
+            let resendType = [[${resendType != null ? resendType : 'auth'}]];
             let countdownTimer;
 
             function startCountdown(duration) {
@@ -103,7 +124,7 @@
                 resendBtn.disabled = true;
                 resendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Sending...';
 
-                fetch("/resend-otp?type=auth", {
+                fetch("/resend-otp?type=" + encodeURIComponent(resendType), {
                     method: "POST"
                 })
                 .then(response => response.json())
