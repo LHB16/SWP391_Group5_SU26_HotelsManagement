@@ -25806,3 +25806,144 @@ body.dashboard-page .custom-nav-container {
 .otp-note-text {
   font-size: 0.825rem !important;
 }
+
+/* System Global Notification Modal Styling */
+.global-alert-modal-content {
+  border-radius: 14px !important;
+}
+
+.global-alert-icon-success {
+  color: #10b981 !important;
+  font-size: 54px !important;
+}
+
+.global-alert-icon-error {
+  color: #ef4444 !important;
+  font-size: 54px !important;
+}
+
+.global-alert-title {
+  color: #0f172a !important;
+}
+
+.global-alert-btn-success {
+  background-color: #0d233a !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  padding: 10px !important;
+}
+
+.global-alert-btn-error {
+  background-color: #ef4444 !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  padding: 10px !important;
+}
+
+/* Filter Form Controls */
+.filter-form-label {
+  font-size: 0.8rem !important;
+}
+
+.filter-clear-btn {
+  font-size: 0.75rem !important;
+}
+
+.filter-clear-icon {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+/* Persistent Top Input Box + 5-Line Floating Scroll Dropdown */
+.custom-scroll-select-container {
+  position: relative !important;
+  width: 100% !important;
+  height: 31px !important;
+}
+
+.custom-select-lg-container {
+  height: 38px !important;
+}
+
+.select-input-display {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 31px !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  padding-left: 10px !important;
+  padding-right: 32px !important;
+  background-color: #ffffff !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.select-input-text {
+  display: block !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+}
+
+.custom-select-lg-container .select-input-display {
+  height: 38px !important;
+}
+
+.scroll-select-5 {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 31px !important;
+  z-index: 2 !important;
+  opacity: 0 !important;
+  cursor: pointer !important;
+}
+
+.custom-select-lg-container .scroll-select-5 {
+  height: 38px !important;
+}
+
+.scroll-select-5:focus {
+  top: 100% !important;
+  left: 0 !important;
+  min-width: 100% !important;
+  width: auto !important;
+  max-width: 320px !important;
+  margin-top: 2px !important;
+  height: auto !important;
+  max-height: 165px !important;
+  opacity: 1 !important;
+  z-index: 1050 !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 6px !important;
+  outline: none !important;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  white-space: nowrap !important;
+}
+
+.scroll-select-5 option {
+  padding: 6px 12px !important;
+  font-size: 0.85rem !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+}
+
+.scroll-select-5 option:hover,
+.scroll-select-5 option:focus,
+.scroll-select-5 option:active,
+.scroll-select-5 option:checked {
+  background-color: #0d6efd !important;
+  color: #ffffff !important;
+}
