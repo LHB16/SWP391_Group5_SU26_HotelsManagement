@@ -90,6 +90,10 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
         boolean existsByCustomerIdAndIdPromotion(@Param("customerId") int customerId,
                         @Param("idPromotion") int idPromotion);
 
+        boolean existsByHotelId(int hotelId);
+
+        boolean existsByRoomId(int roomId);
+
         // =====================================================
         // PAYOUT: Magic Methods cho Admin truy vấn đối soát
         // =====================================================
