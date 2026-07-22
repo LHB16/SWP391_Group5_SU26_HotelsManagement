@@ -228,8 +228,8 @@ public class BookingController {
             // Tính cancelable và refund policy trước khi hủy
             cancelableMap.put(b.getId(), b.isCancelable());
             if (b.getCheckInDate() != null) {
-                java.time.LocalDateTime refundDeadline = b.getCheckInDate().minusDays(3).atTime(12, 0);
-                refundPolicyMap.put(b.getId(), nowTime.isBefore(refundDeadline) ? "full" : "none");
+                int percent = calculateRefundPercentage(b);
+                refundPolicyMap.put(b.getId(), percent == 100 ? "full" : (percent > 0 ? String.valueOf(percent) : "none"));
             } else {
                 refundPolicyMap.put(b.getId(), "none");
             }
@@ -277,6 +277,26 @@ public class BookingController {
         return "booking/history";
     }
 
+    private int calculateRefundPercentage(Booking booking) {
+        if (booking == null || booking.getCheckInDate() == null) {
+            return 0;
+        }
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        java.time.LocalDateTime deadline100 = booking.getCheckInDate().minusDays(3).atTime(12, 0);
+        java.time.LocalDateTime deadline50 = booking.getCheckInDate().minusDays(2).atTime(12, 0);
+        java.time.LocalDateTime deadline25 = booking.getCheckInDate().minusDays(1).atTime(12, 0);
+
+        if (now.isBefore(deadline100)) {
+            return 100;
+        } else if (now.isBefore(deadline50)) {
+            return 50;
+        } else if (now.isBefore(deadline25)) {
+            return 25;
+        } else {
+            return 0;
+        }
+    }
+
     // Hiển thị trang chính sách hủy & điều khoản hoàn tiền
     @GetMapping("/booking/cancel-policy")
     public String showCancelPolicyPage(
@@ -313,18 +333,16 @@ public class BookingController {
         }
 
         // Tính deadline
-        java.time.LocalDateTime refundDeadline = booking.getCheckInDate().minusDays(3).atTime(12, 0);
-        boolean isFullRefundEligible;
-        if ("CANCELLED".equalsIgnoreCase(booking.getStatus())) {
-            Payment p = paymentRepository.findByBookingId(booking.getId()).orElse(null);
-            isFullRefundEligible = p != null && "REFUNDED".equalsIgnoreCase(p.getStatus());
-        } else {
-            isFullRefundEligible = java.time.LocalDateTime.now().isBefore(refundDeadline);
-        }
+        java.time.LocalDateTime deadline100 = booking.getCheckInDate().minusDays(3).atTime(12, 0);
+        java.time.LocalDateTime deadline50 = booking.getCheckInDate().minusDays(2).atTime(12, 0);
+        java.time.LocalDateTime deadline25 = booking.getCheckInDate().minusDays(1).atTime(12, 0);
 
-        // Định dạng deadline để hiển thị đẹp mắt
+        int refundPercent = calculateRefundPercentage(booking);
+
         java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        String formattedDeadline = refundDeadline.format(formatter);
+        String formattedDeadline100 = deadline100.format(formatter);
+        String formattedDeadline50 = deadline50.format(formatter);
+        String formattedDeadline25 = deadline25.format(formatter);
 
         // Lấy tên khách sạn
         Hotel hotel = hotelRepository.findById(booking.getRoom().getHotelId()).orElse(null);
@@ -332,9 +350,11 @@ public class BookingController {
 
         model.addAttribute("booking", booking);
         model.addAttribute("hotelName", hotelName);
-        model.addAttribute("policy", isFullRefundEligible ? "full" : "none");
-        model.addAttribute("formattedDeadline", formattedDeadline);
-        model.addAttribute("isFullRefundEligible", isFullRefundEligible);
+        model.addAttribute("refundPercent", refundPercent);
+        model.addAttribute("formattedDeadline100", formattedDeadline100);
+        model.addAttribute("formattedDeadline50", formattedDeadline50);
+        model.addAttribute("formattedDeadline25", formattedDeadline25);
+        model.addAttribute("isFullRefundEligible", refundPercent == 100);
         model.addAttribute("action", action);
 
         return "booking/cancel-policy";
@@ -373,25 +393,25 @@ public class BookingController {
         }
 
         // Tính toán chi phí hủy
-        java.time.LocalDateTime refundDeadline = booking.getCheckInDate().minusDays(3).atTime(12, 0);
-        boolean isFullRefundEligible = java.time.LocalDateTime.now().isBefore(refundDeadline);
-
-        java.math.BigDecimal cancellationFee = isFullRefundEligible ? java.math.BigDecimal.ZERO
-                : booking.getTotalPrice();
+        int refundPercent = calculateRefundPercentage(booking);
+        java.math.BigDecimal refundAmount = booking.getTotalPrice()
+                .multiply(new java.math.BigDecimal(refundPercent))
+                .divide(new java.math.BigDecimal("100"), 0, java.math.RoundingMode.HALF_UP);
+        java.math.BigDecimal cancellationFee = booking.getTotalPrice().subtract(refundAmount);
 
         model.addAttribute("booking", booking);
         model.addAttribute("hotel", booking.getHotel());
         model.addAttribute("room", booking.getRoom());
         model.addAttribute("cancellationFee", cancellationFee);
-        model.addAttribute("isFullRefundEligible", isFullRefundEligible);
+        model.addAttribute("refundPercent", refundPercent);
+        model.addAttribute("isFullRefundEligible", refundPercent == 100);
         model.addAttribute("user", loggedInUser);
 
         return "booking/cancel";
     }
 
     // Hủy booking: cho phép hủy khi CONFIRMED và chưa đến ngày check-in
-    // Chính sách hoàn tiền: trước 12:00 trưa ngày (checkin - 3 ngày) → 100% | sau
-    // deadline → 0%
+    // Chính sách hoàn tiền mới: trước 3 ngày -> 100% | 3 ngày trước -> 50% | 2 ngày trước -> 25% | 1 ngày trước -> 0%
     @PostMapping("/booking/cancel/{id}")
     public String cancelBooking(
             @PathVariable("id") int bookingId,
@@ -423,19 +443,15 @@ public class BookingController {
             return "redirect:/booking/history";
         }
 
-        // Tính deadline hoàn tiền: 12:00 trưa của ngày (check-in - 3 ngày)
-        java.time.LocalDateTime refundDeadline = booking.getCheckInDate()
-                .minusDays(3)
-                .atTime(12, 0);
-        boolean isFullRefundEligible = java.time.LocalDateTime.now().isBefore(refundDeadline);
+        int refundPercent = calculateRefundPercentage(booking);
 
-        if (isFullRefundEligible) {
-            // Đủ điều kiện hoàn tiền: KHÔNG hủy ngay tại đây
+        if (refundPercent > 0) {
+            // Đủ điều kiện hoàn tiền (100%, 50%, 25%): KHÔNG hủy ngay tại đây
             // Lưu lý do hủy vào session
             session.setAttribute("cancelReason_" + bookingId, reason);
             return "redirect:/booking/refund-request?bookingId=" + bookingId;
         } else {
-            // Quá hạn hoàn tiền: HỦY NGAY
+            // Quá hạn hoàn tiền (0%): HỦY NGAY
             booking.setStatus("CANCELLED");
             if (reason != null && !reason.isBlank()) {
                 booking.setSpecialNotes((booking.getSpecialNotes() != null ? booking.getSpecialNotes() + "\n" : "")
@@ -450,8 +466,8 @@ public class BookingController {
                 paymentRepository.save(payment);
             }
 
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "Booking cancelled. Unfortunately, cancellations within 3 days of check-in are non-refundable per our policy.");
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Booking cancelled. Unfortunately, cancellations within 1 day of check-in are non-refundable per our policy.");
             return "redirect:/booking/history";
         }
     }
@@ -498,15 +514,16 @@ public class BookingController {
         }
 
         // Kiểm tra lại hạn hoàn tiền
-        java.time.LocalDateTime refundDeadline = booking.getCheckInDate().minusDays(3).atTime(12, 0);
-        if (!java.time.LocalDateTime.now().isBefore(refundDeadline)) {
+        int refundPercent = calculateRefundPercentage(booking);
+        if (refundPercent == 0) {
             redirectAttributes.addFlashAttribute("errorMessage", "The refund deadline has passed.");
             return "redirect:/booking/history";
         }
 
-        // Hoàn tiền 100%
+        // Hoàn tiền theo %
         java.math.BigDecimal refundAmount = booking.getTotalPrice()
-                .setScale(0, java.math.RoundingMode.HALF_UP);
+                .multiply(new java.math.BigDecimal(refundPercent))
+                .divide(new java.math.BigDecimal("100"), 0, java.math.RoundingMode.HALF_UP);
 
         // Lấy tên khách sạn
         Room room = booking.getRoom();
@@ -517,7 +534,7 @@ public class BookingController {
         model.addAttribute("hotel", hotel);
         model.addAttribute("room", room);
         model.addAttribute("refundAmount", refundAmount);
-        model.addAttribute("refundDeadline", refundDeadline);
+        model.addAttribute("refundPercent", refundPercent);
 
         return "booking/refund-request";
     }
@@ -565,8 +582,8 @@ public class BookingController {
         }
 
         // Kiểm tra lại hạn hoàn tiền
-        java.time.LocalDateTime refundDeadline = booking.getCheckInDate().minusDays(3).atTime(12, 0);
-        if (!java.time.LocalDateTime.now().isBefore(refundDeadline)) {
+        int refundPercent = calculateRefundPercentage(booking);
+        if (refundPercent == 0) {
             redirectAttributes.addFlashAttribute("errorMessage", "The refund deadline has passed.");
             return "redirect:/booking/history";
         }
@@ -593,9 +610,10 @@ public class BookingController {
         // Trạng thái thanh toán vẫn giữ là PAID, chỉ chuyển sang REFUNDED khi Admin
         // Approve hoàn tiền thành công
 
-        // Hoàn tiền 100%
+        // Hoàn tiền theo %
         java.math.BigDecimal refundAmount = booking.getTotalPrice()
-                .setScale(0, java.math.RoundingMode.HALF_UP);
+                .multiply(new java.math.BigDecimal(refundPercent))
+                .divide(new java.math.BigDecimal("100"), 0, java.math.RoundingMode.HALF_UP);
 
         // Tạo bản ghi Refund
         Refund refund = new Refund();
@@ -1044,8 +1062,8 @@ public class BookingController {
         boolean cancelable = booking.isCancelable();
         String refundPolicy = "none";
         if (booking.getCheckInDate() != null) {
-            java.time.LocalDateTime refundDeadline = booking.getCheckInDate().minusDays(3).atTime(12, 0);
-            refundPolicy = java.time.LocalDateTime.now().isBefore(refundDeadline) ? "full" : "none";
+            int percent = calculateRefundPercentage(booking);
+            refundPolicy = percent == 100 ? "full" : (percent > 0 ? String.valueOf(percent) : "none");
         }
 
         boolean refundEligible = false;
