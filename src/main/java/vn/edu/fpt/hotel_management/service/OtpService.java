@@ -26,10 +26,10 @@ public class OtpService {
 
     @Transactional
     public User verifyOtp(String email, String otp) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Invalid OTP code."));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Incorrect OTP code!"));
 
         if (user.getOtpExpiry() == null || user.getOtpExpiry().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("OTP code has expired! Please request a new OTP.");
+            throw new RuntimeException("Incorrect OTP code!");
         }
 
         if (!user.getOtp().equals(otp)) {
@@ -40,10 +40,10 @@ public class OtpService {
                 user.setOtpExpiry(null);
                 user.setOtpAttempts(0);
                 userRepository.save(user);
-                throw new RuntimeException("OTP code has been disabled due to exceeding 5 attempts. Please request a new OTP.");
+                throw new RuntimeException("Incorrect OTP code!");
             } else {
                 userRepository.save(user);
-                throw new RuntimeException("Incorrect OTP code! You have " + (5 - attempts) + " attempts remaining.");
+                throw new RuntimeException("Incorrect OTP code!");
             }
         }
 

@@ -26,11 +26,14 @@
             <form method="post" th:action="@{${actionUrl != null ? actionUrl : '/verify-otp'}}">
                 <input type="hidden" name="email" th:value="${pendingEmail != null ? pendingEmail : email}"/>
 
-                <div class="mb-4">
+                <div class="mb-3">
                     <label for="otp" class="form-label text-muted fw-semibold d-block text-center small">ENTER 6-DIGIT OTP CODE</label>
                     <input type="text" id="otp" name="otp" class="form-control mx-auto text-center fw-bold fs-4"
-                           required maxlength="6" style="letter-spacing: 4px; max-width: 260px;"
+                           required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" style="letter-spacing: 4px; max-width: 260px;"
                            placeholder="123456"/>
+                    <p class="text-center text-muted small mt-2 mb-0" style="font-size: 0.825rem;">
+                        <i class="bi bi-info-circle me-1"></i>Note: Entering an incorrect OTP code 5 times will invalidate it.
+                    </p>
                 </div>
 
                 <div class="d-flex gap-2">
@@ -65,7 +68,14 @@
     document.addEventListener("DOMContentLoaded", function() {
         const form = document.querySelector("form");
         if (form) {
-            form.addEventListener("submit", function() {
+            form.addEventListener("submit", function(e) {
+                const otpInput = document.getElementById("otp");
+                const otpVal = otpInput ? otpInput.value.trim() : "";
+                if (!/^\d{6}$/.test(otpVal)) {
+                    e.preventDefault();
+                    alert("Please enter a valid 6-digit OTP code.");
+                    return false;
+                }
                 const button = form.querySelector("button[type='submit']");
                 if (button) {
                     button.disabled = true;
