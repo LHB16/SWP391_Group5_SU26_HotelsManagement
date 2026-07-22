@@ -330,11 +330,7 @@
                                             th:classappend="${hotel.approvalStatus == 'APPROVED'} ? 'bg-success' :
                                                          (${hotel.approvalStatus == 'REJECTED'} ? 'bg-danger' : 'bg-warning text-dark')"
                                             th:text="${hotel.approvalStatus ?: 'PENDING'}">PENDING</span>
-                                        <span class="badge position-absolute bottom-0 start-0 m-2"
-                                            style="background: rgba(0,0,0,0.6); color: #f59e0b; backdrop-filter: blur(4px);">
-                                            <i data-lucide="star" style="width: 12px; height: 12px; fill: #f59e0b;"></i>
-                                            <span th:text="${hotel.rating}">0.0</span>
-                                        </span>
+
                                     </div>
 
                                     <div class="card-body">
@@ -840,7 +836,7 @@
     </div>
 
     <!-- ========================================================= -->
-    <!-- MODAL: Edit Promotion -->
+    <!-- MODAL: Modify Promotion -->
     <!-- ========================================================= -->
     <div class="modal fade" id="editPromotionModal" tabindex="-1" aria-labelledby="editPromotionModalLabel"
         aria-hidden="true">
@@ -850,7 +846,7 @@
                     <div>
                         <h5 class="modal-title fw-bold" id="editPromotionModalLabel">
                             <i data-lucide="pencil" style="width: 20px; height: 20px; color: #c9a96e;"></i>
-                            Edit Promotion
+                            Modify Promotion
                         </h5>
                         <p class="text-muted small mt-1">Update your promotion details</p>
                     </div>
@@ -956,6 +952,44 @@
                         <form th:action="@{/owner/promotions/delete}" method="post" class="d-inline">
                             <input type="hidden" name="promotionId" th:value="${promo.id}" />
                             <input type="hidden" name="hotelId" th:value="${promo.hotel.id}" />
+                            <button type="submit"
+                                class="btn btn-delete-modal px-4 py-2 rounded-3 fw-semibold text-white">
+                                Yes, Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL: DELETE HOTEL -->
+    <!-- ========================================================= -->
+    <div th:each="hotel : ${hotels}">
+        <div class="modal fade" th:id="'deleteModalHotel-' + ${hotel.id}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content modal-content-rounded">
+                    <div class="modal-header border-0 pt-4 pb-0 justify-content-center">
+                        <div class="text-center">
+                            <i class="bi bi-exclamation-triangle icon-warning-large text-gold"></i>
+                        </div>
+                    </div>
+                    <div class="modal-body text-center px-4 py-3">
+                        <h4 class="fw-bold text-dark mb-3 modal-title-serif">Confirm Deletion</h4>
+                        <p class="text-muted mb-0 modal-text-desc">
+                            Are you sure you want to delete hotel <strong class="text-navy-primary"
+                                th:text="'\'' + ${hotel.name} + '\''">Hotel Name</strong>?
+                        </p>
+                    </div>
+                    <div class="modal-footer border-0 pb-4 pt-2 d-flex gap-3 justify-content-center">
+                        <button type="button"
+                            class="btn btn-light px-4 py-2 rounded-3 border fw-semibold text-secondary font-size-9"
+                            data-bs-dismiss="modal">
+                            No, Keep It
+                        </button>
+                        <form th:action="@{/owner/dashboard/delete-hotel}" method="post" class="d-inline">
+                            <input type="hidden" name="hotelId" th:value="${hotel.id}" />
                             <button type="submit"
                                 class="btn btn-delete-modal px-4 py-2 rounded-3 fw-semibold text-white">
                                 Yes, Delete

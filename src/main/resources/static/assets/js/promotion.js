@@ -142,7 +142,7 @@ function renderPromotions(promotions) {
                                 data-start="${promo.startDate || ''}"
                                 data-end="${promo.endDate || ''}"
                                 data-status="${promo.status}">
-                            Edit
+                            Modify
                         </button>
                         <button type="button" class="promo-action-btn promo-action-btn-delete" 
                                 data-bs-toggle="modal" 
