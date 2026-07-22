@@ -91,29 +91,40 @@
                                     <i class="bi bi-building"></i>
                                     Bank Name <span class="rf-required">*</span>
                                 </label>
-                                <select class="rf-form-select" id="bankName" name="bankName" required>
-                                    <option value="" disabled selected>-- Select your bank --</option>
-                                    <option value="Vietcombank">Vietcombank (VCB)</option>
-                                    <option value="VietinBank">VietinBank (CTG)</option>
-                                    <option value="BIDV">BIDV</option>
-                                    <option value="Agribank">Agribank</option>
-                                    <option value="MB Bank">MB Bank (MBB)</option>
-                                    <option value="Techcombank">Techcombank (TCB)</option>
-                                    <option value="ACB">ACB</option>
-                                    <option value="VPBank">VPBank</option>
-                                    <option value="TPBank">TPBank</option>
-                                    <option value="Sacombank">Sacombank</option>
-                                    <option value="HDBank">HDBank</option>
-                                    <option value="OCB">OCB</option>
-                                    <option value="MSB">MSB</option>
-                                    <option value="SeABank">SeABank</option>
-                                    <option value="SHB">SHB</option>
-                                    <option value="LienVietPostBank">LienVietPostBank</option>
-                                    <option value="Eximbank">Eximbank</option>
-                                    <option value="NamABank">Nam A Bank</option>
-                                    <option value="PVcomBank">PVcomBank</option>
-                                    <option value="Other">Other</option>
-                                </select>
+                                <div class="rf-bank-row" id="bankRow">
+                                    <select class="rf-form-select" id="bankName" name="bankName" required>
+                                        <option value="" disabled selected>-- Select your bank --</option>
+                                        <option value="Vietcombank">Vietcombank (VCB)</option>
+                                        <option value="VietinBank">VietinBank (CTG)</option>
+                                        <option value="BIDV">BIDV</option>
+                                        <option value="Agribank">Agribank</option>
+                                        <option value="MB Bank">MB Bank (MBB)</option>
+                                        <option value="Techcombank">Techcombank (TCB)</option>
+                                        <option value="ACB">ACB</option>
+                                        <option value="VPBank">VPBank</option>
+                                        <option value="TPBank">TPBank</option>
+                                        <option value="Sacombank">Sacombank</option>
+                                        <option value="HDBank">HDBank</option>
+                                        <option value="OCB">OCB</option>
+                                        <option value="MSB">MSB</option>
+                                        <option value="SeABank">SeABank</option>
+                                        <option value="SHB">SHB</option>
+                                        <option value="LienVietPostBank">LienVietPostBank</option>
+                                        <option value="Eximbank">Eximbank</option>
+                                        <option value="NamABank">Nam A Bank</option>
+                                        <option value="PVcomBank">PVcomBank</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                    <div class="rf-bank-divider" id="bankDivider" style="display: none;"></div>
+                                    <input type="text" 
+                                           class="rf-bank-input" 
+                                           id="otherBankName" 
+                                           placeholder="Enter bank name" 
+                                           style="display: none;" 
+                                           maxlength="100"
+                                           pattern="^[a-zA-Z0-9\s\-_]+$"
+                                           title="Please use English characters only (no diacritics)"/>
+                                </div>
                             </div>
 
                             <!-- Số tài khoản -->
@@ -147,6 +158,8 @@
                                        placeholder="e.g. NGUYEN VAN A"
                                        maxlength="100"
                                        style="text-transform: uppercase;"
+                                       pattern="^[a-zA-Z\s\-_]+$"
+                                       title="Please use English characters only (no numbers or diacritics)"
                                        required/>
                                 <span class="rf-form-hint">Must match exactly as shown on your bank account (in UPPERCASE).</span>
                             </div>
@@ -156,7 +169,7 @@
                                 <i class="bi bi-info-circle"></i>
                                 <span>
                                     The amount of
-                                    <strong th:text="${#numbers.formatInteger(refundAmount, 3, 'COMMA') + ' ₫'}">0 ₫</strong>
+                                    <strong th:text="${#numbers.formatInteger(refundAmount, 3, 'COMMA') + ' VND'}">0 VND</strong>
                                     will be transferred to the account above.
                                 </span>
                             </div>
@@ -220,10 +233,18 @@
             var accountNumber = document.getElementById('accountNumber');
             var accountHolder = document.getElementById('accountHolder');
             var submitRefundBtn = document.getElementById('submitRefundBtn');
+            var bankRow = document.getElementById('bankRow');
+            var otherBankName = document.getElementById('otherBankName');
+            var bankDivider = document.getElementById('bankDivider');
 
             // Kiểm tra tính hợp lệ của biểu mẫu để bật/tắt nút Submit
             function checkFormValidity() {
-                var isBankValid = bankName.value !== "";
+                var isBankValid = false;
+                if (bankName.value === 'Other') {
+                    isBankValid = otherBankName.value.trim().length > 0 && otherBankName.checkValidity();
+                } else {
+                    isBankValid = bankName.value !== "";
+                }
                 var isAccountValid = accountNumber.value.length >= 6 && /^[0-9]+$/.test(accountNumber.value);
                 var isHolderValid = accountHolder.value.trim().length > 0;
 
@@ -234,27 +255,90 @@
                 }
             }
 
-            // Tự động viết hoa giá trị của ô nhập tên chủ tài khoản
+            function handleBankSelection() {
+                if (bankName.value === 'Other') {
+                    bankRow.classList.add('has-other');
+                    bankDivider.style.display = 'block';
+                    otherBankName.style.display = 'block';
+                    otherBankName.setAttribute('required', 'true');
+                    otherBankName.setAttribute('name', 'bankName');
+                    bankName.removeAttribute('name');
+                } else {
+                    bankRow.classList.remove('has-other');
+                    bankDivider.style.display = 'none';
+                    otherBankName.style.display = 'none';
+                    otherBankName.removeAttribute('required');
+                    otherBankName.value = '';
+                    bankName.setAttribute('name', 'bankName');
+                    otherBankName.removeAttribute('name');
+                }
+                checkFormValidity();
+            }
+
+            function removeVietnameseTones(str) {
+                str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g,"a"); 
+                str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g,"e"); 
+                str = str.replace(/ì|í|ị|ỉ|ĩ/g,"i"); 
+                str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g,"o"); 
+                str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g,"u"); 
+                str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g,"y"); 
+                str = str.replace(/đ/g,"d");
+                str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+                str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+                str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+                str = str.replace(/Ò|Ó|Ọ|BẢ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
+                str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+                str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+                str = str.replace(/Đ/g, "D");
+                str = str.replace(/\u0300|\u0301|\u0309|\u0303|\u0309/g, ""); 
+                str = str.replace(/\u02C6|\u0306|\u031B/g, ""); 
+                return str;
+            }
+
+            // Tự động viết hoa và loại bỏ dấu tiếng Việt cho tên chủ tài khoản
             accountHolder.addEventListener('input', function () {
-                this.value = this.value.toUpperCase();
+                var start = this.selectionStart;
+                var end = this.selectionEnd;
+                var originalValue = this.value;
+                var cleanedValue = removeVietnameseTones(originalValue).replace(/[^a-zA-Z\s-_]/g, "").toUpperCase();
+                
+                if (originalValue !== cleanedValue) {
+                    this.value = cleanedValue;
+                    this.setSelectionRange(start, end);
+                }
                 checkFormValidity();
             });
 
-            bankName.addEventListener('change', checkFormValidity);
+            bankName.addEventListener('change', handleBankSelection);
+            
+            otherBankName.addEventListener('input', function (e) {
+                var start = this.selectionStart;
+                var end = this.selectionEnd;
+                var originalValue = this.value;
+                var cleanedValue = removeVietnameseTones(originalValue).replace(/[^a-zA-Z0-9\s-_]/g, "");
+                
+                if (originalValue !== cleanedValue) {
+                    this.value = cleanedValue;
+                    this.setSelectionRange(start, end);
+                }
+                checkFormValidity();
+            });
+
             accountNumber.addEventListener('input', checkFormValidity);
 
             // Kiểm tra ban đầu khi tải trang
             checkFormValidity();
 
             document.getElementById('submitRefundBtn').addEventListener('click', function () {
+                var displayBank = bankName.value === 'Other' ? otherBankName.value.trim() : bankName.value;
                 // Validate trước khi mở modal
-                if (!bankName.value || !accountNumber.value || !accountHolder.value) {
+                if ((bankName.value === 'Other' && !otherBankName.value.trim()) || (bankName.value !== 'Other' && !bankName.value) || !accountNumber.value || !accountHolder.value) {
                     refundForm.reportValidity();
                     return;
                 }
 
                 // Hiển thị thông tin xác nhận
-                document.getElementById('confirmBank').textContent = bankName.value;
+                document.getElementById('confirmBank').textContent = displayBank;
                 document.getElementById('confirmAccount').textContent = accountNumber.value;
                 document.getElementById('confirmHolder').textContent = accountHolder.value.toUpperCase();
 
