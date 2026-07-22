@@ -927,22 +927,6 @@
                                         </div>
                                     </form>
 
-                                    <!-- Flash messages -->
-                                    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show border-0 mb-3" style="border-radius: 10px;">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <i data-lucide="check-circle" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
-                                            <span th:text="${successMessage}">Success</span>
-                                        </div>
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                    </div>
-                                    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show border-0 mb-3" style="border-radius: 10px;">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <i data-lucide="alert-circle" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
-                                            <span th:text="${errorMessage}">Error</span>
-                                        </div>
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                    </div>
-
                                     <!-- Bảng danh sách -->
                                     <div class="table-responsive bg-white rounded-3 shadow-sm p-3" th:if="${refunds != null and !#lists.isEmpty(refunds)}">
                                         <div class="mb-3 text-muted small">

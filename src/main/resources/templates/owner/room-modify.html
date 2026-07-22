@@ -29,16 +29,6 @@
         <div class="row justify-content-center">
             <div class="col-12 col-lg-10">
 
-                <!-- Flash messages -->
-                <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
-                    <i class="bi bi-check-circle-fill"></i>
-                    <span th:text="${successMessage}"></span>
-                </div>
-                <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                    <span th:text="${errorMessage}"></span>
-                </div>
-
                 <form th:action="@{/owner/hotels/{id}/rooms/{rid}/edit(id=${hotel.id}, rid=${room.id})}"
                       method="post" enctype="multipart/form-data" id="roomForm">
 

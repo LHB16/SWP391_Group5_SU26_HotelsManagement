@@ -12,24 +12,6 @@
 
     <main class="flex-shrink-0 container py-5">
 
-        <!-- Flash Messages -->
-        <div th:if="${successMessage}"
-             class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2 mb-4 shadow-sm"
-             role="alert"
-             style="border-radius: 12px; border-left: 4px solid #16a34a;">
-            <i class="bi bi-check-circle-fill" style="font-size: 1.1rem; flex-shrink: 0;"></i>
-            <span th:text="${successMessage}"></span>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        <div th:if="${errorMessage}"
-             class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2 mb-4 shadow-sm"
-             role="alert"
-             style="border-radius: 12px; border-left: 4px solid #dc2626;">
-            <i class="bi bi-exclamation-circle-fill" style="font-size: 1.1rem; flex-shrink: 0;"></i>
-            <span th:text="${errorMessage}"></span>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-
         <!-- Back navigation link -->
         <div class="mb-4">
             <a th:href="@{/admin/dashboard?tab=customerPanel}" class="back-btn">

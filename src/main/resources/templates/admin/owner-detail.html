@@ -13,22 +13,6 @@
 
     <main class="flex-shrink-0 container py-5">
 
-        <!-- Flash Messages -->
-        <div th:if="${successMessage}"
-             class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2 mb-4 shadow-sm"
-             role="alert"
-             style="border-radius: 12px; border-left: 4px solid #16a34a;">
-            <span th:text="${successMessage}"></span>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        <div th:if="${errorMessage}"
-             class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2 mb-4 shadow-sm"
-             role="alert"
-             style="border-radius: 12px; border-left: 4px solid #dc2626;">
-            <span th:text="${errorMessage}"></span>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-
         <!-- Back Navigation -->
         <div class="mb-4">
             <a th:href="@{/admin/dashboard(tab='hotelOwnerAccounts')}" class="back-btn">
