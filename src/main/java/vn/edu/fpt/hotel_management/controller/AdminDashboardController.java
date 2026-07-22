@@ -435,6 +435,11 @@ public class AdminDashboardController {
         return "admin/dashboard";
     }
 
+    // =====================================================
+    // CHỨC NĂNG: XEM CHI TIẾT KHÁCH HÀNG (VIEW CUSTOMER DETAIL)
+    // Mô tả: Lấy thông tin cá nhân của một khách hàng cụ thể và lịch sử đặt phòng (booking history)
+    // của họ có phân trang (10 bản ghi/trang), sắp xếp mới nhất lên đầu.
+    // =====================================================
     @GetMapping("/admin/customer-detail")
     public String showCustomerDetail(
             @RequestParam("id") int customerId,
@@ -449,18 +454,18 @@ public class AdminDashboardController {
         }
         model.addAttribute("user", loggedInUser);
 
-        // Tìm khách hàng
+        // Tìm kiếm khách hàng theo ID
         Customer selectedCustomer = customerRepository.findById(customerId).orElse(null);
         if (selectedCustomer == null) {
             return "redirect:/admin/dashboard";
         }
         model.addAttribute("selectedCustomer", selectedCustomer);
 
-        // Lấy danh sách đặt phòng có phân trang (10 items/trang)
+        // Lấy danh sách đặt phòng có phân trang (10 items/trang) của khách hàng
         Pageable pageable = PageRequest.of(page, 10);
         Page<Booking> bookingPage = bookingRepository.findByCustomerIdOrderByCreatedAtDesc(customerId, pageable);
 
-        // Map sang dữ liệu để dễ hiển thị ngoài HTML
+        // Đóng gói dữ liệu sang List Map để dễ dàng hiển thị và định dạng ngoài HTML
         List<Map<String, Object>> customerBookings = bookingPage.getContent().stream().map(b -> {
             Map<String, Object> map = new HashMap<>();
             map.put("bookingId", b.getId());
@@ -489,6 +494,10 @@ public class AdminDashboardController {
         return "admin/customer-detail";
     }
 
+    // =====================================================
+    // CHỨC NĂNG: ĐỔI TRẠNG THÁI HOẠT ĐỘNG TÀI KHOẢN KHÁCH HÀNG (MODIFY CUSTOMER ACCOUNT STATUS)
+    // Mô tả: Admin đảo ngược trạng thái kích hoạt (enabled) của tài khoản khách hàng.
+    // =====================================================
     @PostMapping("/admin/toggle-user-status")
     public String toggleUserStatus(
             @RequestParam("userId") int userId,
@@ -509,7 +518,7 @@ public class AdminDashboardController {
         }
         User targetUser = targetCustomer.getUserAccount();
 
-        // Đảo ngược trạng thái enabled
+        // Đảo ngược trạng thái hoạt động (kích hoạt / vô hiệu hóa)
         boolean newStatus = !targetUser.isEnabled();
         targetUser.setEnabled(newStatus);
         userRepository.save(targetUser);
@@ -778,6 +787,11 @@ public class AdminDashboardController {
         return ownerId > 0 ? "redirect:/admin/owner-detail?id=" + ownerId : "redirect:/admin/dashboard?tab=hotelOwnerAccounts";
     }
 
+    // =====================================================
+    // CHỨC NĂNG: ĐỔI TRẠNG THÁI HOẠT ĐỘNG TÀI KHOẢN CHỦ KHÁCH SẠN (MODIFY OWNER ACCOUNT STATUS)
+    // Mô tả: Admin kích hoạt/vô hiệu hóa tài khoản của Hotel Owner.
+    // Nếu vô hiệu hóa, tự động ẩn/ngừng hoạt động tất cả khách sạn thuộc sở hữu của Owner này.
+    // =====================================================
     @PostMapping("/admin/toggle-owner-status")
     public String toggleOwnerStatus(
             @RequestParam("ownerId") int ownerId,
@@ -797,13 +811,13 @@ public class AdminDashboardController {
         }
         User targetUser = targetOwner.getUserAccount();
 
-        // Đảo ngược trạng thái enabled
+        // Đảo ngược trạng thái hoạt động (enabled)
         boolean newStatus = !targetUser.isEnabled();
         targetUser.setEnabled(newStatus);
         userRepository.save(targetUser);
 
+        // LOGIC NGHIỆP VỤ: Nếu vô hiệu hóa Owner, đồng thời vô hiệu hóa tất cả khách sạn của họ
         if (!newStatus) {
-            // Vô hiệu hóa tất cả khách sạn của Owner này khi tài khoản bị disable
             List<Hotel> ownerHotels = hotelRepository.findByOwnerId(ownerId);
             for (Hotel hotel : ownerHotels) {
                 hotel.setActive(false);
@@ -1032,6 +1046,11 @@ public class AdminDashboardController {
      * API AJAX: Admin xác nhận đã chuyển tiền cho Owner.
      * Sẽ snapshot thông tin ngân hàng Owner tại thời điểm này vào booking.
      */
+    // =====================================================
+    // CHỨC NĂNG: THỰC HIỆN CHUYỂN TIỀN CHO CHỦ KHÁCH SẠN (PROCESS PAYOUT FOR OWNERS)
+    // Mô tả: Admin phê duyệt lệnh chuyển khoản thanh toán tiền phòng cho Owner (sau khi khách hàng checkout COMPLETED).
+    // Ghi nhận phí sàn, số tiền Owner thực nhận và chụp lại (snapshot) thông tin tài khoản ngân hàng của Owner tại thời điểm chuyển khoản.
+    // =====================================================
     @PostMapping("/admin/payout/process")
     @org.springframework.web.bind.annotation.ResponseBody
     public org.springframework.http.ResponseEntity<?> processPayout(
@@ -1039,6 +1058,7 @@ public class AdminDashboardController {
             @RequestParam(value = "feePercent", defaultValue = "10") double feePercent,
             HttpSession session) {
 
+        // Kiểm tra quyền ADMIN
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null || !"ADMIN".equals(loggedInUser.getRole())) {
             return org.springframework.http.ResponseEntity.status(401).body("Unauthorized");
@@ -1050,14 +1070,17 @@ public class AdminDashboardController {
                 return org.springframework.http.ResponseEntity.status(404).body("Booking not found");
             }
 
+            // RÀNG BUỘC 1: Đơn đặt phòng phải ở trạng thái COMPLETED (Đã hoàn thành kỳ nghỉ)
             if (!"COMPLETED".equals(booking.getStatus())) {
                 return org.springframework.http.ResponseEntity.badRequest().body("Booking must be COMPLETED to process payout");
             }
 
+            // RÀNG BUỘC 2: Khách hàng phải ở trạng thái đã thanh toán PAID tiền phòng
             if (booking.getPayment() == null || !"PAID".equals(booking.getPayment().getStatus())) {
                 return org.springframework.http.ResponseEntity.badRequest().body("Payment must be PAID to process payout");
             }
 
+            // RÀNG BUỘC 3: Đảm bảo chưa payout cho booking này trước đây
             if ("PAID".equals(booking.getPayoutStatus())) {
                 return org.springframework.http.ResponseEntity.badRequest().body("Payout already processed for this booking");
             }
@@ -1067,25 +1090,28 @@ public class AdminDashboardController {
                 return org.springframework.http.ResponseEntity.status(404).body("Owner not found");
             }
 
+            // RÀNG BUỘC 4: Owner phải thiết lập thông tin số tài khoản ngân hàng trước
             if (owner.getBankAccountNumber() == null || owner.getBankAccountNumber().isBlank()) {
                 return org.springframework.http.ResponseEntity.badRequest()
                         .body("Owner has not set up bank account information yet");
             }
 
-            // Tính toán phí sàn và số tiền chuyển cho Owner
+            // Tính toán chi tiết số tiền:
+            // - platformFeeAmount = totalPrice * feePercent / 100
+            // - ownerPayoutAmount = totalPrice - platformFeeAmount
             BigDecimal totalPrice = booking.getTotalPrice() != null ? booking.getTotalPrice() : BigDecimal.ZERO;
             BigDecimal feePercentDecimal = BigDecimal.valueOf(feePercent).divide(BigDecimal.valueOf(100));
             BigDecimal platformFeeAmount = totalPrice.multiply(feePercentDecimal).setScale(2, java.math.RoundingMode.HALF_UP);
             BigDecimal ownerPayoutAmount = totalPrice.subtract(platformFeeAmount).setScale(2, java.math.RoundingMode.HALF_UP);
 
-            // Cập nhật thông tin payout vào booking
+            // Cập nhật thông tin đối soát chuyển khoản cho Booking
             booking.setPlatformFeePercent(BigDecimal.valueOf(feePercent));
             booking.setPlatformFeeAmount(platformFeeAmount);
             booking.setOwnerPayoutAmount(ownerPayoutAmount);
             booking.setPayoutStatus("PAID");
             booking.setPayoutAt(LocalDateTime.now());
 
-            // SNAPSHOT thông tin ngân hàng tại thời điểm chuyển khoản
+            // LOGIC LƯU TRỮ (SNAPSHOT): Lưu trực tiếp STK ngân hàng của Owner vào Booking phòng hờ Owner đổi thông tin ngân hàng trong tương lai
             booking.setPayoutBankName(owner.getBankName());
             booking.setPayoutBankAccountNumber(owner.getBankAccountNumber());
             booking.setPayoutBankAccountHolder(owner.getBankAccountHolder());

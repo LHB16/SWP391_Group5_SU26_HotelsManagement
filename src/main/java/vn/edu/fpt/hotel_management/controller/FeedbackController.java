@@ -40,6 +40,11 @@ public class FeedbackController {
         this.feedbackVoteRepository = feedbackVoteRepository;
     }
 
+    // =====================================================
+    // CHỨC NĂNG: TẠO ĐÁNH GIÁ MỚI (CREATE CUSTOMER FEEDBACK)
+    // Mô tả: Khách hàng đánh giá khách sạn và loại phòng họ đã từng ở.
+    // Kiểm tra quyền CUSTOMER, trạng thái booking phải là COMPLETED và kiểm tra số lần đánh giá.
+    // =====================================================
     @PostMapping("/hotels/{id}/feedbacks")
     public String createReview(
             @PathVariable("id") int hotelId,
@@ -48,12 +53,14 @@ public class FeedbackController {
             @RequestParam(value = "roomId", required = false) Integer roomId,
             @RequestParam(value = "bookingId", required = false) Integer bookingId,
             HttpSession session) {
+        // Kiểm tra xem người dùng đã đăng nhập chưa
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
             session.setAttribute("errorMessage", "Please log in to submit a feedback.");
             return "redirect:/login";
         }
 
+        // Chỉ khách hàng (CUSTOMER) mới được đánh giá
         if (!"CUSTOMER".equalsIgnoreCase(loggedInUser.getRole())) {
             session.setAttribute("errorMessage", "Only customers can submit feedbacks.");
             return "redirect:/hotels/" + hotelId + "/rooms";
@@ -62,7 +69,7 @@ public class FeedbackController {
         Customer customer = customerRepository.findByUserAccount(loggedInUser)
                 .orElseThrow(() -> new RuntimeException("Customer profile not found!"));
 
-        // Tự động phân giải roomId và bookingId từ các completed booking của khách hàng nếu bị thiếu
+        // Nếu roomId bị thiếu, tự động tìm kiếm booking COMPLETED gần nhất của khách ở khách sạn này để lấy roomId/bookingId tương ứng
         if (roomId == null) {
             List<Booking> customerBookings = bookingRepository.findBookingsByCustomerAndHotel(
                     customer.getId(),
@@ -88,11 +95,13 @@ public class FeedbackController {
             }
         }
 
+        // Nếu vẫn không tìm thấy phòng hợp lệ nghĩa là khách hàng chưa từng hoàn thành kỳ nghỉ nào ở đây
         if (roomId == null) {
             session.setAttribute("errorMessage", "You must have a completed booking at this hotel to submit a feedback.");
             return "redirect:/hotels/" + hotelId + "/rooms";
         }
 
+        // Ràng buộc số sao đánh giá từ 1 đến 5
         if (rating < 1 || rating > 5) {
             session.setAttribute("errorMessage", "Rating must be between 1 and 5 stars.");
             return "redirect:/hotels/" + hotelId + "/rooms";
@@ -106,14 +115,14 @@ public class FeedbackController {
 
         final int finalRoomId = roomId;
 
-        // Find completed bookings for this specific room
+        // Lấy toàn bộ danh sách booking COMPLETED của khách hàng đối với phòng này
         List<Booking> completedBookingsForRoom = bookingRepository.findBookingsByCustomerAndHotel(
                 customer.getId(),
                 hotelId,
                 List.of("COMPLETED")
         ).stream().filter(b -> b.getRoom().getId() == finalRoomId).collect(Collectors.toList());
 
-        // Find feedbacks for this specific room
+        // Lấy danh sách các feedback mà khách hàng đã từng viết cho phòng này
         List<Feedback> roomReviews = FeedbackRepository.findByHotelIdAndCustomerId(hotelId, customer.getId())
                 .stream().filter(r -> r.getRoom() != null && r.getRoom().getId() == finalRoomId).collect(Collectors.toList());
 
@@ -122,6 +131,7 @@ public class FeedbackController {
             return "redirect:/hotels/" + hotelId + "/rooms";
         }
 
+        // Đảm bảo số lượng feedback viết ra không vượt quá số lượng kỳ nghỉ đã hoàn thành
         if (roomReviews.size() >= completedBookingsForRoom.size()) {
             session.setAttribute("errorMessage", "You have already reviewed all your bookings for this room type.");
             return "redirect:/hotels/" + hotelId + "/rooms";
@@ -129,6 +139,7 @@ public class FeedbackController {
 
         String combinedComment = (comment != null ? comment.trim() : "");
 
+        // Khởi tạo đối tượng Feedback và thiết lập các thông tin liên quan
         Feedback feedback = new Feedback();
         feedback.setHotel(hotel);
         feedback.setCustomer(customer);
@@ -139,6 +150,7 @@ public class FeedbackController {
         feedback.setRoomType(room.getType());
         feedback.setStatus("VISIBLE");
 
+        // Liên kết feedback với Booking cụ thể
         if (bookingId != null) {
             Booking booking = bookingRepository.findById(bookingId).orElse(null);
             if (booking != null && booking.getCustomer().getId() == customer.getId()) {
@@ -154,12 +166,17 @@ public class FeedbackController {
             }
         }
 
+        // Lưu đánh giá mới vào Database
         FeedbackRepository.save(feedback);
 
         session.setAttribute("successMessage", "Feedback submitted successfully!");
         return "redirect:/hotels/" + hotelId + "/rooms";
     }
 
+    // =====================================================
+    // CHỨC NĂNG: SỬA ĐÁNH GIÁ CỦA KHÁCH HÀNG (MODIFY CUSTOMER FEEDBACK)
+    // Mô tả: Cho phép khách hàng đã đăng nhập cập nhật số sao và nội dung bình luận của đánh giá do mình viết.
+    // =====================================================
     @PostMapping("/hotels/{id}/feedbacks/{reviewId}/edit")
     public String updateReview(
             @PathVariable("id") int hotelId,
@@ -182,6 +199,7 @@ public class FeedbackController {
             return "redirect:/hotels/" + hotelId + "/rooms";
         }
 
+        // Đảm bảo chỉ chính người viết đánh giá mới được sửa đổi
         if (feedback.getCustomer().getId() != customer.getId()) {
             session.setAttribute("errorMessage", "You are not authorized to edit this feedback.");
             return "redirect:/hotels/" + hotelId + "/rooms";
@@ -240,6 +258,11 @@ public class FeedbackController {
         return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
     }
 
+    // =====================================================
+    // CHỨC NĂNG: VIẾT PHẢN HỒI CHO ĐÁNH GIÁ (REPLY TO CUSTOMER FEEDBACK)
+    // Mô tả: Cho phép chủ khách sạn trả lời nhận xét/đánh giá của khách hàng.
+    // Kiểm tra quyền Owner, kiểm tra tính sở hữu của khách sạn này và kiểm tra trùng lặp.
+    // =====================================================
     @PostMapping("/hotels/{id}/feedbacks/{reviewId}/reply")
     public String replyFeedback(
             @PathVariable("id") int hotelId,
@@ -250,12 +273,16 @@ public class FeedbackController {
         if (loggedInUser == null) {
             return "redirect:/login";
         }
+        // Kiểm tra phân quyền Owner
         if (!"HOTEL_OWNER".equals(loggedInUser.getRole())) {
             session.setAttribute("errorMessage", "Only hotel owners can reply to feedback.");
             return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
         }
+        
         HotelOwner owner = hotelOwnerRepository.findByUserAccount(loggedInUser).orElse(null);
         Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
+        
+        // Xác minh xem chủ khách sạn này có sở hữu đúng khách sạn đang nhận feedback này không
         if (owner == null || hotel == null || hotel.getOwner() == null || hotel.getOwner().getId() != owner.getId()) {
             session.setAttribute("errorMessage", "You don't have permission to reply to this hotel's feedback.");
             return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
@@ -267,12 +294,13 @@ public class FeedbackController {
             return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
         }
 
-        // Check if already replied
+        // Ràng buộc: Mỗi feedback chỉ được phép có tối đa một phản hồi từ phía chủ khách sạn
         if (feedbackReplyRepository.findByFeedbackId(reviewId).isPresent()) {
             session.setAttribute("errorMessage", "You have already replied to this feedback.");
             return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
         }
 
+        // Tạo mới thực thể phản hồi FeedbackReply
         FeedbackReply reply = new FeedbackReply();
         reply.setFeedback(feedback);
         reply.setOwner(owner);
@@ -286,6 +314,10 @@ public class FeedbackController {
         return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
     }
 
+    // =====================================================
+    // CHỨC NĂNG: SỬA PHẢN HỒI CỦA CHỦ KHÁCH SẠN (MODIFY OWNER REPLY)
+    // Mô tả: Cho phép chủ khách sạn chỉnh sửa lại nội dung phản hồi đánh giá của họ.
+    // =====================================================
     @PostMapping("/hotels/{id}/feedbacks/{reviewId}/reply/edit")
     public String editReplyFeedback(
             @PathVariable("id") int hotelId,
@@ -307,11 +339,13 @@ public class FeedbackController {
         }
 
         FeedbackReply reply = feedbackReplyRepository.findByFeedbackId(reviewId).orElse(null);
+        // Xác minh xem phản hồi có tồn tại và thuộc đúng Owner này hay không
         if (reply == null || reply.getOwner().getId() != owner.getId()) {
             session.setAttribute("errorMessage", "Reply not found or you don't have permission to edit it.");
             return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
         }
 
+        // Cập nhật nội dung mới và mốc thời gian cập nhật
         reply.setContent(content);
         reply.setUpdatedAt(LocalDateTime.now());
         feedbackReplyRepository.save(reply);

@@ -22,10 +22,7 @@ public class OtpCleanupScheduler {
 
     @Scheduled(fixedRate = 60000)
     public void deleteExpiredUnverifiedUsers() {
-        List<User> expired = userRepository
-                .findByEnabledFalseAndOtpExpiryBefore(LocalDateTime.now());
-        for (User user : expired) {
-            userService.deleteUserCascaded(user);
-        }
+        // Yêu cầu: Hết hạn thì OTP và thông tin người dùng vẫn còn hiện trong database (chỉ không nhập được).
+        // Không tự động xoá bản ghi hết hạn OTP.
     }
 }

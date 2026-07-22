@@ -67,6 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         customerForm.querySelectorAll('input').forEach(function(input) {
+            if (['regUsername', 'regPassword', 'regConfirmPassword'].indexOf(input.id) !== -1) return;
             input.addEventListener('input', function() {
                 this.classList.remove('is-invalid', 'is-valid');
                 var container = this.parentElement;
@@ -103,9 +104,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     isValid = false;
                     errorMsg += 'Username can only contain letters, numbers, and underscores.\n';
                     username.classList.add('is-invalid');
-                } else {
-                    username.classList.remove('is-invalid');
-                    username.classList.add('is-valid');
+                } else if (username.classList.contains('is-invalid')) {
+                    isValid = false;
+                    errorMsg += 'Username is already taken or invalid.\n';
                 }
             }
 
@@ -115,9 +116,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     isValid = false;
                     errorMsg += 'Password must be at least 8 characters long.\n';
                     password.classList.add('is-invalid');
-                } else {
-                    password.classList.remove('is-invalid');
-                    password.classList.add('is-valid');
                 }
             }
 
@@ -130,8 +128,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     var matchErr = document.getElementById('ownerMatchError');
                     if (matchErr) matchErr.style.display = 'block';
                 } else {
-                    confirmPassword.classList.remove('is-invalid');
-                    confirmPassword.classList.add('is-valid');
                     var matchErr = document.getElementById('ownerMatchError');
                     if (matchErr) matchErr.style.display = 'none';
                 }
@@ -148,6 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         ownerForm.querySelectorAll('input').forEach(function(input) {
+            if (['ownerUsername', 'ownerPassword', 'ownerConfirmPassword'].indexOf(input.id) !== -1) return;
             input.addEventListener('input', function() {
                 this.classList.remove('is-invalid', 'is-valid');
                 var container = this.parentElement;
@@ -162,12 +159,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    var customerUsername = document.getElementById('regUsername');
-    if (customerUsername) {
-        customerUsername.addEventListener('input', function() {
-            var val = this.value.trim();
-            var errorId = 'regUsernameError';
-            var container = this.parentElement;
+    function setupUsernameAjaxCheck(inputElement, errorId) {
+        if (!inputElement) return;
+        var timer = null;
+
+        inputElement.addEventListener('input', function() {
+            var input = this;
+            var val = input.value.trim();
+            var container = input.parentElement;
             if (container.classList.contains('input-group')) {
                 container = container.parentElement;
             }
@@ -180,162 +179,167 @@ document.addEventListener('DOMContentLoaded', function() {
                 container.appendChild(errorEl);
             }
 
-            if (val.length > 0) {
-                if (val.length < 8) {
-                    errorEl.textContent = 'Username must be at least 8 characters.';
-                    errorEl.className = 'text-danger small mt-1';
-                    this.classList.add('is-invalid');
-                    this.classList.remove('is-valid');
-                } else if (val.length > 30) {
-                    errorEl.textContent = 'Username must not exceed 30 characters.';
-                    errorEl.className = 'text-danger small mt-1';
-                    this.classList.add('is-invalid');
-                    this.classList.remove('is-valid');
-                } else if (!/^[A-Za-z0-9_]+$/.test(val)) {
-                    errorEl.textContent = 'Only letters, numbers, and underscores allowed.';
-                    errorEl.className = 'text-danger small mt-1';
-                    this.classList.add('is-invalid');
-                    this.classList.remove('is-valid');
-                } else {
-                    if (errorEl) {
-                        errorEl.textContent = 'Valid username.';
-                        errorEl.className = 'text-success small mt-1';
-                    }
-                    this.classList.remove('is-invalid');
-                    this.classList.add('is-valid');
-                }
-            } else {
-                if (errorEl) errorEl.remove();
-                this.classList.remove('is-invalid', 'is-valid');
+            if (timer) {
+                clearTimeout(timer);
             }
+
+            if (val.length === 0) {
+                errorEl.remove();
+                input.classList.remove('is-invalid', 'is-valid');
+                return;
+            }
+
+            if (val.length < 8) {
+                errorEl.textContent = 'Username must be at least 8 characters.';
+                errorEl.className = 'text-danger small mt-1';
+                input.classList.add('is-invalid');
+                input.classList.remove('is-valid');
+                return;
+            }
+            if (val.length > 30) {
+                errorEl.textContent = 'Username must not exceed 30 characters.';
+                errorEl.className = 'text-danger small mt-1';
+                input.classList.add('is-invalid');
+                input.classList.remove('is-valid');
+                return;
+            }
+            if (!/^[A-Za-z0-9_]+$/.test(val)) {
+                errorEl.textContent = 'Only letters, numbers, and underscores allowed.';
+                errorEl.className = 'text-danger small mt-1';
+                input.classList.add('is-invalid');
+                input.classList.remove('is-valid');
+                return;
+            }
+
+            errorEl.textContent = 'Checking availability...';
+            errorEl.className = 'text-muted small mt-1';
+            input.classList.remove('is-invalid', 'is-valid');
+
+            timer = setTimeout(function() {
+                fetch('/register/check-username?username=' + encodeURIComponent(val))
+                    .then(function(res) {
+                        return res.json();
+                    })
+                    .then(function(data) {
+                        if (input.value.trim() !== val) return;
+
+                        if (data.valid) {
+                            errorEl.textContent = data.message || 'Username is available.';
+                            errorEl.className = 'text-success small mt-1';
+                            input.classList.remove('is-invalid');
+                            input.classList.add('is-valid');
+                        } else {
+                            errorEl.textContent = data.message || 'Username is already taken!';
+                            errorEl.className = 'text-danger small mt-1';
+                            input.classList.remove('is-valid');
+                            input.classList.add('is-invalid');
+                        }
+                    })
+                    .catch(function(err) {
+                        console.error('Error checking username:', err);
+                        if (input.value.trim() !== val) return;
+                        errorEl.textContent = 'Unable to verify username availability.';
+                        errorEl.className = 'text-warning small mt-1';
+                    });
+            }, 400);
         });
     }
 
-    var customerPassword = document.getElementById('regPassword');
-    if (customerPassword) {
-        customerPassword.addEventListener('input', function() {
-            var val = this.value;
-            var errorId = 'regPasswordError';
-            var container = this.parentElement;
+    function setupPasswordMatchCheck(passInput, confirmInput, passErrorId, confirmErrorId) {
+        if (!passInput) return;
+
+        function getErrorElement(input, errorId) {
+            var container = input.parentElement;
             if (container.classList.contains('input-group')) {
                 container = container.parentElement;
             }
             var errorEl = container.querySelector('#' + errorId);
-
             if (!errorEl) {
                 errorEl = document.createElement('div');
                 errorEl.id = errorId;
                 errorEl.className = 'text-danger small mt-1';
                 container.appendChild(errorEl);
             }
+            return errorEl;
+        }
 
-            if (val.length > 0) {
-                if (val.length < 8) {
-                    errorEl.textContent = 'Password must be at least 8 characters.';
-                    errorEl.className = 'text-danger small mt-1';
-                    this.classList.add('is-invalid');
-                    this.classList.remove('is-valid');
-                } else {
-                    if (errorEl) {
-                        errorEl.textContent = 'Valid password.';
-                        errorEl.className = 'text-success small mt-1';
-                    }
-                    this.classList.remove('is-invalid');
-                    this.classList.add('is-valid');
-                }
+        function validatePassword() {
+            var val = passInput.value;
+            var errorEl = getErrorElement(passInput, passErrorId);
+
+            if (val.length === 0) {
+                errorEl.remove();
+                passInput.classList.remove('is-invalid', 'is-valid');
+            } else if (val.length < 8) {
+                errorEl.textContent = 'Password must be at least 8 characters.';
+                errorEl.className = 'text-danger small mt-1';
+                passInput.classList.add('is-invalid');
+                passInput.classList.remove('is-valid');
             } else {
-                if (errorEl) errorEl.remove();
-                this.classList.remove('is-invalid', 'is-valid');
+                errorEl.textContent = 'Valid password.';
+                errorEl.className = 'text-success small mt-1';
+                passInput.classList.remove('is-invalid');
+                passInput.classList.add('is-valid');
             }
-        });
+
+            if (confirmInput && confirmInput.value.length > 0) {
+                validateConfirmPassword();
+            }
+        }
+
+        function validateConfirmPassword() {
+            if (!confirmInput) return;
+            var passVal = passInput.value;
+            var confirmVal = confirmInput.value;
+            var errorEl = getErrorElement(confirmInput, confirmErrorId);
+
+            if (confirmVal.length === 0) {
+                errorEl.remove();
+                confirmInput.classList.remove('is-invalid', 'is-valid');
+            } else if (passVal.length < 8) {
+                errorEl.textContent = 'Please enter a valid password first.';
+                errorEl.className = 'text-danger small mt-1';
+                confirmInput.classList.add('is-invalid');
+                confirmInput.classList.remove('is-valid');
+            } else if (confirmVal !== passVal) {
+                errorEl.textContent = 'Passwords do not match!';
+                errorEl.className = 'text-danger small mt-1';
+                confirmInput.classList.add('is-invalid');
+                confirmInput.classList.remove('is-valid');
+            } else {
+                errorEl.textContent = 'Passwords match.';
+                errorEl.className = 'text-success small mt-1';
+                confirmInput.classList.remove('is-invalid');
+                confirmInput.classList.add('is-valid');
+            }
+        }
+
+        passInput.addEventListener('input', validatePassword);
+        if (confirmInput) {
+            confirmInput.addEventListener('input', validateConfirmPassword);
+        }
+    }
+
+    var customerUsername = document.getElementById('regUsername');
+    if (customerUsername) {
+        setupUsernameAjaxCheck(customerUsername, 'regUsernameError');
     }
 
     var ownerUsername = document.getElementById('ownerUsername');
     if (ownerUsername) {
-        ownerUsername.addEventListener('input', function() {
-            var val = this.value.trim();
-            var errorId = 'ownerUsernameError';
-            var container = this.parentElement;
-            if (container.classList.contains('input-group')) {
-                container = container.parentElement;
-            }
-            var errorEl = container.querySelector('#' + errorId);
+        setupUsernameAjaxCheck(ownerUsername, 'ownerUsernameError');
+    }
 
-            if (!errorEl) {
-                errorEl = document.createElement('div');
-                errorEl.id = errorId;
-                errorEl.className = 'text-danger small mt-1';
-                container.appendChild(errorEl);
-            }
-
-            if (val.length > 0) {
-                if (val.length < 8) {
-                    errorEl.textContent = 'Username must be at least 8 characters.';
-                    errorEl.className = 'text-danger small mt-1';
-                    this.classList.add('is-invalid');
-                    this.classList.remove('is-valid');
-                } else if (val.length > 30) {
-                    errorEl.textContent = 'Username must not exceed 30 characters.';
-                    errorEl.className = 'text-danger small mt-1';
-                    this.classList.add('is-invalid');
-                    this.classList.remove('is-valid');
-                } else if (!/^[A-Za-z0-9_]+$/.test(val)) {
-                    errorEl.textContent = 'Only letters, numbers, and underscores allowed.';
-                    errorEl.className = 'text-danger small mt-1';
-                    this.classList.add('is-invalid');
-                    this.classList.remove('is-valid');
-                } else {
-                    if (errorEl) {
-                        errorEl.textContent = 'Valid username.';
-                        errorEl.className = 'text-success small mt-1';
-                    }
-                    this.classList.remove('is-invalid');
-                    this.classList.add('is-valid');
-                }
-            } else {
-                if (errorEl) errorEl.remove();
-                this.classList.remove('is-invalid', 'is-valid');
-            }
-        });
+    var regPassword = document.getElementById('regPassword');
+    var regConfirmPassword = document.getElementById('regConfirmPassword');
+    if (regPassword) {
+        setupPasswordMatchCheck(regPassword, regConfirmPassword, 'regPasswordError', 'regConfirmPasswordError');
     }
 
     var ownerPassword = document.getElementById('ownerPassword');
+    var ownerConfirmPassword = document.getElementById('ownerConfirmPassword');
     if (ownerPassword) {
-        ownerPassword.addEventListener('input', function() {
-            var val = this.value;
-            var errorId = 'ownerPasswordError';
-            var container = this.parentElement;
-            if (container.classList.contains('input-group')) {
-                container = container.parentElement;
-            }
-            var errorEl = container.querySelector('#' + errorId);
-
-            if (!errorEl) {
-                errorEl = document.createElement('div');
-                errorEl.id = errorId;
-                errorEl.className = 'text-danger small mt-1';
-                container.appendChild(errorEl);
-            }
-
-            if (val.length > 0) {
-                if (val.length < 8) {
-                    errorEl.textContent = 'Password must be at least 8 characters.';
-                    errorEl.className = 'text-danger small mt-1';
-                    this.classList.add('is-invalid');
-                    this.classList.remove('is-valid');
-                } else {
-                    if (errorEl) {
-                        errorEl.textContent = 'Valid password.';
-                        errorEl.className = 'text-success small mt-1';
-                    }
-                    this.classList.remove('is-invalid');
-                    this.classList.add('is-valid');
-                }
-            } else {
-                if (errorEl) errorEl.remove();
-                this.classList.remove('is-invalid', 'is-valid');
-            }
-        });
+        setupPasswordMatchCheck(ownerPassword, ownerConfirmPassword, 'ownerPasswordError', 'ownerConfirmPasswordError');
     }
 
 });

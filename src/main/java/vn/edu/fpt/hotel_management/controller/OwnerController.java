@@ -247,15 +247,24 @@ public class OwnerController {
             filteredBookings = bookingRepository.findByHotelIdInOrderByCreatedAtDesc(hotelIds);
         }
 
-        // Calculate total bookings and revenue
+        // Calculate total bookings, revenue, and status breakdown
         long totalBookings = filteredBookings.size();
         BigDecimal totalRevenue = BigDecimal.ZERO;
+        long confirmedCount = 0;
+        long completedCount = 0;
+        long cancelledCount = 0;
+        long pendingCount = 0;
         for (Booking b : filteredBookings) {
             if (b.getPayment() != null && "PAID".equals(b.getPayment().getStatus())) {
                 if (b.getTotalPrice() != null) {
                     totalRevenue = totalRevenue.add(b.getTotalPrice());
                 }
             }
+            String st = b.getStatus() != null ? b.getStatus().toUpperCase() : "";
+            if ("CONFIRMED".equals(st)) confirmedCount++;
+            else if ("COMPLETED".equals(st)) completedCount++;
+            else if ("CANCELLED".equals(st)) cancelledCount++;
+            else if ("PENDING".equals(st)) pendingCount++;
         }
 
         // Get recent bookings (limit 50)
@@ -267,11 +276,13 @@ public class OwnerController {
         List<Map<String, Object>> mappedBookings = recentBookings.stream().map(b -> {
             Map<String, Object> map = new HashMap<>();
             map.put("bookingId", b.getId());
+            map.put("hotelId", b.getHotel() != null ? b.getHotel().getId() : null);
             map.put("customerName", (b.getFullName() != null && !b.getFullName().isEmpty()) ? b.getFullName() : (b.getCustomer() != null ? b.getCustomer().getFullName() : "N/A"));
             map.put("hotelName", b.getHotel() != null ? b.getHotel().getName() : "N/A");
             map.put("roomType", b.getRoom() != null ? b.getRoom().getRoomType() : "N/A");
             map.put("checkInDate", b.getCheckInDate() != null ? b.getCheckInDate().toString() : null);
             map.put("checkOutDate", b.getCheckOutDate() != null ? b.getCheckOutDate().toString() : null);
+            map.put("createdAt", b.getCreatedAt() != null ? b.getCreatedAt().toString() : null);
             map.put("totalPrice", b.getTotalPrice());
             map.put("bookingStatus", b.getStatus());
             map.put("paymentStatus", (b.getPayment() != null && b.getPayment().getStatus() != null)
@@ -289,6 +300,33 @@ public class OwnerController {
             map.put("checkedInAt", b.getCheckedInAt() != null ? b.getCheckedInAt().toString() : null);
             map.put("checkedOutAt", b.getCheckedOutAt() != null ? b.getCheckedOutAt().toString() : null);
             map.put("specialNotes", b.getSpecialNotes() != null ? b.getSpecialNotes() : "");
+            return map;
+        }).collect(Collectors.toList());
+
+        // Dữ liệu đặt phòng toàn bộ cho tab Thống kê doanh thu & Biểu đồ
+        List<Booking> allOwnerBookings = hotelIds.isEmpty() ? Collections.emptyList()
+                : bookingRepository.findByHotelIdInOrderByCreatedAtDesc(hotelIds);
+
+        List<Map<String, Object>> mappedRevenueBookings = allOwnerBookings.stream().map(b -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("bookingId", b.getId());
+            map.put("hotelId", b.getHotel() != null ? b.getHotel().getId() : null);
+            map.put("hotelName", b.getHotel() != null ? b.getHotel().getName() : "N/A");
+            map.put("roomType", b.getRoom() != null ? b.getRoom().getRoomType() : "N/A");
+            map.put("checkInDate", b.getCheckInDate() != null ? b.getCheckInDate().toString() : null);
+            map.put("checkOutDate", b.getCheckOutDate() != null ? b.getCheckOutDate().toString() : null);
+            map.put("createdAt", b.getCreatedAt() != null ? b.getCreatedAt().toString() : null);
+            map.put("totalPrice", b.getTotalPrice() != null ? b.getTotalPrice() : BigDecimal.ZERO);
+            map.put("ownerPayoutAmount", b.getOwnerPayoutAmount() != null ? b.getOwnerPayoutAmount() : BigDecimal.ZERO);
+            BigDecimal fee = BigDecimal.ZERO;
+            if (b.getTotalPrice() != null) {
+                BigDecimal pct = b.getPlatformFeePercent() != null ? b.getPlatformFeePercent() : BigDecimal.valueOf(10);
+                fee = b.getTotalPrice().multiply(pct).divide(BigDecimal.valueOf(100));
+            }
+            map.put("platformFeeAmount", fee);
+            map.put("bookingStatus", b.getStatus());
+            map.put("paymentStatus", (b.getPayment() != null && b.getPayment().getStatus() != null)
+                    ? b.getPayment().getStatus() : "PENDING");
             return map;
         }).collect(Collectors.toList());
 
@@ -323,7 +361,12 @@ public class OwnerController {
         model.addAttribute("totalRooms", totalRooms);
         model.addAttribute("totalBookings", totalBookings);
         model.addAttribute("totalRevenue", totalRevenue);
+        model.addAttribute("confirmedCount", confirmedCount);
+        model.addAttribute("completedCount", completedCount);
+        model.addAttribute("cancelledCount", cancelledCount);
+        model.addAttribute("pendingCount", pendingCount);
         model.addAttribute("recentBookings", mappedBookings);
+        model.addAttribute("revenueBookings", mappedRevenueBookings);
         model.addAttribute("hotels", allHotels);
         model.addAttribute("approvedHotels", approvedHotels);
         model.addAttribute("roomCountMap", roomCountMap);

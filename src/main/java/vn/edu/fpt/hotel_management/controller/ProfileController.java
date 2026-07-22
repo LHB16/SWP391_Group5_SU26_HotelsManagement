@@ -48,14 +48,20 @@ public class ProfileController {
         this.adminRepository = adminRepository;
     }
 
-    // Hiển thị thông tin cá nhân (View Profile)
+    // =====================================================
+    // CHỨC NĂNG: XEM THÔNG TIN CÁ NHÂN (VIEW PROFILE)
+    // Mô tả: Lấy thông tin tài khoản hiện tại từ database và hiển thị lên giao diện profile.
+    // Đối với Hotel Owner, hệ thống sẽ lấy thêm thông tin tài khoản ngân hàng của họ.
+    // =====================================================
     @GetMapping("/profile")
     public String showProfilePage(HttpSession session, Model model) {
+        // Kiểm tra xem người dùng đã đăng nhập hay chưa
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
-            return "redirect:/login";
+            return "redirect:/login"; // Chưa đăng nhập thì chuyển hướng về trang đăng nhập
         }
 
+        // Đọc các thông báo thành công hoặc thất bại từ session và đưa vào Model để hiển thị ngoài UI
         String successMsg = (String) session.getAttribute("successMessage");
         if (successMsg != null) {
             model.addAttribute("successMessage", successMsg);
@@ -67,13 +73,15 @@ public class ProfileController {
             session.removeAttribute("errorMessage");
         }
 
-        // Lấy thông tin mới nhất từ DB
+        // Lấy thông tin tài khoản mới nhất từ Database theo ID để tránh dữ liệu bị cũ
         User userInDb = userRepository.findById(loggedInUser.getId())
                 .orElse(loggedInUser);
+        
+        // Thiết lập Họ tên và Số điện thoại tương ứng với vai trò (Role) của người dùng
         userInDb.setFullName(getFullNameByRole(userInDb));
         userInDb.setPhone(getPhoneByRole(userInDb));
 
-        // Nếu là HOTEL_OWNER, truyền thông tin ngân hàng vào model
+        // Kiểm tra nếu là vai trò HOTEL_OWNER (Chủ khách sạn), lấy thêm thông tin tài khoản ngân hàng
         if ("HOTEL_OWNER".equalsIgnoreCase(userInDb.getRole())) {
             hotelOwnerRepository.findByUserAccount(userInDb).ifPresent(owner -> {
                 model.addAttribute("bankName", owner.getBankName() != null ? owner.getBankName() : "");
@@ -82,11 +90,17 @@ public class ProfileController {
             });
         }
 
+        // Truyền thông tin tài khoản hoàn chỉnh sang Model
         model.addAttribute("user", userInDb);
         return "user/profile";
     }
 
-    // Xử lý yêu cầu chỉnh sửa riêng lẻ từng trường, sinh OTP gửi về email hiện tại
+    // =====================================================
+    // CHỨC NĂNG: GỬI YÊU CẦU CHỈNH SỬA THÔNG TIN (EDIT REQUEST)
+    // Mô tả: Tiếp nhận trường cần sửa (fullName, email, password, phone).
+    // - Đối với số điện thoại (phone): Hệ thống cho phép sửa trực tiếp (đặt cờ và redirect).
+    // - Đối với các trường còn lại: Yêu cầu xác thực bảo mật trước (sinh OTP và gửi email).
+    // =====================================================
     @GetMapping("/profile/edit-request")
     public String handleEditRequest(
             @RequestParam("field") String field,
@@ -97,26 +111,30 @@ public class ProfileController {
             return "redirect:/login";
         }
 
-        // Chỉ cho phép chỉnh sửa "fullName", "email", "password" hoặc "phone"
+        // Kiểm tra tính hợp lệ của trường yêu cầu sửa đổi
         if (!"fullName".equals(field) && !"email".equals(field) && !"password".equals(field) && !"phone".equals(field)) {
             session.setAttribute("errorMessage", "Invalid action!");
             return "redirect:/profile";
         }
 
+        // Nếu chỉ sửa số điện thoại, không bắt buộc xác thực OTP email hiện tại
         if ("phone".equals(field)) {
             session.setAttribute("profileVerifiedForEdit", true);
             session.setAttribute("editField", field);
             return "redirect:/profile";
         }
 
-        // Thiết lập cờ yêu cầu sửa đổi và lưu trường muốn sửa vào session
+        // Lưu thông tin trường cần chỉnh sửa và bật cờ yêu cầu xác thực OTP trước khi sửa
         session.setAttribute("pendingEditRequest", true);
         session.setAttribute("editField", field);
 
         return "redirect:/profile/verify-edit";
     }
 
-    // Giao diện nhập mã OTP để xác nhận chỉnh sửa
+    // =====================================================
+    // CHỨC NĂNG: GIAO DIỆN XÁC THỰC OTP EMAIL HIỆN TẠI (GET /verify-edit)
+    // Mô tả: Sinh mã OTP ngẫu nhiên, lưu vào DB với hạn 3 phút và gửi bất đồng bộ về email hiện tại của người dùng.
+    // =====================================================
     @GetMapping("/profile/verify-edit")
     public String showVerifyEditOtpPage(HttpSession session, Model model) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
@@ -133,16 +151,18 @@ public class ProfileController {
             User userInDb = userRepository.findById(loggedInUser.getId())
                     .orElseThrow(() -> new RuntimeException("Account not found!"));
             
-            // Chỉ sinh và gửi OTP nếu chưa có mã OTP hiện tại hoạt động hoặc mã đã hết hạn
+            // Chỉ tạo mới OTP nếu chưa có OTP nào hoặc OTP cũ đã hết hạn
             if (userInDb.getOtp() == null || userInDb.getOtpExpiry() == null || userInDb.getOtpExpiry().isBefore(LocalDateTime.now())) {
                 String otp = otpService.generateOtp();
                 userInDb.setOtp(otp);
                 userInDb.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
                 userInDb.setOtpType("UPDATE_PROFILE");
+                userInDb.setOtpAttempts(0); // Reset
                 userRepository.save(userInDb);
 
                 final String userEmail = userInDb.getEmail();
                 final String otpCode = otp;
+                // Gửi email chứa OTP bất đồng bộ để tránh làm nghẽn luồng xử lý UI của người dùng
                 java.util.concurrent.CompletableFuture.runAsync(() -> {
                     try {
                         emailService.sendProfileUpdateOtp(userEmail, otpCode);
@@ -150,6 +170,10 @@ public class ProfileController {
                         System.err.println("Error sending async profile update OTP: " + e.getMessage());
                     }
                 });
+
+                // Initialize resend tracking for Update Profile
+                session.setAttribute("otp_resend_count_UPDATE_PROFILE", 0);
+                session.setAttribute("otp_last_sent_UPDATE_PROFILE", LocalDateTime.now());
 
                 model.addAttribute("successMessage", "Verification OTP code is being sent to your email!");
             }
@@ -168,11 +192,38 @@ public class ProfileController {
             session.removeAttribute("errorMessage");
         }
 
+        // Tính cooldown
+        String sessionKey = "UPDATE_PROFILE";
+        Integer resendCount = (Integer) session.getAttribute("otp_resend_count_" + sessionKey);
+        LocalDateTime lastSent = (LocalDateTime) session.getAttribute("otp_last_sent_" + sessionKey);
+        long cooldown = 0;
+        if (resendCount != null && lastSent != null) {
+            long cooldownSeconds = 60L * (1L << resendCount);
+            long secondsElapsed = java.time.Duration.between(lastSent, LocalDateTime.now()).getSeconds();
+            cooldown = Math.max(0, cooldownSeconds - secondsElapsed);
+        } else {
+            cooldown = 60;
+            session.setAttribute("otp_resend_count_" + sessionKey, 0);
+            session.setAttribute("otp_last_sent_" + sessionKey, LocalDateTime.now());
+        }
+        model.addAttribute("cooldown", cooldown);
+
         model.addAttribute("pendingEmail", loggedInUser.getEmail());
-        return "user/verify-edit-profile-otp";
+        model.addAttribute("pageTitle", "Verify OTP");
+        model.addAttribute("subtitle", "Enter the verification code to edit profile");
+        model.addAttribute("actionUrl", "/profile/verify-edit");
+        model.addAttribute("submitText", "Verify & Edit");
+        model.addAttribute("backUrl", "/profile");
+        model.addAttribute("backText", "Back");
+        model.addAttribute("resendType", "profile_edit");
+        return "auth/verify-otp";
     }
 
-    // Xử lý xác thực OTP email hiện tại
+    // =====================================================
+    // CHỨC NĂNG: XÁC THỰC MÃ OTP EMAIL HIỆN TẠI (POST /verify-edit)
+    // Mô tả: Kiểm tra mã OTP do người dùng nhập vào.
+    // Nếu chính xác và còn hạn, lưu cờ "profileVerifiedForEdit = true" cho phép sửa thông tin cá nhân.
+    // =====================================================
     @PostMapping("/profile/verify-edit")
     public String verifyEditOtp(
             @RequestParam("otp") String otp,
@@ -188,7 +239,7 @@ public class ProfileController {
             User userInDb = userRepository.findById(loggedInUser.getId())
                     .orElseThrow(() -> new RuntimeException("Account does not exist!"));
 
-            // Kiểm tra hạn OTP
+            // Kiểm tra xem mã OTP đã hết hạn chưa
             if (userInDb.getOtpExpiry() == null || userInDb.getOtpExpiry().isBefore(LocalDateTime.now())) {
                 session.setAttribute("errorMessage", "OTP code has expired! Please request a new one.");
                 session.removeAttribute("pendingEditRequest");
@@ -196,20 +247,58 @@ public class ProfileController {
                 return "redirect:/profile";
             }
 
-            // Kiểm tra kiểu OTP và tính chính xác
+            // Kiểm tra kiểu OTP và tính khớp của mã OTP nhập vào
             if (!"UPDATE_PROFILE".equals(userInDb.getOtpType()) || !otp.equals(userInDb.getOtp())) {
-                model.addAttribute("errorMessage", "Incorrect OTP code!");
+                int attempts = userInDb.getOtpAttempts() + 1;
+                userInDb.setOtpAttempts(attempts);
+                if (attempts >= 5) {
+                    userInDb.setOtp(null);
+                    userInDb.setOtpExpiry(null);
+                    userInDb.setOtpType(null);
+                    userInDb.setOtpAttempts(0);
+                    userRepository.save(userInDb);
+                    session.setAttribute("errorMessage", "Mã OTP đã bị vô hiệu hóa do nhập sai quá 5 lần. Vui lòng yêu cầu mã OTP mới.");
+                    session.removeAttribute("pendingEditRequest");
+                    session.removeAttribute("editField");
+                    return "redirect:/profile";
+                } else {
+                    userRepository.save(userInDb);
+                    model.addAttribute("errorMessage", "Mã OTP không chính xác! Bạn còn " + (5 - attempts) + " lần thử.");
+                }
                 model.addAttribute("pendingEmail", loggedInUser.getEmail());
-                return "user/verify-edit-profile-otp";
+                model.addAttribute("pageTitle", "Verify OTP");
+                model.addAttribute("subtitle", "Enter the verification code to edit profile");
+                model.addAttribute("actionUrl", "/profile/verify-edit");
+                model.addAttribute("submitText", "Verify & Edit");
+                model.addAttribute("backUrl", "/profile");
+                model.addAttribute("backText", "Back");
+                model.addAttribute("resendType", "profile_edit");
+
+                // Tính cooldown
+                String sessionKey = "UPDATE_PROFILE";
+                Integer resendCount = (Integer) session.getAttribute("otp_resend_count_" + sessionKey);
+                LocalDateTime lastSent = (LocalDateTime) session.getAttribute("otp_last_sent_" + sessionKey);
+                long cooldown = 0;
+                if (resendCount != null && lastSent != null) {
+                    long cooldownSeconds = 60L * (1L << resendCount);
+                    long secondsElapsed = java.time.Duration.between(lastSent, LocalDateTime.now()).getSeconds();
+                    cooldown = Math.max(0, cooldownSeconds - secondsElapsed);
+                } else {
+                    cooldown = 60;
+                }
+                model.addAttribute("cooldown", cooldown);
+
+                return "auth/verify-otp";
             }
 
-            // Xác thực thành công: Xóa OTP trong DB
+            // Xác thực thành công: Xóa OTP và các thông tin liên quan trong Database
             userInDb.setOtp(null);
             userInDb.setOtpExpiry(null);
             userInDb.setOtpType(null);
+            userInDb.setOtpAttempts(0);
             userRepository.save(userInDb);
 
-            // Ghi nhận đã xác thực danh tính để cho phép sửa đổi
+            // Lưu cờ cho phép thực hiện chỉnh sửa vào session
             session.setAttribute("profileVerifiedForEdit", true);
             session.removeAttribute("pendingEditRequest");
 
@@ -369,6 +458,7 @@ public class ProfileController {
                 userInDb.setOtp(otp);
                 userInDb.setOtpExpiry(LocalDateTime.now().plusMinutes(3));
                 userInDb.setOtpType("UPDATE_PROFILE");
+                userInDb.setOtpAttempts(0); // Reset
                 userRepository.save(userInDb);
 
                 final String targetEmail = pendingNewEmail;
@@ -380,6 +470,10 @@ public class ProfileController {
                         System.err.println("Error sending async new email update OTP: " + e.getMessage());
                     }
                 });
+
+                // Initialize resend tracking for Update Email
+                session.setAttribute("otp_resend_count_UPDATE_EMAIL", 0);
+                session.setAttribute("otp_last_sent_UPDATE_EMAIL", LocalDateTime.now());
 
                 model.addAttribute("successMessage", "Verification OTP code is being sent to your new email!");
             }
@@ -398,8 +492,31 @@ public class ProfileController {
             session.removeAttribute("errorMessage");
         }
 
+        // Tính cooldown
+        String sessionKey = "UPDATE_EMAIL";
+        Integer resendCount = (Integer) session.getAttribute("otp_resend_count_" + sessionKey);
+        LocalDateTime lastSent = (LocalDateTime) session.getAttribute("otp_last_sent_" + sessionKey);
+        long cooldown = 0;
+        if (resendCount != null && lastSent != null) {
+            long cooldownSeconds = 60L * (1L << resendCount);
+            long secondsElapsed = java.time.Duration.between(lastSent, LocalDateTime.now()).getSeconds();
+            cooldown = Math.max(0, cooldownSeconds - secondsElapsed);
+        } else {
+            cooldown = 60;
+            session.setAttribute("otp_resend_count_" + sessionKey, 0);
+            session.setAttribute("otp_last_sent_" + sessionKey, LocalDateTime.now());
+        }
+        model.addAttribute("cooldown", cooldown);
+
         model.addAttribute("pendingEmail", pendingNewEmail);
-        return "user/verify-new-email-otp";
+        model.addAttribute("pageTitle", "Verify New Email");
+        model.addAttribute("subtitle", "Enter the verification code sent to your new email address");
+        model.addAttribute("actionUrl", "/profile/verify-new-email");
+        model.addAttribute("submitText", "Confirm Change");
+        model.addAttribute("backUrl", "/profile/cancel-edit");
+        model.addAttribute("backText", "Cancel");
+        model.addAttribute("resendType", "profile_new_email");
+        return "auth/verify-otp";
     }
 
     // Xử lý xác thực OTP email mới để lưu thay đổi
@@ -432,9 +549,45 @@ public class ProfileController {
 
             // Kiểm tra tính chính xác của OTP
             if (!"UPDATE_PROFILE".equals(userInDb.getOtpType()) || !otp.equals(userInDb.getOtp())) {
-                model.addAttribute("errorMessage", "Incorrect OTP code!");
+                int attempts = userInDb.getOtpAttempts() + 1;
+                userInDb.setOtpAttempts(attempts);
+                if (attempts >= 5) {
+                    userInDb.setOtp(null);
+                    userInDb.setOtpExpiry(null);
+                    userInDb.setOtpType(null);
+                    userInDb.setOtpAttempts(0);
+                    userRepository.save(userInDb);
+                    session.setAttribute("errorMessage", "Mã OTP đã bị vô hiệu hóa do nhập sai quá 5 lần. Vui lòng thử lại.");
+                    clearEmailChangeSession(session);
+                    return "redirect:/profile";
+                } else {
+                    userRepository.save(userInDb);
+                    model.addAttribute("errorMessage", "Mã OTP không chính xác! Bạn còn " + (5 - attempts) + " lần thử.");
+                }
                 model.addAttribute("pendingEmail", pendingNewEmail);
-                return "user/verify-new-email-otp";
+                model.addAttribute("pageTitle", "Verify New Email");
+                model.addAttribute("subtitle", "Enter the verification code sent to your new email address");
+                model.addAttribute("actionUrl", "/profile/verify-new-email");
+                model.addAttribute("submitText", "Confirm Change");
+                model.addAttribute("backUrl", "/profile/cancel-edit");
+                model.addAttribute("backText", "Cancel");
+                model.addAttribute("resendType", "profile_new_email");
+
+                // Tính cooldown
+                String sessionKey = "UPDATE_EMAIL";
+                Integer resendCount = (Integer) session.getAttribute("otp_resend_count_" + sessionKey);
+                LocalDateTime lastSent = (LocalDateTime) session.getAttribute("otp_last_sent_" + sessionKey);
+                long cooldown = 0;
+                if (resendCount != null && lastSent != null) {
+                    long cooldownSeconds = 60L * (1L << resendCount);
+                    long secondsElapsed = java.time.Duration.between(lastSent, LocalDateTime.now()).getSeconds();
+                    cooldown = Math.max(0, cooldownSeconds - secondsElapsed);
+                } else {
+                    cooldown = 60;
+                }
+                model.addAttribute("cooldown", cooldown);
+
+                return "auth/verify-otp";
             }
 
             // Lưu email mới vào DB
@@ -442,6 +595,7 @@ public class ProfileController {
             userInDb.setOtp(null);
             userInDb.setOtpExpiry(null);
             userInDb.setOtpType(null);
+            userInDb.setOtpAttempts(0);
             userRepository.save(userInDb);
 
             // Cập nhật lại session
@@ -456,7 +610,11 @@ public class ProfileController {
         }
     }
 
-    // Xử lý đổi mật khẩu mới vào Database
+    // =====================================================
+    // CHỨC NĂNG: THAY ĐỔI MẬT KHẨU MỚI (CHANGE PASSWORD)
+    // Mô tả: Kiểm tra tính hợp lệ của mật khẩu mới (trùng khớp, độ dài >= 8, khác mật khẩu cũ),
+    // mã hóa mật khẩu mới trước khi lưu xuống Database.
+    // =====================================================
     @PostMapping("/profile/change-password")
     public String changePassword(
             @RequestParam("currentPassword") String currentPassword,
@@ -469,6 +627,7 @@ public class ProfileController {
             return "redirect:/login";
         }
 
+        // Đảm bảo người dùng đã xác thực danh tính qua OTP trước đó
         Boolean verified = (Boolean) session.getAttribute("profileVerifiedForEdit");
         String editField = (String) session.getAttribute("editField");
 
@@ -483,7 +642,7 @@ public class ProfileController {
             return "redirect:/profile";
         }
 
-        // Kiểm tra độ dài mật khẩu mới (từ 8 ký tự trở lên)
+        // Kiểm tra độ dài mật khẩu mới tối thiểu 8 ký tự
         if (newPassword == null || newPassword.length() < 8) {
             session.setAttribute("errorMessage", "New password must be at least 8 characters long!");
             return "redirect:/profile";
@@ -493,23 +652,23 @@ public class ProfileController {
             User userInDb = userRepository.findById(loggedInUser.getId())
                     .orElseThrow(() -> new RuntimeException("Account not found!"));
 
-            // Kiểm tra mật khẩu hiện tại
+            // Sử dụng PasswordEncoder để đối chiếu mật khẩu hiện tại có đúng không
             if (!passwordEncoder.matches(currentPassword, userInDb.getPassword())) {
                 session.setAttribute("errorMessage", "Incorrect current password!");
                 return "redirect:/profile";
             }
 
-            // Kiểm tra mật khẩu mới phải khác mật khẩu cũ
+            // Đảm bảo mật khẩu mới phải khác mật khẩu cũ
             if (passwordEncoder.matches(newPassword, userInDb.getPassword())) {
                 session.setAttribute("errorMessage", "New password must be different from current password!");
                 return "redirect:/profile";
             }
 
-            // Mã hóa và lưu mật khẩu mới
+            // Mã hóa mật khẩu mới bằng BCrypt/Argon2 và cập nhật vào Database
             userInDb.setPassword(passwordEncoder.encode(newPassword));
             userRepository.save(userInDb);
 
-            // Dọn dẹp cờ
+            // Dọn dẹp các cờ xác nhận lưu trong session
             clearEmailChangeSession(session);
 
             session.setAttribute("successMessage", "Password updated successfully!");
@@ -527,7 +686,11 @@ public class ProfileController {
         return "redirect:/profile";
     }
 
-    // Lưu thông tin ngân hàng của Owner (AJAX - không cần OTP)
+    // =====================================================
+    // CHỨC NĂNG: CẬP NHẬT THÔNG TIN NGÂN HÀNG CỦA OWNER (SAVE BANK INFO)
+    // Mô tả: Chỉ dành cho Hotel Owner, lưu thông tin tài khoản ngân hàng phục vụ đối soát payout.
+    // Không yêu cầu mã xác nhận OTP.
+    // =====================================================
     @PostMapping("/profile/save-bank-info")
     @ResponseBody
     public org.springframework.http.ResponseEntity<?> saveBankInfo(
@@ -541,10 +704,12 @@ public class ProfileController {
             return org.springframework.http.ResponseEntity.status(401).body("Unauthorized");
         }
 
+        // Chỉ cho phép người dùng có Role là HOTEL_OWNER thực hiện
         if (!"HOTEL_OWNER".equalsIgnoreCase(loggedInUser.getRole())) {
             return org.springframework.http.ResponseEntity.status(403).body("Forbidden: Only Hotel Owner can update bank info");
         }
 
+        // Kiểm tra các trường dữ liệu ngân hàng bắt buộc không được rỗng
         if (bankName == null || bankName.isBlank() ||
             bankAccountNumber == null || bankAccountNumber.isBlank() ||
             bankAccountHolder == null || bankAccountHolder.isBlank()) {
@@ -558,6 +723,7 @@ public class ProfileController {
             HotelOwner owner = hotelOwnerRepository.findByUserAccount(userInDb)
                     .orElseThrow(() -> new RuntimeException("Hotel owner profile not found!"));
 
+            // Lưu thông tin ngân hàng đã chuẩn hóa (chữ in hoa cho tên chủ tài khoản)
             owner.setBankName(bankName.trim());
             owner.setBankAccountNumber(bankAccountNumber.trim());
             owner.setBankAccountHolder(bankAccountHolder.trim().toUpperCase());

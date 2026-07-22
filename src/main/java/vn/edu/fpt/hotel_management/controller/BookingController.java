@@ -59,7 +59,13 @@ public class BookingController {
     @org.springframework.beans.factory.annotation.Value("${payment.payos.api-key:}")
     private String payosApiKey;
 
-    // Hiển thị trang lịch sử đặt phòng của người dùng đang đăng nhập
+    // =====================================================
+    // CHỨC NĂNG: XEM LỊCH SỬ ĐẶT PHÒNG CỦA KHÁCH HÀNG (VIEW CUSTOMER BOOKING HISTORY)
+    // Mô tả: Trả về danh sách đơn đặt phòng của chính khách hàng đang đăng nhập kèm bộ lọc (trạng thái, loại phòng, thời gian check-in/out).
+    // Tích hợp 2 tác vụ tự động chạy ngầm:
+    // 1. Kiểm tra và xác nhận thanh toán (với cổng thanh toán PayOS) cho các đơn hàng PENDING.
+    // 2. Chuyển các booking CONFIRMED sang COMPLETED nếu đã quá giờ Checkout (12h trưa ngày checkout).
+    // =====================================================
     @GetMapping("/booking/history")
     public String showBookingHistory(
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -70,7 +76,7 @@ public class BookingController {
             HttpSession session,
             Model model) {
 
-        // Kiểm tra đăng nhập, chưa đăng nhập thì redirect về trang login
+        // 1. Kiểm tra đăng nhập, yêu cầu người dùng phải đăng nhập trước
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
             return "redirect:/login";
@@ -79,54 +85,56 @@ public class BookingController {
         Customer customer = customerRepository.findByUserAccount(loggedInUser).orElse(null);
         int customerId = (customer != null) ? customer.getId() : 0;
 
-        // Dọn dẹp booking hết hạn
+        // Tự động dọn dẹp các booking đã hết hạn thanh toán
         cleanExpiredBookings(customerId);
 
-        // Lấy tất cả booking của user để lọc trong bộ nhớ
+        // Lấy tất cả danh sách booking của khách hàng này từ Database
         List<Booking> allBookings = bookingRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);
 
-        // Tự động kiểm tra trạng thái thanh toán đối với các đơn hàng còn PENDING khi
-        // truy cập Lịch sử đặt phòng
+        // TỰ ĐỘNG HÓA TÁC VỤ 1: Kiểm tra trạng thái thanh toán trên PayOS đối với các đơn hàng PENDING
         for (Booking b : allBookings) {
             if ("PENDING".equals(b.getStatus())) {
                 Payment payment = paymentRepository.findByBookingId(b.getId()).orElse(null);
 
-                // Chỉ tiến hành kiểm tra trên PayOS đối với các booking chưa hết hạn (chỉ gọi API đối với phòng cha)
+                // Chỉ thực hiện kiểm tra với phòng cha trong các đơn đặt phòng theo nhóm (group booking)
                 boolean isChild = b.getSpecialNotes() != null
                         && b.getSpecialNotes().startsWith("GROUP_BOOKING_parent:");
                 if (!isChild) {
                     boolean verified = checkPayOSPaymentStatus(b.getId(), b.getTotalPrice());
                     if (verified) {
+                        // Cập nhật trạng thái Booking thành CONFIRMED
                         b.setStatus("CONFIRMED");
                         b.setUpdatedAt(java.time.LocalDateTime.now());
                         bookingRepository.save(b);
 
+                        // Cập nhật trạng thái thanh toán thành PAID
                         if (payment != null) {
                             payment.setStatus("PAID");
                             payment.setPaidAt(java.time.LocalDateTime.now());
                             paymentRepository.save(payment);
                         }
 
-                        // Đồng bộ xác nhận tất cả phòng con đi kèm
+                        // Đồng bộ cập nhật trạng thái CONFIRMED cho tất cả các phòng con đi kèm
                         try {
                             final int parentId = b.getId();
                             List<Booking> childBookings = bookingRepository
-                                    .findByCustomerIdOrderByCreatedAtDesc(customerId).stream()
-                                    .filter(cb -> cb.getSpecialNotes() != null
-                                            && cb.getSpecialNotes().equals("GROUP_BOOKING_parent:" + parentId))
-                                    .collect(java.util.stream.Collectors.toList());
+                                     .findByCustomerIdOrderByCreatedAtDesc(customerId).stream()
+                                     .filter(cb -> cb.getSpecialNotes() != null
+                                             && cb.getSpecialNotes().equals("GROUP_BOOKING_parent:" + parentId))
+                                     .collect(java.util.stream.Collectors.toList());
                             for (Booking cb : childBookings) {
                                 cb.setStatus("CONFIRMED");
                                 cb.setUpdatedAt(java.time.LocalDateTime.now());
                                 bookingRepository.save(cb);
                             }
                         } catch (Exception e) {
+                            // Bỏ qua nếu có lỗi
                         }
                     }
                 }
             }
 
-            // Tự động chuyển sang COMPLETED nếu đã qua 12h trưa ngày checkout
+            // TỰ ĐỘNG HÓA TÁC VỤ 2: Tự động chuyển các đơn CONFIRMED đã quá 12h00 trưa ngày checkout sang COMPLETED
             if ("CONFIRMED".equals(b.getStatus())) {
                 if (b.getCheckOutDate() != null
                         && b.getCheckOutDate().atTime(12, 0).isBefore(java.time.LocalDateTime.now())) {

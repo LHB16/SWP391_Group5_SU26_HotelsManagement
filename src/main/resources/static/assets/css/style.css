@@ -19449,6 +19449,70 @@ h6,
   background: #ffffff;
 }
 
+.rf-bank-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: 1.5px solid rgba(201, 169, 110, 0.2);
+  border-radius: 10px;
+  background: var(--hotel-cream);
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.rf-bank-row:focus-within {
+  border-color: var(--hotel-gold);
+  box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.1);
+  background: #ffffff;
+}
+
+.rf-bank-row:focus-within .rf-form-select,
+.rf-bank-row:focus-within .rf-bank-input {
+  background: #ffffff;
+}
+
+.rf-bank-row .rf-form-select,
+.rf-bank-row .rf-bank-input {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+.rf-bank-row .rf-form-select:focus,
+.rf-bank-row .rf-bank-input:focus {
+  border: none;
+  box-shadow: none;
+}
+
+.rf-bank-row .rf-form-select {
+  flex: 1;
+  width: 100%;
+  transition: flex 0.2s ease;
+}
+
+.rf-bank-row.has-other .rf-form-select {
+  flex: 0 0 150px;
+}
+
+.rf-bank-divider {
+  width: 1.5px;
+  align-self: stretch;
+  background-color: #374151;
+  margin: 0;
+}
+
+.rf-bank-input {
+  flex: 2;
+  padding: 11px 14px;
+  border: none;
+  background: transparent;
+  color: #1e293b;
+  outline: none;
+  font-size: 14px;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+
 .rf-form-input::placeholder {
   color: #94a3b8;
 }
@@ -19460,7 +19524,7 @@ h6,
 
 .rf-amount-confirm {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
   margin: 20px 24px 0;
   padding: 12px 16px;
@@ -19475,7 +19539,7 @@ h6,
 .rf-amount-confirm i {
   font-size: 16px;
   flex-shrink: 0;
-  margin-top: 1px;
+  margin-top: 0;
   color: var(--hotel-gold);
 }
 
@@ -22050,7 +22114,7 @@ h6,
 
 .profile-input-editable {
   background-color: #ffffff !important;
-  border: 1px solid #0f4c81 !important;
+  border: 1px solid #cbd5e1 !important;
   color: #0f172a !important;
   font-size: 0.95rem;
   padding-top: 0.65rem !important;
@@ -22384,7 +22448,7 @@ h6,
 
 /* ── Custom Hotel Card Footer Premium Redesign ── */
 .custom-hl-card-footer {
-  padding: 0.85rem 0.75rem !important; /* Reduced padding to maximize horizontal space */
+  padding: 0.85rem 0.55rem !important; /* Reduced padding from 0.75rem to 0.55rem to maximize horizontal space */
   display: flex !important;
   flex-direction: column !important;
   gap: 10px !important;
@@ -22404,7 +22468,7 @@ h6,
 }
 
 .custom-hl-price-from {
-  font-size: 0.62rem !important; /* Compact to fit single line */
+  font-size: 0.58rem !important; /* Reduced to fit single line */
   font-weight: 700 !important;
   color: var(--gold-dark, #a8824e) !important;
   background-color: #f5efe6 !important; /* Soft warm gold-sand background */
@@ -22415,13 +22479,13 @@ h6,
   letter-spacing: 0.3px !important;
   display: inline-flex !important;
   align-items: center !important;
-  margin-right: 4px !important;
+  margin-right: 3px !important; /* Reduced spacing */
   white-space: nowrap !important;
   line-height: 1 !important;
 }
 
 .custom-hl-price-number {
-  font-size: 1.0rem !important; /* Optimized to guarantee single line fit */
+  font-size: 0.92rem !important; /* Reduced to guarantee single line fit */
   font-weight: 800 !important;
   color: var(--gold-dark, #a8824e) !important; /* System gold-dark */
   line-height: 1 !important;
@@ -22429,7 +22493,7 @@ h6,
 }
 
 .custom-hl-price-desc {
-  font-size: 0.7rem !important; /* Optimized to guarantee single line fit */
+  font-size: 0.65rem !important; /* Reduced to guarantee single line fit */
   color: #64748b !important;
   font-weight: 500 !important;
   margin-left: 2px !important;
@@ -25714,4 +25778,31 @@ body.dashboard-page .custom-nav-container {
   background-color: #ffffff !important;
   color: #6c757d !important;
   border-color: #ced4da !important;
-}
+}
+
+/* Remove right border radius for profile editable inputs inside input-group to fit toggle buttons */
+.input-group .profile-input-editable {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+.input-group .password-toggle-btn {
+  border-top-right-radius: 8px !important;
+  border-bottom-right-radius: 8px !important;
+  border: 1px solid #cbd5e1 !important;
+  border-left: none !important;
+}
+
+/* Verify OTP Page Styling */
+.verify-otp-card {
+  width: 440px !important;
+}
+
+.otp-input-field {
+  letter-spacing: 4px !important;
+  max-width: 260px !important;
+}
+
+.otp-note-text {
+  font-size: 0.825rem !important;
+}
