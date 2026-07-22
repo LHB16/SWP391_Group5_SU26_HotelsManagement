@@ -441,7 +441,7 @@
                                     <span class="fw-bold text-gold-dark custom-hl-price-number"
                                         th:text="${#numbers.formatInteger(hotelPricesMap != null && hotelPricesMap.get(hotel.id) != null ? hotelPricesMap.get(hotel.id) : 0, 0, 'COMMA')}">0</span>
                                     <span class="text-muted custom-hl-price-desc" 
-                                          th:text="${isFiltered} ? ' VND / ' + ${nights} + ' night' + (${nights > 1} ? 's' : '') : ' VND/night'"> VND/night</span>
+                                          th:text="${isFiltered} ? ' VND/' + ${nights} + ' night' + (${nights > 1} ? 's' : '') : ' VND/night'"> VND/night</span>
                                 </div>
                                 <a th:href="@{/hotels/{id}/rooms(id=${hotel.id}, checkin=${checkin}, checkout=${checkout}, persons=${persons}, rooms=${rooms})}"
                                    target="_blank"
