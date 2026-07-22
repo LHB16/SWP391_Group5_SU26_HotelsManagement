@@ -3,9 +3,11 @@ package vn.edu.fpt.hotel_management.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.hotel_management.entity.Booking;
 import vn.edu.fpt.hotel_management.entity.Room;
 
@@ -93,6 +95,11 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
         boolean existsByHotelId(int hotelId);
 
         boolean existsByRoomId(int roomId);
+
+        @Modifying
+        @Transactional
+        @Query("UPDATE Booking b SET b.idPromotion = NULL WHERE b.idPromotion = :idPromotion")
+        void unlinkPromotion(@Param("idPromotion") int idPromotion);
 
         // =====================================================
         // PAYOUT: Magic Methods cho Admin truy vấn đối soát
