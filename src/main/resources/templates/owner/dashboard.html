@@ -25,18 +25,22 @@
                         Owner Navigation
                     </div>
                     <div class="sidebar-nav">
-                        <button class="sidebar-link active" data-tab="bookings">
+                        <a th:href="@{/owner/dashboard(tab='revenue')}" class="sidebar-link text-decoration-none text-dark" th:classappend="${tab == 'revenue' or tab == 'overview' or tab == null} ? 'active' : ''">
+                            <i data-lucide="bar-chart-3" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
+                            <span>Revenue Overview</span>
+                        </a>
+                        <a th:href="@{/owner/dashboard(tab='bookings')}" class="sidebar-link text-decoration-none text-dark" th:classappend="${tab == 'bookings'} ? 'active' : ''">
                             <i data-lucide="calendar-check" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
                             <span>Bookings</span>
-                        </button>
-                        <button class="sidebar-link" data-tab="hotels">
+                        </a>
+                        <a th:href="@{/owner/dashboard(tab='hotels')}" class="sidebar-link text-decoration-none text-dark" th:classappend="${tab == 'hotels'} ? 'active' : ''">
                             <i data-lucide="hotel" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
                             <span>My Hotels</span>
-                        </button>
-                        <button class="sidebar-link" data-tab="promotions">
+                        </a>
+                        <a th:href="@{/owner/dashboard(tab='promotions')}" class="sidebar-link text-decoration-none text-dark" th:classappend="${tab == 'promotions'} ? 'active' : ''">
                             <i data-lucide="percent" style="stroke-width: 1.5; width: 18px; height: 18px;"></i>
                             <span>Promotions</span>
-                        </button>
+                        </a>
                         <a th:href="@{/chat/inbox}"
                             class="sidebar-link text-decoration-none text-dark d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center gap-2">
@@ -58,23 +62,17 @@
             <div class="col-lg-9 col-md-8">
 
                 <!-- ========================================================= -->
-                <!-- PANEL 1: BOOKINGS -->
+                <!-- PANEL 1: REVENUE OVERVIEW -->
                 <!-- ========================================================= -->
-                <div id="bookings" class="tab-panel active">
+                <div id="revenue" class="tab-panel" th:classappend="${tab == 'revenue' or tab == 'overview' or tab == null} ? 'active' : ''">
 
                     <div
                         class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3 flex-wrap gap-2">
                         <div>
                             <h1 class="fw-bold text-dark m-0"
-                                style="font-family: 'Playfair Display', serif; font-size: 1.6rem;">Bookings Management
+                                style="font-family: 'Playfair Display', serif; font-size: 1.6rem;">Revenue Overview
                             </h1>
-                            <p class="text-muted m-0 mt-1" style="font-size: 0.9rem;">View and manage all bookings for
-                                your hotels</p>
-                        </div>
-                        <div class="text-muted d-flex align-items-center gap-2" style="font-size: 0.85rem;"
-                            th:if="${verificationStatus == 'APPROVED'}">
-                            <i data-lucide="calendar-check" style="width: 18px; height: 18px;"></i>
-                            <span><strong th:text="${totalBookings}">0</strong> bookings</span>
+                            <p class="text-muted m-0 mt-1" style="font-size: 0.9rem;">View financial performance, net earnings, and revenue charts for your hotels</p>
                         </div>
                     </div>
 
@@ -87,8 +85,7 @@
                             <div class="pending-verification-content">
                                 <h4 class="pending-verification-title">Account Pending Verification</h4>
                                 <p class="pending-verification-text">
-                                    Your account is being reviewed by admin. Bookings management will be available after
-                                    approval.
+                                    Your account is being reviewed by admin. Revenue statistics will be available after approval.
                                 </p>
                                 <div class="pending-verification-status">
                                     <span class="badge-status badge-status-warning">
@@ -114,7 +111,7 @@
                         </div>
                     </div>
 
-                    <!-- APPROVED - SHOW DASHBOARD METRICS & BOOKINGS -->
+                    <!-- APPROVED - SHOW DASHBOARD METRICS & REVENUE CHARTS -->
                     <div th:if="${verificationStatus == 'APPROVED'}">
 
                         <!-- Cards Section for overview stats -->
@@ -260,7 +257,68 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
 
+                <!-- ========================================================= -->
+                <!-- PANEL 2: BOOKINGS -->
+                <!-- ========================================================= -->
+                <div id="bookings" class="tab-panel" th:classappend="${tab == 'bookings'} ? 'active' : ''">
+
+                    <div
+                        class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3 flex-wrap gap-2">
+                        <div>
+                            <h1 class="fw-bold text-dark m-0"
+                                style="font-family: 'Playfair Display', serif; font-size: 1.6rem;">Bookings Management
+                            </h1>
+                            <p class="text-muted m-0 mt-1" style="font-size: 0.9rem;">View and manage all bookings for
+                                your hotels</p>
+                        </div>
+                        <div class="text-muted d-flex align-items-center gap-2" style="font-size: 0.85rem;"
+                            th:if="${verificationStatus == 'APPROVED'}">
+                            <i data-lucide="calendar-check" style="width: 18px; height: 18px;"></i>
+                            <span><strong th:text="${totalBookings}">0</strong> bookings</span>
+                        </div>
+                    </div>
+
+                    <!-- PENDING VERIFICATION -->
+                    <div th:if="${verificationStatus == 'PENDING'}" class="pending-verification-card mb-4">
+                        <div class="pending-verification-inner">
+                            <div class="pending-verification-icon">
+                                <i data-lucide="clock" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
+                            </div>
+                            <div class="pending-verification-content">
+                                <h4 class="pending-verification-title">Account Pending Verification</h4>
+                                <p class="pending-verification-text">
+                                    Your account is being reviewed by admin. Bookings management will be available after
+                                    approval.
+                                </p>
+                                <div class="pending-verification-status">
+                                    <span class="badge-status badge-status-warning">
+                                        <i data-lucide="hourglass" style="width: 14px; height: 14px;"></i>
+                                        Status: PENDING
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- REJECTED VERIFICATION -->
+                    <div th:if="${verificationStatus == 'REJECTED'}" class="rejected-verification-card mb-4">
+                        <div class="rejected-verification-inner">
+                            <div class="rejected-verification-icon">
+                                <i data-lucide="x-circle" style="stroke-width: 1.5; width: 40px; height: 40px;"></i>
+                            </div>
+                            <div class="rejected-verification-content">
+                                <h4 class="rejected-verification-title">Account Rejected</h4>
+                                <p class="rejected-verification-text">Your account has been rejected by admin.</p>
+                                <a th:href="@{/logout}" class="btn btn-danger btn-sm">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- APPROVED - SHOW BOOKINGS TABLE -->
+                    <div th:if="${verificationStatus == 'APPROVED'}">
                         <div class="dashboard-section">
                             <h2 class="section-title">
                                 <i data-lucide="list" style="stroke-width: 1.5; color: #c9a96e;"></i>

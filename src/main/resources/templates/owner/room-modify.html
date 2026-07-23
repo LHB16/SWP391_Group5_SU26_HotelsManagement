@@ -31,7 +31,6 @@
 
                 <!-- Flash messages -->
                 <th:block th:replace="~{fragment/frag :: alerts}"></th:block>
-
                 <form th:action="@{/owner/hotels/{id}/rooms/{rid}/edit(id=${hotel.id}, rid=${room.id})}"
                       method="post" enctype="multipart/form-data" id="roomForm">
 

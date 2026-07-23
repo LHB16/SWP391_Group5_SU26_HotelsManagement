@@ -130,7 +130,7 @@ public class OwnerController {
     // =====================================================
     @GetMapping("/dashboard")
     public String dashboard(
-            @RequestParam(value = "tab", defaultValue = "overview") String tab,
+            @RequestParam(value = "tab", defaultValue = "revenue") String tab,
             @RequestParam(value = "searchCustomer", required = false) String searchCustomer,
             @RequestParam(value = "filterHotel", required = false) Integer filterHotel,
             @RequestParam(value = "filterCheckin", required = false) String filterCheckin,
