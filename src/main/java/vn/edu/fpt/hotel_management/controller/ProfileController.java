@@ -257,13 +257,13 @@ public class ProfileController {
                     userInDb.setOtpType(null);
                     userInDb.setOtpAttempts(0);
                     userRepository.save(userInDb);
-                    session.setAttribute("errorMessage", "Mã OTP đã bị vô hiệu hóa do nhập sai quá 5 lần. Vui lòng yêu cầu mã OTP mới.");
+                    session.setAttribute("errorMessage", "OTP code has been invalidated due to 5 incorrect attempts. Please request a new OTP.");
                     session.removeAttribute("pendingEditRequest");
                     session.removeAttribute("editField");
                     return "redirect:/profile";
                 } else {
                     userRepository.save(userInDb);
-                    model.addAttribute("errorMessage", "Mã OTP không chính xác! Bạn còn " + (5 - attempts) + " lần thử.");
+                    model.addAttribute("errorMessage", "Incorrect OTP code! You have " + (5 - attempts) + " attempt(s) remaining.");
                 }
                 model.addAttribute("pendingEmail", loggedInUser.getEmail());
                 model.addAttribute("pageTitle", "Verify OTP");
@@ -557,12 +557,12 @@ public class ProfileController {
                     userInDb.setOtpType(null);
                     userInDb.setOtpAttempts(0);
                     userRepository.save(userInDb);
-                    session.setAttribute("errorMessage", "Mã OTP đã bị vô hiệu hóa do nhập sai quá 5 lần. Vui lòng thử lại.");
+                    session.setAttribute("errorMessage", "OTP code has been invalidated due to 5 incorrect attempts. Please try again.");
                     clearEmailChangeSession(session);
                     return "redirect:/profile";
                 } else {
                     userRepository.save(userInDb);
-                    model.addAttribute("errorMessage", "Mã OTP không chính xác! Bạn còn " + (5 - attempts) + " lần thử.");
+                    model.addAttribute("errorMessage", "Incorrect OTP code! You have " + (5 - attempts) + " attempt(s) remaining.");
                 }
                 model.addAttribute("pendingEmail", pendingNewEmail);
                 model.addAttribute("pageTitle", "Verify New Email");
