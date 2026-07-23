@@ -304,17 +304,6 @@
             window.alert = function(msg) {
                 showToast(msg, 'error');
             };
-
-            // Trigger automatically if model success/error attributes exist
-            const successMsg = /*[[${successMessage}]]*/ null;
-            const errorMsg = /*[[${errorMessage}]]*/ null;
-            
-            if (successMsg) {
-                showToast(successMsg, 'success');
-            }
-            if (errorMsg) {
-                showToast(errorMsg, 'error');
-            }
         })();
     </script>
 
@@ -324,15 +313,14 @@
     <div th:if="${successMessage}" class="modal fade" id="globalSuccessModal" tabindex="-1"
          aria-labelledby="globalSuccessModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content shadow border-0" style="border-radius: 14px;">
+            <div class="modal-content shadow border-0 global-alert-modal-content">
                 <div class="modal-body text-center p-4">
-                    <div class="mb-3" style="color: #10b981; font-size: 54px;">
+                    <div class="mb-3 global-alert-icon-success">
                         <i class="bi bi-check-circle"></i>
                     </div>
-                    <h4 class="modal-title fw-bold mb-2" id="globalSuccessModalLabel" style="color: #0f172a;">Success!</h4>
+                    <h4 class="modal-title fw-bold mb-2 global-alert-title" id="globalSuccessModalLabel">Success!</h4>
                     <p class="text-muted mb-4" th:text="${successMessage}">Action completed successfully.</p>
-                    <button type="button" class="btn text-white w-100" data-bs-dismiss="modal"
-                            style="background-color: #0d233a; border-radius: 8px; font-weight: 600; padding: 10px;">
+                    <button type="button" class="btn text-white w-100 global-alert-btn-success" data-bs-dismiss="modal">
                         OK
                     </button>
                 </div>
@@ -343,15 +331,14 @@
     <div th:if="${errorMessage}" class="modal fade" id="globalErrorModal" tabindex="-1"
          aria-labelledby="globalErrorModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content shadow border-0" style="border-radius: 14px;">
+            <div class="modal-content shadow border-0 global-alert-modal-content">
                 <div class="modal-body text-center p-4">
-                    <div class="mb-3" style="color: #ef4444; font-size: 54px;">
+                    <div class="mb-3 global-alert-icon-error">
                         <i class="bi bi-exclamation-circle"></i>
                     </div>
-                    <h4 class="modal-title fw-bold mb-2" id="globalErrorModalLabel" style="color: #0f172a;">Error</h4>
+                    <h4 class="modal-title fw-bold mb-2 global-alert-title" id="globalErrorModalLabel">Error</h4>
                     <p class="text-muted mb-4" th:text="${errorMessage}">An error occurred.</p>
-                    <button type="button" class="btn text-white w-100" data-bs-dismiss="modal"
-                            style="background-color: #ef4444; border-radius: 8px; font-weight: 600; padding: 10px;">
+                    <button type="button" class="btn text-white w-100 global-alert-btn-error" data-bs-dismiss="modal">
                         Close
                     </button>
                 </div>
@@ -371,6 +358,15 @@
                 var myErrorModal = new bootstrap.Modal(errorModalEl);
                 myErrorModal.show();
             }
+
+            document.addEventListener('hidden.bs.modal', function () {
+                if (document.querySelectorAll('.modal.show').length === 0) {
+                    document.querySelectorAll('.modal-backdrop').forEach(function(el) { el.remove(); });
+                    document.body.classList.remove('modal-open');
+                    document.body.style.removeProperty('overflow');
+                    document.body.style.removeProperty('padding-right');
+                }
+            });
         });
     </script>
 </th:block>

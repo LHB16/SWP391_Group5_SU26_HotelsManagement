@@ -100,7 +100,14 @@
                                             Rebook
                                         </button>
                                     </th:block>
-                                    <span th:if="${booking.status == 'CANCELLED'}" class="bd-status-label bd-status-cancelled">Cancelled</span>
+                                    <th:block th:if="${booking.status == 'CANCELLED'}">
+                                        <span class="bd-status-label bd-status-cancelled">Cancelled</span>
+                                        <button class="bd-status-label ms-2" 
+                                                style="background-color: #6d28d9 !important; color: white !important; border: none; cursor: pointer; display: inline-block; vertical-align: middle; text-decoration: none;"
+                                                th:onclick="'handleRebook(' + ${hotel.id} + ', ' + ${room.id} + ')'">
+                                            Rebook
+                                        </button>
+                                    </th:block>
                                 </th:block>
                             </th:block>
                         </div>

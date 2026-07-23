@@ -54,7 +54,7 @@
 
                     <!-- Hộp cảnh báo chính sách phù hợp -->
                     <!-- TRƯỜNG HỢP 1: Được hoàn tiền 100% -->
-                    <div th:if="${isFullRefundEligible}" class="cp-policy-box policy-eligible">
+                    <div th:if="${refundPercent == 100}" class="cp-policy-box policy-eligible">
                         <div class="cp-policy-icon-wrapper">
                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -67,14 +67,54 @@
                             <h5>Eligible for 100% Refund</h5>
                             <p>
                                 You are cancelling this booking before the deadline: <strong
-                                    th:text="${formattedDeadline}">dd/MM/yyyy HH:mm</strong>.<br>
+                                    th:text="${formattedDeadline100}">dd/MM/yyyy HH:mm</strong>.<br>
                                 You will receive a <strong>100% full refund</strong> of the total booking price.
                             </p>
                         </div>
                     </div>
 
-                    <!-- TRƯỜNG HỢP 2: Không được hoàn tiền (0%) -->
-                    <div th:if="${!isFullRefundEligible}" class="cp-policy-box policy-non-eligible">
+                    <!-- TRƯỜNG HỢP 2: Được hoàn tiền 50% -->
+                    <div th:if="${refundPercent == 50}" class="cp-policy-box policy-eligible" style="border-left-color: #f59e0b; background-color: #fef3c7;">
+                        <div class="cp-policy-icon-wrapper" style="color: #d97706;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-shield-alert">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                        </div>
+                        <div class="cp-policy-content">
+                            <h5 style="color: #b45309;">Eligible for 50% Refund</h5>
+                            <p style="color: #78350f;">
+                                You are cancelling this booking on the 3rd day before check-in (between <strong th:text="${formattedDeadline100}">dd/MM/yyyy HH:mm</strong> and <strong th:text="${formattedDeadline50}">dd/MM/yyyy HH:mm</strong>).<br>
+                                You will receive a <strong>50% refund</strong> of the total booking price.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- TRƯỜNG HỢP 3: Được hoàn tiền 25% -->
+                    <div th:if="${refundPercent == 25}" class="cp-policy-box policy-eligible" style="border-left-color: #3b82f6; background-color: #eff6ff;">
+                        <div class="cp-policy-icon-wrapper" style="color: #2563eb;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-shield-alert">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                        </div>
+                        <div class="cp-policy-content">
+                            <h5 style="color: #1d4ed8;">Eligible for 25% Refund</h5>
+                            <p style="color: #1e3a8a;">
+                                You are cancelling this booking on the 2nd day before check-in (between <strong th:text="${formattedDeadline50}">dd/MM/yyyy HH:mm</strong> and <strong th:text="${formattedDeadline25}">dd/MM/yyyy HH:mm</strong>).<br>
+                                You will receive a <strong>25% refund</strong> of the total booking price.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- TRƯỜNG HỢP 4: Không được hoàn tiền (0%) -->
+                    <div th:if="${refundPercent == 0}" class="cp-policy-box policy-non-eligible">
                         <div class="cp-policy-icon-wrapper">
                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -88,7 +128,7 @@
                             <h5>Non-Refundable (0% Refund)</h5>
                             <p>
                                 You are cancelling this booking after the deadline: <strong
-                                    th:text="${formattedDeadline}">dd/MM/yyyy HH:mm</strong> (within 3 days of
+                                    th:text="${formattedDeadline25}">dd/MM/yyyy HH:mm</strong> (within 1 day of
                                 check-in).<br>
                                 <strong>No refund</strong> will be issued for this cancellation.
                             </p>
@@ -105,11 +145,18 @@
                         </div>
                         <div class="cp-term-item">
                             <span class="cp-term-bullet">2.</span>
-                            <span>Cancellations requested within 3 days prior to check-in (after 12:00 PM) are
-                                non-refundable (0% refund).</span>
+                            <span>Cancellations requested on the 3rd day prior to check-in (after 12:00 PM of check-in - 3 days and before 12:00 PM of check-in - 2 days) are eligible for a 50% refund.</span>
                         </div>
                         <div class="cp-term-item">
                             <span class="cp-term-bullet">3.</span>
+                            <span>Cancellations requested on the 2nd day prior to check-in (after 12:00 PM of check-in - 2 days and before 12:00 PM of check-in - 1 day) are eligible for a 25% refund.</span>
+                        </div>
+                        <div class="cp-term-item">
+                            <span class="cp-term-bullet">4.</span>
+                            <span>Cancellations requested within 1 day prior to check-in (after 12:00 PM of check-in - 1 day) are non-refundable (0% refund).</span>
+                        </div>
+                        <div class="cp-term-item">
+                            <span class="cp-term-bullet">5.</span>
                             <span>Refunds, if eligible, will require you to submit your bank account details for
                                 processing.</span>
                         </div>
@@ -136,19 +183,7 @@
                         </div>
                     </div>
 
-                    <!-- Nút quay lại đơn giản nếu chỉ xem chính sách -->
-                    <div th:unless="${action == 'cancel' and booking.status == 'CONFIRMED'}" class="cp-actions"
-                        style="margin-top: 30px; display: flex; justify-content: center;">
-                        <a th:href="@{/booking/detail/{id}(id=${booking.id})}" class="cp-btn-back">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="lucide lucide-arrow-left">
-                                <line x1="19" y1="12" x2="5" y2="12" />
-                                <polyline points="12 19 5 12 12 5" />
-                            </svg>
-                            Back to my booking
-                        </a>
-                    </div>
+
                 </div>
             </div>
         </div>

@@ -29,6 +29,8 @@
         <div class="row justify-content-center">
             <div class="col-12 col-lg-10">
 
+                <!-- Flash messages -->
+                <th:block th:replace="~{fragment/frag :: alerts}"></th:block>
                 <form th:action="@{/hotels/{id}/rooms/new(id=${hotel.id})}"
                       method="post" enctype="multipart/form-data" id="roomForm">
 

@@ -5,6 +5,15 @@ let allPromotionsData = [];
 let allHotelsData = [];
 let isLoading = false;
 
+function syncSelectDisplay(selectEl, displayId) {
+    if (!selectEl) return;
+    const displayEl = document.getElementById(displayId);
+    if (displayEl && selectEl.options && selectEl.selectedIndex >= 0) {
+        const textSpan = displayEl.querySelector('.select-input-text') || displayEl;
+        textSpan.textContent = selectEl.options[selectEl.selectedIndex].text;
+    }
+}
+
 function formatDateDisplay(dateStr) {
     if (!dateStr) return '';
     if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
@@ -142,11 +151,10 @@ function renderPromotions(promotions) {
                                 data-start="${promo.startDate || ''}"
                                 data-end="${promo.endDate || ''}"
                                 data-status="${promo.status}">
-                            Edit
+                            Modify
                         </button>
                         <button type="button" class="promo-action-btn promo-action-btn-delete" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#deleteModalPromo-${promo.id}">
+                                onclick="openDeletePromotionModal(${promo.id}, '${escapeJsString(promo.title)}', ${promo.hotelId})">
                             Delete
                         </button>
                     </div>
@@ -156,6 +164,25 @@ function renderPromotions(promotions) {
     });
 
     tbody.innerHTML = html;
+}
+
+function escapeJsString(str) {
+    if (!str) return '';
+    return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+function openDeletePromotionModal(id, title, hotelId) {
+    const titleEl = document.getElementById('deletePromoTitleDisplay');
+    const idInput = document.getElementById('deletePromoIdInput');
+    const hotelIdInput = document.getElementById('deletePromoHotelIdInput');
+    if (titleEl) titleEl.textContent = '\'' + title + '\'';
+    if (idInput) idInput.value = id;
+    if (hotelIdInput) hotelIdInput.value = hotelId || '';
+    const modalEl = document.getElementById('deletePromotionModal');
+    if (modalEl) {
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
 }
 
 function escapeHtml(text) {

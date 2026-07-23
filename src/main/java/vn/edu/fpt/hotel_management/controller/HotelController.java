@@ -779,9 +779,9 @@ public class HotelController {
         Hotel hotel = hotelRepository.findByIdAndOwnerId(hotelId, owner.getId())
                 .orElseThrow(() -> new RuntimeException("Hotel not found or you don't have permission!"));
 
-        try {
-            String hotelName = hotel.getName();
+        String hotelName = hotel.getName();
 
+        try {
             List<HotelVerificationDocument> docs = hotelVerificationDocumentRepository.findByHotelId(hotelId);
             if (!docs.isEmpty()) {
                 hotelVerificationDocumentRepository.deleteAll(docs);
@@ -804,8 +804,12 @@ public class HotelController {
 
             redirectAttributes.addFlashAttribute("successMessage",
                     "Hotel \"" + hotelName + "\" deleted successfully!");
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Cannot delete hotel \"" + hotelName + "\" because it is associated with existing booking records.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to delete hotel: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Cannot delete hotel \"" + hotelName + "\". Please check associated bookings or try again.");
         }
 
         return "redirect:/owner/hotels";

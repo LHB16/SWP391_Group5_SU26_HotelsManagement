@@ -81,8 +81,10 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bed" style="margin-top: 2px;"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/></svg>
                             <div>
                                 <h4 style="margin: 0 0 2px 0; font-size: 16px; font-weight: 700; color: #0f172a;" th:text="${room.type} + (${room.person != null} ? ' (' + ${room.person} + ' Adults)' : '')">Cottage (2 Adults)</h4>
-                                <span th:if="${isFullRefundEligible}" style="font-size: 13.5px; color: #16a34a; font-weight: 600;">Free cancellation</span>
-                                <span th:unless="${isFullRefundEligible}" style="font-size: 13.5px; color: #dc2626; font-weight: 600;">Non-refundable</span>
+                                <span th:if="${refundPercent == 100}" style="font-size: 13.5px; color: #16a34a; font-weight: 600;">Free cancellation (100% Refund)</span>
+                                <span th:if="${refundPercent == 50}" style="font-size: 13.5px; color: #f59e0b; font-weight: 600;">Partially refundable (50% Refund)</span>
+                                <span th:if="${refundPercent == 25}" style="font-size: 13.5px; color: #3b82f6; font-weight: 600;">Partially refundable (25% Refund)</span>
+                                <span th:if="${refundPercent == 0}" style="font-size: 13.5px; color: #dc2626; font-weight: 600;">Non-refundable (0% Refund)</span>
                             </div>
                         </div>
 
@@ -103,9 +105,7 @@
 
                         <hr class="bc-divider" style="margin: 20px 0; border: 0; border-top: 1px solid #e2e8f0;" />
 
-                        <p style="font-size: 13.5px; color: #475569; margin-bottom: 16px; line-height: 1.5;">
-                            The property handles all payments. For any questions, <a href="#" style="color: #2563eb; text-decoration: none;">contact them directly</a>.
-                        </p>
+
                         
                         <p style="font-size: 13.5px; color: #64748b; margin-bottom: 24px; line-height: 1.5;">
                             Once your booking is canceled, it can't be reinstated. Customer Service or the property can't help undo it.
@@ -162,7 +162,7 @@
                 <div class="bc-card">
                     <h4 class="bc-policy-title">Cancellation policy</h4>
                     <p class="bc-policy-desc">
-                        You can cancel for free until 3 days before arrival. You'll be charged the total price of the reservation if you cancel within 3 days of arrival.
+                        You can cancel for free until 3 days before arrival (100% refund). Cancellation on the 3rd day before arrival gets 50% refund, 2 days before gets 25% refund, and within 1 day (24 hours) is non-refundable.
                     </p>
                     <a th:href="@{/booking/cancel-policy(bookingId=${booking.id},action='view')}" target="_blank" class="bc-policy-link">
                         View cancellation policy

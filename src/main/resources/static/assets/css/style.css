@@ -22114,7 +22114,7 @@ h6,
 
 .profile-input-editable {
   background-color: #ffffff !important;
-  border: 1px solid #0f4c81 !important;
+  border: 1px solid #cbd5e1 !important;
   color: #0f172a !important;
   font-size: 0.95rem;
   padding-top: 0.65rem !important;
@@ -22448,7 +22448,7 @@ h6,
 
 /* ── Custom Hotel Card Footer Premium Redesign ── */
 .custom-hl-card-footer {
-  padding: 0.85rem 0.75rem !important; /* Reduced padding to maximize horizontal space */
+  padding: 0.85rem 0.55rem !important; /* Reduced padding from 0.75rem to 0.55rem to maximize horizontal space */
   display: flex !important;
   flex-direction: column !important;
   gap: 10px !important;
@@ -22468,7 +22468,7 @@ h6,
 }
 
 .custom-hl-price-from {
-  font-size: 0.62rem !important; /* Compact to fit single line */
+  font-size: 0.58rem !important; /* Reduced to fit single line */
   font-weight: 700 !important;
   color: var(--gold-dark, #a8824e) !important;
   background-color: #f5efe6 !important; /* Soft warm gold-sand background */
@@ -22479,13 +22479,13 @@ h6,
   letter-spacing: 0.3px !important;
   display: inline-flex !important;
   align-items: center !important;
-  margin-right: 4px !important;
+  margin-right: 3px !important; /* Reduced spacing */
   white-space: nowrap !important;
   line-height: 1 !important;
 }
 
 .custom-hl-price-number {
-  font-size: 1.0rem !important; /* Optimized to guarantee single line fit */
+  font-size: 0.92rem !important; /* Reduced to guarantee single line fit */
   font-weight: 800 !important;
   color: var(--gold-dark, #a8824e) !important; /* System gold-dark */
   line-height: 1 !important;
@@ -22493,7 +22493,7 @@ h6,
 }
 
 .custom-hl-price-desc {
-  font-size: 0.7rem !important; /* Optimized to guarantee single line fit */
+  font-size: 0.65rem !important; /* Reduced to guarantee single line fit */
   color: #64748b !important;
   font-weight: 500 !important;
   margin-left: 2px !important;
@@ -25778,4 +25778,172 @@ body.dashboard-page .custom-nav-container {
   background-color: #ffffff !important;
   color: #6c757d !important;
   border-color: #ced4da !important;
-}
+}
+
+/* Remove right border radius for profile editable inputs inside input-group to fit toggle buttons */
+.input-group .profile-input-editable {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+.input-group .password-toggle-btn {
+  border-top-right-radius: 8px !important;
+  border-bottom-right-radius: 8px !important;
+  border: 1px solid #cbd5e1 !important;
+  border-left: none !important;
+}
+
+/* Verify OTP Page Styling */
+.verify-otp-card {
+  width: 440px !important;
+}
+
+.otp-input-field {
+  letter-spacing: 4px !important;
+  max-width: 260px !important;
+}
+
+.otp-note-text {
+  font-size: 0.825rem !important;
+}
+
+/* System Global Notification Modal Styling */
+.global-alert-modal-content {
+  border-radius: 14px !important;
+}
+
+.global-alert-icon-success {
+  color: #10b981 !important;
+  font-size: 54px !important;
+}
+
+.global-alert-icon-error {
+  color: #ef4444 !important;
+  font-size: 54px !important;
+}
+
+.global-alert-title {
+  color: #0f172a !important;
+}
+
+.global-alert-btn-success {
+  background-color: #0d233a !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  padding: 10px !important;
+}
+
+.global-alert-btn-error {
+  background-color: #ef4444 !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  padding: 10px !important;
+}
+
+/* Filter Form Controls */
+.filter-form-label {
+  font-size: 0.8rem !important;
+}
+
+.filter-clear-btn {
+  font-size: 0.75rem !important;
+}
+
+.filter-clear-icon {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+/* Persistent Top Input Box + 5-Line Floating Scroll Dropdown */
+.custom-scroll-select-container {
+  position: relative !important;
+  width: 100% !important;
+  height: 31px !important;
+}
+
+.custom-select-lg-container {
+  height: 38px !important;
+}
+
+.select-input-display {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 31px !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  padding-left: 10px !important;
+  padding-right: 32px !important;
+  background-color: #ffffff !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.select-input-text {
+  display: block !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+}
+
+.custom-select-lg-container .select-input-display {
+  height: 38px !important;
+}
+
+.scroll-select-5 {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 31px !important;
+  z-index: 2 !important;
+  opacity: 0 !important;
+  cursor: pointer !important;
+}
+
+.custom-select-lg-container .scroll-select-5 {
+  height: 38px !important;
+}
+
+.scroll-select-5:focus {
+  top: 100% !important;
+  left: 0 !important;
+  min-width: 100% !important;
+  width: auto !important;
+  max-width: 320px !important;
+  margin-top: 2px !important;
+  height: auto !important;
+  max-height: 165px !important;
+  opacity: 1 !important;
+  z-index: 1050 !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 6px !important;
+  outline: none !important;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  white-space: nowrap !important;
+}
+
+.scroll-select-5 option {
+  padding: 6px 12px !important;
+  font-size: 0.85rem !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+}
+
+.scroll-select-5 option:hover,
+.scroll-select-5 option:focus,
+.scroll-select-5 option:active,
+.scroll-select-5 option:checked {
+  background-color: #0d6efd !important;
+  color: #ffffff !important;
+}

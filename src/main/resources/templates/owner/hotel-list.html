@@ -26,6 +26,8 @@
 <main class="flex-grow-1 py-4 bg-cream">
     <div class="container-fluid px-4">
 
+        <!-- Flash messages -->
+        <th:block th:replace="~{fragment/frag :: alerts}"></th:block>
         <!-- Hotel Grid - Khi có hotel -->
         <div th:if="${hasHotels}" class="row g-4">
             <div th:each="hotel : ${hotels}" class="col-12 col-md-6 col-lg-4">

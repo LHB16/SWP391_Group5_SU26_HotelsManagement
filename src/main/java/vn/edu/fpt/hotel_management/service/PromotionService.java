@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.hotel_management.entity.Hotel;
 import vn.edu.fpt.hotel_management.entity.Promotion;
+import vn.edu.fpt.hotel_management.repository.BookingRepository;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 import vn.edu.fpt.hotel_management.repository.PromotionRepository;
 
@@ -18,10 +19,12 @@ public class PromotionService {
 
     private final PromotionRepository promotionRepository;
     private final HotelRepository hotelRepository;
+    private final BookingRepository bookingRepository;
 
-    public PromotionService(PromotionRepository promotionRepository, HotelRepository hotelRepository) {
+    public PromotionService(PromotionRepository promotionRepository, HotelRepository hotelRepository, BookingRepository bookingRepository) {
         this.promotionRepository = promotionRepository;
         this.hotelRepository = hotelRepository;
+        this.bookingRepository = bookingRepository;
     }
 
     @Transactional(readOnly = true)
@@ -92,6 +95,7 @@ public class PromotionService {
     public void deletePromotion(int id, int hotelId) {
         Promotion promotion = promotionRepository.findByIdAndHotelId(id, hotelId)
                 .orElseThrow(() -> new RuntimeException("Promotion not found"));
+        bookingRepository.unlinkPromotion(id);
         promotionRepository.delete(promotion);
     }
 

@@ -13,6 +13,8 @@
 
     <nav th:replace="~{fragment/frag :: navBar}"></nav>
 
+    <th:block th:replace="~{fragment/frag :: alerts}"></th:block>
+
     <main class="flex-shrink-0 dashboard-container container-fluid">
         <div class="row">
 
@@ -326,17 +328,19 @@
                             <!-- Filter Row -->
                             <div class="row g-3 mb-3 align-items-end">
                                 <div class="col-12 col-md-3">
-                                    <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Search
+                                    <label class="form-label fw-semibold mb-1 filter-form-label">Search
                                         Customer</label>
                                     <input type="text" id="bookingSearchInput" class="form-control form-control-sm"
                                         placeholder="Search customer name..." />
                                 </div>
                                 <div class="col-6 col-md-2">
-                                    <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Hotel</label>
-                                    <div class="scrollable-select-wrapper">
-                                        <select id="bookingHotelFilter"
-                                            class="form-select form-select-sm scrollable-select" onfocus="this.size=5;"
-                                            onblur="this.size=1;" onchange="this.size=1; this.blur();">
+                                    <label class="form-label fw-semibold mb-1 filter-form-label">Hotel</label>
+                                    <div class="custom-scroll-select-container">
+                                        <div class="select-input-display form-select form-select-sm" id="bookingHotelFilterDisplay"><span class="select-input-text">All Hotels</span></div>
+                                        <select id="bookingHotelFilter" class="form-select form-select-sm scroll-select-5"
+                                                onfocus="if(this.options.length > 5) this.size = 5;"
+                                                onblur="this.size = 1;"
+                                                onchange="this.size = 1; this.blur(); syncSelectDisplay(this, 'bookingHotelFilterDisplay');">
                                             <option value="all">All Hotels</option>
                                             <option th:each="hotel : ${approvedHotels}" th:value="${hotel.id}"
                                                 th:text="${hotel.name}"></option>
@@ -344,7 +348,7 @@
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-2">
-                                    <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Status</label>
+                                    <label class="form-label fw-semibold mb-1 filter-form-label">Status</label>
                                     <select id="bookingStatusFilter" class="form-select form-select-sm">
                                         <option value="all">All Status</option>
                                         <option value="CONFIRMED">CONFIRMED</option>
@@ -352,21 +356,19 @@
                                     </select>
                                 </div>
                                 <div class="col-6 col-md-2">
-                                    <label class="form-label fw-semibold mb-1"
-                                        style="font-size: 0.8rem;">Check-in</label>
+                                    <label class="form-label fw-semibold mb-1 filter-form-label">Check-in</label>
                                     <input type="text" id="bookingCheckinFilter" class="form-control form-control-sm"
                                         placeholder="dd/mm/yyyy" readonly />
                                 </div>
                                 <div class="col-6 col-md-2">
-                                    <label class="form-label fw-semibold mb-1"
-                                        style="font-size: 0.8rem;">Check-out</label>
+                                    <label class="form-label fw-semibold mb-1 filter-form-label">Check-out</label>
                                     <input type="text" id="bookingCheckoutFilter" class="form-control form-control-sm"
                                         placeholder="dd/mm/yyyy" readonly />
                                 </div>
                                 <div class="col-12 col-md-1">
-                                    <button class="btn btn-outline-secondary btn-sm w-100"
-                                        onclick="clearBookingFilters()" style="font-size: 0.75rem;">
-                                        <i data-lucide="x" style="width: 14px; height: 14px;"></i> Clear
+                                    <button class="btn btn-outline-secondary btn-sm w-100 filter-clear-btn"
+                                        onclick="clearBookingFilters()">
+                                        <i data-lucide="x" class="filter-clear-icon"></i> Clear
                                     </button>
                                 </div>
                             </div>
@@ -525,11 +527,7 @@
                                             th:classappend="${hotel.approvalStatus == 'APPROVED'} ? 'bg-success' :
                                                          (${hotel.approvalStatus == 'REJECTED'} ? 'bg-danger' : 'bg-warning text-dark')"
                                             th:text="${hotel.approvalStatus ?: 'PENDING'}">PENDING</span>
-                                        <span class="badge position-absolute bottom-0 start-0 m-2"
-                                            style="background: rgba(0,0,0,0.6); color: #f59e0b; backdrop-filter: blur(4px);">
-                                            <i data-lucide="star" style="width: 12px; height: 12px; fill: #f59e0b;"></i>
-                                            <span th:text="${hotel.rating}">0.0</span>
-                                        </span>
+
                                     </div>
 
                                     <div class="card-body">
@@ -682,29 +680,28 @@
                                 <!-- Filter Row -->
                                 <div class="row g-3 mb-3 align-items-end">
                                     <div class="col-12 col-md-3">
-                                        <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Search
-                                            Promotion</label>
+                                        <label class="form-label fw-semibold mb-1 filter-form-label">Search
+                                        Promotion</label>
                                         <input type="text" id="promotionSearchInput"
                                             class="form-control form-control-sm"
                                             placeholder="Search promotion name..." />
                                     </div>
                                     <div class="col-6 col-md-2">
-                                        <label class="form-label fw-semibold mb-1"
-                                            style="font-size: 0.8rem;">Hotel</label>
-                                        <div class="scrollable-select-wrapper">
-                                            <select id="hotelFilterSelect"
-                                                class="form-select form-select-sm scrollable-select"
-                                                onfocus="this.size=5;" onblur="this.size=1;"
-                                                onchange="this.size=1; this.blur();">
-                                                <option value="all">All Hotels</option>
-                                                <option th:each="hotel : ${approvedHotels}" th:value="${hotel.id}"
-                                                    th:text="${hotel.name}"></option>
-                                            </select>
-                                        </div>
+                                        <label class="form-label fw-semibold mb-1 filter-form-label">Hotel</label>
+                                         <div class="custom-scroll-select-container">
+                                             <div class="select-input-display form-select form-select-sm" id="hotelFilterDisplay"><span class="select-input-text">All Hotels</span></div>
+                                             <select id="hotelFilterSelect" class="form-select form-select-sm scroll-select-5"
+                                                     onfocus="if(this.options.length > 5) this.size = 5;"
+                                                     onblur="this.size = 1;"
+                                                     onchange="this.size = 1; this.blur(); syncSelectDisplay(this, 'hotelFilterDisplay');">
+                                                 <option value="all">All Hotels</option>
+                                                 <option th:each="hotel : ${approvedHotels}" th:value="${hotel.id}"
+                                                     th:text="${hotel.name}"></option>
+                                             </select>
+                                         </div>
                                     </div>
                                     <div class="col-6 col-md-2">
-                                        <label class="form-label fw-semibold mb-1"
-                                            style="font-size: 0.8rem;">Status</label>
+                                        <label class="form-label fw-semibold mb-1 filter-form-label">Status</label>
                                         <select id="promotionStatusFilter" class="form-select form-select-sm">
                                             <option value="all">All Status</option>
                                             <option value="ACTIVE">Active</option>
@@ -713,21 +710,21 @@
                                         </select>
                                     </div>
                                     <div class="col-6 col-md-2">
-                                        <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">Start
+                                        <label class="form-label fw-semibold mb-1 filter-form-label">Start
                                             Date</label>
                                         <input type="text" id="promoStartDateFilter"
                                             class="form-control form-control-sm" placeholder="dd/mm/yyyy" readonly />
                                     </div>
                                     <div class="col-6 col-md-2">
-                                        <label class="form-label fw-semibold mb-1" style="font-size: 0.8rem;">End
+                                        <label class="form-label fw-semibold mb-1 filter-form-label">End
                                             Date</label>
                                         <input type="text" id="promoEndDateFilter" class="form-control form-control-sm"
                                             placeholder="dd/mm/yyyy" readonly />
                                     </div>
                                     <div class="col-12 col-md-1">
-                                        <button class="btn btn-outline-secondary btn-sm w-100"
-                                            onclick="clearPromotionFilters()" style="font-size: 0.75rem;">
-                                            <i data-lucide="x" style="width: 14px; height: 14px;"></i> Clear
+                                        <button class="btn btn-outline-secondary btn-sm w-100 filter-clear-btn"
+                                            onclick="clearPromotionFilters()">
+                                            <i data-lucide="x" class="filter-clear-icon"></i> Clear
                                         </button>
                                     </div>
                                 </div>
@@ -948,9 +945,12 @@
                     <form th:action="@{/owner/promotions/create}" method="post" id="addPromotionForm">
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Hotel <span class="text-danger">*</span></label>
-                            <div class="scrollable-select-wrapper custom-select-lg-wrapper">
-                                <select name="hotelId" class="form-select scrollable-select" required
-                                    onfocus="this.size=5;" onblur="this.size=1;" onchange="this.size=1; this.blur();">
+                            <div class="custom-scroll-select-container custom-select-lg-container">
+                                <div class="select-input-display form-select" id="addPromoHotelDisplay"><span class="select-input-text">Select hotel...</span></div>
+                                <select name="hotelId" class="form-select scroll-select-5" required
+                                        onfocus="if(this.options.length > 5) this.size = 5;"
+                                        onblur="this.size = 1;"
+                                        onchange="this.size = 1; this.blur(); syncSelectDisplay(this, 'addPromoHotelDisplay');">
                                     <option value="">Select hotel...</option>
                                     <option th:each="h : ${approvedHotels}" th:value="${h.id}" th:text="${h.name}">
                                     </option>
@@ -1026,7 +1026,7 @@
     </div>
 
     <!-- ========================================================= -->
-    <!-- MODAL: Edit Promotion -->
+    <!-- MODAL: Modify Promotion -->
     <!-- ========================================================= -->
     <div class="modal fade" id="editPromotionModal" tabindex="-1" aria-labelledby="editPromotionModalLabel"
         aria-hidden="true">
@@ -1036,7 +1036,7 @@
                     <div>
                         <h5 class="modal-title fw-bold" id="editPromotionModalLabel">
                             <i data-lucide="pencil" style="width: 20px; height: 20px; color: #c9a96e;"></i>
-                            Edit Promotion
+                            Modify Promotion
                         </h5>
                         <p class="text-muted small mt-1">Update your promotion details</p>
                     </div>
@@ -1115,8 +1115,47 @@
     <!-- ========================================================= -->
     <!-- MODAL: DELETE PROMOTION -->
     <!-- ========================================================= -->
-    <div th:each="promo : ${allPromotions}">
-        <div class="modal fade" th:id="'deleteModalPromo-' + ${promo.id}" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="deletePromotionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal-content-rounded">
+                <div class="modal-header border-0 pt-4 pb-0 justify-content-center">
+                    <div class="text-center">
+                        <i class="bi bi-exclamation-triangle icon-warning-large text-gold"></i>
+                    </div>
+                </div>
+                <div class="modal-body text-center px-4 py-3">
+                    <h4 class="fw-bold text-dark mb-3 modal-title-serif">Confirm Deletion</h4>
+                    <p class="text-muted mb-0 modal-text-desc">
+                        Are you sure you want to delete promotion <strong class="text-navy-primary"
+                            id="deletePromoTitleDisplay">Promotion Title</strong>?
+                        <br>
+                        <span class="text-danger small">This action cannot be undone!</span>
+                    </p>
+                </div>
+                <div class="modal-footer border-0 pb-4 pt-2 d-flex gap-3 justify-content-center">
+                    <button type="button"
+                        class="btn btn-light px-4 py-2 rounded-3 border fw-semibold text-secondary font-size-9"
+                        data-bs-dismiss="modal">
+                        No, Keep It
+                    </button>
+                    <form th:action="@{/owner/promotions/delete}" method="post" class="d-inline">
+                        <input type="hidden" name="promotionId" id="deletePromoIdInput" />
+                        <input type="hidden" name="hotelId" id="deletePromoHotelIdInput" />
+                        <button type="submit"
+                            class="btn btn-delete-modal px-4 py-2 rounded-3 fw-semibold text-white">
+                            Yes, Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL: DELETE HOTEL -->
+    <!-- ========================================================= -->
+    <div th:each="hotel : ${hotels}">
+        <div class="modal fade" th:id="'deleteModalHotel-' + ${hotel.id}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content modal-content-rounded">
                     <div class="modal-header border-0 pt-4 pb-0 justify-content-center">
@@ -1127,10 +1166,8 @@
                     <div class="modal-body text-center px-4 py-3">
                         <h4 class="fw-bold text-dark mb-3 modal-title-serif">Confirm Deletion</h4>
                         <p class="text-muted mb-0 modal-text-desc">
-                            Are you sure you want to delete promotion <strong class="text-navy-primary"
-                                th:text="'\'' + ${promo.title} + '\''">Promotion Title</strong>?
-                            <br>
-                            <span class="text-danger small">This action cannot be undone!</span>
+                            Are you sure you want to delete hotel <strong class="text-navy-primary"
+                                th:text="'\'' + ${hotel.name} + '\''">Hotel Name</strong>?
                         </p>
                     </div>
                     <div class="modal-footer border-0 pb-4 pt-2 d-flex gap-3 justify-content-center">
@@ -1139,9 +1176,8 @@
                             data-bs-dismiss="modal">
                             No, Keep It
                         </button>
-                        <form th:action="@{/owner/promotions/delete}" method="post" class="d-inline">
-                            <input type="hidden" name="promotionId" th:value="${promo.id}" />
-                            <input type="hidden" name="hotelId" th:value="${promo.hotel.id}" />
+                        <form th:action="@{/owner/dashboard/delete-hotel}" method="post" class="d-inline">
+                            <input type="hidden" name="hotelId" th:value="${hotel.id}" />
                             <button type="submit"
                                 class="btn btn-delete-modal px-4 py-2 rounded-3 fw-semibold text-white">
                                 Yes, Delete

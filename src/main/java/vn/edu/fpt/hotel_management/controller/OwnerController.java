@@ -583,9 +583,15 @@ public class OwnerController {
             return "redirect:/owner/dashboard?tab=hotels";
         }
 
-        try {
-            String hotelName = hotel.getName();
+        String hotelName = hotel.getName();
 
+        if (bookingRepository.existsByHotelId(hotelId)) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Cannot delete hotel \"" + hotelName + "\" because it is associated with existing booking records.");
+            return "redirect:/owner/dashboard?tab=hotels";
+        }
+
+        try {
             // ===== 1. XÓA PROMOTIONS TRƯỚC =====
             List<Promotion> promotions = promotionService.getPromotionsByHotelId(hotelId);
             if (!promotions.isEmpty()) {
@@ -620,9 +626,12 @@ public class OwnerController {
             redirectAttributes.addFlashAttribute("successMessage",
                     "Hotel \"" + hotelName + "\" deleted successfully!");
 
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Cannot delete hotel \"" + hotelName + "\" because it is associated with existing booking records.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage",
-                    "Failed to delete hotel: " + e.getMessage());
+                    "Failed to delete hotel \"" + hotelName + "\". Please check associated bookings or try again.");
             e.printStackTrace();
         }
 

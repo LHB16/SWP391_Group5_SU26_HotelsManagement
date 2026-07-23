@@ -62,7 +62,7 @@
                                     <i class="bi bi-arrow-return-left"></i>
                                 </div>
                                 <div class="rf-refund-text">
-                                    <span class="rf-refund-label">Refund Amount (100% — Full Refund)</span>
+                                    <span class="rf-refund-label" th:text="'Refund Amount (' + ${refundPercent} + '% — ' + (${refundPercent == 100} ? 'Full Refund' : 'Partial Refund') + ')'">Refund Amount (100% — Full Refund)</span>
                                     <span class="rf-refund-amount"
                                           th:text="${#numbers.formatInteger(refundAmount, 3, 'COMMA') + ' ₫'}">0 ₫</span>
                                 </div>
@@ -77,8 +77,8 @@
                             <span>Bank Account Information</span>
                         </div>
                         <p class="rf-form-desc">
-                            Please provide your bank account details below. Since you cancelled more than 3 days before check-in,
-                            you are eligible for a <strong>full refund (100%)</strong>.
+                            Please provide your bank account details below. Since you cancelled,
+                            you are eligible for a <strong th:text="'refund (' + ${refundPercent} + '%)'">refund (100%)</strong>.
                             The refund will be transferred within <strong>3–5 business days</strong> after verification.
                         </p>
 
