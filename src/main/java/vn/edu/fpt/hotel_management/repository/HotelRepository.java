@@ -34,7 +34,7 @@ public interface HotelRepository extends JpaRepository<Hotel, Integer> {
     );
 
     @Query("SELECT h FROM Hotel h WHERE h.active = true " +
-            "AND h.rating <= :rating " +
+            "AND h.rating >= :rating " +
             "AND (SELECT COALESCE(MIN(r.price), 0) FROM Room r WHERE r.hotelId = h.id) >= :minPrice " +
             "AND (SELECT COALESCE(MIN(r.price), 0) FROM Room r WHERE r.hotelId = h.id) <= :maxPrice " +
             "ORDER BY h.rating DESC, (SELECT COALESCE(MIN(r.price), 0) FROM Room r WHERE r.hotelId = h.id) ASC")

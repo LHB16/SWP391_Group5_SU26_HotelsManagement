@@ -130,10 +130,20 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert(data.message || "OTP code resent successfully!");
+                        const msg = data.message || "A new OTP code has been sent to your email.";
+                        if (typeof window.showCustomToast === "function") {
+                            window.showCustomToast(msg, "success");
+                        } else {
+                            alert(msg);
+                        }
                         startCountdown(data.nextCooldown);
                     } else {
-                        alert(data.message || "Failed to resend OTP code!");
+                        const msg = data.message || "Failed to resend OTP code!";
+                        if (typeof window.showCustomToast === "function") {
+                            window.showCustomToast(msg, "error");
+                        } else {
+                            alert(msg);
+                        }
                         if (data.remainingSeconds) {
                             startCountdown(data.remainingSeconds);
                         } else {
@@ -146,7 +156,12 @@
                 })
                 .catch(error => {
                     console.error("Error resending OTP:", error);
-                    alert("System error. Please try again later.");
+                    const msg = "System error. Please try again later.";
+                    if (typeof window.showCustomToast === "function") {
+                        window.showCustomToast(msg, "error");
+                    } else {
+                        alert(msg);
+                    }
                     resendBtn.disabled = false;
                     resendBtn.innerText = "Resend OTP";
                     resendBtn.classList.remove("text-muted");

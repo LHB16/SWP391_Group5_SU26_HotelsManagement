@@ -1,4 +1,4 @@
-﻿    -- =====================================================
+    -- =====================================================
     -- HOTEL BOOKING SYSTEM - REAL DATA SCRIPT (FIXED)
     -- File: 02_insert_hotel_db_sample_data_safe.sql
     -- Target: Microsoft SQL Server / SSMS
@@ -965,6 +965,18 @@
             INSERT INTO feedback_replies (feedback_id, owner_id, hotel_id, content)
             VALUES (@fb6_id, @owner6_id, @h6_id, N'Cảm ơn bạn! Hotel de la Coupole luôn cố gắng mang lại trải nghiệm Sapa đẹp nhất. Rất vui được phục vụ bạn!');
 
+        -- Recalculate rating and total_feedbacks count for all hotels based on VISIBLE feedbacks
+        UPDATE h
+        SET h.rating = ISNULL(f.avg_rating, 0.0),
+            h.total_feedbacks = ISNULL(f.cnt, 0)
+        FROM hotel h
+        LEFT JOIN (
+            SELECT hotel_id, ROUND(AVG(CAST(rating AS FLOAT)), 1) AS avg_rating, COUNT(*) AS cnt
+            FROM feedback
+            WHERE status = 'VISIBLE'
+            GROUP BY hotel_id
+        ) f ON h.id = f.hotel_id;
+
         -- =====================================================
         -- 11. WISHLISTS (KEEP EXISTING)
         -- =====================================================
@@ -1052,7 +1064,7 @@
             VALUES (@new_owner_id, N'Luxury Palace Hanoi', N'12 Lý Thường Kiệt, Hoàn Kiếm', N'Hà Nội', N'Hoàn Kiếm',
                 N'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&h=500&fit=crop&q=80',
                 N'Khách sạn 5 sao sang trọng bậc nhất Hà Nội, tọa lạc tại trung tâm phố cổ. Kiến trúc Pháp cổ điển kết hợp hiện đại, với tầm nhìn toàn cảnh Hồ Gươm và thành phố.',
-                4.8, 0, N'APPROVED', 1, GETDATE());
+                0.0, 0, N'APPROVED', 1, GETDATE());
 
         -- LUX2: Ocean Paradise Da Nang
         IF NOT EXISTS (SELECT 1 FROM hotel WHERE owner_id = @new_owner_id AND name = N'Ocean Paradise Da Nang')
@@ -1060,7 +1072,7 @@
             VALUES (@new_owner_id, N'Ocean Paradise Da Nang', N'45 Võ Nguyên Giáp, Sơn Trà', N'Đà Nẵng', N'Sơn Trà',
                 N'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=500&fit=crop&q=80',
                 N'Khu nghỉ dưỡng biển 5 sao nằm trên bãi biển Mỹ Khê tuyệt đẹp, chỉ cách trung tâm thành phố 5 phút. Resort có bãi biển riêng, hồ bơi vô cực, nhà hàng hải sản tươi sống.',
-                4.7, 0, N'APPROVED', 1, GETDATE());
+                0.0, 0, N'APPROVED', 1, GETDATE());
 
         -- LUX3: Bay View Resort Nha Trang
         IF NOT EXISTS (SELECT 1 FROM hotel WHERE owner_id = @new_owner_id AND name = N'Bay View Resort Nha Trang')
@@ -1068,7 +1080,7 @@
             VALUES (@new_owner_id, N'Bay View Resort Nha Trang', N'78 Trần Phú, Nha Trang', N'Nha Trang', N'Vĩnh Nguyên',
                 N'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&h=500&fit=crop&q=80',
                 N'Resort 5 sao sang trọng nằm dọc bãi biển Nha Trang, view vịnh Nha Trang tuyệt đẹp. Kiến trúc Địa Trung Hải với những khu vườn nhiệt đới xanh mát.',
-                4.9, 0, N'APPROVED', 1, GETDATE());
+                0.0, 0, N'APPROVED', 1, GETDATE());
 
         -- LUX4: Mountain Retreat Sapa
         IF NOT EXISTS (SELECT 1 FROM hotel WHERE owner_id = @new_owner_id AND name = N'Mountain Retreat Sapa')
@@ -1076,7 +1088,7 @@
             VALUES (@new_owner_id, N'Mountain Retreat Sapa', N'22 Fansipan, TT Sa Pa', N'Sapa', N'TT Sa Pa',
                 N'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=800&h=500&fit=crop&q=80',
                 N'Khu nghỉ dưỡng trên núi 5 sao với kiến trúc Bản Địa độc đáo, nằm giữa thung lũng Mường Hoa. Tất cả phòng đều có view hướng thẳng Fansipan - nóc nhà Đông Dương.',
-                4.6, 0, N'APPROVED', 1, GETDATE());
+                0.0, 0, N'APPROVED', 1, GETDATE());
 
         -- LUX5: Emerald Island Phu Quoc
         IF NOT EXISTS (SELECT 1 FROM hotel WHERE owner_id = @new_owner_id AND name = N'Emerald Island Phu Quoc')
@@ -1084,7 +1096,7 @@
             VALUES (@new_owner_id, N'Emerald Island Phu Quoc', N'Bãi Dài, Xã Gành Dầu', N'Phú Quốc', N'Gành Dầu',
                 N'https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800&h=500&fit=crop&q=80',
                 N'Resort 5 sao trên đảo ngọc Phú Quốc với bãi biển riêng hoang sơ. Thiết kế hiện đại tối giản, mỗi phòng đều có tầm nhìn ra biển và khu vườn nhiệt đới.',
-                4.9, 0, N'APPROVED', 1, GETDATE());
+                0.0, 0, N'APPROVED', 1, GETDATE());
 
         -- LUX6: Riverside Heritage Hoi An
         IF NOT EXISTS (SELECT 1 FROM hotel WHERE owner_id = @new_owner_id AND name = N'Riverside Heritage Hoi An')
@@ -1092,7 +1104,7 @@
             VALUES (@new_owner_id, N'Riverside Heritage Hoi An', N'34 Nguyễn Trường Tộ, Hội An', N'Hội An', N'Minh An',
                 N'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=500&fit=crop&q=80',
                 N'Khách sạn boutique 5 sao nằm ven sông Hoài, cách phố cổ Hội An 3 phút đi bộ. Kiến trúc cổ truyền Việt Nam pha trộn phong cách Pháp, với khu vườn xanh mát và hồ bơi nhiệt đới.',
-                4.5, 0, N'APPROVED', 1, GETDATE());
+                0.0, 0, N'APPROVED', 1, GETDATE());
 
         -- LUX7: Pine Hill Da Lat
         IF NOT EXISTS (SELECT 1 FROM hotel WHERE owner_id = @new_owner_id AND name = N'Pine Hill Da Lat')
@@ -1100,7 +1112,7 @@
             VALUES (@new_owner_id, N'Pine Hill Da Lat', N'56 Đặng Thái Thân, Phường 3', N'Đà Lạt', N'Phường 3',
                 N'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&h=500&fit=crop&q=80',
                 N'Resort 5 sao trên đồi thông Đà Lạt, tầm nhìn bao quát thành phố ngàn hoa. Không gian Châu Âu cổ kính với fireplace, thư viện, và khu vườn hoa hồng.',
-                4.4, 0, N'APPROVED', 1, GETDATE());
+                0.0, 0, N'APPROVED', 1, GETDATE());
 
         -- Get Hotel IDs for new hotels
         SELECT @h_lux1_id = id FROM hotel WHERE owner_id = @new_owner_id AND name = N'Luxury Palace Hanoi';

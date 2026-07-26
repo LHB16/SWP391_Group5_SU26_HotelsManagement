@@ -30,6 +30,22 @@ public class HotelManagementApplication {
 				System.err.println(
 						">>> [DATABASE SETUP] Error configuring CK_payments_method constraint: " + e.getMessage());
 			}
+
+			try {
+				jdbcTemplate.execute(
+						"UPDATE h " +
+						"SET h.rating = ISNULL(f.avg_rating, 0.0), " +
+						"    h.total_feedbacks = ISNULL(f.cnt, 0) " +
+						"FROM hotel h " +
+						"LEFT JOIN ( " +
+						"    SELECT hotel_id, ROUND(AVG(CAST(rating AS FLOAT)), 1) AS avg_rating, COUNT(*) AS cnt " +
+						"    FROM feedback " +
+						"    WHERE status = 'VISIBLE' " +
+						"    GROUP BY hotel_id " +
+						") f ON h.id = f.hotel_id");
+			} catch (Exception e) {
+				System.err.println(">>> [DATABASE SETUP] Error syncing hotel ratings: " + e.getMessage());
+			}
 		};
 	}
 }

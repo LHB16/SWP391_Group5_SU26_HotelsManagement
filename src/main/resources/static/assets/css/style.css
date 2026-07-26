@@ -15149,6 +15149,16 @@ input[type="date"]::-webkit-datetime-edit {
   border-radius: 8px;
 }
 
+.badge-new {
+  background: #10b981 !important;
+  color: #ffffff !important;
+  font-weight: 700;
+  font-size: .78rem;
+  padding: 4px 9px;
+  border-radius: 8px;
+  letter-spacing: 0.5px;
+}
+
 /* ────────────────────────────────────────────────────────────
    Filter Card (sidebar)
    ──────────────────────────────────────────────────────────── */
