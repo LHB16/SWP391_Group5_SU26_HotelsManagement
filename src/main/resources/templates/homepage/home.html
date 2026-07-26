@@ -195,8 +195,13 @@
                             <div class="hotel-card-image-box">
                                 <img th:src="${h.imageUrl != null and !#strings.isEmpty(h.imageUrl)} ? ${h.imageUrl} : @{/assets/images/hotel/no-hotel.jpg}" alt="Hotel image" class="hotel-card-image" />
                                 <div class="hotel-rating-overlay">
-                                    <span class="star-gold">★</span>
-                                    <span th:text="${h.rating}">4.8</span>
+                                    <th:block th:if="${h.totalReviews != null and h.totalReviews > 0 and h.rating > 0}">
+                                        <span class="star-gold">★</span>
+                                        <span th:text="${h.rating}">4.8</span>
+                                    </th:block>
+                                    <th:block th:if="${h.totalReviews == null or h.totalReviews == 0 or h.rating <= 0}">
+                                        <span class="fw-bold text-success">NEW</span>
+                                    </th:block>
                                 </div>
                             </div>
                             <div class="hotel-card-body">
@@ -243,8 +248,13 @@
                                      th:with="disc=${promoDiscountMap != null ? promoDiscountMap.get(h.id) : null}"
                                      th:text="${disc != null} ? |Save ${disc}%| : 'PROMO'">PROMO</div>
                                 <div class="hotel-rating-overlay">
-                                    <span class="star-gold">★</span>
-                                    <span th:text="${h.rating}">4.8</span>
+                                    <th:block th:if="${h.totalReviews != null and h.totalReviews > 0 and h.rating > 0}">
+                                        <span class="star-gold">★</span>
+                                        <span th:text="${h.rating}">4.8</span>
+                                    </th:block>
+                                    <th:block th:if="${h.totalReviews == null or h.totalReviews == 0 or h.rating <= 0}">
+                                        <span class="fw-bold text-success">NEW</span>
+                                    </th:block>
                                 </div>
                             </div>
                             <div class="hotel-card-body">

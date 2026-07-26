@@ -420,8 +420,11 @@
                                     <i class="bi bi-image text-muted fs-3"></i>
                                 </div>
                                 <!-- Badges -->
-                                <span class="badge badge-star position-absolute top-0 start-0 m-2">
+                                <span th:if="${hotel.totalReviews != null and hotel.totalReviews > 0 and hotel.rating > 0}" class="badge badge-star position-absolute top-0 start-0 m-2">
                                     <span th:text="${hotel.rating}">5</span> ★
+                                </span>
+                                <span th:if="${hotel.totalReviews == null or hotel.totalReviews == 0 or hotel.rating <= 0}" class="badge badge-new position-absolute top-0 start-0 m-2">
+                                    NEW
                                 </span>
                             </div>
 

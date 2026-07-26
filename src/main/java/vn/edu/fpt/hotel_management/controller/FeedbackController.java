@@ -40,6 +40,26 @@ public class FeedbackController {
         this.feedbackVoteRepository = feedbackVoteRepository;
     }
 
+    private void updateHotelAverageRating(int hotelId) {
+        Hotel hotel = hotelRepository.findById(hotelId).orElse(null);
+        if (hotel != null) {
+            List<Feedback> visibleFeedbacks = FeedbackRepository.findByHotelIdAndStatusOrderByRatingDescCreatedAtDesc(hotelId, "VISIBLE");
+            if (visibleFeedbacks != null && !visibleFeedbacks.isEmpty()) {
+                double avgRating = visibleFeedbacks.stream()
+                        .mapToInt(Feedback::getRating)
+                        .average()
+                        .orElse(0.0);
+                avgRating = Math.round(avgRating * 10.0) / 10.0;
+                hotel.setRating(avgRating);
+                hotel.setTotalReviews(visibleFeedbacks.size());
+            } else {
+                hotel.setRating(0.0);
+                hotel.setTotalReviews(0);
+            }
+            hotelRepository.save(hotel);
+        }
+    }
+
     // =====================================================
     // CHỨC NĂNG: TẠO ĐÁNH GIÁ MỚI (CREATE CUSTOMER FEEDBACK)
     // Mô tả: Khách hàng đánh giá khách sạn và loại phòng họ đã từng ở.
@@ -168,6 +188,7 @@ public class FeedbackController {
 
         // Lưu đánh giá mới vào Database
         FeedbackRepository.save(feedback);
+        updateHotelAverageRating(hotelId);
 
         session.setAttribute("successMessage", "Feedback submitted successfully!");
         return "redirect:/hotels/" + hotelId + "/rooms";
@@ -215,6 +236,7 @@ public class FeedbackController {
         feedback.setRating(rating);
         feedback.setComment(combinedComment);
         FeedbackRepository.save(feedback);
+        updateHotelAverageRating(hotelId);
 
         session.setAttribute("successMessage", "Feedback updated successfully!");
         return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
@@ -253,6 +275,7 @@ public class FeedbackController {
         });
 
         FeedbackRepository.delete(feedback);
+        updateHotelAverageRating(hotelId);
 
         session.setAttribute("successMessage", "Feedback deleted successfully.");
         return "redirect:/hotels/" + hotelId + "/rooms#feedbacks";
@@ -496,6 +519,7 @@ public class FeedbackController {
 
         feedback.setStatus(status.toUpperCase());
         FeedbackRepository.save(feedback);
+        updateHotelAverageRating(feedback.getHotel().getId());
 
         redirectAttributes.addFlashAttribute("successMessage", "Feedback status updated to " + status.toUpperCase() + " successfully.");
         return "redirect:/admin/dashboard?tab=customerReviewPanel&page=" + page;
@@ -526,6 +550,7 @@ public class FeedbackController {
 
         feedback.setStatus(status.toUpperCase());
         FeedbackRepository.save(feedback);
+        updateHotelAverageRating(hotelId);
 
         response.put("success", true);
         response.put("status", feedback.getStatus());
@@ -619,6 +644,7 @@ public class FeedbackController {
         feedback.setBooking(booking);
         
         FeedbackRepository.save(feedback);
+        updateHotelAverageRating(booking.getHotel().getId());
         
         session.setAttribute("successMessage", "Feedback submitted successfully!");
         return "redirect:/hotels/" + booking.getHotel().getId() + "/rooms#feedbacks";
