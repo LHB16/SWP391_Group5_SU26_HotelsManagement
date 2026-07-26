@@ -696,8 +696,11 @@
                         }
                         fullnameViewGroup.style.display = "flex";
                         fullnameEditGroup.style.display = "none";
-                        btnSaveFullname.disabled = false;
-                        alert("Full name updated successfully!");
+                        if (typeof window.showCustomToast === 'function') {
+                            window.showCustomToast("Full name updated successfully!", "success");
+                        } else {
+                            alert("Full name updated successfully!");
+                        }
                     })
                     .catch(error => {
                         fullnameErrorMsg.textContent = error.message;
