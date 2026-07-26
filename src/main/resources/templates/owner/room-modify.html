@@ -356,7 +356,6 @@
 <div th:replace="~{fragment/frag :: scripts}"></div>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-<<<<<<< HEAD
     const typeInput = document.getElementById('roomType');
     const typeError = document.getElementById('typeError');
     const priceInput = document.getElementById('roomPrice');
@@ -365,15 +364,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const acreageError = document.getElementById('acreageError');
     const numberRoomsInput = document.getElementById('numberRooms');
     const numberRoomsError = document.getElementById('numberRoomsError');
-=======
-    const priceInput = document.getElementById('roomPrice');
-    const priceError = document.getElementById('priceError');
->>>>>>> origin/main
     const personInput = document.getElementById('personInput');
     const guestError = document.getElementById('guestError');
     const bedInput = document.getElementById('bedInput');
     const bedError = document.getElementById('bedError');
-<<<<<<< HEAD
     const windowInput = document.getElementById('windowInput');
     const windowError = document.getElementById('windowError');
     const descInput = document.getElementById('roomDesc');
@@ -382,48 +376,35 @@ document.addEventListener('DOMContentLoaded', function() {
     const waterError = document.getElementById('waterError');
     const form = document.getElementById('roomForm');
 
-    // Room Type validation & live character counter (max 30)
+    // --- Room Type (max 30 chars) ---
     const typeCounter = document.getElementById('typeCounter');
     function updateTypeCounter() {
         if (!typeInput) return;
         let len = typeInput.value.length;
         if (typeCounter) {
             typeCounter.textContent = len + '/30 characters';
-            if (len >= 30) {
-                typeCounter.className = 'text-danger small fw-bold';
-            } else {
-                typeCounter.className = 'text-muted small';
-            }
+            typeCounter.className = len >= 30 ? 'text-danger small fw-bold' : 'text-muted small';
         }
-        if (len >= 30) {
-            if (typeError) {
-                typeError.textContent = 'Maximum limit of 30 characters reached!';
-                typeError.style.display = 'block';
-            }
-        } else {
-            if (typeError) typeError.style.display = 'none';
+        if (len >= 30 && typeError) {
+            typeError.textContent = 'Maximum limit of 30 characters reached!';
+            typeError.style.display = 'block';
+        } else if (typeError) {
+            typeError.style.display = 'none';
         }
     }
-
     if (typeInput) {
         typeInput.addEventListener('input', function() {
-            if (this.value.length > 30) {
-                this.value = this.value.substring(0, 30);
-            }
+            if (this.value.length > 30) this.value = this.value.slice(0, 30);
             updateTypeCounter();
         });
         typeInput.addEventListener('keyup', updateTypeCounter);
         updateTypeCounter();
     }
 
-    // Price validation
-=======
-    const form = document.getElementById('roomForm');
-
-    // --- Price Validation ---
->>>>>>> origin/main
+    // --- Price (100,000 to 50,000,000 VND, max 8 digits) ---
     if (priceInput) {
         priceInput.addEventListener('input', function() {
+            if (this.value.length > 8) this.value = this.value.slice(0, 8);
             let val = parseFloat(this.value);
             if (this.value !== '' && (isNaN(val) || val > 50000000)) {
                 this.value = 50000000;
@@ -436,24 +417,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     priceError.textContent = 'Minimum price must be at least 100,000 VND / night!';
                     priceError.style.display = 'block';
                 }
-            } else {
-                if (priceError) priceError.style.display = 'none';
+            } else if (priceError) {
+                priceError.style.display = 'none';
             }
         });
-
         priceInput.addEventListener('blur', function() {
             let val = parseFloat(this.value);
             if (!isNaN(val) && val > 50000000) this.value = 50000000;
-            if (!isNaN(val) && val >= 100000 && val <= 50000000) {
-                if (priceError) priceError.style.display = 'none';
+            if (!isNaN(val) && val >= 100000 && val <= 50000000 && priceError) {
+                priceError.style.display = 'none';
             }
         });
     }
 
-<<<<<<< HEAD
-    // Area (m²) validation (max 300)
+    // --- Area / Acreage (1 to 300 m²) ---
     if (acreageInput) {
         acreageInput.addEventListener('input', function() {
+            if (this.value.length > 5) this.value = this.value.slice(0, 5);
             let val = parseFloat(this.value);
             if (this.value !== '' && (isNaN(val) || val > 300)) {
                 this.value = 300;
@@ -466,15 +446,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     acreageError.textContent = 'Minimum area must be at least 1 m²!';
                     acreageError.style.display = 'block';
                 }
-            } else {
-                if (acreageError) acreageError.style.display = 'none';
+            } else if (acreageError) {
+                acreageError.style.display = 'none';
             }
         });
     }
 
-    // Number of rooms validation (max 50)
+    // --- Number of Rooms (1 to 50) ---
     if (numberRoomsInput) {
         numberRoomsInput.addEventListener('input', function() {
+            if (this.value.length > 2) this.value = this.value.slice(0, 2);
             let val = parseInt(this.value);
             if (this.value !== '' && (isNaN(val) || val > 50)) {
                 this.value = 50;
@@ -487,15 +468,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     numberRoomsError.textContent = 'Minimum number of rooms must be at least 1!';
                     numberRoomsError.style.display = 'block';
                 }
-            } else {
-                if (numberRoomsError) numberRoomsError.style.display = 'none';
+            } else if (numberRoomsError) {
+                numberRoomsError.style.display = 'none';
             }
         });
     }
 
-    // Windows validation (max 10)
+    // --- Windows (0 to 10) ---
     if (windowInput) {
         windowInput.addEventListener('input', function() {
+            if (this.value.length > 2) this.value = this.value.slice(0, 2);
             let val = parseInt(this.value);
             if (this.value !== '' && (isNaN(val) || val > 10)) {
                 this.value = 10;
@@ -508,15 +490,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     windowError.textContent = 'Number of windows cannot be negative!';
                     windowError.style.display = 'block';
                 }
-            } else {
-                if (windowError) windowError.style.display = 'none';
+            } else if (windowError) {
+                windowError.style.display = 'none';
             }
         });
     }
 
-    // Free Bottled Water validation (max 10)
+    // --- Free Bottled Water (0 to 10) ---
     if (waterInput) {
         waterInput.addEventListener('input', function() {
+            if (this.value.length > 2) this.value = this.value.slice(0, 2);
             let val = parseInt(this.value);
             if (this.value !== '' && (isNaN(val) || val > 10)) {
                 this.value = 10;
@@ -529,58 +512,45 @@ document.addEventListener('DOMContentLoaded', function() {
                     waterError.textContent = 'Quantity cannot be negative!';
                     waterError.style.display = 'block';
                 }
-            } else {
-                if (waterError) waterError.style.display = 'none';
+            } else if (waterError) {
+                waterError.style.display = 'none';
             }
         });
     }
 
-    // Description validation & live character counter (max 255)
+    // --- Description (max 255 chars) ---
     const descCounter = document.getElementById('descCounter');
     function updateDescCounter() {
         if (!descInput) return;
         let len = descInput.value.length;
         if (descCounter) {
             descCounter.textContent = len + '/255 characters';
-            if (len >= 255) {
-                descCounter.className = 'text-danger small fw-bold';
-            } else {
-                descCounter.className = 'text-muted small';
-            }
+            descCounter.className = len >= 255 ? 'text-danger small fw-bold' : 'text-muted small';
         }
-        if (len >= 255) {
-            if (descError) {
-                descError.textContent = 'Maximum limit of 255 characters reached!';
-                descError.style.display = 'block';
-            }
-        } else {
-            if (descError) descError.style.display = 'none';
+        if (len >= 255 && descError) {
+            descError.textContent = 'Maximum limit of 255 characters reached!';
+            descError.style.display = 'block';
+        } else if (descError) {
+            descError.style.display = 'none';
         }
     }
-
     if (descInput) {
         descInput.addEventListener('input', function() {
-            if (this.value.length > 255) {
-                this.value = this.value.substring(0, 255);
-            }
+            if (this.value.length > 255) this.value = this.value.slice(0, 255);
             updateDescCounter();
         });
         descInput.addEventListener('keyup', updateDescCounter);
         updateDescCounter();
     }
 
-    // Max Guests & Beds validation
-=======
-    // --- Max Guests & Beds Validation ---
->>>>>>> origin/main
+    // --- Max Guests (1 to 10) & Beds (1 to 5) ---
     function validateGuestsAndBeds() {
+        if (personInput && personInput.value.length > 2) personInput.value = personInput.value.slice(0, 2);
+        if (bedInput && bedInput.value.length > 1) bedInput.value = bedInput.value.slice(0, 1);
+
         let pVal = parseInt(personInput ? personInput.value : 0);
         let bVal = parseInt(bedInput ? bedInput.value : 0);
 
-<<<<<<< HEAD
-=======
-        // Guests check
->>>>>>> origin/main
         if (personInput && personInput.value !== '') {
             if (pVal > 10) {
                 personInput.value = 10;
@@ -594,15 +564,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     guestError.textContent = 'Minimum guests must be at least 1!';
                     guestError.style.display = 'block';
                 }
-            } else {
-                if (guestError) guestError.style.display = 'none';
+            } else if (guestError) {
+                guestError.style.display = 'none';
             }
         }
 
-<<<<<<< HEAD
-=======
-        // Beds check
->>>>>>> origin/main
         if (bedInput && bedInput.value !== '') {
             if (bVal > 5) {
                 bedInput.value = 5;
@@ -621,8 +587,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     bedError.textContent = 'Number of beds cannot exceed max guests!';
                     bedError.style.display = 'block';
                 }
-            } else {
-                if (bedError) bedError.style.display = 'none';
+            } else if (bedError) {
+                bedError.style.display = 'none';
             }
         }
     }
@@ -639,7 +605,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Form Submit Guard ---
     if (form) {
         form.addEventListener('submit', function(e) {
-<<<<<<< HEAD
             let tVal = typeInput ? typeInput.value.trim() : '';
             let prVal = parseFloat(priceInput ? priceInput.value : 0);
             let aVal = parseFloat(acreageInput ? acreageInput.value : 0);
@@ -659,11 +624,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 typeInput.focus();
                 return;
             }
-=======
-            let prVal = parseFloat(priceInput ? priceInput.value : 0);
-            let pVal = parseInt(personInput ? personInput.value : 0);
-            let bVal = parseInt(bedInput ? bedInput.value : 0);
->>>>>>> origin/main
 
             if (isNaN(prVal) || prVal < 100000 || prVal > 50000000) {
                 e.preventDefault();
@@ -675,7 +635,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-<<<<<<< HEAD
             if (isNaN(aVal) || aVal < 1 || aVal > 300) {
                 e.preventDefault();
                 if (acreageError) {
@@ -696,8 +655,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-=======
->>>>>>> origin/main
             if (isNaN(pVal) || pVal < 1 || pVal > 10) {
                 e.preventDefault();
                 if (guestError) {
@@ -727,7 +684,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 bedInput.focus();
                 return;
             }
-<<<<<<< HEAD
 
             if (isNaN(wVal) || wVal < 0 || wVal > 10) {
                 e.preventDefault();
@@ -758,8 +714,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 waterInput.focus();
                 return;
             }
-=======
->>>>>>> origin/main
         });
     }
 });
