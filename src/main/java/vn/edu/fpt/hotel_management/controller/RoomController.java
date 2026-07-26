@@ -499,8 +499,23 @@ public class RoomController {
             return "redirect:/home";
         }
 
+        if (type == null || type.trim().isEmpty() || type.trim().length() > 30) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Room type must not be empty and cannot exceed 30 characters.");
+            return "redirect:/hotels/" + id + "/rooms/new";
+        }
+
         if (price < 100000 || price > 50000000) {
             redirectAttributes.addFlashAttribute("errorMessage", "Price per night must be between 100,000 VND and 50,000,000 VND.");
+            return "redirect:/hotels/" + id + "/rooms/new";
+        }
+
+        if (acreage < 1 || acreage > 300) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Area must be between 1 and 300 m².");
+            return "redirect:/hotels/" + id + "/rooms/new";
+        }
+
+        if (numberRooms < 1 || numberRooms > 50) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Number of rooms must be between 1 and 50.");
             return "redirect:/hotels/" + id + "/rooms/new";
         }
 
@@ -514,11 +529,25 @@ public class RoomController {
             return "redirect:/hotels/" + id + "/rooms/new";
         }
 
+        if (window < 0 || window > 10) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Number of windows must be between 0 and 10.");
+            return "redirect:/hotels/" + id + "/rooms/new";
+        }
+
         if (bed > person) {
             redirectAttributes.addFlashAttribute("errorMessage", "Number of beds cannot exceed max guests.");
             return "redirect:/hotels/" + id + "/rooms/new";
         }
 
+        if (description != null && description.trim().length() > 255) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Description cannot exceed 255 characters.");
+            return "redirect:/hotels/" + id + "/rooms/new";
+        }
+
+        if (freeBottledWater < 0 || freeBottledWater > 10) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Free bottled water quantity must be between 0 and 10.");
+            return "redirect:/hotels/" + id + "/rooms/new";
+        }
         boolean hasBathroom = (freeToiletries != null && freeToiletries)
                 || (shower != null && shower)
                 || (bathrobe != null && bathrobe)
@@ -770,8 +799,23 @@ public class RoomController {
             return "redirect:/owner/hotels/" + id;
         }
 
+        if (type == null || type.trim().isEmpty() || type.trim().length() > 30) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Room type must not be empty and cannot exceed 30 characters.");
+            return "redirect:/owner/hotels/" + id + "/rooms/" + roomId + "/edit";
+        }
+
         if (price < 100000 || price > 50000000) {
             redirectAttributes.addFlashAttribute("errorMessage", "Price per night must be between 100,000 VND and 50,000,000 VND.");
+            return "redirect:/owner/hotels/" + id + "/rooms/" + roomId + "/edit";
+        }
+
+        if (acreage < 1 || acreage > 300) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Area must be between 1 and 300 m².");
+            return "redirect:/owner/hotels/" + id + "/rooms/" + roomId + "/edit";
+        }
+
+        if (numberRooms < 1 || numberRooms > 50) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Number of rooms must be between 1 and 50.");
             return "redirect:/owner/hotels/" + id + "/rooms/" + roomId + "/edit";
         }
 
@@ -785,11 +829,25 @@ public class RoomController {
             return "redirect:/owner/hotels/" + id + "/rooms/" + roomId + "/edit";
         }
 
+        if (window < 0 || window > 10) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Number of windows must be between 0 and 10.");
+            return "redirect:/owner/hotels/" + id + "/rooms/" + roomId + "/edit";
+        }
+
         if (bed > person) {
             redirectAttributes.addFlashAttribute("errorMessage", "Number of beds cannot exceed max guests.");
             return "redirect:/owner/hotels/" + id + "/rooms/" + roomId + "/edit";
         }
 
+        if (description != null && description.trim().length() > 255) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Description cannot exceed 255 characters.");
+            return "redirect:/owner/hotels/" + id + "/rooms/" + roomId + "/edit";
+        }
+
+        if (freeBottledWater < 0 || freeBottledWater > 10) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Free bottled water quantity must be between 0 and 10.");
+            return "redirect:/owner/hotels/" + id + "/rooms/" + roomId + "/edit";
+        }
         boolean hasBathroom = (freeToiletries != null && freeToiletries)
                 || (shower != null && shower)
                 || (bathrobe != null && bathrobe)
