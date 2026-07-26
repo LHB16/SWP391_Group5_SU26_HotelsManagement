@@ -1,362 +1,387 @@
+// DBML (Database Markup Language) cho Hệ Thống Hotel Booking
+// Sắp xếp cân bằng 4 cột đồng đều, tối ưu diện tích hiển thị (Loại bỏ khoảng trống thừa)
 
+// =====================================================
+// 1. USERS & AUTHENTICATION (CỘT 1)
+// =====================================================
 
-// 1. NHÓM USER & AUTHENTICATION
 Table user_accounts {
-  id INT [pk, note: 'Mã định danh duy nhất của tài khoản.']
-  email NVARCHAR(255) [note: 'Email đăng nhập của người dùng, không được trùng.']
-  username NVARCHAR(255) [note: 'Tên đăng nhập của người dùng, không được trùng.']
-  password NVARCHAR(255) [note: 'Mật khẩu đã được mã hóa.']
-  role NVARCHAR(50) [note: 'Vai trò của tài khoản: CUSTOMER, HOTEL_OWNER hoặc ADMIN.']
-  enabled BIT [note: 'Trạng thái kích hoạt tài khoản.']
-  otp NVARCHAR(255) [note: 'Mã OTP dùng để xác thực.']
-  otp_expiry DATETIME2 [note: 'Thời gian hết hạn của OTP.']
-  otp_type NVARCHAR(50) [note: 'Loại OTP: REGISTER, FORGOT_PASSWORD, LOGIN, hoặc UPDATE_PROFILE.']
-  created_at DATETIME2 [note: 'Thời gian tạo tài khoản.']
-  updated_at DATETIME2 [note: 'Thời gian cập nhật tài khoản gần nhất.']
+  id int [pk, increment]
+  email nvarchar(255) [not null, unique]
+  username nvarchar(255) [not null, unique]
+  password nvarchar(255) [not null]
+  role nvarchar(50) [not null, note: "CUSTOMER, HOTEL_OWNER, ADMIN"]
+  enabled bit [not null, default: 1]
+  otp nvarchar(255)
+  otp_expiry datetime2
+  otp_type nvarchar(50) [note: "REGISTER, FORGOT_PASSWORD, LOGIN, UPDATE_PROFILE"]
+  created_at datetime2 [not null, default: `now()`]
+  updated_at datetime2 [not null, default: `now()`]
 }
-
 
 Table admins {
-  id INT [pk, note: 'Mã định danh duy nhất của admin.']
-  user_account_id INT [note: 'Khóa ngoại liên kết đến bảng user_accounts.']
-  full_name NVARCHAR(255) [note: 'Họ và tên quản trị viên.']
-  phone NVARCHAR(20) [note: 'Số điện thoại admin.']
+  id int [pk, increment]
+  user_account_id int [not null, unique]
+  full_name nvarchar(255) [not null]
+  phone nvarchar(20)
 }
-
 
 Table customers {
-  id INT [pk, note: 'Mã định danh duy nhất của khách hàng.']
-  user_account_id INT [note: 'Khóa ngoại liên kết đến bảng user_accounts.']
-  full_name NVARCHAR(255) [note: 'Họ và tên khách hàng.']
-  phone NVARCHAR(20) [note: 'Số điện thoại khách hàng.']
-  address NVARCHAR(500) [note: 'Địa chỉ khách hàng.']
-  city NVARCHAR(100) [note: 'Thành phố của khách hàng.']
-  country NVARCHAR(100) [note: 'Quốc gia của khách hàng.']
-  date_of_birth DATE [note: 'Ngày sinh của khách hàng.']
+  id int [pk, increment]
+  user_account_id int [not null, unique]
+  full_name nvarchar(255) [not null]
+  phone nvarchar(20)
+  address nvarchar(500)
+  city nvarchar(100)
+  country nvarchar(100)
+  date_of_birth date
+  gender nvarchar(10) [note: "MALE, FEMALE, OTHER"]
 }
-
 
 Table hotel_owners {
-  id INT [pk, note: 'Mã định danh duy nhất của chủ khách sạn.']
-  user_account_id INT [note: 'Khóa ngoại liên kết đến bảng user_accounts.']
-  full_name NVARCHAR(255) [note: 'Họ và tên chủ khách sạn.']
-  phone NVARCHAR(20) [note: 'Số điện thoại chủ khách sạn.']
-  address NVARCHAR(500) [note: 'Địa chỉ của chủ khách sạn. theo CCCD']
-  id_card NVARCHAR(20) [note: 'Số căn cước hoặc chứng minh nhân dân.']
-  tax_id NVARCHAR(20) [note: 'Mã số thuế cá nhân']
-  verification_status NVARCHAR(50) [note: 'Trạng thái xác minh: PENDING, APPROVED, REJECTED hoặc RESUBMIT.']
-  verified_at DATETIME2 [note: 'Thời gian được xác minh.']
-  rejection_reason NVARCHAR(MAX) [note: 'Lý do bị từ chối xác minh.']
-  id_card_document NVARCHAR(500) [note: 'Đường dẫn giấy tờ tùy thân.']
-  // PAYOUT: Thông tin ngân hàng nhận đối soát từ Admin
-  bank_name NVARCHAR(255) [note: 'Tên ngân hàng của Owner để nhận tiền đối soát.']
-  bank_account_number NVARCHAR(50) [note: 'Số tài khoản ngân hàng của Owner.']
-  bank_account_holder NVARCHAR(255) [note: 'Tên chủ tài khoản ngân hàng (in hoa theo chuẩn ngân hàng).']
+  id int [pk, increment]
+  user_account_id int [not null, unique]
+  full_name nvarchar(255) [not null]
+  phone nvarchar(20)
+  address nvarchar(500)
+  id_card nvarchar(20)
+  tax_id nvarchar(20)
+  verification_status nvarchar(50) [note: "PENDING, APPROVED, REJECTED"]
+  verified_at datetime2
+  rejection_reason nvarchar(max)
+  id_card_document nvarchar(500)
+  bank_name nvarchar(255)
+  bank_account_number nvarchar(50)
+  bank_account_holder nvarchar(255)
 }
 
+Table banners {
+  id int [pk, increment, note: "Unique identifier for the banner"]
+  image_url nvarchar(500) [not null, note: "URL path of the banner image"]
+  link_url nvarchar(500) [note: "Target URL destination when clicked"]
+  title nvarchar(255) [note: "Title or caption of the banner"]
+  active bit [not null, default: 1, note: "Display status (1: Active, 0: Inactive)"]
 
-// 2. NHÓM QUẢN LÝ KHÁCH SẠN
-Table hotel_verification_documents {
-  id INT [pk, note: 'Mã định danh duy nhất của tài liệu.']
-  hotel_owner_id INT [note: 'Khóa ngoại liên kết đến bảng hotel_owners.']
-  hotel_id INT [note: 'Giấy tờ này thuộc khách sạn nào']
-  phone NVARCHAR(20) [note: 'Số điện thoại khách sạn.']
-  email NVARCHAR(255) [note: 'Email liên hệ của khách sạn.']
-  business_registration_doc NVARCHAR(500) [note: 'Đường dẫn giấy đăng ký kinh doanh.']
-  land_certificate_doc NVARCHAR(500) [note: 'Đường dẫn giấy chứng nhận quyền sử dụng đất.']
-  rental_contract_doc NVARCHAR(500) [note: 'Đường dẫn hợp đồng thuê mặt bằng.']
-  upload_status NVARCHAR(50) [note: 'Trạng thái tài liệu: UPLOADED, VERIFYING, VERIFIED hoặc REJECTED.']
-  rejection_reason NVARCHAR(MAX) [note: 'Lý do tài liệu bị từ chối.']
-  verified_at DATETIME2 [note: 'Thời gian tài liệu được xác minh.']
-  created_at DATETIME2 [note: 'Thời gian tải tài liệu lên.']
+  Note: 'Stores promotional banners and slider images displayed on the homepage, managed by system admins.'
 }
 
+// =====================================================
+// 2. HOTEL MANAGEMENT (CỘT 2)
+// =====================================================
 
 Table hotel {
-  id INT [pk, note: 'Mã định danh duy nhất của khách sạn.']
-  owner_id INT [note: 'Khóa ngoại liên kết đến bảng hotel_owners.']
-  name NVARCHAR(255) [note: 'Tên khách sạn.']
-  address NVARCHAR(255) [note: 'Địa chỉ khách sạn.']
-  city NVARCHAR(100) [note: 'Thành phố nơi khách sạn hoạt động.']
-  district NVARCHAR(100) [note: 'Quận hoặc huyện của khách sạn.']
-  image_url NVARCHAR(500) [note: 'Đường dẫn ảnh đại diện khách sạn.']
-  description NVARCHAR(MAX) [note: 'Mô tả chi tiết khách sạn.']
-  rating FLOAT [note: 'Điểm đánh giá trung bình của khách sạn.']
-  total_feedbacks INT [note: 'Tổng số lượt đánh giá.']
-  approval_status NVARCHAR(50) [note: 'Trạng thái duyệt khách sạn: PENDING, APPROVED, REJECTED hoặc INACTIVE.']
-  active BIT [note: 'Trạng thái hoạt động của khách sạn.']
-  approved_at DATETIME2 [note: 'Thời gian khách sạn được duyệt.']
-  rejection_reason NVARCHAR(MAX) [note: 'Lý do khách sạn bị từ chối.']
-  created_at DATETIME2 [note: 'Thời gian tạo khách sạn.']
-  updated_at DATETIME2 [note: 'Thời gian cập nhật khách sạn gần nhất.']
+  id int [pk, increment]
+  owner_id int [not null]
+  name nvarchar(255) [not null]
+  address nvarchar(255) [not null]
+  city nvarchar(100)
+  district nvarchar(100)
+  image_url nvarchar(500)
+  description nvarchar(max)
+  rating decimal(2,1) [not null, default: 0]
+  total_feedbacks int [not null, default: 0]
+  approval_status nvarchar(50) [note: "PENDING, APPROVED, REJECTED"]
+  active bit [not null, default: 1]
+  approved_at datetime2
+  rejection_reason nvarchar(max)
+  created_at datetime2 [not null, default: `now()`]
+  updated_at datetime2 [not null, default: `now()`]
 }
 
+Table hotel_verification_documents {
+  id int [pk, increment]
+  hotel_id int [not null, unique]
+  phone nvarchar(20)
+  email nvarchar(255)
+  business_registration_doc nvarchar(500)
+  land_certificate_doc nvarchar(500)
+  rental_contract_doc nvarchar(500)
+  upload_status nvarchar(50) [note: "PENDING, APPROVED, REJECTED"]
+  rejection_reason nvarchar(max)
+  verified_at datetime2
+  created_at datetime2 [not null, default: `now()`]
+}
 
 Table hotel_facilities {
-  id INT [pk, note: 'Mã định danh duy nhất của bản ghi tiện ích.']
-  hotel_id INT [note: 'Khóa ngoại liên kết đến bảng hotel.']
-  parking BIT
-  restaurant BIT
-  breakfast_available BIT
-  fitness_centre BIT
-  non_smoking_rooms BIT
-  airport_shuttle BIT
-  spa_wellness_centre BIT
-  free_wifi BIT
-  ev_charging_station BIT
-  wheelchair_accessible BIT
-  swimming_pool BIT
-  bar_pub BIT
-  rent_vehicle BIT
+  id int [pk, increment]
+  hotel_id int [not null, unique]
+  parking bit [not null, default: 0]
+  restaurant bit [not null, default: 0]
+  breakfast_available bit [not null, default: 0]
+  fitness_centre bit [not null, default: 0]
+  non_smoking_rooms bit [not null, default: 0]
+  airport_shuttle bit [not null, default: 0]
+  spa_wellness_centre bit [not null, default: 0]
+  free_wifi bit [not null, default: 0]
+  ev_charging_station bit [not null, default: 0]
+  wheelchair_accessible bit [not null, default: 0]
+  swimming_pool bit [not null, default: 0]
+  bar_pub bit [not null, default: 0]
 }
-
 
 Table hotel_views {
-  id INT [pk, note: 'Mã định danh duy nhất của bản ghi view.']
-  hotel_id INT [note: 'Khóa ngoại liên kết đến bảng hotel.']
-  city_view BIT
-  beach_view BIT
-  garden_view BIT
-  pool_view BIT
-  river_view BIT
-  mountain_view BIT
+  id int [pk, increment]
+  hotel_id int [not null, unique]
+  city_view bit [not null, default: 0]
+  beach_view bit [not null, default: 0]
+  garden_view bit [not null, default: 0]
+  pool_view bit [not null, default: 0]
+  river_view bit [not null, default: 0]
+  mountain_view bit [not null, default: 0]
 }
 
+// =====================================================
+// 3. ROOM & PROMOTIONS (CỘT 3)
+// =====================================================
 
 Table promotions {
-  id INT [pk, note: 'Mã định danh duy nhất của chương trình khuyến mãi.']
-  hotel_id INT [note: 'Khóa ngoại liên kết đến bảng hotel.']
-  title NVARCHAR(255)
-  description NVARCHAR(MAX)
-  discount_percent DECIMAL(5,2)
-  start_date DATE
-  end_date DATE
-  status NVARCHAR(50)
-  created_at DATETIME2
-  updated_at DATETIME2
+  id int [pk, increment]
+  hotel_id int [not null]
+  title nvarchar(255)
+  description nvarchar(max)
+  discount_percent decimal(5,2)
+  start_date date
+  end_date date
+  status nvarchar(50) [note: "ACTIVE, INACTIVE, EXPIRED"]
+  created_at datetime2 [not null, default: `now()`]
+  updated_at datetime2 [not null, default: `now()`]
 }
 
-
-// 3. NHÓM QUẢN LÝ PHÒNG
 Table room {
-  id INT [pk, note: 'Mã định danh duy nhất của phòng.']
-  hotel_id INT [note: 'Khóa ngoại liên kết đến bảng hotel.']
-  room_type NVARCHAR(255)
-  number_rooms INT
-  description NVARCHAR(MAX)
-  price DECIMAL(38,2)
-  acreage FLOAT
-  bed INT
-  person INT
-  num_window INT
-  img_url NVARCHAR(500)
-  room_status BIT
-  created_at DATETIME2
-  updated_at DATETIME2
+  id int [pk, increment]
+  hotel_id int [not null]
+  room_type nvarchar(255)
+  number_rooms int
+  description nvarchar(max)
+  price decimal(38,2)
+  acreage float
+  bed int
+  person int
+  num_window int
+  img_url nvarchar(500)
+  room_status bit
+  created_at datetime2 [not null, default: `now()`]
+  updated_at datetime2 [not null, default: `now()`]
 }
-
 
 Table room_facilities {
-  id INT [pk, note: 'Mã định danh duy nhất của tiện ích phòng.']
-  room_id INT [note: 'Khóa ngoại liên kết đến bảng room.']
-  free_toiletries BIT
-  shower BIT
-  bathrobe BIT
-  toilet BIT
-  towels BIT
-  slippers BIT
-  hairdryer BIT
-  toilet_paper BIT
-  air_conditioning BIT
-  safety_deposit_box BIT
-  desk BIT
-  television BIT
-  telephone BIT
-  iron BIT
-  electric_kettle BIT
-  cable_channels BIT
-  wake_up_service BIT
-  wardrobe_closet BIT
-  clothes_rack BIT
-  free_bottled_water INT
-  created_at DATETIME2
-  updated_at DATETIME2
+  id int [pk, increment]
+  room_id int [not null, unique]
+  free_toiletries bit [not null, default: 0]
+  shower bit [not null, default: 0]
+  bathrobe bit [not null, default: 0]
+  toilet bit [not null, default: 0]
+  towels bit [not null, default: 0]
+  slippers bit [not null, default: 0]
+  hairdryer bit [not null, default: 0]
+  toilet_paper bit [not null, default: 0]
+  air_conditioning bit [not null, default: 0]
+  safety_deposit_box bit [not null, default: 0]
+  desk bit [not null, default: 0]
+  television bit [not null, default: 0]
+  telephone bit [not null, default: 0]
+  iron bit [not null, default: 0]
+  electric_kettle bit [not null, default: 0]
+  cable_channels bit [not null, default: 0]
+  wake_up_service bit [not null, default: 0]
+  wardrobe_closet bit [not null, default: 0]
+  clothes_rack bit [not null, default: 0]
+  free_bottled_water int [not null, default: 0]
+  created_at datetime2 [not null, default: `now()`]
+  updated_at datetime2 [not null, default: `now()`]
 }
 
+Table wishlists {
+  id int [pk, increment]
+  customer_id int [not null]
+  room_id int [not null]
+  check_in_date date
+  check_out_date date
+  added_at datetime2 [not null, default: `now()`]
+}
 
-// 4. NHÓM ĐẶT PHÒNG & THANH TOÁN
+// =====================================================
+// 4. BOOKING, PAYMENT, FEEDBACK & MESSAGES (CỘT 4)
+// =====================================================
+
 Table bookings {
-  id INT [pk, note: 'Mã định danh duy nhất của đơn đặt phòng.']
-  customer_id INT [note: 'Khóa ngoại liên kết đến bảng customers.']
-  room_id INT [note: 'Khóa ngoại liên kết đến bảng room.']
-  hotel_id INT [note: 'Khóa ngoại liên kết đến bảng hotel.']
-  phone NVARCHAR(20)
-  full_name NVARCHAR(255)
-  email NVARCHAR(255) [note: 'Email của khách hàng dùng khi đặt phòng.']
-  id_promotion INT [note: 'Khóa ngoại liên kết đến bảng promotions (nếu có áp mã giảm giá).']
-  check_in_date DATE
-  check_out_date DATE
-  num_nights INT
-  total_price DECIMAL(38,2)
-  status NVARCHAR(50) [note: 'Trạng thái: PENDING, CONFIRMED, COMPLETED, CANCELLED, REJECTED, EXPIRED.']
-  special_notes NVARCHAR(MAX)
-  created_at DATETIME2
-  updated_at DATETIME2
-  quantity INT [default: 1, note: 'Số lượng phòng đặt.']
-  // PAYOUT: Thông tin đối soát tiền cho Owner
-  platform_fee_percent DECIMAL(5,2) [note: '% phí sàn Admin thu (mặc định 10%).']
-  platform_fee_amount DECIMAL(38,2) [note: 'Số tiền phí sàn Admin giữ lại.']
-  owner_payout_amount DECIMAL(38,2) [note: 'Số tiền thực tế chuyển cho Owner.']
-  payout_status NVARCHAR(50) [note: 'Trạng thái đối soát: PENDING (chưa chuyển) hoặc PAID (đã chuyển).']
-  payout_at DATETIME2 [note: 'Thời điểm Admin xác nhận đã chuyển khoản cho Owner.']
-  // Snapshot ngân hàng – lưu tại thời điểm chuyển, không đổi khi Owner cập nhật STK sau
-  payout_bank_name NVARCHAR(255) [note: 'Snapshot: Tên ngân hàng tại thời điểm đối soát.']
-  payout_bank_account_number NVARCHAR(50) [note: 'Snapshot: Số tài khoản tại thời điểm đối soát.']
-  payout_bank_account_holder NVARCHAR(255) [note: 'Snapshot: Tên chủ tài khoản tại thời điểm đối soát.']
+  id int [pk, increment]
+  customer_id int [not null]
+  room_id int [not null]
+  hotel_id int [not null]
+  phone nvarchar(20)
+  full_name nvarchar(255)
+  email nvarchar(255)
+  id_promotion int
+  check_in_date date
+  check_out_date date
+  num_nights int
+  total_price decimal(38,2)
+  status nvarchar(50) [note: "PENDING, CONFIRMED, COMPLETED, CANCELLED, REJECTED, EXPIRED"]
+  special_notes nvarchar(max)
+  created_at datetime2 [not null, default: `now()`]
+  updated_at datetime2
+  quantity int [not null, default: 1]
+  checked_in_at datetime2
+  checked_out_at datetime2
+  platform_fee_percent decimal(5,2)
+  platform_fee_amount decimal(38,2)
+  owner_payout_amount decimal(38,2)
+  payout_status nvarchar(50) [note: "PENDING, PAID"]
+  payout_at datetime2
+  payout_bank_name nvarchar(255)
+  payout_bank_account_number nvarchar(50)
+  payout_bank_account_holder nvarchar(255)
 }
-
 
 Table payments {
-  id INT [pk, note: 'Mã định danh duy nhất của thanh toán.']
-  booking_id INT [note: 'Khóa ngoại liên kết đến bảng bookings.']
-  amount DECIMAL(38,2)
-  method NVARCHAR(50)
-  status NVARCHAR(50)
-  qr_code_url NVARCHAR(500)
-  transaction_id NVARCHAR(255)
-  paid_at DATETIME2
-  created_at DATETIME2
-  qr_expires_at DATETIME2
+  id int [pk, increment]
+  booking_id int [not null]
+  amount decimal(38,2)
+  method nvarchar(50) [note: "QR_CODE, CASH, BANK_TRANSFER, MOMO, VNPAY, PAYPAL"]
+  status nvarchar(50) [note: "PENDING, PAID, FAILED, EXPIRED, REFUNDED"]
+  qr_code_url nvarchar(500)
+  transaction_id nvarchar(255)
+  paid_at datetime2
+  created_at datetime2 [not null, default: `now()`]
+  qr_expires_at datetime2
 }
-
-
-// 5. NHÓM TƯƠNG TÁC KHÁCH HÀNG
-Table wishlists {
-  id INT [pk, note: 'Mã định danh duy nhất của mục yêu thích.']
-  customer_id INT [note: 'Khóa ngoại liên kết đến bảng customers.']
-  room_id INT [note: 'Khóa ngoại liên kết đến bảng room.']
-  check_in_date DATE
-  check_out_date DATE
-  added_at DATETIME2
-}
-//CHAT WITH HOTEL OWNER
-Table messages {
-  id INT [pk, note: 'Mã định danh duy nhất của tin nhắn.']
-  sender_id INT [note: 'Khóa ngoại liên kết đến tài khoản người gửi.']
-  receiver_id INT [note: 'Khóa ngoại liên kết đến tài khoản người nhận.']
-  booking_id INT [note: 'Khóa ngoại liên kết đến bảng bookings.']
-  hotel_id INT [note: 'Khóa ngoại liên kết đến bảng hotel.']
-  content NVARCHAR(MAX)
-  is_read BIT
-  sent_at DATETIME2
-}
-
-
-Table feedback {
-  id INT [pk, note: 'Mã định danh duy nhất của đánh giá.']
-  customer_id INT [note: 'Khóa ngoại liên kết đến bảng customers.']
-  hotel_id INT [note: 'Khóa ngoại liên kết đến bảng hotel.']
-  room_id INT [note: 'Khóa ngoại liên kết đến bảng room.']
-  user_full_name NVARCHAR(255)
-  room_type NVARCHAR(255)
-  comment NVARCHAR(1000)
-  rating INT
-  upvote INT [default: 0]
-  downvote INT [default: 0]
-  status NVARCHAR(50)
-  created_at DATETIME2
-  updated_at DATETIME2
-}
-
-
-Table feedback_votes {
-  id INT [pk]
-  feedback_id INT [note: 'Khóa ngoại liên kết đến bảng feedback.']
-  customer_id INT [note: 'Khóa ngoại liên kết đến bảng customers.']
-  vote_type NVARCHAR(10) [note: 'Loại vote: UPVOTE hoặc DOWNVOTE']
-  created_at DATETIME2
-}
-
-
-Table feedback_replies {
-  id INT [pk, note: 'Mã định danh duy nhất của phản hồi.']
-  feedback_id INT [note: 'Khóa ngoại liên kết đến bảng feedback.']
-  owner_id INT [note: 'Khóa ngoại liên kết đến bảng hotel_owners.']
-  hotel_id INT [note: 'Khóa ngoại liên kết đến bảng hotel.']
-  content NVARCHAR(1000)
-  created_at DATETIME2
-  updated_at DATETIME2
-}
-
-
-
-
-
 
 Table refunds {
-  id INT [pk, note: 'Mã định danh duy nhất của lượt hoàn tiền.']
-  booking_id INT [unique, note: 'Khóa ngoại liên kết 1-1 đến bảng bookings.']
-  bank_name NVARCHAR(255) [note: 'Tên ngân hàng nhận hoàn tiền.']
-  account_number NVARCHAR(50) [note: 'Số tài khoản nhận hoàn tiền.']
-  account_holder NVARCHAR(255) [note: 'Tên chủ tài khoản.']
-  refund_amount DECIMAL(38,2) [note: 'Số tiền hoàn lại cho khách hàng.']
-  status NVARCHAR(50) [note: 'Trạng thái hoàn tiền: PENDING, PROCESSED, REJECTED.']
-  note NVARCHAR(MAX) [note: 'Ghi chú xử lý hoàn tiền.']
-  cancellation_reason NVARCHAR(1000) [note: 'Lý do hủy đặt phòng.']
-  requested_at DATETIME2 [note: 'Thời điểm khách yêu cầu hoàn tiền.']
-  processed_at DATETIME2 [note: 'Thời điểm hoàn tiền hoàn tất.']
+  id int [pk, increment]
+  booking_id int [not null, unique]
+  bank_name nvarchar(255)
+  account_number nvarchar(50)
+  account_holder nvarchar(255)
+  refund_amount decimal(38,2) [not null]
+  status nvarchar(50) [not null, default: "PENDING", note: "PENDING, PROCESSED, REJECTED"]
+  note nvarchar(max)
+  cancellation_reason nvarchar(1000)
+  requested_at datetime2 [not null, default: `now()`]
+  processed_at datetime2
 }
 
+Table messages {
+  id int [pk, increment]
+  sender_id int [not null]
+  receiver_id int [not null]
+  booking_id int
+  hotel_id int [not null]
+  content nvarchar(max)
+  is_read bit [not null, default: 0]
+  sent_at datetime2 [not null, default: `now()`]
+}
 
+Table feedback {
+  id int [pk, increment]
+  customer_id int [not null]
+  hotel_id int [not null]
+  room_id int [not null]
+  user_full_name nvarchar(255)
+  room_type nvarchar(255)
+  comment nvarchar(1000)
+  rating int
+  upvote int [not null, default: 0]
+  downvote int [not null, default: 0]
+  status nvarchar(50) [note: "VISIBLE, HIDDEN, PENDING"]
+  created_at datetime2 [not null, default: `now()`]
+  updated_at datetime2 [not null, default: `now()`]
+}
 
+Table feedback_replies {
+  id int [pk, increment]
+  feedback_id int [not null]
+  owner_id int [not null]
+  hotel_id int [not null]
+  content nvarchar(1000)
+  created_at datetime2 [not null, default: `now()`]
+  updated_at datetime2 [not null, default: `now()`]
+}
 
+Table feedback_votes {
+  id int [pk, increment]
+  feedback_id int [not null]
+  customer_id int [not null]
+  vote_type nvarchar(10) [not null, note: "UPVOTE, DOWNVOTE"]
+  created_at datetime2 [not null, default: `now()`]
+}
 
+// =====================================================
+// TABLE GROUPS (Gom cố định 4 Cột cân đối diện tích)
+// =====================================================
 
+TableGroup Cot_1_Users {
+  user_accounts
+  admins
+  customers
+  hotel_owners
+  banners
+}
 
+TableGroup Cot_2_Hotel {
+  hotel
+  hotel_verification_documents
+  hotel_facilities
+  hotel_views
+}
 
+TableGroup Cot_3_Room {
+  promotions
+  room
+  room_facilities
+  wishlists
+}
 
+TableGroup Cot_4_Booking_Feedback {
+  bookings
+  payments
+  refunds
+  messages
+  feedback
+  feedback_replies
+  feedback_votes
+}
 
+// =====================================================
+// FOREIGN KEY RELATIONSHIPS
+// =====================================================
 
+Ref: admins.user_account_id - user_accounts.id
+Ref: customers.user_account_id - user_accounts.id
+Ref: hotel_owners.user_account_id - user_accounts.id
 
-// RELATIONSHIPS
-Ref: refunds.booking_id - bookings.id
-Ref: customers.user_account_id > user_accounts.id
-Ref: hotel_owners.user_account_id > user_accounts.id
-Ref: admins.user_account_id > user_accounts.id
-Ref: hotel_verification_documents.hotel_owner_id > hotel_owners.id
 Ref: hotel.owner_id > hotel_owners.id
-Ref: hotel_facilities.hotel_id > hotel.id
-Ref: hotel_views.hotel_id > hotel.id
+Ref: hotel_verification_documents.hotel_id - hotel.id
+Ref: hotel_facilities.hotel_id - hotel.id
+Ref: hotel_views.hotel_id - hotel.id
 Ref: promotions.hotel_id > hotel.id
 Ref: room.hotel_id > hotel.id
-Ref: room_facilities.room_id > room.id
+
+Ref: room_facilities.room_id - room.id
+
 Ref: bookings.customer_id > customers.id
 Ref: bookings.room_id > room.id
 Ref: bookings.hotel_id > hotel.id
+Ref: bookings.id_promotion > promotions.id
+
 Ref: payments.booking_id > bookings.id
+Ref: refunds.booking_id - bookings.id
+
 Ref: wishlists.customer_id > customers.id
 Ref: wishlists.room_id > room.id
+
 Ref: messages.sender_id > user_accounts.id
 Ref: messages.receiver_id > user_accounts.id
 Ref: messages.booking_id > bookings.id
 Ref: messages.hotel_id > hotel.id
+
 Ref: feedback.customer_id > customers.id
 Ref: feedback.hotel_id > hotel.id
 Ref: feedback.room_id > room.id
+
 Ref: feedback_replies.feedback_id > feedback.id
 Ref: feedback_replies.owner_id > hotel_owners.id
+Ref: feedback_replies.hotel_id > hotel.id
+
 Ref: feedback_votes.feedback_id > feedback.id
 Ref: feedback_votes.customer_id > customers.id
-
-
-
-
-
-
-
-
-
-
-
-
-

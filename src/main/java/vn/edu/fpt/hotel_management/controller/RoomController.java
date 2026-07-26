@@ -499,6 +499,26 @@ public class RoomController {
             return "redirect:/home";
         }
 
+        if (price < 100000 || price > 50000000) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Price per night must be between 100,000 VND and 50,000,000 VND.");
+            return "redirect:/hotels/" + id + "/rooms/new";
+        }
+
+        if (person < 1 || person > 10) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Max guests must be between 1 and 10.");
+            return "redirect:/hotels/" + id + "/rooms/new";
+        }
+
+        if (bed < 1 || bed > 5) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Number of beds must be between 1 and 5.");
+            return "redirect:/hotels/" + id + "/rooms/new";
+        }
+
+        if (bed > person) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Number of beds cannot exceed max guests.");
+            return "redirect:/hotels/" + id + "/rooms/new";
+        }
+
         boolean hasBathroom = (freeToiletries != null && freeToiletries)
                 || (shower != null && shower)
                 || (bathrobe != null && bathrobe)
@@ -748,6 +768,26 @@ public class RoomController {
         if (room == null || room.getHotelId() != id) {
             redirectAttributes.addFlashAttribute("errorMessage", "Room not found.");
             return "redirect:/owner/hotels/" + id;
+        }
+
+        if (price < 100000 || price > 50000000) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Price per night must be between 100,000 VND and 50,000,000 VND.");
+            return "redirect:/owner/hotels/" + id + "/rooms/" + roomId + "/edit";
+        }
+
+        if (person < 1 || person > 10) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Max guests must be between 1 and 10.");
+            return "redirect:/owner/hotels/" + id + "/rooms/" + roomId + "/edit";
+        }
+
+        if (bed < 1 || bed > 5) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Number of beds must be between 1 and 5.");
+            return "redirect:/owner/hotels/" + id + "/rooms/" + roomId + "/edit";
+        }
+
+        if (bed > person) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Number of beds cannot exceed max guests.");
+            return "redirect:/owner/hotels/" + id + "/rooms/" + roomId + "/edit";
         }
 
         boolean hasBathroom = (freeToiletries != null && freeToiletries)

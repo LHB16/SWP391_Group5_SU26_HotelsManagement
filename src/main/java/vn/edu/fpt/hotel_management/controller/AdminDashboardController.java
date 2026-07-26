@@ -32,6 +32,8 @@ import vn.edu.fpt.hotel_management.repository.FeedbackRepository;
 import vn.edu.fpt.hotel_management.repository.RefundRepository;
 import vn.edu.fpt.hotel_management.repository.BannerRepository;
 
+import vn.edu.fpt.hotel_management.service.EmailService;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -39,6 +41,9 @@ import java.util.stream.Collectors;
 
 @Controller
 public class AdminDashboardController {
+
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private BannerRepository bannerRepository;
@@ -523,6 +528,9 @@ public class AdminDashboardController {
         targetUser.setEnabled(newStatus);
         userRepository.save(targetUser);
 
+        // Gửi email thông báo kích hoạt/vô hiệu hóa tài khoản cho Customer
+        emailService.sendAccountStatusUpdate(targetUser, targetCustomer.getFullName(), "Customer Account", newStatus);
+
         String action = newStatus ? "enabled" : "disabled";
         redirectAttributes.addFlashAttribute("successMessage",
                 "Account \"" + targetCustomer.getFullName() + "\" has been " + action + " successfully.");
@@ -675,6 +683,9 @@ public class AdminDashboardController {
             userRepository.save(user);
         }
 
+        // Gửi email thông báo duyệt tài khoản cho Owner
+        emailService.sendOwnerApproved(owner);
+
         redirectAttributes.addFlashAttribute("successMessage", "Hotel Owner \"" + owner.getFullName() + "\" has been approved successfully.");
         return "redirect:/admin/owner-detail?id=" + ownerId;
     }
@@ -702,6 +713,9 @@ public class AdminDashboardController {
         owner.setVerifiedAt(LocalDateTime.now());
         owner.setRejectionReason(rejectionReason);
         hotelOwnerRepository.save(owner);
+
+        // Gửi email thông báo từ chối xác minh cho Owner
+        emailService.sendOwnerRejected(owner, rejectionReason);
 
         redirectAttributes.addFlashAttribute("successMessage", "Hotel Owner \"" + owner.getFullName() + "\" has been rejected.");
         return "redirect:/admin/owner-detail?id=" + ownerId;
@@ -741,6 +755,9 @@ public class AdminDashboardController {
             if (hotel.getOwner() != null) {
                 ownerId = hotel.getOwner().getId();
             }
+
+            // Gửi email thông báo duyệt khách sạn thành công cho Owner
+            emailService.sendHotelApproved(hotel);
         }
 
         redirectAttributes.addFlashAttribute("successMessage", "Hotel verification documents approved successfully.");
@@ -781,6 +798,9 @@ public class AdminDashboardController {
             if (hotel.getOwner() != null) {
                 ownerId = hotel.getOwner().getId();
             }
+
+            // Gửi email thông báo từ chối khách sạn cho Owner
+            emailService.sendHotelRejected(hotel, rejectionReason);
         }
 
         redirectAttributes.addFlashAttribute("successMessage", "Hotel verification documents rejected.");
@@ -825,6 +845,9 @@ public class AdminDashboardController {
             }
         }
 
+        // Gửi email thông báo kích hoạt/vô hiệu hóa tài khoản cho Hotel Owner
+        emailService.sendAccountStatusUpdate(targetUser, targetOwner.getFullName(), "Hotel Owner Account", newStatus);
+
         String action = newStatus ? "enabled" : "disabled";
         redirectAttributes.addFlashAttribute("successMessage",
                 "Owner account \"" + targetOwner.getFullName() + "\" has been " + action + " successfully.");
@@ -865,6 +888,9 @@ public class AdminDashboardController {
             hotelVerificationDocumentRepository.save(doc);
         }
 
+        // Gửi email thông báo duyệt khách sạn cho Owner
+        emailService.sendHotelApproved(hotel);
+
         int ownerId = (hotel.getOwner() != null) ? hotel.getOwner().getId() : 0;
         redirectAttributes.addFlashAttribute("successMessage", "Hotel \"" + hotel.getName() + "\" approved successfully.");
         return ownerId > 0 ? "redirect:/admin/owner-detail?id=" + ownerId : "redirect:/admin/dashboard?tab=hotelOwnerAccounts";
@@ -903,6 +929,9 @@ public class AdminDashboardController {
             hotelVerificationDocumentRepository.save(doc);
         }
 
+        // Gửi email thông báo từ chối khách sạn cho Owner
+        emailService.sendHotelRejected(hotel, rejectionReason);
+
         int ownerId = (hotel.getOwner() != null) ? hotel.getOwner().getId() : 0;
         redirectAttributes.addFlashAttribute("successMessage", "Hotel \"" + hotel.getName() + "\" rejected.");
         return ownerId > 0 ? "redirect:/admin/owner-detail?id=" + ownerId : "redirect:/admin/dashboard?tab=hotelOwnerAccounts";
@@ -930,6 +959,9 @@ public class AdminDashboardController {
         boolean newStatus = !hotel.isActive();
         hotel.setActive(newStatus);
         hotelRepository.save(hotel);
+
+        // Gửi email thông báo kích hoạt/tạm ngưng hoạt động khách sạn cho Owner
+        emailService.sendHotelStatusUpdate(hotel, newStatus);
 
         String action = newStatus ? "activated" : "deactivated";
         redirectAttributes.addFlashAttribute("successMessage",
@@ -960,6 +992,9 @@ public class AdminDashboardController {
 
         hotel.setActive(active);
         hotelRepository.save(hotel);
+
+        // Gửi email thông báo kích hoạt/tạm ngưng hoạt động khách sạn cho Owner
+        emailService.sendHotelStatusUpdate(hotel, active);
 
         String action = active ? "active" : "inactive";
         redirectAttributes.addFlashAttribute("successMessage",
@@ -1117,6 +1152,9 @@ public class AdminDashboardController {
             booking.setPayoutBankAccountHolder(owner.getBankAccountHolder());
 
             bookingRepository.save(booking);
+
+            // Gửi email thông báo thanh toán Payout cho Owner
+            emailService.sendPayoutProcessed(booking);
 
             Map<String, Object> result = new HashMap<>();
             result.put("success", true);

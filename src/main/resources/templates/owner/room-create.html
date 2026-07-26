@@ -55,7 +55,8 @@
                                 <div class="col-12 col-sm-6">
                                     <label class="lbl" for="roomPrice">Price / Night (VND) <span class="text-danger">*</span></label>
                                     <input type="number" name="price" id="roomPrice" class="fc"
-                                           placeholder="e.g. 500000" min="100000" step="1" required />
+                                           placeholder="e.g. 500000" min="100000" max="50000000" step="1" required />
+                                    <div id="priceError" class="text-danger small mt-1" style="display: none; font-weight: 600;"></div>
                                 </div>
                                 <div class="col-12 col-sm-6">
                                     <label class="lbl" for="roomAcreage">Area (m²) <span class="text-danger">*</span></label>
@@ -95,12 +96,14 @@
                                 <div class="col-12 col-sm-4">
                                     <label class="lbl" for="personInput">Max Guests <span class="text-danger">*</span></label>
                                     <input type="number" name="person" id="personInput" class="fc"
-                                           placeholder="e.g. 2" min="1" max="20" required />
+                                           placeholder="e.g. 2" min="1" max="10" required />
+                                    <div id="guestError" class="text-danger small mt-1" style="display: none; font-weight: 600;"></div>
                                 </div>
                                 <div class="col-12 col-sm-4">
                                     <label class="lbl" for="bedInput">Beds <span class="text-danger">*</span></label>
                                     <input type="number" name="bed" id="bedInput" class="fc"
-                                           placeholder="e.g. 1" min="1" max="10" required />
+                                           placeholder="e.g. 1" min="1" max="5" required />
+                                    <div id="bedError" class="text-danger small mt-1" style="display: none; font-weight: 600;"></div>
                                 </div>
                                 <div class="col-12 col-sm-4">
                                     <label class="lbl" for="windowInput">Windows <span class="text-danger">*</span></label>
@@ -303,5 +306,152 @@
 
 <footer th:replace="~{fragment/frag :: footer}"></footer>
 <div th:replace="~{fragment/frag :: scripts}"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const priceInput = document.getElementById('roomPrice');
+    const priceError = document.getElementById('priceError');
+    const personInput = document.getElementById('personInput');
+    const guestError = document.getElementById('guestError');
+    const bedInput = document.getElementById('bedInput');
+    const bedError = document.getElementById('bedError');
+    const form = document.getElementById('roomForm');
+
+    // --- Price Validation ---
+    if (priceInput) {
+        priceInput.addEventListener('input', function() {
+            let val = parseFloat(this.value);
+            if (this.value !== '' && (isNaN(val) || val > 50000000)) {
+                this.value = 50000000;
+                if (priceError) {
+                    priceError.textContent = 'Maximum allowed price is 50,000,000 VND / night!';
+                    priceError.style.display = 'block';
+                }
+            } else if (!isNaN(val) && val < 100000 && this.value !== '') {
+                if (priceError) {
+                    priceError.textContent = 'Minimum price must be at least 100,000 VND / night!';
+                    priceError.style.display = 'block';
+                }
+            } else {
+                if (priceError) priceError.style.display = 'none';
+            }
+        });
+
+        priceInput.addEventListener('blur', function() {
+            let val = parseFloat(this.value);
+            if (!isNaN(val) && val > 50000000) this.value = 50000000;
+            if (!isNaN(val) && val >= 100000 && val <= 50000000) {
+                if (priceError) priceError.style.display = 'none';
+            }
+        });
+    }
+
+    // --- Max Guests & Beds Validation ---
+    function validateGuestsAndBeds() {
+        let pVal = parseInt(personInput ? personInput.value : 0);
+        let bVal = parseInt(bedInput ? bedInput.value : 0);
+
+        // Guests check
+        if (personInput && personInput.value !== '') {
+            if (pVal > 10) {
+                personInput.value = 10;
+                pVal = 10;
+                if (guestError) {
+                    guestError.textContent = 'Maximum allowed guests is 10!';
+                    guestError.style.display = 'block';
+                }
+            } else if (pVal < 1) {
+                if (guestError) {
+                    guestError.textContent = 'Minimum guests must be at least 1!';
+                    guestError.style.display = 'block';
+                }
+            } else {
+                if (guestError) guestError.style.display = 'none';
+            }
+        }
+
+        // Beds check
+        if (bedInput && bedInput.value !== '') {
+            if (bVal > 5) {
+                bedInput.value = 5;
+                bVal = 5;
+                if (bedError) {
+                    bedError.textContent = 'Maximum allowed beds is 5!';
+                    bedError.style.display = 'block';
+                }
+            } else if (bVal < 1) {
+                if (bedError) {
+                    bedError.textContent = 'Minimum beds must be at least 1!';
+                    bedError.style.display = 'block';
+                }
+            } else if (bVal > pVal && pVal > 0) {
+                if (bedError) {
+                    bedError.textContent = 'Number of beds cannot exceed max guests!';
+                    bedError.style.display = 'block';
+                }
+            } else {
+                if (bedError) bedError.style.display = 'none';
+            }
+        }
+    }
+
+    if (personInput) {
+        personInput.addEventListener('input', validateGuestsAndBeds);
+        personInput.addEventListener('blur', validateGuestsAndBeds);
+    }
+    if (bedInput) {
+        bedInput.addEventListener('input', validateGuestsAndBeds);
+        bedInput.addEventListener('blur', validateGuestsAndBeds);
+    }
+
+    // --- Form Submit Guard ---
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            let prVal = parseFloat(priceInput ? priceInput.value : 0);
+            let pVal = parseInt(personInput ? personInput.value : 0);
+            let bVal = parseInt(bedInput ? bedInput.value : 0);
+
+            if (isNaN(prVal) || prVal < 100000 || prVal > 50000000) {
+                e.preventDefault();
+                if (priceError) {
+                    priceError.textContent = 'Room price must be between 100,000 VND and 50,000,000 VND / night!';
+                    priceError.style.display = 'block';
+                }
+                priceInput.focus();
+                return;
+            }
+
+            if (isNaN(pVal) || pVal < 1 || pVal > 10) {
+                e.preventDefault();
+                if (guestError) {
+                    guestError.textContent = 'Max guests must be between 1 and 10!';
+                    guestError.style.display = 'block';
+                }
+                personInput.focus();
+                return;
+            }
+
+            if (isNaN(bVal) || bVal < 1 || bVal > 5) {
+                e.preventDefault();
+                if (bedError) {
+                    bedError.textContent = 'Number of beds must be between 1 and 5!';
+                    bedError.style.display = 'block';
+                }
+                bedInput.focus();
+                return;
+            }
+
+            if (bVal > pVal) {
+                e.preventDefault();
+                if (bedError) {
+                    bedError.textContent = 'Number of beds cannot exceed max guests!';
+                    bedError.style.display = 'block';
+                }
+                bedInput.focus();
+                return;
+            }
+        });
+    }
+});
+</script>
 </body>
 </html>
