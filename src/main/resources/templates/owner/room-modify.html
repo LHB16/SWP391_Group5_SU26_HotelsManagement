@@ -44,11 +44,15 @@
                         <div class="form-card-body">
                             <!-- Room Type -->
                             <div class="mb-4">
-                                <label class="lbl" for="roomType">Room Type <span class="text-danger">*</span></label>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <label class="lbl" for="roomType">Room Type <span class="text-danger">*</span></label>
+                                    <span id="typeCounter" class="text-muted small" style="font-weight: 500;">0/30 characters</span>
+                                </div>
                                 <input type="text" name="type" id="roomType" class="fc"
                                        placeholder="e.g. Standard, Deluxe, Suite, Family"
                                        th:value="${room.type}"
-                                       required maxlength="255" />
+                                       required maxlength="30" />
+                                <div id="typeError" class="text-danger small mt-1" style="display: none; font-weight: 600;"></div>
                             </div>
 
                             <!-- Price + Area -->
@@ -56,16 +60,18 @@
                                 <div class="col-12 col-sm-6">
                                     <label class="lbl" for="roomPrice">Price / Night (VND) <span class="text-danger">*</span></label>
                                     <input type="number" name="price" id="roomPrice" class="fc"
-                                           placeholder="e.g. 500000" min="100000" step="1" 
+                                           placeholder="e.g. 500000" min="100000" max="50000000" step="1" 
                                            th:value="${#numbers.formatInteger(room.price, 0)}"
                                            required />
+                                    <div id="priceError" class="text-danger small mt-1" style="display: none; font-weight: 600;"></div>
                                 </div>
                                 <div class="col-12 col-sm-6">
                                     <label class="lbl" for="roomAcreage">Area (m²) <span class="text-danger">*</span></label>
                                     <input type="number" name="acreage" id="roomAcreage" class="fc"
-                                           placeholder="e.g. 25" min="1" step="0.1" 
+                                           placeholder="e.g. 25" min="1" max="300" step="0.1" 
                                            th:value="${room.acreage}"
                                            required />
+                                    <div id="acreageError" class="text-danger small mt-1" style="display: none; font-weight: 600;"></div>
                                 </div>
                             </div>
 
@@ -74,9 +80,10 @@
                                 <div class="col-12 col-sm-6">
                                     <label class="lbl" for="numberRooms">Number of Rooms <span class="text-danger">*</span></label>
                                     <input type="number" name="numberRooms" id="numberRooms" class="fc"
-                                           placeholder="e.g. 5" min="1" 
+                                           placeholder="e.g. 5" min="1" max="50" 
                                            th:value="${room.numberRooms}"
                                            required />
+                                    <div id="numberRoomsError" class="text-danger small mt-1" style="display: none; font-weight: 600;"></div>
                                 </div>
                                 <div class="col-12 col-sm-6">
                                     <label class="lbl">Room Status</label>
@@ -102,16 +109,18 @@
                                 <div class="col-12 col-sm-4">
                                     <label class="lbl" for="personInput">Max Guests <span class="text-danger">*</span></label>
                                     <input type="number" name="person" id="personInput" class="fc"
-                                           placeholder="e.g. 2" min="1" max="20" 
+                                           placeholder="e.g. 2" min="1" max="10" 
                                            th:value="${room.person}"
                                            required />
+                                    <div id="guestError" class="text-danger small mt-1" style="display: none; font-weight: 600;"></div>
                                 </div>
                                 <div class="col-12 col-sm-4">
                                     <label class="lbl" for="bedInput">Beds <span class="text-danger">*</span></label>
                                     <input type="number" name="bed" id="bedInput" class="fc"
-                                           placeholder="e.g. 1" min="1" max="10" 
+                                           placeholder="e.g. 1" min="1" max="5" 
                                            th:value="${room.bed}"
                                            required />
+                                    <div id="bedError" class="text-danger small mt-1" style="display: none; font-weight: 600;"></div>
                                 </div>
                                 <div class="col-12 col-sm-4">
                                     <label class="lbl" for="windowInput">Windows <span class="text-danger">*</span></label>
@@ -119,15 +128,20 @@
                                            placeholder="e.g. 0" min="0" max="10" 
                                            th:value="${room.window}"
                                            required />
+                                    <div id="windowError" class="text-danger small mt-1" style="display: none; font-weight: 600;"></div>
                                 </div>
                             </div>
 
                             <!-- Description -->
                             <div class="mb-4">
-                                <label class="lbl" for="roomDesc">Description <span class="text-danger">*</span></label>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <label class="lbl" for="roomDesc">Description <span class="text-danger">*</span></label>
+                                    <span id="descCounter" class="text-muted small" style="font-weight: 500;">0/255 characters</span>
+                                </div>
                                 <textarea name="description" id="roomDesc" class="fc" rows="4"
                                           placeholder="Describe the room's features, view, amenities..."
-                                          style="resize:vertical;" required th:text="${room.description}"></textarea>
+                                          maxlength="255" style="resize:vertical;" required th:text="${room.description}"></textarea>
+                                <div id="descError" class="text-danger small mt-1" style="display: none; font-weight: 600;"></div>
                             </div>
 
                             <div class="fdivider"></div>
@@ -307,7 +321,8 @@
                                     <div class="col-12 col-sm-6">
                                         <label class="lbl" for="freeBottledWater">Free Bottled Water (quantity)</label>
                                         <input type="number" name="freeBottledWater" id="freeBottledWater" class="fc"
-                                               th:value="${room.facility != null ? room.facility.freeBottledWater : 0}" min="0" max="20" />
+                                               th:value="${room.facility != null ? room.facility.freeBottledWater : 0}" min="0" max="10" />
+                                        <div id="waterError" class="text-danger small mt-1" style="display: none; font-weight: 600;"></div>
                                     </div>
                                 </div>
                             </div>
@@ -339,5 +354,380 @@
 
 <footer th:replace="~{fragment/frag :: footer}"></footer>
 <div th:replace="~{fragment/frag :: scripts}"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const typeInput = document.getElementById('roomType');
+    const typeError = document.getElementById('typeError');
+    const priceInput = document.getElementById('roomPrice');
+    const priceError = document.getElementById('priceError');
+    const acreageInput = document.getElementById('roomAcreage');
+    const acreageError = document.getElementById('acreageError');
+    const numberRoomsInput = document.getElementById('numberRooms');
+    const numberRoomsError = document.getElementById('numberRoomsError');
+    const personInput = document.getElementById('personInput');
+    const guestError = document.getElementById('guestError');
+    const bedInput = document.getElementById('bedInput');
+    const bedError = document.getElementById('bedError');
+    const windowInput = document.getElementById('windowInput');
+    const windowError = document.getElementById('windowError');
+    const descInput = document.getElementById('roomDesc');
+    const descError = document.getElementById('descError');
+    const waterInput = document.getElementById('freeBottledWater');
+    const waterError = document.getElementById('waterError');
+    const form = document.getElementById('roomForm');
+
+    // Room Type validation & live character counter (max 30)
+    const typeCounter = document.getElementById('typeCounter');
+    function updateTypeCounter() {
+        if (!typeInput) return;
+        let len = typeInput.value.length;
+        if (typeCounter) {
+            typeCounter.textContent = len + '/30 characters';
+            if (len >= 30) {
+                typeCounter.className = 'text-danger small fw-bold';
+            } else {
+                typeCounter.className = 'text-muted small';
+            }
+        }
+        if (len >= 30) {
+            if (typeError) {
+                typeError.textContent = 'Maximum limit of 30 characters reached!';
+                typeError.style.display = 'block';
+            }
+        } else {
+            if (typeError) typeError.style.display = 'none';
+        }
+    }
+
+    if (typeInput) {
+        typeInput.addEventListener('input', function() {
+            if (this.value.length > 30) {
+                this.value = this.value.substring(0, 30);
+            }
+            updateTypeCounter();
+        });
+        typeInput.addEventListener('keyup', updateTypeCounter);
+        updateTypeCounter();
+    }
+
+    // Price validation
+    if (priceInput) {
+        priceInput.addEventListener('input', function() {
+            let val = parseFloat(this.value);
+            if (this.value !== '' && (isNaN(val) || val > 50000000)) {
+                this.value = 50000000;
+                if (priceError) {
+                    priceError.textContent = 'Maximum allowed price is 50,000,000 VND / night!';
+                    priceError.style.display = 'block';
+                }
+            } else if (!isNaN(val) && val < 100000 && this.value !== '') {
+                if (priceError) {
+                    priceError.textContent = 'Minimum price must be at least 100,000 VND / night!';
+                    priceError.style.display = 'block';
+                }
+            } else {
+                if (priceError) priceError.style.display = 'none';
+            }
+        });
+
+        priceInput.addEventListener('blur', function() {
+            let val = parseFloat(this.value);
+            if (!isNaN(val) && val > 50000000) this.value = 50000000;
+            if (!isNaN(val) && val >= 100000 && val <= 50000000) {
+                if (priceError) priceError.style.display = 'none';
+            }
+        });
+    }
+
+    // Area (m²) validation (max 300)
+    if (acreageInput) {
+        acreageInput.addEventListener('input', function() {
+            let val = parseFloat(this.value);
+            if (this.value !== '' && (isNaN(val) || val > 300)) {
+                this.value = 300;
+                if (acreageError) {
+                    acreageError.textContent = 'Maximum allowed area is 300 m²!';
+                    acreageError.style.display = 'block';
+                }
+            } else if (!isNaN(val) && val < 1 && this.value !== '') {
+                if (acreageError) {
+                    acreageError.textContent = 'Minimum area must be at least 1 m²!';
+                    acreageError.style.display = 'block';
+                }
+            } else {
+                if (acreageError) acreageError.style.display = 'none';
+            }
+        });
+    }
+
+    // Number of rooms validation (max 50)
+    if (numberRoomsInput) {
+        numberRoomsInput.addEventListener('input', function() {
+            let val = parseInt(this.value);
+            if (this.value !== '' && (isNaN(val) || val > 50)) {
+                this.value = 50;
+                if (numberRoomsError) {
+                    numberRoomsError.textContent = 'Maximum allowed number of rooms is 50!';
+                    numberRoomsError.style.display = 'block';
+                }
+            } else if (!isNaN(val) && val < 1 && this.value !== '') {
+                if (numberRoomsError) {
+                    numberRoomsError.textContent = 'Minimum number of rooms must be at least 1!';
+                    numberRoomsError.style.display = 'block';
+                }
+            } else {
+                if (numberRoomsError) numberRoomsError.style.display = 'none';
+            }
+        });
+    }
+
+    // Windows validation (max 10)
+    if (windowInput) {
+        windowInput.addEventListener('input', function() {
+            let val = parseInt(this.value);
+            if (this.value !== '' && (isNaN(val) || val > 10)) {
+                this.value = 10;
+                if (windowError) {
+                    windowError.textContent = 'Maximum allowed windows is 10!';
+                    windowError.style.display = 'block';
+                }
+            } else if (!isNaN(val) && val < 0 && this.value !== '') {
+                if (windowError) {
+                    windowError.textContent = 'Number of windows cannot be negative!';
+                    windowError.style.display = 'block';
+                }
+            } else {
+                if (windowError) windowError.style.display = 'none';
+            }
+        });
+    }
+
+    // Free Bottled Water validation (max 10)
+    if (waterInput) {
+        waterInput.addEventListener('input', function() {
+            let val = parseInt(this.value);
+            if (this.value !== '' && (isNaN(val) || val > 10)) {
+                this.value = 10;
+                if (waterError) {
+                    waterError.textContent = 'Maximum allowed bottled water is 10!';
+                    waterError.style.display = 'block';
+                }
+            } else if (!isNaN(val) && val < 0 && this.value !== '') {
+                if (waterError) {
+                    waterError.textContent = 'Quantity cannot be negative!';
+                    waterError.style.display = 'block';
+                }
+            } else {
+                if (waterError) waterError.style.display = 'none';
+            }
+        });
+    }
+
+    // Description validation & live character counter (max 255)
+    const descCounter = document.getElementById('descCounter');
+    function updateDescCounter() {
+        if (!descInput) return;
+        let len = descInput.value.length;
+        if (descCounter) {
+            descCounter.textContent = len + '/255 characters';
+            if (len >= 255) {
+                descCounter.className = 'text-danger small fw-bold';
+            } else {
+                descCounter.className = 'text-muted small';
+            }
+        }
+        if (len >= 255) {
+            if (descError) {
+                descError.textContent = 'Maximum limit of 255 characters reached!';
+                descError.style.display = 'block';
+            }
+        } else {
+            if (descError) descError.style.display = 'none';
+        }
+    }
+
+    if (descInput) {
+        descInput.addEventListener('input', function() {
+            if (this.value.length > 255) {
+                this.value = this.value.substring(0, 255);
+            }
+            updateDescCounter();
+        });
+        descInput.addEventListener('keyup', updateDescCounter);
+        updateDescCounter();
+    }
+
+    // Max Guests & Beds validation
+    function validateGuestsAndBeds() {
+        let pVal = parseInt(personInput ? personInput.value : 0);
+        let bVal = parseInt(bedInput ? bedInput.value : 0);
+
+        if (personInput && personInput.value !== '') {
+            if (pVal > 10) {
+                personInput.value = 10;
+                pVal = 10;
+                if (guestError) {
+                    guestError.textContent = 'Maximum allowed guests is 10!';
+                    guestError.style.display = 'block';
+                }
+            } else if (pVal < 1) {
+                if (guestError) {
+                    guestError.textContent = 'Minimum guests must be at least 1!';
+                    guestError.style.display = 'block';
+                }
+            } else {
+                if (guestError) guestError.style.display = 'none';
+            }
+        }
+
+        if (bedInput && bedInput.value !== '') {
+            if (bVal > 5) {
+                bedInput.value = 5;
+                bVal = 5;
+                if (bedError) {
+                    bedError.textContent = 'Maximum allowed beds is 5!';
+                    bedError.style.display = 'block';
+                }
+            } else if (bVal < 1) {
+                if (bedError) {
+                    bedError.textContent = 'Minimum beds must be at least 1!';
+                    bedError.style.display = 'block';
+                }
+            } else if (bVal > pVal && pVal > 0) {
+                if (bedError) {
+                    bedError.textContent = 'Number of beds cannot exceed max guests!';
+                    bedError.style.display = 'block';
+                }
+            } else {
+                if (bedError) bedError.style.display = 'none';
+            }
+        }
+    }
+
+    if (personInput) {
+        personInput.addEventListener('input', validateGuestsAndBeds);
+        personInput.addEventListener('blur', validateGuestsAndBeds);
+    }
+    if (bedInput) {
+        bedInput.addEventListener('input', validateGuestsAndBeds);
+        bedInput.addEventListener('blur', validateGuestsAndBeds);
+    }
+
+    // --- Form Submit Guard ---
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            let tVal = typeInput ? typeInput.value.trim() : '';
+            let prVal = parseFloat(priceInput ? priceInput.value : 0);
+            let aVal = parseFloat(acreageInput ? acreageInput.value : 0);
+            let nVal = parseInt(numberRoomsInput ? numberRoomsInput.value : 0);
+            let pVal = parseInt(personInput ? personInput.value : 0);
+            let bVal = parseInt(bedInput ? bedInput.value : 0);
+            let wVal = parseInt(windowInput ? windowInput.value : 0);
+            let dVal = descInput ? descInput.value.trim() : '';
+            let wtVal = parseInt(waterInput ? waterInput.value : 0);
+
+            if (!tVal || tVal.length > 30) {
+                e.preventDefault();
+                if (typeError) {
+                    typeError.textContent = 'Room type cannot exceed 30 characters!';
+                    typeError.style.display = 'block';
+                }
+                typeInput.focus();
+                return;
+            }
+
+            if (isNaN(prVal) || prVal < 100000 || prVal > 50000000) {
+                e.preventDefault();
+                if (priceError) {
+                    priceError.textContent = 'Room price must be between 100,000 VND and 50,000,000 VND / night!';
+                    priceError.style.display = 'block';
+                }
+                priceInput.focus();
+                return;
+            }
+
+            if (isNaN(aVal) || aVal < 1 || aVal > 300) {
+                e.preventDefault();
+                if (acreageError) {
+                    acreageError.textContent = 'Area must be between 1 and 300 m²!';
+                    acreageError.style.display = 'block';
+                }
+                acreageInput.focus();
+                return;
+            }
+
+            if (isNaN(nVal) || nVal < 1 || nVal > 50) {
+                e.preventDefault();
+                if (numberRoomsError) {
+                    numberRoomsError.textContent = 'Number of rooms must be between 1 and 50!';
+                    numberRoomsError.style.display = 'block';
+                }
+                numberRoomsInput.focus();
+                return;
+            }
+
+            if (isNaN(pVal) || pVal < 1 || pVal > 10) {
+                e.preventDefault();
+                if (guestError) {
+                    guestError.textContent = 'Max guests must be between 1 and 10!';
+                    guestError.style.display = 'block';
+                }
+                personInput.focus();
+                return;
+            }
+
+            if (isNaN(bVal) || bVal < 1 || bVal > 5) {
+                e.preventDefault();
+                if (bedError) {
+                    bedError.textContent = 'Number of beds must be between 1 and 5!';
+                    bedError.style.display = 'block';
+                }
+                bedInput.focus();
+                return;
+            }
+
+            if (bVal > pVal) {
+                e.preventDefault();
+                if (bedError) {
+                    bedError.textContent = 'Number of beds cannot exceed max guests!';
+                    bedError.style.display = 'block';
+                }
+                bedInput.focus();
+                return;
+            }
+
+            if (isNaN(wVal) || wVal < 0 || wVal > 10) {
+                e.preventDefault();
+                if (windowError) {
+                    windowError.textContent = 'Number of windows must be between 0 and 10!';
+                    windowError.style.display = 'block';
+                }
+                windowInput.focus();
+                return;
+            }
+
+            if (dVal.length > 255) {
+                e.preventDefault();
+                if (descError) {
+                    descError.textContent = 'Description cannot exceed 255 characters!';
+                    descError.style.display = 'block';
+                }
+                descInput.focus();
+                return;
+            }
+
+            if (isNaN(wtVal) || wtVal < 0 || wtVal > 10) {
+                e.preventDefault();
+                if (waterError) {
+                    waterError.textContent = 'Free bottled water quantity must be between 0 and 10!';
+                    waterError.style.display = 'block';
+                }
+                waterInput.focus();
+                return;
+            }
+        });
+    }
+});
+</script>
 </body>
 </html>

@@ -20,6 +20,8 @@ import vn.edu.fpt.hotel_management.repository.CustomerRepository;
 import vn.edu.fpt.hotel_management.repository.FeedbackRepository;
 import vn.edu.fpt.hotel_management.repository.PromotionRepository;
 
+import vn.edu.fpt.hotel_management.service.EmailService;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,6 +30,9 @@ import java.util.Map;
 
 @Controller
 public class BookingController {
+
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private RoomRepository roomRepository;
@@ -626,6 +631,9 @@ public class BookingController {
         refund.setCancellationReason(reason);
         refund.setRequestedAt(java.time.LocalDateTime.now());
         refundRepository.save(refund);
+
+        // Gửi email xác nhận đã nhận yêu cầu hoàn tiền cho khách hàng
+        emailService.sendRefundSubmitted(refund);
 
         String formattedAmount = String.format("%,.0f", refundAmount.doubleValue());
         redirectAttributes.addFlashAttribute("successMessage",

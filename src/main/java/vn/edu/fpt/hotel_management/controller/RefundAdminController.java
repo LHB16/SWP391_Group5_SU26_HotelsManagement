@@ -18,11 +18,16 @@ import vn.edu.fpt.hotel_management.repository.PaymentRepository;
 import vn.edu.fpt.hotel_management.repository.HotelOwnerRepository;
 import vn.edu.fpt.hotel_management.repository.HotelRepository;
 
+import vn.edu.fpt.hotel_management.service.EmailService;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
 public class RefundAdminController {
+
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private RefundRepository refundRepository;
@@ -99,6 +104,13 @@ public class RefundAdminController {
                 }
                 paymentRepository.save(payment);
             }
+        }
+
+        // Gửi email thông báo kết quả xử lý hoàn tiền cho khách hàng
+        if ("PROCESSED".equals(normalizedStatus)) {
+            emailService.sendRefundProcessed(refund);
+        } else if ("REJECTED".equals(normalizedStatus)) {
+            emailService.sendRefundRejected(refund);
         }
 
         String message = normalizedStatus.equals("PROCESSED")
